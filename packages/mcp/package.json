@@ -1,0 +1,24 @@
+{
+  "name": "@rjls/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test src/*.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@rjls/contracts": "workspace:*",
+    "@rjls/model-project": "workspace:*",
+    "@rjls/renderer": "workspace:*",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": { "@types/node": "^22.10.2", "rimraf": "^6.0.1" }
+}

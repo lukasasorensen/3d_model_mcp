@@ -1,0 +1,8 @@
+{
+  "revision": "R1",
+  "coordinateSystem": { "origin": "base-center-bottom", "units": "mm", "axisConvention": "right-handed-z-up" },
+  "base": { "width": 80, "depth": 40, "thickness": 6 },
+  "upright": { "yMin": 14, "yMax": 20, "zMin": 6, "zMax": 46, "thickness": 6, "height": 40 },
+  "holes": { "diameter": 5, "centers": [[-25, -10], [25, -10]] },
+  "bounds": { "min": [-40, -20, 0], "max": [40, 20, 46] }
+}

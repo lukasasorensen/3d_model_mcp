@@ -1,0 +1,8 @@
+{
+  "revision": "R2",
+  "expectedParent": "R1",
+  "base": { "width": 100, "depth": 40, "thickness": 6 },
+  "upright": { "yMin": 14, "yMax": 20, "zMin": 6, "zMax": 46, "thickness": 6, "height": 40 },
+  "holes": { "diameter": 5, "centers": [[-35, -10], [35, -10]] },
+  "bounds": { "min": [-50, -20, 0], "max": [50, 20, 46] }
+}

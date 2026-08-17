@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "story": "G006-canonical-journey-and-release-quality",
+  "implementation": {
+    "status": "PASS",
+    "verificationCommand": "pnpm verify",
+    "evidence": [
+      "actual LangChain createAgent with deterministic mock model",
+      "official MCP SDK in-memory and stdio client/server negotiation",
+      "immutable repository R1-R2-R3 parent/source/artifact linkage",
+      "test-only independently valid binary STL and 3MF fixture",
+      "promotion-only current, restore-as-new-child, hostile no-corruption matrix",
+      "versioned observability, redaction, bounded labels/volume, readiness transitions"
+    ],
+    "performanceEvidence": "packages/runtime/src/canonical-journey.test.mjs emits one G006_PERFORMANCE_EVIDENCE JSON record containing all 20 renderer and journey durations, p95 values, CPU/RAM/OS/Node fingerprint, explicit browser unavailability, dependency lock hash, and renderer/BOSL2/toolchain pins. This is deterministic-fixture evidence, not production OCI performance evidence.",
+    "canonicalMeshEvidence": "The frozen binary STL fixture passes the production closed/oriented manifold audit, has exactly one edge-connected component, and is inspected from mesh geometry for two 5 mm through-hole extents/spacing and symmetric R3 gusset volume with 6 mm thickness and 20 mm legs.",
+    "hostileFixtureEvidence": "Every file under fixtures/scad is enumerated and classified; forbidden references fail at source admission, hazardous render cases reject, valid BOSL2 validates, and CURRENT remains unchanged throughout.",
+    "observabilityEvidence": "Configured runtime retains bounded per-request snapshots and exposes both snapshot/drain retrieval and an external exporter callback. Gateway records and required server-boundary metrics are emitted from actual agent, official MCP result, render, promotion, artifact, cancellation, timeout, failure, and restore paths; labels are schema-limited to service, operation, outcome, and optional diagnosticCode. Browser viewer-load failures remain a UI/browser boundary and are not falsely claimed as server metrics."
+  },
+  "release": {
+    "status": "ENVIRONMENT_BLOCKED",
+    "blockedEvidence": [
+      "real approved OCI/OpenSCAD/BOSL2 pins and effective isolation attestation",
+      "real renderer 20-run latency and deterministic hash evidence",
+      "browser screenshots, decode p95, 100-swap heap/browser trace",
+      "live provider CP-4A evaluation and CP-4B selection",
+      "public deployment CP-5",
+      "repository license and final third-party notice decision"
+    ],
+    "claim": "Blocked gates are not counted as passes. No public or live-provider release is claimed."
+  }
+}

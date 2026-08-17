@@ -1,0 +1,1 @@
+difference( { cube([1, 1, 1]); }
