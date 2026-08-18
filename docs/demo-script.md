@@ -4,12 +4,9 @@
 
 1. Install Node `>=22.9.0` and pnpm `11.17.0`.
 2. Run `pnpm install --frozen-lockfile`.
-3. Copy `.env.example` to `.env.local` and fill every strict renderer pin:
-   rootless Docker/Podman or VM-backed mode, `image@sha256:...`, OpenSCAD version,
-   binary/help hashes, BOSL2 absolute path/version/tree digest, and project root.
-4. Obtain BOSL2 at the exact approved release/commit and verify the configured tree
-   digest. Floating branches and tags are not accepted as provenance.
-5. Run `pnpm test:renderer:strict`, then `pnpm verify`, then `pnpm dev`.
+3. Run `pnpm prepare:browser-renderer`; this downloads and verifies the pinned
+   OpenSCAD WASM and BOSL2 archives.
+4. Run `pnpm verify`, then `pnpm dev`.
 
 The UI uses the credential-free `RJLS_CHAT_PROVIDER=mock`. Enter these requests in
 one project:
@@ -29,17 +26,16 @@ hole centers ±35,-10; R3 gussets centered at X=±35 spanning Y=-6..14 and Z=6..
 ```bash
 pnpm --filter @rjls/runtime test
 pnpm --filter @rjls/site test
-pnpm test:renderer:strict
 pnpm verify
 ```
 
 The runtime integration suite executes the actual LangChain `createAgent`, official
 MCP SDK client/server, repository, strict contracts, deterministic binary artifact
 parsers, restore semantics, hostile cases, and observability evidence. The injected
-renderer is explicitly test-only and must not be reported as real OCI evidence.
+renderer is explicitly test-only and must not be reported as browser WASM evidence.
 
-Real OCI/OpenSCAD/BOSL2 smoke evidence is unavailable until exact approved pins and
-runtime configuration exist. Browser screenshots at 1440×900, 1100×800, 900×1024,
+Real browser OpenSCAD/BOSL2 smoke evidence requires a browser test backend.
+Browser screenshots at 1440×900, 1100×800, 900×1024,
 768×1024, and 390×844 plus Chromium decode/heap traces remain environment-blocked
 when no browser backend is installed. Live-provider evaluation and default selection
 remain blocked behind CP-4A/CP-4B. A2A is deferred research only; no A2A runtime or

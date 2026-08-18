@@ -40,6 +40,7 @@ export async function checkTemplateLeaks({ cwd = process.cwd(), listFiles = list
     try {
       text = (await readText(resolve(cwd, file), "utf8")).toLowerCase();
     } catch (error) {
+      if (readErrorCode(error) === "ENOENT") continue;
       findings.push(`${file}: unable to read source file (${readErrorCode(error)})`);
       continue;
     }

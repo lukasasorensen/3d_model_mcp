@@ -12,23 +12,16 @@ renderer, MCP, gateway, and runtime concerns.
 apps/site              React/Next.js application shell
 packages/contracts     browser-safe shared contracts
 packages/model-project project and revision domain boundary
-packages/renderer      isolated rendering boundary
+packages/renderer      legacy bounded STL/3MF codecs
 packages/mcp           transport-neutral MCP boundary
 packages/gateway       chat and provider orchestration boundary
 packages/runtime       local combined-process boundary
 ```
 
-The renderer defaults to the strict `production-oci` provenance profile. A code-level
-`TrustedLocalOpenScadRenderer` adapter is available only as an explicit development opt-in;
-it runs the configured host OpenSCAD executable without isolation, warns on every render,
-records `trusted-local-development` provenance, and the model repository refuses to promote
-its artifacts even if a caller's provenance callback accepts them. `pnpm test:renderer:strict`
-never falls back to this adapter and exits nonzero unless all pinned OCI/runtime prerequisites
-are configured and available.
-
-The OCI controller makes a bounded force-removal attempt for every known container ID, including
-start, timeout, cancellation, and evidence-check failures. Cleanup can still fail if the daemon is
-unavailable, and a daemon failure before returning an ID leaves no safe container target to remove.
+OpenSCAD runs in the browser as a pinned WebAssembly module. A fresh Web Worker mounts the
+pinned BOSL2 source bundle, renders with the Manifold backend, and is terminated after each
+job. The server stores canonical OpenSCAD source and revision history only; generated STL
+previews and 3MF downloads remain in the browser.
 
 Install and verify the workspace:
 
@@ -55,14 +48,13 @@ The credential-free default is `RJLS_CHAT_PROVIDER=mock`. It is deterministic
 and supports the canonical blank bracket, 100 mm width edit, gusset edit, and
 3MF export prompts for local demos and tests. No live-provider adapter or
 default model is selected; that remains behind the provider evaluation gate.
-The chat route still requires the strict OCI renderer configuration above,
-because the agent cannot bypass MCP to fabricate a revision or artifact.
+The chat route pauses candidate validation until the originating browser reports the result
+of rendering the exact candidate source hash. Invalid code never replaces the current revision.
 
 ## Release status
 
-The deterministic integration harness proves the implementation path with an
-explicit test-only renderer fixture; it does not prove real OCI isolation or actual
-OpenSCAD/BOSL2 output. Real renderer smoke/performance evidence, browser screenshots
+The deterministic integration harness proves the server workflow with an explicit test-only
+renderer fixture. Browser OpenSCAD/BOSL2 smoke evidence, browser screenshots
 and heap traces, live-provider evaluation/default selection, public deployment, and
 the repository license/third-party notice decision remain blocked or deferred. See
 [`docs/g006-verification-evidence.json`](docs/g006-verification-evidence.json). A2A

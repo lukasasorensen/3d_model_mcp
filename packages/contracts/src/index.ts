@@ -3,6 +3,16 @@ import * as z from "zod/v4";
 export const CONTRACT_VERSION = "1" as const;
 export const CHAT_CONTRACT_VERSION = "3" as const;
 export const PRODUCT_ID = "3d_model_mcp" as const;
+export const BROWSER_RENDERER = Object.freeze({
+  openscadVersion: "2026.07.20",
+  openscadArchiveSha256: "8b81d3d025f29bc1dec40a2ce5acbad5bd06a0f568c1bfa1f6572ad5baa97dcd",
+  openscadGlueSha256: "e458673d46d506d77b780c526d6e5492250f353d582057c6f912724a9586d86e",
+  openscadWasmSha256: "c19a3a868991e86f76f22f254e04002db45f00c91f24e4c672cf93c859e80e19",
+  bosl2Version: "v2.0.741",
+  bosl2ArchiveSha256: "4fb7b58cbeadfe5f8c5a037d9e1392d774117d48423f95f4203aa367d8b1ea88",
+  backend: "manifold",
+  timeoutMs: 60_000,
+});
 
 export const CAD_LIMITS = Object.freeze({
   sourceBytes: 256 * 1024,
@@ -72,6 +82,7 @@ export const cadErrorCodeSchema = z.enum([
   "PROVENANCE_MISMATCH",
   "CORRUPT_PROJECT",
   "RENDER_FAILED",
+  "BROWSER_RENDERER_UNAVAILABLE",
   "CANCELLED",
   "LOCK_TIMEOUT",
   "INTERNAL_ERROR",
@@ -127,12 +138,30 @@ const rendererProvenanceBase = {
 export const rendererProvenanceSchema = z.discriminatedUnion("profile", [
   z.object({ ...rendererProvenanceBase, profile: z.literal("production-oci"), attestation: productionAttestationSchema }).strict(),
   z.object({ ...rendererProvenanceBase, profile: z.literal("trusted-local-development"), attestation: trustedLocalAttestationSchema }).strict(),
+  z.object({
+    profile: z.literal("browser-wasm"),
+    renderer: z.literal("openscad-wasm"),
+    rendererVersion: z.string().min(1).max(100),
+    openscadVersion: z.literal(BROWSER_RENDERER.openscadVersion),
+    openscadWasmHash: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+    openscadGlueHash: z.string().regex(/^sha256:[a-f0-9]{64}$/),
+    bosl2Version: z.literal(BROWSER_RENDERER.bosl2Version),
+    bosl2Digest: z.literal(`sha256:${BROWSER_RENDERER.bosl2ArchiveSha256}`),
+    backend: z.literal(BROWSER_RENDERER.backend),
+    commandPolicyVersion: z.string().min(1).max(100),
+    validationPolicyVersion: z.string().min(1).max(100),
+  }).strict(),
 ]);
 export type RendererProvenance = z.infer<typeof rendererProvenanceSchema>;
 
 export function isProductionRendererProvenance(provenance: RendererProvenance): boolean {
   const parsed = rendererProvenanceSchema.safeParse(provenance);
   return parsed.success && parsed.data.profile === "production-oci";
+}
+
+export function isBrowserRendererProvenance(provenance: RendererProvenance): boolean {
+  const parsed = rendererProvenanceSchema.safeParse(provenance);
+  return parsed.success && parsed.data.profile === "browser-wasm";
 }
 
 export interface RenderedArtifact {
@@ -161,7 +190,7 @@ export interface CandidateRenderRequest {
   signal?: AbortSignal;
 }
 
-/** Implementations resolve every executable, flag, path, mount, and environment value server-side. */
+/** Implementations validate the exact source hash through the configured rendering boundary. */
 export interface CadRenderer {
   validateAndRender(request: CandidateRenderRequest): Promise<RenderValidationResult>;
 }
@@ -296,7 +325,9 @@ export const readModelSourceOutputSchema = z
 export const proposeModelSourceOutputSchema = z.object({ candidate: candidateRecordSchema }).strict();
 export const validateAndRenderOutputSchema = z.object({ candidate: candidateRecordSchema }).strict();
 export const promoteCandidateOutputSchema = z.object({ revision: revisionManifestSchema }).strict();
-export const exportModelOutputSchema = z.object({ artifact: artifactManifestSchema }).strict();
+export const exportModelOutputSchema = z.object({
+  export: z.object({ revision: revisionIdSchema, source: z.string().min(1).max(CAD_LIMITS.sourceBytes), sourceHash: z.string().regex(/^[a-f0-9]{64}$/), format: z.literal("3mf") }).strict(),
+}).strict();
 export const listRevisionsOutputSchema = z.object({ revisions: z.array(revisionManifestSchema) }).strict();
 export const restoreRevisionOutputSchema = z.object({ revision: revisionManifestSchema }).strict();
 
@@ -383,6 +414,30 @@ export const artifactEventSchema = z.object({
   hash: z.string().regex(/^[a-f0-9]{64}$/),
   byteSize: z.number().int().nonnegative().max(CAD_LIMITS.exportBytes),
 }).strict();
+export const browserRenderRequestEventSchema = z.object({
+  ...chatEventBase,
+  type: z.literal("browser_render_request"),
+  toolCallId: toolCallIdSchema,
+  jobId: opaqueIdSchema,
+  token: z.string().regex(/^[a-f0-9]{64}$/),
+  purpose: z.enum(["candidate", "restore", "export"]),
+  candidateId: candidateIdSchema.optional(),
+  revisionId: revisionIdSchema.optional(),
+  source: z.string().min(1).max(CAD_LIMITS.sourceBytes),
+  sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
+  format: z.enum(["stl", "3mf"]),
+  deadline: z.string().datetime({ offset: true }),
+}).strict();
+
+export const browserRenderCompletionSchema = z.object({
+  token: z.string().regex(/^[a-f0-9]{64}$/),
+  sessionId: sessionIdSchema,
+  sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
+  outcome: z.enum(["VALID", "REJECTED"]),
+  diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
+  provenance: rendererProvenanceSchema.refine((value) => value.profile === "browser-wasm", "browser WASM provenance required"),
+}).strict();
+export type BrowserRenderCompletion = z.infer<typeof browserRenderCompletionSchema>;
 export const chatErrorCodeSchema = z.enum([
   "INVALID_REQUEST", "ORIGIN_DENIED", "SESSION_MISMATCH", "PROVIDER_FAILURE", "MCP_FAILURE",
   "CAD_TOOL_REJECTED", "RENDERER_FAILURE", "TOOL_LIMIT_EXCEEDED", "REPAIR_LIMIT_EXCEEDED",
@@ -404,7 +459,7 @@ export const doneEventSchema = z.object({
 }).strict();
 export const chatEventSchema = z.union([
   assistantDeltaEventSchema, toolStartEventSchema, toolResultEventSchema, revisionEventSchema,
-  artifactEventSchema, chatErrorEventSchema, doneEventSchema,
+  artifactEventSchema, browserRenderRequestEventSchema, chatErrorEventSchema, doneEventSchema,
 ]);
 export type ChatEvent = z.infer<typeof chatEventSchema>;
 

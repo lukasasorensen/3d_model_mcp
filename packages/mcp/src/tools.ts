@@ -109,13 +109,13 @@ export function createCadToolRegistry(repository: ModelProjectRepository): CadTo
     },
     export_model: {
       title: "Get export metadata",
-      description: "Return validated 3MF export metadata for the authoritative current revision only; binary serving remains a separate trusted boundary.",
+      description: "Authorize browser-side 3MF generation for the authoritative current revision.",
       inputSchema: exportModelInputSchema,
       outputSchema: exportModelOutputSchema,
       readOnly: true,
       execute: async (raw) => {
         const input = exportModelInputSchema.parse(raw);
-        return boundedResult({ artifact: await repository.getExportMetadata(input.projectId, input.revision, input.format) });
+        return boundedResult({ export: await repository.getExportMetadata(input.projectId, input.revision, input.format) });
       },
     },
     list_revisions: {

@@ -8,16 +8,16 @@
     "node": ">=22.9.0"
   },
   "scripts": {
-    "dev": "pnpm --filter @rjls/site dev",
-    "dev:site": "pnpm --filter @rjls/site dev",
-    "build": "pnpm build:packages && pnpm --filter @rjls/site build",
+    "prepare:browser-renderer": "node scripts/prepare-browser-renderer.mjs",
+    "dev": "pnpm prepare:browser-renderer && pnpm --filter @rjls/site dev",
+    "dev:site": "pnpm prepare:browser-renderer && pnpm --filter @rjls/site dev",
+    "build": "pnpm prepare:browser-renderer && pnpm build:packages && pnpm --filter @rjls/site build",
     "build:packages": "pnpm --filter @rjls/contracts build && pnpm --filter @rjls/model-project build && pnpm --filter @rjls/renderer build && pnpm --filter @rjls/mcp build && pnpm --filter @rjls/gateway build && pnpm --filter @rjls/runtime build",
     "typecheck": "pnpm build:packages && pnpm --filter @rjls/site typecheck",
     "lint": "eslint . --ext .js,.mjs,.ts,.tsx --max-warnings=0",
     "test": "pnpm build:packages && pnpm --filter './packages/*' test && pnpm --filter @rjls/site test",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
     "test:boundaries": "node --test scripts/check-package-boundaries.test.mjs",
-    "test:renderer:strict": "node scripts/check-render-environment.mjs",
     "check:leaks": "node scripts/check-template-leaks.mjs",
     "clean": "pnpm --filter './packages/*' clean && pnpm --filter @rjls/site clean",
     "verify": "pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:leaks && pnpm check:boundaries"
@@ -26,6 +26,7 @@
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "eslint": "^8.57.1",
+    "fflate": "0.8.2",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2"
   }

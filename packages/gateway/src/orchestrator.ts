@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   CHAT_LIMITS,
+  BROWSER_RENDERER,
   CAD_LIMITS,
   artifactManifestSchema,
   chatEventSchema,
@@ -139,7 +140,7 @@ const toolSpecs = [
   { name: "propose_model_source", description: "Propose bounded OpenSCAD source against a parent revision.", schema: proposeModelSourceInputSchema.omit({ requestId: true, toolCallId: true }) },
   { name: "validate_and_render", description: "Validate and render a candidate using the standard profile.", schema: validateAndRenderInputSchema },
   { name: "promote_candidate", description: "Atomically promote a valid candidate.", schema: promoteCandidateInputSchema },
-  { name: "export_model", description: "Get validated 3MF export metadata.", schema: exportModelInputSchema },
+  { name: "export_model", description: "Authorize browser-side 3MF generation for the current revision.", schema: exportModelInputSchema },
   { name: "list_revisions", description: "List authoritative revision history.", schema: listRevisionsInputSchema },
   { name: "restore_revision", description: "Restore a historical revision as a new current child.", schema: restoreRevisionInputSchema.omit({ requestId: true, toolCallId: true }) },
 ] as const satisfies ReadonlyArray<{ name: CadToolName; description: string; schema: z.ZodType }>;
@@ -151,6 +152,12 @@ export interface ChatOrchestratorOptions {
   clock?: () => Date;
   timeoutMs?: number;
   createObservabilitySink?: () => { record(event: ObservabilityEnvelope): void; metric?(sample: MetricSample): void };
+  browserRenderer?: {
+    subscribe(candidateId: string, sessionId: string, callback: (request: {
+      jobId: string; token: string; purpose: "candidate"; candidateId: string; source: string;
+      sourceHash: string; format: "stl"; deadline: string;
+    }) => void): () => void;
+  };
 }
 
 export async function* streamCadChat(request: ChatRequest, options: ChatOrchestratorOptions, signal?: AbortSignal): AsyncGenerator<ChatEvent> {
@@ -239,13 +246,23 @@ export async function* streamCadChat(request: ChatRequest, options: ChatOrchestr
         emit({ type: "tool_start", tool: spec.name, toolCallId, round: toolRounds });
         let result: CadMcpToolResult;
         const toolStarted = performance.now();
+        let unsubscribe: (() => void) | undefined;
         try {
+          if (spec.name === "validate_and_render" && typeof input.candidateId === "string" && options.browserRenderer) {
+            unsubscribe = options.browserRenderer.subscribe(input.candidateId, request.sessionId, (renderRequest) => emit({
+              type: "browser_render_request",
+              toolCallId,
+              ...renderRequest,
+            }));
+          }
           result = await options.client.callTool(spec.name, input, { signal: combinedSignal });
         } catch {
           if (spec.name === "validate_and_render") metric({ name: "render_duration_ms", value: Math.min(performance.now() - toolStarted, CHAT_LIMITS.requestTimeoutMs), labels: { service: "gateway", operation: "validate_and_render", outcome: "failure", diagnosticCode: "MCP_FAILURE" } });
           emit({ type: "tool_result", tool: spec.name, toolCallId, outcome: "error", code: "MCP_FAILURE" });
           if (!terminalFailure) terminalFailure = "MCP_FAILURE";
           throw new Error("MCP_FAILURE");
+        } finally {
+          unsubscribe?.();
         }
         if (result.isError || !result.structuredContent) {
           const code = safeCode(result.error?.code);
@@ -281,6 +298,22 @@ export async function* streamCadChat(request: ChatRequest, options: ChatOrchestr
         }
         const modelSource = (result.structuredContent.model as { source?: unknown } | undefined)?.source;
         if (typeof modelSource === "string") sensitiveValues.add(modelSource);
+        const exportRequest = result.structuredContent.export as { revision?: unknown; source?: unknown; sourceHash?: unknown; format?: unknown } | undefined;
+        if (spec.name === "export_model" && typeof exportRequest?.revision === "string" && typeof exportRequest.source === "string" && typeof exportRequest.sourceHash === "string" && exportRequest.format === "3mf") {
+          sensitiveValues.add(exportRequest.source);
+          emit({
+            type: "browser_render_request",
+            toolCallId,
+            jobId: `${toolCallId}-export`,
+            token: `${randomUUID()}${randomUUID()}`.replaceAll("-", ""),
+            purpose: "export",
+            revisionId: exportRequest.revision,
+            source: exportRequest.source,
+            sourceHash: exportRequest.sourceHash,
+            format: "3mf",
+            deadline: new Date(clock().getTime() + BROWSER_RENDERER.timeoutMs).toISOString(),
+          });
+        }
         projectStructuredEvents(spec.name, toolCallId, result.structuredContent, emit);
         return serialized;
       }, { name: spec.name, description: spec.description, schema: spec.schema }));

@@ -6,46 +6,37 @@ import test from "node:test";
 import { ModelProjectRepository } from "@rjls/model-project";
 import { CAD_TOOL_NAMES } from "@rjls/gateway";
 import { streamCadChat } from "@rjls/gateway";
-import { RUNTIME_BOUNDARY, RuntimeObservabilityStore, createInMemoryCadMcpClient, createObservedReadinessProbe, createStdioCadMcpClient, probeConfiguredReadiness, probeRendererReadiness } from "../dist/index.js";
+import { BrowserRenderCoordinator, RUNTIME_BOUNDARY, RuntimeObservabilityStore, createInMemoryCadMcpClient, createObservedReadinessProbe, createStdioCadMcpClient, expectedBrowserProvenance, probeConfiguredReadiness } from "../dist/index.js";
 
 test("exposes the local runtime package boundary", () => {
   assert.equal(RUNTIME_BOUNDARY, "runtime");
 });
 
-test("readiness probes only pinned renderer prerequisites and never executes source", async () => {
-  const digest = `sha256:${"a".repeat(64)}`;
-  const image = `registry.example/rjls/openscad@${digest}`;
-  const commands = [];
-  let isolationProbes = 0;
-  const result = await probeRendererReadiness({ engine: "docker", image, bosl2Path: "/configured/BOSL2", bosl2Version: "v2.0.741", bosl2Digest: digest }, {
-    attestBosl2: async (path, version) => {
-      assert.deepEqual([path, version], ["/configured/BOSL2", "v2.0.741"]);
-      return { version, digest };
-    },
-    runCommand: async (executable, args) => {
-      commands.push([executable, ...args]);
-      return args[0] === "version" ? { code: 0, stdout: "Docker", stderr: "" } : { code: 0, stdout: JSON.stringify([{ RepoDigests: [image] }]), stderr: "" };
-    },
-    probeEffectiveIsolation: async () => { isolationProbes += 1; return { effective: true }; },
+test("browser render jobs are source-bound, session-bound, and one-time", async () => {
+  const coordinator = new BrowserRenderCoordinator("cad-validation-v1");
+  let request;
+  const unsubscribe = coordinator.subscribe("candidate-1", "session-1", (value) => { request = value; });
+  const validation = coordinator.validateAndRender({
+    projectId: "project-1", candidateId: "candidate-1", source: "cube(1);", sourceHash: "a".repeat(64), previewProfile: "standard",
   });
-  assert.deepEqual(result, { status: "ready", profile: "production-oci" });
-  assert.deepEqual(commands, [["docker", "version"], ["docker", "image", "inspect", image]]);
-  assert.equal(JSON.stringify(commands).includes("model.scad"), false);
-  assert.equal(isolationProbes, 1);
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(request.sourceHash, "a".repeat(64));
+  assert.throws(() => coordinator.complete(request.jobId, {
+    token: request.token, sessionId: "wrong-session", sourceHash: request.sourceHash, outcome: "VALID", diagnostics: [], provenance: expectedBrowserProvenance("cad-validation-v1"),
+  }), /binding/i);
+  coordinator.complete(request.jobId, {
+    token: request.token, sessionId: "session-1", sourceHash: request.sourceHash, outcome: "VALID", diagnostics: [], provenance: expectedBrowserProvenance("cad-validation-v1"),
+  });
+  assert.equal((await validation).outcome, "VALID");
+  assert.throws(() => coordinator.complete(request.jobId, {}), /unavailable|expired/i);
+  unsubscribe();
 });
 
-test("configured readiness requires exact official MCP discovery and renderer recovery", async () => {
-  let rendererAvailable = false;
+test("configured readiness requires exact official MCP discovery", async () => {
   const exactClient = { listTools: async () => CAD_TOOL_NAMES };
-  const rendererProbe = async () => {
-    if (!rendererAvailable) throw new Error("renderer unavailable");
-    return { status: "ready", profile: "production-oci" };
-  };
-  await assert.rejects(probeConfiguredReadiness(exactClient, rendererProbe), /renderer unavailable/);
-  rendererAvailable = true;
-  assert.deepEqual(await probeConfiguredReadiness(exactClient, rendererProbe), { status: "ready", profile: "production-oci" });
+  assert.deepEqual(await probeConfiguredReadiness(exactClient), { status: "ready", profile: "browser-wasm" });
   await assert.rejects(
-    probeConfiguredReadiness({ listTools: async () => CAD_TOOL_NAMES.slice(0, -1) }, rendererProbe),
+    probeConfiguredReadiness({ listTools: async () => CAD_TOOL_NAMES.slice(0, -1) }),
     /exact CAD tool surface/,
   );
 });
@@ -57,12 +48,12 @@ test("production configured readiness retains and exports fail then two-success 
   let id = 0;
   const observedProbe = createObservedReadinessProbe(observability, async () => {
     if (!available) throw new Error("renderer unavailable");
-    return { status: "ready", profile: "production-oci" };
+    return { status: "ready", profile: "browser-wasm" };
   }, { createId: () => `readiness-${++id}`, clock: () => new Date(`2026-08-06T08:00:0${id}.000Z`) });
   await assert.rejects(observedProbe(), /renderer unavailable/);
   available = true;
   await assert.rejects(observedProbe(), /recovery confirmation/);
-  assert.deepEqual(await observedProbe(), { status: "ready", profile: "production-oci" });
+  assert.deepEqual(await observedProbe(), { status: "ready", profile: "browser-wasm" });
   const snapshots = observability.snapshot();
   assert.deepEqual(snapshots[0].records.map((record) => [record.event, record.requestId]), [
     ["readiness.unavailable", "readiness-1"],

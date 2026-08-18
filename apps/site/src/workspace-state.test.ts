@@ -1,10 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFile } from "node:fs/promises";
-import { createHash } from "node:crypto";
-import { Box3, BufferGeometry, MeshStandardMaterial, Texture, Vector3 } from "three";
+import { BufferGeometry, MeshStandardMaterial, Texture } from "three";
 import type { ArtifactManifest, ChatEvent, RevisionManifest } from "@rjls/contracts";
-import { assertGeometryBounds, commitGeometryResource, disposeGeometry, disposeMaterialResources, fetchValidatedStl, isCurrentArtifactLoad, PREVIEW_BOUNDS_TOLERANCE_MM, shouldAutoFit } from "./components/ModelViewer";
+import { commitGeometryResource, disposeGeometry, disposeMaterialResources, shouldAutoFit } from "./components/ModelViewer";
 import { chatStatusLabel, isSubmitShortcut, starterPrompts } from "./components/ChatPane";
 import { previewStatusLabel, promotionStatusLabel, readinessFromProbe, releaseObjectUrl, shouldRestoreComposerFocus, trackObjectUrl } from "./components/ModelWorkspace";
 import { artifactKey, initialWorkspaceState, revisionLabel, validatedArtifactFor, workspaceReducer } from "./lib/workspace-state";
@@ -37,41 +35,6 @@ test("viewer/export gating requires a manifest linked to revision and source has
   const artifact = { artifactId: "artifact-1", format: "3mf", mimeType: "model/3mf", hash: "e".repeat(64), byteSize: 100, triangleCount: 1, units: "mm", axisConvention: "right-handed-z-up", boundingBox: { min: [0, 0, 0], max: [1, 1, 1] }, sourceRevision: "revision-1", sourceHash: "f".repeat(64), renderer: provenance, tessellation: {} } satisfies ArtifactManifest;
   const revision = { version: "1", projectId: "demo-project", revisionId: "revision-1", parentRevision: null, sourceHash: "a".repeat(64), sourceBytes: 10, createdAt: "2026-08-05T00:00:00.000Z", requestId: "request-1", toolCallId: "tool-1", candidateId: "candidate-1", validationPolicyVersion: "1", validationResult: "VALID", diagnostics: [], artifacts: [artifact], renderer: provenance } satisfies RevisionManifest;
   assert.equal(validatedArtifactFor({ [artifactKey(artifact.sourceRevision, artifact.artifactId)]: artifact }, [revision], revision.revisionId, "3mf"), undefined);
-});
-
-test("real binary STL fixture loads and stale generations cannot commit", async () => {
-  const base64 = (await readFile(new URL("./fixtures/triangle.stl.base64", import.meta.url), "utf8")).trim();
-  const bytes = Buffer.from(base64, "base64");
-  const hash = createHash("sha256").update(bytes).digest("hex");
-  const artifact = { artifactId: "artifact-stl", format: "stl", mimeType: "model/stl", hash, byteSize: bytes.byteLength, triangleCount: 1, units: "mm", axisConvention: "right-handed-z-up", boundingBox: { min: [0, 0, 0], max: [10, 10, 0] }, sourceRevision: "revision-1", sourceHash: "f".repeat(64), renderer: provenance, tessellation: {} } satisfies ArtifactManifest;
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response(bytes, { headers: { "content-type": "model/stl", "x-rjls-artifact-revision": "revision-1", "x-rjls-artifact-hash": hash } });
-  try {
-    const geometry = await fetchValidatedStl("demo-project", artifact, new AbortController().signal);
-    assert.equal(geometry.getAttribute("position").count, 3);
-    disposeGeometry(geometry);
-  } finally { globalThis.fetch = originalFetch; }
-  assert.equal(isCurrentArtifactLoad(1, 2, false), false);
-  assert.equal(isCurrentArtifactLoad(2, 2, true), false);
-  assert.equal(isCurrentArtifactLoad(2, 2, false), true);
-});
-
-test("viewer rejects and disposes STL bounds outside the approved tolerance", async () => {
-  const base64 = (await readFile(new URL("./fixtures/triangle.stl.base64", import.meta.url), "utf8")).trim();
-  const bytes = Buffer.from(base64, "base64");
-  const hash = createHash("sha256").update(bytes).digest("hex");
-  const artifact = { artifactId: "artifact-stl", format: "stl", mimeType: "model/stl", hash, byteSize: bytes.byteLength, triangleCount: 1, units: "mm", axisConvention: "right-handed-z-up", boundingBox: { min: [0, 0, 0], max: [10 + PREVIEW_BOUNDS_TOLERANCE_MM * 2, 10, 0] }, sourceRevision: "revision-1", sourceHash: "f".repeat(64), renderer: provenance, tessellation: {} } satisfies ArtifactManifest;
-  const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => new Response(bytes, { headers: { "content-type": "model/stl", "x-rjls-artifact-revision": "revision-1", "x-rjls-artifact-hash": hash } });
-  try {
-    await assert.rejects(fetchValidatedStl("demo-project", artifact, new AbortController().signal), /bounding box/i);
-  } finally { globalThis.fetch = originalFetch; }
-  const rejected = new BufferGeometry();
-  rejected.boundingBox = new Box3(new Vector3(0, 0, 0), new Vector3(11, 10, 0));
-  let disposals = 0;
-  rejected.dispose = () => { disposals += 1; };
-  assert.throws(() => assertGeometryBounds(rejected, artifact), /bounding box/i);
-  assert.equal(disposals, 1);
 });
 
 test("camera auto-fit occurs only for the first model in each project", () => {

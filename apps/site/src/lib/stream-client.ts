@@ -49,7 +49,7 @@ export async function* parseChatStream(
 export async function streamChat(
   request: ChatRequest,
   signal: AbortSignal,
-  onEvent: (event: ChatEvent) => void,
+  onEvent: (event: ChatEvent) => void | Promise<void>,
 ): Promise<void> {
   const response = await fetch("/v1/chat", {
     method: "POST",
@@ -61,5 +61,5 @@ export async function streamChat(
     const unavailable = response.status === 503;
     throw new Error(unavailable ? "The local CAD runtime is unavailable." : "The request could not be started safely.");
   }
-  for await (const event of parseChatStream(response.body, request.sessionId)) onEvent(event);
+  for await (const event of parseChatStream(response.body, request.sessionId)) await onEvent(event);
 }

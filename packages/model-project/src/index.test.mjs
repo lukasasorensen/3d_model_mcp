@@ -115,7 +115,7 @@ test("enforces explicit genesis, exact candidate transitions, and immutable prom
       (error) => error instanceof CadDomainError && error.code === "INVALID_CANDIDATE_STATE",
     );
     assert.equal((await repository.readModelSource("demo")).source, "cube([10,10,10]);");
-    assert.equal((await repository.getExportMetadata("demo", revision.revisionId, "3mf")).sourceRevision, revision.revisionId);
+    assert.equal((await repository.getExportMetadata("demo", revision.revisionId, "3mf")).revision, revision.revisionId);
   });
 });
 
@@ -343,7 +343,7 @@ test("export metadata is available only for the authoritative current revision",
     );
     assert.equal((await repository.readArtifact("demo", first.revisionId, firstStl.artifactId)).manifest.format, "stl");
     assert.equal((await repository.readArtifact("demo", second.revisionId, second3mf.artifactId)).manifest.sourceRevision, second.revisionId);
-    assert.equal((await repository.getExportMetadata("demo", second.revisionId, "3mf")).sourceRevision, second.revisionId);
+    assert.equal((await repository.getExportMetadata("demo", second.revisionId, "3mf")).revision, second.revisionId);
   });
 });
 

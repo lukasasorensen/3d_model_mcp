@@ -10,7 +10,7 @@ export function createReadinessHandler(getRuntime: () => Promise<Pick<Configured
       const readiness = await configured.probeReadiness();
       return Response.json({ readiness }, { headers });
     } catch {
-      return Response.json({ readiness: { status: "unavailable", message: "The renderer toolchain is unavailable." } }, { status: 503, headers });
+      return Response.json({ readiness: { status: "unavailable", message: "The local CAD runtime is unavailable." } }, { status: 503, headers });
     }
   };
 }

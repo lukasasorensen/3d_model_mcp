@@ -194,6 +194,29 @@ test("does not turn provider prose into revision or artifact state", async () =>
   assert.equal(events.filter((event) => event.type === "done").length, 1);
 });
 
+test("projects an authorized export into a browser-side 3MF render request", async () => {
+  const source = "cube([10, 20, 30]);";
+  const sourceHash = "a".repeat(64);
+  const provider = {
+    id: "browser-export",
+    createModel() {
+      return new FakeToolCallingModel({ toolCalls: [
+        [{ id: "export", name: "export_model", args: { projectId: "provider-project", revision: "revision-1", format: "3mf" } }],
+        [],
+      ] });
+    },
+  };
+  const client = exactClient(async () => ({ isError: false, structuredContent: { export: { revision: "revision-1", source, sourceHash, format: "3mf" } } }));
+  const events = await collect(streamCadChat(request, { client, provider, createId: () => "request-export" }));
+  const render = events.find((event) => event.type === "browser_render_request");
+  assert.equal(render?.purpose, "export");
+  assert.equal(render?.revisionId, "revision-1");
+  assert.equal(render?.source, source);
+  assert.equal(render?.sourceHash, sourceHash);
+  assert.equal(render?.format, "3mf");
+  assert.equal(events.some((event) => event.type === "artifact"), false);
+});
+
 test("fails closed when MCP discovery includes any extra tool", async () => {
   const events = await collect(streamCadChat(request, { client: { listTools: async () => [...CAD_TOOL_NAMES, "write_file"], callTool: async () => { throw new Error("must not execute"); } }, createId: () => "request-discovery" }));
   assert.ok(events.some((event) => event.type === "error" && event.code === "MCP_FAILURE"));

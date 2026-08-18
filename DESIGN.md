@@ -1,5 +1,10 @@
 # Design
 
+> Browser-renderer update: OpenSCAD now executes as pinned WASM in a Web Worker.
+> STL previews and 3MF exports are ephemeral browser outputs; references below to
+> server-served validated artifacts describe the legacy design and are superseded
+> by `docs/architecture.md`.
+
 ## Source of truth
 
 - **Status:** Active for G005, with assumptions and checkpoint-sensitive items called out below.

@@ -1,15 +1,14 @@
 "use client";
 
 import { Canvas, useThree } from "@react-three/fiber";
-import type { ArtifactManifest } from "@rjls/contracts";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
 import { BufferGeometry, Color, Material, MeshStandardMaterial, PerspectiveCamera, Sphere, Texture, Vector3 } from "three";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { cachedPreview, fetchRevisionSource, renderPreview } from "@/lib/browser-renderer";
 
 const PREVIEW_BYTE_LIMIT = 10 * 1024 * 1024;
 const PREVIEW_TRIANGLE_LIMIT = 250_000;
-export const PREVIEW_BOUNDS_TOLERANCE_MM = 0.01;
 const disposedGeometries = new WeakSet<BufferGeometry>();
 const disposedMaterials = new WeakSet<Material>();
 const disposedTextures = new WeakSet<Texture>();
@@ -37,58 +36,8 @@ export function disposeMaterialResources(material: Material | undefined): void {
   material.dispose();
 }
 
-export function isCurrentArtifactLoad(generation: number, currentGeneration: number, aborted: boolean): boolean {
-  return generation === currentGeneration && !aborted;
-}
-
 export function shouldAutoFit(lastFittedProjectId: string | undefined, projectId: string): boolean {
   return lastFittedProjectId !== projectId;
-}
-
-function boundsMatchManifest(geometry: BufferGeometry, artifact: ArtifactManifest): boolean {
-  const bounds = geometry.boundingBox;
-  if (!bounds) return false;
-  const actual = [bounds.min.x, bounds.min.y, bounds.min.z, bounds.max.x, bounds.max.y, bounds.max.z];
-  const expected = [...artifact.boundingBox.min, ...artifact.boundingBox.max];
-  return actual.every((value, index) => Number.isFinite(value) && Math.abs(value - expected[index]) <= PREVIEW_BOUNDS_TOLERANCE_MM);
-}
-
-export function assertGeometryBounds(geometry: BufferGeometry, artifact: ArtifactManifest): void {
-  if (boundsMatchManifest(geometry, artifact)) return;
-  disposeGeometry(geometry);
-  throw new Error("Preview bounding box failed validation.");
-}
-
-export function artifactUrl(projectId: string, artifact: ArtifactManifest): string {
-  return `/v1/projects/${encodeURIComponent(projectId)}/revisions/${encodeURIComponent(artifact.sourceRevision)}/artifacts/${encodeURIComponent(artifact.artifactId)}`;
-}
-
-async function sha256(bytes: ArrayBuffer): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
-}
-
-export async function fetchValidatedStl(projectId: string, artifact: ArtifactManifest, signal: AbortSignal): Promise<BufferGeometry> {
-  if (artifact.format !== "stl" || artifact.mimeType !== "model/stl" || artifact.byteSize > PREVIEW_BYTE_LIMIT || artifact.triangleCount > PREVIEW_TRIANGLE_LIMIT) {
-    throw new Error("Preview metadata failed validation.");
-  }
-  const response = await fetch(artifactUrl(projectId, artifact), { signal, cache: "no-store" });
-  if (!response.ok || response.headers.get("content-type") !== "model/stl" || response.headers.get("x-rjls-artifact-revision") !== artifact.sourceRevision || response.headers.get("x-rjls-artifact-hash") !== artifact.hash) {
-    throw new Error("Preview response failed validation.");
-  }
-  const bytes = await response.arrayBuffer();
-  if (bytes.byteLength !== artifact.byteSize || bytes.byteLength > PREVIEW_BYTE_LIMIT || await sha256(bytes) !== artifact.hash) throw new Error("Preview integrity check failed.");
-  const geometry = new STLLoader().parse(bytes);
-  const triangles = geometry.getAttribute("position").count / 3;
-  if (!Number.isInteger(triangles) || triangles !== artifact.triangleCount || triangles > PREVIEW_TRIANGLE_LIMIT) {
-    disposeGeometry(geometry);
-    throw new Error("Preview triangle count failed validation.");
-  }
-  geometry.computeVertexNormals();
-  geometry.computeBoundingBox();
-  geometry.computeBoundingSphere();
-  assertGeometryBounds(geometry, artifact);
-  return geometry;
 }
 
 type ViewCommand = { id: number; type: "fit" | "reset" | "zoom-in" | "zoom-out" | "orbit-left" | "orbit-right" | "orbit-up" | "orbit-down" };
@@ -153,7 +102,27 @@ function Scene({ geometry, command, autoFit, onCommitted }: { geometry: BufferGe
 
 export type PreviewLoadState = "empty" | "loading" | "ready" | "error";
 
-export function ModelViewer({ projectId, artifact, currentLabel, updating, onLoadStateChange }: { projectId: string; artifact?: ArtifactManifest; currentLabel: string; updating: boolean; onLoadStateChange?: (state: PreviewLoadState) => void }) {
+async function loadBrowserStl(projectId: string, revisionId: string, sourceHash: string, signal: AbortSignal): Promise<BufferGeometry> {
+  let bytes = cachedPreview(sourceHash);
+  if (!bytes) {
+    const source = await fetchRevisionSource(projectId, revisionId, sourceHash, signal);
+    bytes = (await renderPreview(source, sourceHash, signal)).bytes;
+  }
+  if (bytes.byteLength > PREVIEW_BYTE_LIMIT) throw new Error("Preview exceeds its byte limit.");
+  const array = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+  const geometry = new STLLoader().parse(array);
+  const triangles = geometry.getAttribute("position").count / 3;
+  if (!Number.isInteger(triangles) || triangles > PREVIEW_TRIANGLE_LIMIT) {
+    disposeGeometry(geometry);
+    throw new Error("Preview triangle count failed validation.");
+  }
+  geometry.computeVertexNormals();
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  return geometry;
+}
+
+export function ModelViewer({ projectId, revisionId, sourceHash, currentLabel, updating, onLoadStateChange }: { projectId: string; revisionId?: string; sourceHash?: string; currentLabel: string; updating: boolean; onLoadStateChange?: (state: PreviewLoadState) => void }) {
   const [geometry, setGeometry] = useState<BufferGeometry>();
   const [loadState, setLoadState] = useState<PreviewLoadState>("empty");
   const [command, setCommand] = useState<ViewCommand>({ id: 0, type: "fit" });
@@ -164,12 +133,12 @@ export function ModelViewer({ projectId, artifact, currentLabel, updating, onLoa
   const autoFitPending = useRef(false);
 
   useEffect(() => {
-    if (!artifact) { if (!geometryRef.current) setLoadState("empty"); return; }
+    if (!revisionId || !sourceHash) { if (!geometryRef.current) setLoadState("empty"); return; }
     const generation = ++loadGeneration.current;
     const controller = new AbortController();
     setLoadState("loading");
-    void fetchValidatedStl(projectId, artifact, controller.signal).then((next) => {
-      if (!isCurrentArtifactLoad(generation, loadGeneration.current, controller.signal.aborted)) { disposeGeometry(next); return; }
+    void loadBrowserStl(projectId, revisionId, sourceHash, controller.signal).then((next) => {
+      if (generation !== loadGeneration.current || controller.signal.aborted) { disposeGeometry(next); return; }
       if (pendingGeometryRef.current && pendingGeometryRef.current !== geometryRef.current) disposeGeometry(pendingGeometryRef.current);
       pendingGeometryRef.current = next;
       autoFitPending.current = shouldAutoFit(lastFittedProjectId.current, projectId);
@@ -179,7 +148,7 @@ export function ModelViewer({ projectId, artifact, currentLabel, updating, onLoa
       void error;
     });
     return () => controller.abort();
-  }, [artifact, projectId]);
+  }, [projectId, revisionId, sourceHash]);
 
   useEffect(() => () => {
     loadGeneration.current += 1;

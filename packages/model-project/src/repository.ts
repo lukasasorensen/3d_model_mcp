@@ -5,6 +5,7 @@ import {
   boundingBoxSchema,
   candidateRecordSchema,
   diagnosticSchema,
+  isBrowserRendererProvenance,
   isProductionRendererProvenance,
   projectIdSchema,
   revisionManifestSchema,
@@ -47,6 +48,7 @@ export type CadDomainErrorCode =
   | "PROVENANCE_MISMATCH"
   | "CORRUPT_PROJECT"
   | "RENDER_FAILED"
+  | "BROWSER_RENDERER_UNAVAILABLE"
   | "CANCELLED"
   | "LOCK_TIMEOUT";
 
@@ -82,7 +84,7 @@ const renderValidationResultSchema = z
     diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
     provenance: rendererProvenanceSchema,
     validationPolicyVersion: z.string().min(1).max(100),
-    artifacts: z.array(renderedArtifactSchema).max(8),
+    artifacts: z.array(renderedArtifactSchema).max(8).default([]),
   })
   .strict();
 
@@ -325,7 +327,7 @@ export class ModelProjectRepository {
       }
       formats.add(artifact.format);
     }
-    if (!formats.has("stl")) throw new CadDomainError("ARTIFACT_NOT_FOUND", "Validated STL preview metadata is missing.");
+    if (!formats.has("stl") && !isBrowserRendererProvenance(renderer)) throw new CadDomainError("ARTIFACT_NOT_FOUND", "Validated STL preview metadata is missing.");
   }
 
   private async readCandidate(projectId: string, candidateId: string): Promise<CandidateRecord> {
@@ -511,16 +513,18 @@ export class ModelProjectRepository {
           prepared.push({ filename, bytes: artifact.bytes, manifest: parsedManifest.data });
         }
         const manifests = prepared.map((item) => item.manifest);
-        if (!manifests.some((artifact) => artifact.format === "stl")) {
+        if (!manifests.some((artifact) => artifact.format === "stl") && !isBrowserRendererProvenance(result.provenance)) {
           return this.updateCandidate(running, "REJECTED", {
             diagnostics: [{ code: "MISSING_PREVIEW", severity: "error", message: "Renderer did not produce a validated STL preview." }],
           });
         }
-        const artifactsDirectory = join(this.candidateRoot(input.projectId, input.candidateId), "artifacts");
-        await mkdir(artifactsDirectory, { recursive: false });
-        for (const artifact of prepared) await writeDurable(join(artifactsDirectory, artifact.filename), artifact.bytes);
-        await fsyncDirectory(artifactsDirectory);
-        await fsyncDirectory(dirname(artifactsDirectory));
+        if (prepared.length > 0) {
+          const artifactsDirectory = join(this.candidateRoot(input.projectId, input.candidateId), "artifacts");
+          await mkdir(artifactsDirectory, { recursive: false });
+          for (const artifact of prepared) await writeDurable(join(artifactsDirectory, artifact.filename), artifact.bytes);
+          await fsyncDirectory(artifactsDirectory);
+          await fsyncDirectory(dirname(artifactsDirectory));
+        }
         return this.updateCandidate(running, "VALID", {
           diagnostics,
           renderer: result.provenance,
@@ -717,7 +721,7 @@ export class ModelProjectRepository {
       if (sha256(source) !== candidate.sourceHash || source.byteLength !== candidate.sourceBytes) throw new CadDomainError("SOURCE_HASH_MISMATCH", "Candidate source failed integrity validation.");
       if (candidate.validationPolicyVersion !== this.validationPolicyVersion) throw new CadDomainError("POLICY_MISMATCH", "Candidate validation policy does not match.");
       if (!candidate.renderer || candidate.renderer.validationPolicyVersion !== this.validationPolicyVersion) throw new CadDomainError("PROVENANCE_MISMATCH", "Candidate renderer provenance is missing or mismatched.");
-      if (!isProductionRendererProvenance(candidate.renderer) || !this.options.acceptRendererProvenance(candidate.renderer)) {
+      if ((!isProductionRendererProvenance(candidate.renderer) && !isBrowserRendererProvenance(candidate.renderer)) || !this.options.acceptRendererProvenance(candidate.renderer)) {
         throw new CadDomainError("PROVENANCE_MISMATCH", "Candidate renderer provenance is not approved.");
       }
       this.assertArtifactSet(candidate.artifacts, candidate.sourceHash, candidate.renderer);
@@ -781,14 +785,14 @@ export class ModelProjectRepository {
     return revisions;
   }
 
-  async getExportMetadata(projectId: string, revision: string, format: "3mf"): Promise<ArtifactManifest> {
+  async getExportMetadata(projectId: string, revision: string, format: "3mf"): Promise<{ revision: string; source: string; sourceHash: string; format: "3mf" }> {
     const current = await this.readCurrent(projectId);
     if (!current) throw new CadDomainError("PROJECT_NOT_FOUND", "Project has no current revision.");
     if (revision !== current) throw new CadDomainError("STALE_REVISION", "Exports are available only for the current revision.", { current });
     const manifest = await this.readManifest(projectId, revision);
-    const artifact = manifest.artifacts.find((item) => item.format === format);
-    if (!artifact) throw new CadDomainError("ARTIFACT_NOT_FOUND", "Requested export is not available for this revision.");
-    return artifact;
+    const source = await readFile(join(this.versionRoot(projectId, revision), "model.scad"), "utf8");
+    if (sha256(source) !== manifest.sourceHash) throw new CadDomainError("SOURCE_HASH_MISMATCH", "Revision source failed integrity validation.");
+    return { revision, source, sourceHash: manifest.sourceHash, format };
   }
 
   async readArtifact(
@@ -819,7 +823,7 @@ export class ModelProjectRepository {
       if (target.validationPolicyVersion !== this.validationPolicyVersion || target.renderer.validationPolicyVersion !== this.validationPolicyVersion) {
         throw new CadDomainError("POLICY_MISMATCH", "Historical revision does not match the active validation policy.");
       }
-      if (!isProductionRendererProvenance(target.renderer) || !this.options.acceptRendererProvenance(target.renderer)) {
+      if ((!isProductionRendererProvenance(target.renderer) && !isBrowserRendererProvenance(target.renderer)) || !this.options.acceptRendererProvenance(target.renderer)) {
         throw new CadDomainError("PROVENANCE_MISMATCH", "Historical renderer provenance is not approved.");
       }
       const source = await readFile(join(this.versionRoot(input.projectId, input.revision), "model.scad"));

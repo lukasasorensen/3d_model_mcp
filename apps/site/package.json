@@ -16,6 +16,7 @@
     "@rjls/contracts": "workspace:*",
     "@rjls/gateway": "workspace:*",
     "@rjls/runtime": "workspace:*",
+    "fflate": "0.8.2",
     "next": "15.5.22",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

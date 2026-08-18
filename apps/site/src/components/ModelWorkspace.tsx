@@ -1,26 +1,21 @@
 "use client";
 
-import { projectStateSchema, revisionManifestSchema, type ArtifactManifest, type ChatEvent, type RevisionManifest } from "@rjls/contracts";
+import { BROWSER_RENDERER, projectStateSchema, revisionManifestSchema, type ChatEvent, type RevisionManifest } from "@rjls/contracts";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 import { ChatPane } from "./ChatPane";
 import { RevisionHistory } from "./RevisionHistory";
 import type { PreviewLoadState } from "./ModelViewer";
-import { initialWorkspaceState, revisionLabel, validatedArtifactFor, workspaceReducer } from "@/lib/workspace-state";
+import { initialWorkspaceState, revisionLabel, workspaceReducer } from "@/lib/workspace-state";
 import { streamChat } from "@/lib/stream-client";
+import { completeBrowserRender, downloadBrowserExport, fetchRevisionSource, renderOpenScad } from "@/lib/browser-renderer";
 
 const ModelViewer = dynamic(() => import("./ModelViewer").then((module) => module.ModelViewer), { ssr: false, loading: () => <div className="viewer-loading">Preparing 3D viewer…</div> });
 const PROJECT_ID = "demo-project";
 const SESSION_KEY = "rjls-cad-session";
-const EXPORT_LIMIT = 25 * 1024 * 1024;
 const activeObjectUrls = new Set<string>();
 
 function newOpaqueId(prefix: string): string { return `${prefix}-${crypto.randomUUID()}`; }
-
-async function digest(bytes: ArrayBuffer): Promise<string> {
-  const hash = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(hash)].map((value) => value.toString(16).padStart(2, "0")).join("");
-}
 
 export function releaseObjectUrl(objectUrl: string): void {
   if (!activeObjectUrls.delete(objectUrl)) return;
@@ -30,24 +25,6 @@ export function releaseObjectUrl(objectUrl: string): void {
 export function trackObjectUrl(objectUrl: string): string {
   activeObjectUrls.add(objectUrl);
   return objectUrl;
-}
-
-export async function downloadValidatedExport(projectId: string, revisionLabelText: string, artifact: ArtifactManifest): Promise<void> {
-  if (artifact.format !== "3mf" || artifact.mimeType !== "model/3mf" || artifact.byteSize > EXPORT_LIMIT) throw new Error("Export metadata failed validation.");
-  const href = `/v1/projects/${encodeURIComponent(projectId)}/revisions/${encodeURIComponent(artifact.sourceRevision)}/artifacts/${encodeURIComponent(artifact.artifactId)}`;
-  const response = await fetch(href, { cache: "no-store" });
-  if (!response.ok || response.headers.get("content-type") !== "model/3mf" || response.headers.get("x-rjls-artifact-revision") !== artifact.sourceRevision || response.headers.get("x-rjls-artifact-hash") !== artifact.hash) throw new Error("Export response failed validation.");
-  const bytes = await response.arrayBuffer();
-  if (bytes.byteLength !== artifact.byteSize || bytes.byteLength > EXPORT_LIMIT || await digest(bytes) !== artifact.hash) throw new Error("Export integrity check failed.");
-  const objectUrl = trackObjectUrl(URL.createObjectURL(new Blob([bytes], { type: artifact.mimeType })));
-  try {
-    const anchor = document.createElement("a");
-    anchor.href = objectUrl;
-    anchor.download = `RJLS-${revisionLabelText}.3mf`;
-    anchor.click();
-  } finally {
-    window.setTimeout(() => releaseObjectUrl(objectUrl), 0);
-  }
 }
 
 export function shouldRestoreComposerFocus(wasActive: boolean, active: boolean, available: boolean): boolean {
@@ -84,11 +61,17 @@ export function ModelWorkspace() {
   const [sessionId, setSessionId] = useState("");
 
   const loadProject = useCallback(async () => {
-    const [response, readinessResponse] = await Promise.all([
+    const [response, readinessResponse, rendererResponse] = await Promise.all([
       fetch(`/v1/projects/${encodeURIComponent(PROJECT_ID)}`, { cache: "no-store" }),
       fetch("/v1/readiness", { cache: "no-store" }),
+      fetch("/vendor/openscad/manifest.json", { cache: "force-cache" }),
     ]);
-    setReadiness(readinessFromProbe(readinessResponse));
+    let rendererReady = false;
+    if (rendererResponse.ok) {
+      const manifest = await rendererResponse.json().catch(() => undefined) as { openscadArchiveSha256?: string; bosl2ArchiveSha256?: string } | undefined;
+      rendererReady = manifest?.openscadArchiveSha256 === BROWSER_RENDERER.openscadArchiveSha256 && manifest.bosl2ArchiveSha256 === BROWSER_RENDERER.bosl2ArchiveSha256;
+    }
+    setReadiness(readinessResponse.ok && rendererReady ? "ready" : "unavailable");
     if (!response.ok) return false;
     const raw = await response.json() as { state?: unknown; revisions?: unknown };
     const project = projectStateSchema.safeParse(raw.state);
@@ -118,7 +101,19 @@ export function ModelWorkspace() {
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      await streamChat({ version: "3", projectId: PROJECT_ID, sessionId, message }, controller.signal, (event: ChatEvent) => dispatch({ type: "event", event }));
+      await streamChat({ version: "3", projectId: PROJECT_ID, sessionId, message }, controller.signal, async (event: ChatEvent) => {
+        dispatch({ type: "event", event });
+        if (event.type === "browser_render_request" && event.purpose === "export") {
+          setExportState("preparing");
+          try {
+            await downloadBrowserExport(event, revisionLabel(state.revisions, event.revisionId ?? null));
+            setExportState("complete");
+          } catch (error) {
+            setExportState("failed");
+            throw error;
+          }
+        } else if (event.type === "browser_render_request") await completeBrowserRender(event);
+      });
       await loadProject();
     } catch (error) {
       if (controller.signal.aborted) {
@@ -127,7 +122,7 @@ export function ModelWorkspace() {
     } finally {
       abortRef.current = undefined;
     }
-  }, [loadProject, sessionId]);
+  }, [loadProject, sessionId, state.revisions]);
 
   useLayoutEffect(() => {
     const available = readiness === "ready" && Boolean(sessionId);
@@ -151,10 +146,9 @@ export function ModelWorkspace() {
   const currentLabel = revisionLabel(state.revisions, state.currentRevision);
   const selectedLabel = revisionLabel(state.revisions, state.selectedRevision);
   const promotionPending = Boolean(state.pendingCurrentRevision);
-  const selectedPreview = validatedArtifactFor(state.artifacts, state.revisions, state.selectedRevision, "stl");
-  const currentExport = validatedArtifactFor(state.artifacts, state.revisions, state.currentRevision, "3mf");
-  const previewBounds = selectedPreview?.boundingBox;
-  const dimensions = previewBounds ? previewBounds.max.map((value, index) => Math.abs(value - previewBounds.min[index]).toFixed(1)).join(" × ") : "—";
+  const selectedManifest = state.revisions.find((revision) => revision.revisionId === state.selectedRevision);
+  const currentManifest = state.revisions.find((revision) => revision.revisionId === state.currentRevision);
+  const dimensions = "—";
   let readinessLabel = "Local runtime unavailable";
   if (readiness === "checking") readinessLabel = "Checking local project…";
   else if (readiness === "ready") readinessLabel = "Local runtime ready";
@@ -167,9 +161,20 @@ export function ModelWorkspace() {
   }
 
   const exportCurrent = async () => {
-    if (!currentExport) return;
+    if (!currentManifest) return;
     setExportState("preparing");
-    try { await downloadValidatedExport(PROJECT_ID, currentLabel, currentExport); setExportState("complete"); }
+    try {
+      const source = await fetchRevisionSource(PROJECT_ID, currentManifest.revisionId, currentManifest.sourceHash);
+      const result = await renderOpenScad(source, "3mf");
+      const exportBuffer = result.bytes.buffer.slice(result.bytes.byteOffset, result.bytes.byteOffset + result.bytes.byteLength) as ArrayBuffer;
+      const objectUrl = trackObjectUrl(URL.createObjectURL(new Blob([exportBuffer], { type: "model/3mf" })));
+      const anchor = document.createElement("a");
+      anchor.href = objectUrl;
+      anchor.download = `RJLS-${currentLabel}.3mf`;
+      anchor.click();
+      window.setTimeout(() => releaseObjectUrl(objectUrl), 0);
+      setExportState("complete");
+    }
     catch { setExportState("failed"); }
   };
 
@@ -189,18 +194,18 @@ export function ModelWorkspace() {
           </div>
           <div className="revision-rail" aria-hidden="true"><span className={state.active ? "rail-working" : ""} /></div>
           {promotionPending && <p className="notice" role="status">{promotionStatusLabel(selectedLabel, Boolean(state.selectedRevision))}</p>}
-          <ModelViewer projectId={PROJECT_ID} artifact={selectedPreview} currentLabel={selectedLabel} updating={state.active} onLoadStateChange={setPreviewLoadState} />
+          <ModelViewer projectId={PROJECT_ID} revisionId={selectedManifest?.revisionId} sourceHash={selectedManifest?.sourceHash} currentLabel={selectedLabel} updating={state.active} onLoadStateChange={setPreviewLoadState} />
           <div className="model-facts" aria-label="Model facts">
             <div><span>Revision</span><strong>{selectedLabel}</strong></div>
             <div><span>Bounds</span><strong>{dimensions} mm</strong></div>
-            <div><span>Preview</span><strong>{selectedPreview ? `${(selectedPreview.byteSize / 1024).toFixed(1)} KiB · validated STL` : "Unavailable"}</strong></div>
-            <div><span>State</span><strong>{previewStatusLabel(Boolean(selectedPreview), previewLoadState)}</strong></div>
+            <div><span>Preview</span><strong>{selectedManifest ? "Browser-rendered STL" : "Unavailable"}</strong></div>
+            <div><span>State</span><strong>{previewStatusLabel(Boolean(selectedManifest), previewLoadState)}</strong></div>
           </div>
           <div className="model-actions">
-            <RevisionHistory revisions={state.revisions} currentRevision={state.currentRevision} selectedRevision={state.selectedRevision} disabled={state.active || restorePending} onSelect={(revisionId) => dispatch({ type: "select_revision", revisionId })} onRestore={(revisionId) => void restore(revisionId)} />
-            <button type="button" className="export-button" onClick={() => void exportCurrent()} disabled={!currentExport || state.active || exportState === "preparing"} aria-describedby="export-help">{exportState === "preparing" ? "Preparing 3MF…" : `Export ${currentLabel} as 3MF`}</button>
+            <RevisionHistory revisions={state.revisions} currentRevision={state.currentRevision} selectedRevision={state.selectedRevision} disabled={state.active || restorePending || previewLoadState !== "ready"} onSelect={(revisionId) => dispatch({ type: "select_revision", revisionId })} onRestore={(revisionId) => void restore(revisionId)} />
+            <button type="button" className="export-button" onClick={() => void exportCurrent()} disabled={!currentManifest || state.active || exportState === "preparing"} aria-describedby="export-help">{exportState === "preparing" ? "Preparing 3MF…" : `Export ${currentLabel} as 3MF`}</button>
           </div>
-          <p id="export-help" className="action-help">{currentExport ? `${currentLabel} · 3MF · millimeters · ${(currentExport.byteSize / 1024).toFixed(1)} KiB` : "A validated current 3MF artifact is required for export."}</p>
+          <p id="export-help" className="action-help">{currentManifest ? `${currentLabel} · 3MF · generated locally in this browser` : "A current revision is required for export."}</p>
           {exportState === "failed" && <p role="alert" className="notice notice-error">The export could not be verified. No file was downloaded.</p>}
           {exportState === "complete" && <p role="status" className="notice notice-success">{currentLabel} · 3MF · millimeters downloaded.</p>}
         </section>
