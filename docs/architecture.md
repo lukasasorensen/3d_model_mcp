@@ -14,6 +14,15 @@ the official SDK's linked in-memory transport without bypassing MCP negotiation 
 tool schemas. Browser code imports only `@rjls/contracts`; package-boundary checks
 reject Node, provider, MCP-server, repository, and renderer imports.
 
+For local Codex testing, the standalone MCP process and Next.js process share an
+absolute `RJLS_PROJECTS_ROOT`. A development-only filesystem bridge stores bounded,
+source-bound render jobs outside individual projects. The open browser atomically
+claims one job through same-origin HTTP, renders with the same pinned Web Worker,
+and posts a session/token/hash-bound completion. The stdio process consumes the
+completion and deletes the job. Expiration, cancellation, duplicate completion,
+or process loss cannot advance candidate or revision state. The bridge requires
+`RJLS_LOCAL_MCP_BRIDGE=1` and is unavailable when `NODE_ENV=production`.
+
 `.rjls/CURRENT` and its immutable revision manifest are authoritative. A candidate
 must move through `CREATED -> RUNNING -> VALID -> PROMOTED`. Promotion rechecks the
 parent under a project lock and advances `CURRENT` only after durable source,

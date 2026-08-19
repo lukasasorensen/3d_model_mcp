@@ -11,6 +11,8 @@
     "prepare:browser-renderer": "node scripts/prepare-browser-renderer.mjs",
     "dev": "pnpm prepare:browser-renderer && pnpm --filter @rjls/site dev",
     "dev:site": "pnpm prepare:browser-renderer && pnpm --filter @rjls/site dev",
+    "mcp:build": "pnpm build:packages",
+    "mcp:serve": "node packages/runtime/dist/stdio-server.js",
     "build": "pnpm prepare:browser-renderer && pnpm build:packages && pnpm --filter @rjls/site build",
     "build:packages": "pnpm --filter @rjls/contracts build && pnpm --filter @rjls/model-project build && pnpm --filter @rjls/renderer build && pnpm --filter @rjls/mcp build && pnpm --filter @rjls/gateway build && pnpm --filter @rjls/runtime build",
     "typecheck": "pnpm build:packages && pnpm --filter @rjls/site typecheck",

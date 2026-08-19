@@ -52,7 +52,7 @@ export function ChatPane({
   onSubmit: (message: string) => void;
   onCancel: () => void;
   onRetry: () => void;
-  composerRef: RefObject<HTMLTextAreaElement>;
+  composerRef: RefObject<HTMLTextAreaElement | null>;
 }) {
   const [message, setMessage] = useState("");
   const submit = (event?: FormEvent) => {

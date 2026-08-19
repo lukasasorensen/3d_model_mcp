@@ -10,6 +10,7 @@ import {
   chatRequestSchema,
   createEnvelope,
   isProductionRendererProvenance,
+  localMcpBrowserRenderJobSchema,
   projectIdSchema,
   proposeModelSourceInputSchema,
   rendererProvenanceSchema,
@@ -32,6 +33,17 @@ test("validates the strict browser-safe chat v3 contract", () => {
   assert.equal(chatEventSchema.safeParse({ ...base, type: "revision", status: "current", toolCallId: "tool-1" }).success, false);
   assert.equal(chatEventSchema.safeParse({ ...base, type: "unknown", source: "cube(1);" }).success, false);
   assert.equal(chatEventSchema.safeParse({ ...base, type: "assistant_delta", delta: "x".repeat(CHAT_LIMITS.assistantDeltaCharacters + 1) }).success, false);
+});
+
+test("validates source-bound local MCP browser jobs", () => {
+  const job = {
+    version: "1", jobId: "local-render-1", projectId: "demo-project", candidateId: "candidate-1",
+    token: "a".repeat(64), source: "cube(1);", sourceHash: "b".repeat(64), format: "stl",
+    createdAt: "2026-08-18T12:00:00.000Z", deadline: "2026-08-18T12:01:00.000Z",
+  };
+  assert.equal(localMcpBrowserRenderJobSchema.safeParse(job).success, true);
+  assert.equal(localMcpBrowserRenderJobSchema.safeParse({ ...job, sourcePath: "/tmp/model.scad" }).success, false);
+  assert.equal(localMcpBrowserRenderJobSchema.safeParse({ ...job, token: "short" }).success, false);
 });
 
 test("rejects path-like opaque IDs and unknown tool fields", () => {

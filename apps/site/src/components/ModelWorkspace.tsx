@@ -1,6 +1,6 @@
 "use client";
 
-import { BROWSER_RENDERER, projectStateSchema, revisionManifestSchema, type ChatEvent, type RevisionManifest } from "@rjls/contracts";
+import { BROWSER_RENDERER, localMcpBrowserRenderJobSchema, projectStateSchema, revisionManifestSchema, type ChatEvent, type RevisionManifest } from "@rjls/contracts";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 import { ChatPane } from "./ChatPane";
@@ -8,7 +8,7 @@ import { RevisionHistory } from "./RevisionHistory";
 import type { PreviewLoadState } from "./ModelViewer";
 import { initialWorkspaceState, revisionLabel, workspaceReducer } from "@/lib/workspace-state";
 import { streamChat } from "@/lib/stream-client";
-import { completeBrowserRender, downloadBrowserExport, fetchRevisionSource, renderOpenScad } from "@/lib/browser-renderer";
+import { completeBrowserRender, completeLocalMcpBrowserRender, downloadBrowserExport, fetchRevisionSource, renderOpenScad } from "@/lib/browser-renderer";
 
 const ModelViewer = dynamic(() => import("./ModelViewer").then((module) => module.ModelViewer), { ssr: false, loading: () => <div className="viewer-loading">Preparing 3D viewer…</div> });
 const PROJECT_ID = "demo-project";
@@ -48,21 +48,31 @@ export function promotionStatusLabel(selectedLabel: string, hasSelectedRevision:
     : "Promoting the first validated revision. The viewer remains empty until it is verified for display.";
 }
 
-export function ModelWorkspace() {
+export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBridgeEnabled?: boolean }) {
   const [state, dispatch] = useReducer(workspaceReducer, initialWorkspaceState);
   const [readiness, setReadiness] = useState<"checking" | "ready" | "unavailable">("checking");
   const [exportState, setExportState] = useState<"idle" | "preparing" | "failed" | "complete">("idle");
   const [restorePending, setRestorePending] = useState(false);
   const [previewLoadState, setPreviewLoadState] = useState<PreviewLoadState>("empty");
-  const abortRef = useRef<AbortController>();
+  const abortRef = useRef<AbortController | undefined>(undefined);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const lastMessage = useRef("");
   const wasActive = useRef(false);
   const [sessionId, setSessionId] = useState("");
 
-  const loadProject = useCallback(async () => {
-    const [response, readinessResponse, rendererResponse] = await Promise.all([
-      fetch(`/v1/projects/${encodeURIComponent(PROJECT_ID)}`, { cache: "no-store" }),
+  const refreshProject = useCallback(async (signal?: AbortSignal) => {
+    const response = await fetch(`/v1/projects/${encodeURIComponent(PROJECT_ID)}`, { cache: "no-store", signal });
+    if (!response.ok) return false;
+    const raw = await response.json() as { state?: unknown; revisions?: unknown };
+    const project = projectStateSchema.safeParse(raw.state);
+    const revisions = Array.isArray(raw.revisions) ? raw.revisions.map((item) => revisionManifestSchema.safeParse(item)) : [];
+    if (!project.success || revisions.some((item) => !item.success)) return false;
+    dispatch({ type: "hydrate", currentRevision: project.data.currentRevision, revisions: revisions.map((item) => item.data as RevisionManifest) });
+    return true;
+  }, []);
+
+  const checkRuntime = useCallback(async () => {
+    const [readinessResponse, rendererResponse] = await Promise.all([
       fetch("/v1/readiness", { cache: "no-store" }),
       fetch("/vendor/openscad/manifest.json", { cache: "force-cache" }),
     ]);
@@ -72,13 +82,6 @@ export function ModelWorkspace() {
       rendererReady = manifest?.openscadArchiveSha256 === BROWSER_RENDERER.openscadArchiveSha256 && manifest.bosl2ArchiveSha256 === BROWSER_RENDERER.bosl2ArchiveSha256;
     }
     setReadiness(readinessResponse.ok && rendererReady ? "ready" : "unavailable");
-    if (!response.ok) return false;
-    const raw = await response.json() as { state?: unknown; revisions?: unknown };
-    const project = projectStateSchema.safeParse(raw.state);
-    const revisions = Array.isArray(raw.revisions) ? raw.revisions.map((item) => revisionManifestSchema.safeParse(item)) : [];
-    if (!project.success || revisions.some((item) => !item.success)) return false;
-    dispatch({ type: "hydrate", currentRevision: project.data.currentRevision, revisions: revisions.map((item) => item.data as RevisionManifest) });
-    return true;
   }, []);
 
   useEffect(() => {
@@ -89,9 +92,82 @@ export function ModelWorkspace() {
       sessionStorage.setItem(SESSION_KEY, created);
       setSessionId(created);
     }
-    void loadProject();
+    void Promise.all([refreshProject(), checkRuntime()]);
     return () => abortRef.current?.abort();
-  }, [loadProject]);
+  }, [checkRuntime, refreshProject]);
+
+  useEffect(() => {
+    if (!localMcpBridgeEnabled || state.active || restorePending) return;
+    let stopped = false;
+    let timeout: number | undefined;
+    let controller: AbortController | undefined;
+    const schedule = (delay: number) => {
+      if (stopped) return;
+      if (timeout !== undefined) window.clearTimeout(timeout);
+      timeout = window.setTimeout(() => { void poll(); }, delay);
+    };
+    const poll = async () => {
+      if (stopped) return;
+      if (document.visibilityState !== "visible") { schedule(1_000); return; }
+      controller = new AbortController();
+      try { await refreshProject(controller.signal); }
+      catch { /* A later poll retries without replacing the last-known-valid state. */ }
+      finally { controller = undefined; schedule(1_000); }
+    };
+    const visible = () => { if (document.visibilityState === "visible") schedule(0); };
+    document.addEventListener("visibilitychange", visible);
+    schedule(1_000);
+    return () => {
+      stopped = true;
+      if (timeout !== undefined) window.clearTimeout(timeout);
+      controller?.abort();
+      document.removeEventListener("visibilitychange", visible);
+    };
+  }, [localMcpBridgeEnabled, refreshProject, restorePending, state.active]);
+
+  useEffect(() => {
+    if (!localMcpBridgeEnabled || !sessionId || state.active || restorePending) return;
+    let stopped = false;
+    let timeout: number | undefined;
+    let controller: AbortController | undefined;
+    const schedule = (delay: number) => {
+      if (stopped) return;
+      if (timeout !== undefined) window.clearTimeout(timeout);
+      timeout = window.setTimeout(() => { void poll(); }, delay);
+    };
+    const poll = async () => {
+      if (stopped) return;
+      if (document.visibilityState !== "visible") { schedule(500); return; }
+      controller = new AbortController();
+      try {
+        const response = await fetch(`/v1/local-mcp/browser-renders/next?projectId=${encodeURIComponent(PROJECT_ID)}`, {
+          cache: "no-store",
+          headers: { "x-rjls-session-id": sessionId },
+          signal: controller.signal,
+        });
+        if (response.status === 200) {
+          const raw = await response.json() as { job?: unknown };
+          const job = localMcpBrowserRenderJobSchema.safeParse(raw.job);
+          if (!job.success) throw new Error("The local MCP render job was invalid.");
+          await completeLocalMcpBrowserRender(job.data, sessionId);
+        } else if (response.status !== 204) throw new Error("The local MCP render bridge is unavailable.");
+      } catch (error) {
+        if (controller.signal.aborted) void error;
+      } finally {
+        controller = undefined;
+        schedule(500);
+      }
+    };
+    const visible = () => { if (document.visibilityState === "visible") schedule(0); };
+    document.addEventListener("visibilitychange", visible);
+    schedule(0);
+    return () => {
+      stopped = true;
+      if (timeout !== undefined) window.clearTimeout(timeout);
+      controller?.abort();
+      document.removeEventListener("visibilitychange", visible);
+    };
+  }, [localMcpBridgeEnabled, restorePending, sessionId, state.active]);
 
   const submit = useCallback(async (message: string) => {
     if (!sessionId) return;
@@ -114,7 +190,7 @@ export function ModelWorkspace() {
           }
         } else if (event.type === "browser_render_request") await completeBrowserRender(event);
       });
-      await loadProject();
+      await refreshProject();
     } catch (error) {
       if (controller.signal.aborted) {
         dispatch({ type: "local_error", message: "The request was cancelled. The current revision is unchanged." });
@@ -122,7 +198,7 @@ export function ModelWorkspace() {
     } finally {
       abortRef.current = undefined;
     }
-  }, [loadProject, sessionId, state.revisions]);
+  }, [refreshProject, sessionId, state.revisions]);
 
   useLayoutEffect(() => {
     const available = readiness === "ready" && Boolean(sessionId);
@@ -138,7 +214,7 @@ export function ModelWorkspace() {
       const revision = revisionManifestSchema.safeParse(raw.revision);
       if (!response.ok || !revision.success) throw new Error("Restore failed");
       dispatch({ type: "restored", revision: revision.data });
-      await loadProject();
+      await refreshProject();
     } catch { dispatch({ type: "local_error", message: "The historical revision could not be restored safely." }); }
     finally { setRestorePending(false); }
   };

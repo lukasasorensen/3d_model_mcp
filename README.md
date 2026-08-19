@@ -30,6 +30,87 @@ pnpm install --frozen-lockfile
 pnpm verify
 ```
 
+## Test the MCP tools with Codex
+
+This workflow uses Codex as the MCP client, so model reasoning uses the ChatGPT
+account signed into Codex instead of an API key in this application. OpenSCAD,
+BOSL2, project history, and generated previews remain local. The site chat stays
+on the deterministic `mock` provider and is not involved.
+
+Codex supports local stdio MCP servers and shares their configuration across the
+ChatGPT desktop app, Codex CLI, and IDE extension. Confirm that Codex is using
+your ChatGPT subscription:
+
+```bash
+codex login status
+# If needed:
+codex login
+```
+
+Create `apps/site/.env.local` from `.env.example`. Use the same **absolute** projects root
+for both the site and the MCP server:
+
+```dotenv
+RJLS_PROJECTS_ROOT=/absolute/path/to/3d_model_mcp/.rjls-projects
+RJLS_ALLOWED_ORIGIN=http://localhost:3000
+RJLS_CHAT_PROVIDER=mock
+RJLS_LOCAL_MCP_BRIDGE=1
+```
+
+Install dependencies, prepare the pinned browser renderer, and build the MCP
+server before registering it:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm prepare:browser-renderer
+pnpm mcp:build
+```
+
+Register the stdio server using absolute paths (replace both example paths):
+
+```bash
+codex mcp add rjls-cad \
+  --env RJLS_PROJECTS_ROOT=/absolute/path/to/3d_model_mcp/.rjls-projects \
+  -- pnpm --dir /absolute/path/to/3d_model_mcp mcp:serve
+codex mcp get rjls-cad
+```
+
+In `~/.codex/config.toml`, add `tool_timeout_sec = 120` inside the generated
+`[mcp_servers.rjls-cad]` table. Browser rendering has a 60-second safety limit,
+so the MCP tool needs enough time for the browser handoff and protocol overhead.
+Restart the ChatGPT desktop app, Codex CLI session, or IDE extension after adding
+the server; an already-running task does not gain newly configured tools.
+
+Start the site and keep its tab visible while using the MCP tools:
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000), then start a new local Codex
+task in this repository and ask:
+
+> Using the `rjls-cad` MCP tools and project ID `demo-project`, inspect the current
+> state, create or edit the requested OpenSCAD model, validate it in the open
+> browser, and promote the valid candidate.
+
+The browser claims the validation job, runs the pinned OpenSCAD/BOSL2 Web Worker,
+returns a source-bound validation receipt, and displays the promoted revision on
+its next one-second project refresh. If the tab is closed, hidden for too long,
+or the local bridge is disabled, `validate_and_render` fails safely and the
+current revision does not change.
+
+After changing MCP/runtime source, run `pnpm mcp:build` again and restart the
+Codex client or task so it launches the rebuilt process. Remove the registration
+when it is no longer needed:
+
+```bash
+codex mcp remove rjls-cad
+```
+
+Official references: [Codex MCP configuration](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
+and [Codex authentication](https://learn.chatgpt.com/docs/auth).
+
 Detailed setup and the frozen R1→R2→R3→3MF script are in
 [`docs/demo-script.md`](docs/demo-script.md). Architecture and trust boundaries are
 documented in [`docs/architecture.md`](docs/architecture.md) and
@@ -54,8 +135,8 @@ of rendering the exact candidate source hash. Invalid code never replaces the cu
 ## Release status
 
 The deterministic integration harness proves the server workflow with an explicit test-only
-renderer fixture. Browser OpenSCAD/BOSL2 smoke evidence, browser screenshots
-and heap traces, live-provider evaluation/default selection, public deployment, and
+renderer fixture. Browser screenshots and heap traces, live-provider evaluation/default
+selection, public deployment, and
 the repository license/third-party notice decision remain blocked or deferred. See
 [`docs/g006-verification-evidence.json`](docs/g006-verification-evidence.json). A2A
 is a future research item and is not implemented.

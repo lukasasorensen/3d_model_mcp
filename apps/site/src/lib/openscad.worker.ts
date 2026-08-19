@@ -3,7 +3,7 @@
 import { BROWSER_RENDERER } from "@rjls/contracts";
 import { unzipSync } from "fflate";
 
-type RenderMessage = { source: string; format: "stl" | "3mf" };
+type RenderMessage = { source: string; format: "stl" | "3mf"; origin: string };
 type OpenScadModule = {
   FS: { mkdirTree(path: string): void; writeFile(path: string, value: string | Uint8Array): void; readFile(path: string): Uint8Array };
   ENV: Record<string, string>;
@@ -12,8 +12,8 @@ type OpenScadModule = {
 
 declare const self: DedicatedWorkerGlobalScope;
 
-async function verifiedBytes(path: string, expectedHash: string, label: string): Promise<Uint8Array> {
-  const response = await fetch(new URL(path, self.location.origin), { cache: "force-cache" });
+async function verifiedBytes(path: string, origin: string, expectedHash: string, label: string): Promise<Uint8Array> {
+  const response = await fetch(new URL(path, origin), { cache: "force-cache" });
   if (!response.ok) throw new Error(`Pinned ${label} is unavailable.`);
   const bytes = new Uint8Array(await response.arrayBuffer());
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -24,14 +24,13 @@ async function verifiedBytes(path: string, expectedHash: string, label: string):
 
 self.onmessage = async (event: MessageEvent<RenderMessage>) => {
   const diagnostics: string[] = [];
-  let moduleUrl: string | undefined;
   try {
-    const [glueBytes, wasmBytes, boslBytes] = await Promise.all([
-      verifiedBytes("/vendor/openscad/openscad.js", BROWSER_RENDERER.openscadGlueSha256, "OpenSCAD JavaScript"),
-      verifiedBytes("/vendor/openscad/openscad.wasm", BROWSER_RENDERER.openscadWasmSha256, "OpenSCAD WebAssembly"),
-      verifiedBytes("/vendor/openscad/bosl2.zip", BROWSER_RENDERER.bosl2ArchiveSha256, "BOSL2 bundle"),
+    const [, wasmBytes, boslBytes] = await Promise.all([
+      verifiedBytes("/vendor/openscad/openscad.js", event.data.origin, BROWSER_RENDERER.openscadGlueSha256, "OpenSCAD JavaScript"),
+      verifiedBytes("/vendor/openscad/openscad.wasm", event.data.origin, BROWSER_RENDERER.openscadWasmSha256, "OpenSCAD WebAssembly"),
+      verifiedBytes("/vendor/openscad/bosl2.zip", event.data.origin, BROWSER_RENDERER.bosl2ArchiveSha256, "BOSL2 bundle"),
     ]);
-    moduleUrl = URL.createObjectURL(new Blob([glueBytes.slice().buffer as ArrayBuffer], { type: "text/javascript" }));
+    const moduleUrl = new URL("/vendor/openscad/openscad.js", event.data.origin).href;
     const imported = await import(/* webpackIgnore: true */ moduleUrl) as { default: (options: Record<string, unknown>) => Promise<OpenScadModule> };
     const instance = await imported.default({
       noInitialRun: true,
@@ -51,7 +50,7 @@ self.onmessage = async (event: MessageEvent<RenderMessage>) => {
     instance.ENV.OPENSCADPATH = "/libraries";
     instance.FS.writeFile("/model.scad", event.data.source);
     const output = event.data.format === "stl" ? "/preview.stl" : "/export.3mf";
-    const args = ["--enable=manifold", "-o", output];
+    const args = ["--backend=manifold", "-o", output];
     if (event.data.format === "stl") args.push("--export-format", "binstl");
     args.push("/model.scad");
     const exitCode = instance.callMain(args);
@@ -59,9 +58,9 @@ self.onmessage = async (event: MessageEvent<RenderMessage>) => {
     const bytes = instance.FS.readFile(output).slice();
     self.postMessage({ ok: true, bytes, diagnostics }, [bytes.buffer]);
   } catch (error) {
-    self.postMessage({ ok: false, diagnostics, message: error instanceof Error ? error.message : "OpenSCAD rendering failed." });
-  } finally {
-    if (moduleUrl) URL.revokeObjectURL(moduleUrl);
+    const message = error instanceof Error ? error.message : "OpenSCAD rendering failed.";
+    if (diagnostics.length === 0) diagnostics.push(message);
+    self.postMessage({ ok: false, diagnostics, message });
   }
 };
 

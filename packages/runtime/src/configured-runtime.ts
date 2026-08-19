@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 
 import { BrowserRenderCoordinator } from "./browser-renderer.js";
+import { FilesystemBrowserRenderBridge } from "./filesystem-browser-renderer.js";
 import { createInMemoryCadMcpClient, type ConnectedCadMcpClient } from "./mcp-client.js";
 import { RuntimeObservabilityStore } from "./observability.js";
 
@@ -12,6 +13,7 @@ export interface ConfiguredCadRuntime extends ChatOrchestratorOptions {
   client: ConnectedCadMcpClient;
   repository: ModelProjectRepository;
   browserRenderer: BrowserRenderCoordinator;
+  localBrowserRenderer: FilesystemBrowserRenderBridge;
   observability: RuntimeObservabilityStore;
   probeReadiness(): Promise<{ status: "ready"; profile: "browser-wasm" }>;
 }
@@ -54,6 +56,7 @@ export function getConfiguredCadRuntime(): Promise<ConfiguredCadRuntime> {
   singleton ??= (async () => {
     const browserRenderer = new BrowserRenderCoordinator(VALIDATION_POLICY_VERSION);
     const workspaceRoot = resolve(process.env.RJLS_PROJECTS_ROOT ?? ".rjls-projects");
+    const localBrowserRenderer = new FilesystemBrowserRenderBridge(workspaceRoot, VALIDATION_POLICY_VERSION);
     const repository = new ModelProjectRepository({ workspaceRoot, renderer: browserRenderer, acceptRendererProvenance: isBrowserRendererProvenance });
     const client = await createInMemoryCadMcpClient(repository);
     const observability = new RuntimeObservabilityStore();
@@ -63,6 +66,7 @@ export function getConfiguredCadRuntime(): Promise<ConfiguredCadRuntime> {
       client,
       provider: createCadProvider(),
       browserRenderer,
+      localBrowserRenderer,
       createObservabilitySink: observability.createRequestSink,
       observability,
       repository,

@@ -15,6 +15,7 @@ export interface ChatTurn {
   outcome?: "completed" | "failed" | "cancelled";
 }
 export interface WorkspaceState {
+  hydrated: boolean;
   currentRevision: string | null;
   pendingCurrentRevision: string | null;
   selectedRevision: string | null;
@@ -37,6 +38,7 @@ export interface StreamArtifact {
 }
 
 export const initialWorkspaceState: WorkspaceState = {
+  hydrated: false,
   currentRevision: null,
   pendingCurrentRevision: null,
   selectedRevision: null,
@@ -117,16 +119,21 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
     const artifacts = { ...state.artifacts };
     for (const revision of action.revisions) for (const artifact of revision.artifacts) artifacts[artifactKey(artifact.sourceRevision, artifact.artifactId)] = artifact;
     const pendingHydrated = Boolean(state.pendingCurrentRevision && action.currentRevision === state.pendingCurrentRevision && action.revisions.some((revision) => revision.revisionId === state.pendingCurrentRevision));
-    const stableLabel = pendingHydrated ? revisionLabel(action.revisions, action.currentRevision) : undefined;
-    const announcement = pendingHydrated && action.currentRevision && stableLabel
+    const currentChanged = action.currentRevision !== state.currentRevision;
+    const currentHydrated = Boolean(action.currentRevision && action.revisions.some((revision) => revision.revisionId === action.currentRevision));
+    const externalCurrentHydrated = state.hydrated && currentChanged && currentHydrated;
+    const followCurrent = pendingHydrated || !state.selectedRevision || state.selectedRevision === state.currentRevision;
+    const stableLabel = (pendingHydrated || externalCurrentHydrated) ? revisionLabel(action.revisions, action.currentRevision) : undefined;
+    const announcement = (pendingHydrated || externalCurrentHydrated) && action.currentRevision && stableLabel
       ? announceOnce(state, `revision:${action.currentRevision}:hydrated`, `${stableLabel} is now current.`)
       : { announcement: state.announcement, announcedKeys: state.announcedKeys };
     return {
       ...state,
+      hydrated: true,
       revisions: action.revisions,
       currentRevision: action.currentRevision,
       pendingCurrentRevision: pendingHydrated ? null : state.pendingCurrentRevision,
-      selectedRevision: pendingHydrated || !state.selectedRevision ? action.currentRevision : state.selectedRevision,
+      selectedRevision: followCurrent ? action.currentRevision : state.selectedRevision,
       artifacts,
       ...announcement,
     };

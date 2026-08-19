@@ -23,7 +23,7 @@ export function createCadMcpServer(repository: ModelProjectRepository): McpServe
   const registry = createCadToolRegistry(repository);
   const server = new McpServer(
     { name: "rjls-cad", version: "0.1.0" },
-    { instructions: "Use only these project-scoped CAD tools. Never infer revision or artifact success from prose." },
+    { instructions: "Use only these project-scoped CAD tools. Inspect project state before editing, propose source against the exact current parent, validate_and_render before promotion, and promote only a VALID candidate. Browser validation requires the local CAD site to be open. Never infer revision or artifact success from prose." },
   );
 
   for (const name of Object.keys(registry) as CadToolName[]) {

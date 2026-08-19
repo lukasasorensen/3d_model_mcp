@@ -136,6 +136,26 @@ test("promotion preserves the last-known-valid display and announces only after 
   assert.equal(duplicateCurrent.announcement, hydrated.announcement);
 });
 
+test("external hydration follows the prior current but preserves historical inspection", () => {
+  const makeRevision = (revisionId: string, parentRevision: string | null): RevisionManifest => ({
+    version: "1", projectId: "demo-project", revisionId, parentRevision, sourceHash: revisionId === "revision-1" ? "a".repeat(64) : "b".repeat(64),
+    sourceBytes: 10, createdAt: "2026-08-18T00:00:00.000Z", requestId: `request-${revisionId}`,
+    toolCallId: `tool-${revisionId}`, candidateId: `candidate-${revisionId}`, validationPolicyVersion: "1",
+    validationResult: "VALID", diagnostics: [], artifacts: [], renderer: provenance,
+  });
+  const first = makeRevision("revision-1", null);
+  const second = makeRevision("revision-2", first.revisionId);
+  const current = workspaceReducer(initialWorkspaceState, { type: "hydrate", revisions: [first], currentRevision: first.revisionId });
+  const followed = workspaceReducer(current, { type: "hydrate", revisions: [second, first], currentRevision: second.revisionId });
+  assert.equal(followed.selectedRevision, second.revisionId);
+  assert.deepEqual(followed.announcement, { key: "revision:revision-2:hydrated", text: "R2 is now current." });
+
+  const historical = workspaceReducer({ ...current, selectedRevision: "historical-revision" }, {
+    type: "hydrate", revisions: [second, first], currentRevision: second.revisionId,
+  });
+  assert.equal(historical.selectedRevision, "historical-revision");
+});
+
 test("canonical R1-R2-R3 stream keeps artifact/export gates causal and rejected edits preserve R3", () => {
   const makeRevision = (revisionId: string, parentRevision: string | null, index: number): RevisionManifest => {
     const sourceHash = String(index).repeat(64);

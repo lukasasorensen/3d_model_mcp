@@ -438,6 +438,21 @@ export const browserRenderCompletionSchema = z.object({
   provenance: rendererProvenanceSchema.refine((value) => value.profile === "browser-wasm", "browser WASM provenance required"),
 }).strict();
 export type BrowserRenderCompletion = z.infer<typeof browserRenderCompletionSchema>;
+
+/** Local-only handoff from the standalone MCP process to an open browser tab. */
+export const localMcpBrowserRenderJobSchema = z.object({
+  version: z.literal(CONTRACT_VERSION),
+  jobId: opaqueIdSchema,
+  projectId: projectIdSchema,
+  candidateId: candidateIdSchema,
+  token: z.string().regex(/^[a-f0-9]{64}$/),
+  source: z.string().min(1).max(CAD_LIMITS.sourceBytes),
+  sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
+  format: z.literal("stl"),
+  createdAt: z.string().datetime({ offset: true }),
+  deadline: z.string().datetime({ offset: true }),
+}).strict();
+export type LocalMcpBrowserRenderJob = z.infer<typeof localMcpBrowserRenderJobSchema>;
 export const chatErrorCodeSchema = z.enum([
   "INVALID_REQUEST", "ORIGIN_DENIED", "SESSION_MISMATCH", "PROVIDER_FAILURE", "MCP_FAILURE",
   "CAD_TOOL_REJECTED", "RENDERER_FAILURE", "TOOL_LIMIT_EXCEEDED", "REPAIR_LIMIT_EXCEEDED",

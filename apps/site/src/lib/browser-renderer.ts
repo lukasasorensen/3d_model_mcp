@@ -1,4 +1,4 @@
-import { BROWSER_RENDERER, CAD_LIMITS, type Diagnostic } from "@rjls/contracts";
+import { BROWSER_RENDERER, CAD_LIMITS, type BrowserRenderCompletion, type Diagnostic, type LocalMcpBrowserRenderJob } from "@rjls/contracts";
 
 const previewCache = new Map<string, Uint8Array>();
 
@@ -47,7 +47,7 @@ export async function renderOpenScad(source: string, format: "stl" | "3mf", sign
         else finish(() => resolve({ bytes: event.data.bytes!, diagnostics }));
       }
     };
-    worker.postMessage({ source, format });
+    worker.postMessage({ source, format, origin: window.location.origin });
   });
 }
 
@@ -61,22 +61,37 @@ export async function renderPreview(source: string, sourceHash: string, signal?:
   return result;
 }
 
-export async function completeBrowserRender(event: Extract<import("@rjls/contracts").ChatEvent, { type: "browser_render_request" }>): Promise<void> {
+async function renderCompletion(request: { source: string; sourceHash: string; token: string }, sessionId: string): Promise<BrowserRenderCompletion> {
   let outcome: "VALID" | "REJECTED" = "VALID";
   let diagnostics: Diagnostic[] = [];
   try {
-    const result = await renderPreview(event.source, event.sourceHash);
+    const result = await renderPreview(request.source, request.sourceHash);
     diagnostics = result.diagnostics;
   } catch (error) {
     outcome = "REJECTED";
     diagnostics = (error as { diagnostics?: Diagnostic[] }).diagnostics ?? [{ code: "OPENSCAD_FAILED", severity: "error", message: "OpenSCAD rejected the model." }];
   }
+  return { token: request.token, sessionId, sourceHash: request.sourceHash, outcome, diagnostics, provenance: browserRendererProvenance };
+}
+
+export async function completeBrowserRender(event: Extract<import("@rjls/contracts").ChatEvent, { type: "browser_render_request" }>): Promise<void> {
+  const completion = await renderCompletion(event, event.sessionId);
   const response = await fetch(`/v1/browser-renders/${encodeURIComponent(event.jobId)}`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-rjls-session-id": event.sessionId },
-    body: JSON.stringify({ token: event.token, sessionId: event.sessionId, sourceHash: event.sourceHash, outcome, diagnostics, provenance: browserRendererProvenance }),
+    body: JSON.stringify(completion),
   });
   if (!response.ok) throw new Error("The browser render result was not accepted.");
+}
+
+export async function completeLocalMcpBrowserRender(job: LocalMcpBrowserRenderJob, sessionId: string): Promise<void> {
+  const completion = await renderCompletion(job, sessionId);
+  const response = await fetch(`/v1/local-mcp/browser-renders/${encodeURIComponent(job.jobId)}`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-rjls-session-id": sessionId },
+    body: JSON.stringify(completion),
+  });
+  if (!response.ok) throw new Error("The local MCP browser render result was not accepted.");
 }
 
 export async function downloadBrowserExport(event: Extract<import("@rjls/contracts").ChatEvent, { type: "browser_render_request" }>, label: string): Promise<void> {

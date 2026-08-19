@@ -126,10 +126,10 @@ export function ModelViewer({ projectId, revisionId, sourceHash, currentLabel, u
   const [geometry, setGeometry] = useState<BufferGeometry>();
   const [loadState, setLoadState] = useState<PreviewLoadState>("empty");
   const [command, setCommand] = useState<ViewCommand>({ id: 0, type: "fit" });
-  const geometryRef = useRef<BufferGeometry>();
-  const pendingGeometryRef = useRef<BufferGeometry>();
+  const geometryRef = useRef<BufferGeometry | undefined>(undefined);
+  const pendingGeometryRef = useRef<BufferGeometry | undefined>(undefined);
   const loadGeneration = useRef(0);
-  const lastFittedProjectId = useRef<string>();
+  const lastFittedProjectId = useRef<string | undefined>(undefined);
   const autoFitPending = useRef(false);
 
   useEffect(() => {

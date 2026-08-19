@@ -6,7 +6,7 @@ import test from "node:test";
 import { ModelProjectRepository } from "@rjls/model-project";
 import { CAD_TOOL_NAMES } from "@rjls/gateway";
 import { streamCadChat } from "@rjls/gateway";
-import { BrowserRenderCoordinator, RUNTIME_BOUNDARY, RuntimeObservabilityStore, createInMemoryCadMcpClient, createObservedReadinessProbe, createStdioCadMcpClient, expectedBrowserProvenance, probeConfiguredReadiness } from "../dist/index.js";
+import { BrowserRenderCoordinator, FilesystemBrowserRenderBridge, RUNTIME_BOUNDARY, RuntimeObservabilityStore, createInMemoryCadMcpClient, createObservedReadinessProbe, createStdioCadMcpClient, expectedBrowserProvenance, probeConfiguredReadiness } from "../dist/index.js";
 
 test("exposes the local runtime package boundary", () => {
   assert.equal(RUNTIME_BOUNDARY, "runtime");
@@ -30,6 +30,34 @@ test("browser render jobs are source-bound, session-bound, and one-time", async 
   assert.equal((await validation).outcome, "VALID");
   assert.throws(() => coordinator.complete(request.jobId, {}), /unavailable|expired/i);
   unsubscribe();
+});
+
+test("filesystem browser bridge claims across processes and binds one completion", async () => {
+  const workspaceRoot = await mkdtemp(join(tmpdir(), "rjls-browser-bridge-"));
+  const producer = new FilesystemBrowserRenderBridge(workspaceRoot, "cad-validation-v1");
+  const consumer = new FilesystemBrowserRenderBridge(workspaceRoot, "cad-validation-v1");
+  const validation = producer.validateAndRender({
+    projectId: "bridge-project", candidateId: "candidate-1", source: "cube(1);",
+    sourceHash: "a".repeat(64), previewProfile: "standard",
+  });
+  let job;
+  for (let attempt = 0; attempt < 20 && !job; attempt += 1) {
+    job = await consumer.claimNext("bridge-project", "session-1");
+    if (!job) await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  assert.ok(job);
+  assert.equal(await consumer.claimNext("bridge-project", "session-2"), null);
+  await assert.rejects(consumer.complete(job.jobId, {
+    token: job.token, sessionId: "session-2", sourceHash: job.sourceHash, outcome: "VALID", diagnostics: [],
+    provenance: expectedBrowserProvenance("cad-validation-v1"),
+  }), /binding/i);
+  const completion = {
+    token: job.token, sessionId: "session-1", sourceHash: job.sourceHash, outcome: "VALID", diagnostics: [],
+    provenance: expectedBrowserProvenance("cad-validation-v1"),
+  };
+  await consumer.complete(job.jobId, completion);
+  await assert.rejects(consumer.complete(job.jobId, completion), /exist/i);
+  assert.equal((await validation).outcome, "VALID");
 });
 
 test("configured readiness requires exact official MCP discovery", async () => {
@@ -135,5 +163,48 @@ test("default stdio adapter negotiates cleanly, propagates cancel, observes chil
     assert.equal(recovered.structuredContent.state.currentRevision, null);
   } finally {
     await restarted.close();
+  }
+});
+
+test("standalone stdio server validates in an open-browser peer and promotes", async () => {
+  const workspaceRoot = await mkdtemp(join(tmpdir(), "rjls-runtime-live-stdio-"));
+  const executable = new URL("../dist/stdio-server.js", import.meta.url);
+  const client = await createStdioCadMcpClient({
+    command: process.execPath,
+    args: [executable.pathname],
+    cwd: process.cwd(),
+    env: { ...process.env, RJLS_PROJECTS_ROOT: workspaceRoot },
+    stderr: "pipe",
+  });
+  const browser = new FilesystemBrowserRenderBridge(workspaceRoot, "cad-validation-v1");
+  try {
+    const proposed = await client.callTool("propose_model_source", {
+      projectId: "demo-project", parentRevision: null, source: "cube([10,10,10]);",
+      requestId: "stdio-live-request", toolCallId: "stdio-live-propose",
+    }, {});
+    const candidateId = proposed.structuredContent.candidate.candidateId;
+    const pending = client.callTool("validate_and_render", {
+      projectId: "demo-project", candidateId, previewProfile: "standard",
+    }, {});
+    let job;
+    for (let attempt = 0; attempt < 40 && !job; attempt += 1) {
+      job = await browser.claimNext("demo-project", "browser-session");
+      if (!job) await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    assert.ok(job);
+    await browser.complete(job.jobId, {
+      token: job.token, sessionId: "browser-session", sourceHash: job.sourceHash,
+      outcome: "VALID", diagnostics: [], provenance: expectedBrowserProvenance("cad-validation-v1"),
+    });
+    const validated = await pending;
+    assert.equal(validated.structuredContent.candidate.state, "VALID");
+    const promoted = await client.callTool("promote_candidate", {
+      projectId: "demo-project", candidateId, expectedParentRevision: null,
+    }, {});
+    assert.equal(promoted.isError, false);
+    const state = await client.callTool("get_project_state", { projectId: "demo-project" }, {});
+    assert.equal(state.structuredContent.state.currentRevision, promoted.structuredContent.revision.revisionId);
+  } finally {
+    await client.close();
   }
 });

@@ -8,6 +8,10 @@
    OpenSCAD WASM and BOSL2 archives.
 4. Run `pnpm verify`, then `pnpm dev`.
 
+To run the same CAD tools from a ChatGPT-authenticated local Codex client while
+the browser performs validation, follow “Test the MCP tools with Codex” in the
+root README. This requires the opt-in local MCP bridge and a visible browser tab.
+
 The UI uses the credential-free `RJLS_CHAT_PROVIDER=mock`. Enter these requests in
 one project:
 
