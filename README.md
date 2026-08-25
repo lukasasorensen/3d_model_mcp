@@ -66,20 +66,48 @@ pnpm prepare:browser-renderer
 pnpm mcp:build
 ```
 
-Register the stdio server using absolute paths (replace both example paths):
+Choose whether to register the stdio server for this repository only or for all
+repositories. Replace both example paths in either option.
+
+### Repository-only registration
+
+Add the server to this repository's `.codex/config.toml`:
+
+```toml
+[mcp_servers.rjls-cad]
+command = "pnpm"
+args = ["--dir", "/absolute/path/to/3d_model_mcp", "mcp:serve"]
+tool_timeout_sec = 120
+
+[mcp_servers.rjls-cad.env]
+RJLS_PROJECTS_ROOT = "/absolute/path/to/3d_model_mcp/.rjls-projects"
+```
+
+Project-scoped configuration is loaded only for trusted repositories.
+
+### Global registration
+
+Register the server in `~/.codex/config.toml` with the CLI:
 
 ```bash
 codex mcp add rjls-cad \
   --env RJLS_PROJECTS_ROOT=/absolute/path/to/3d_model_mcp/.rjls-projects \
   -- pnpm --dir /absolute/path/to/3d_model_mcp mcp:serve
+```
+
+Then add `tool_timeout_sec = 120` inside the generated
+`[mcp_servers.rjls-cad]` table in `~/.codex/config.toml`.
+
+After either option, confirm that Codex sees the server:
+
+```bash
 codex mcp get rjls-cad
 ```
 
-In `~/.codex/config.toml`, add `tool_timeout_sec = 120` inside the generated
-`[mcp_servers.rjls-cad]` table. Browser rendering has a 60-second safety limit,
-so the MCP tool needs enough time for the browser handoff and protocol overhead.
-Restart the ChatGPT desktop app, Codex CLI session, or IDE extension after adding
-the server; an already-running task does not gain newly configured tools.
+Browser rendering has a 60-second safety limit, so the MCP tool needs enough
+time for the browser handoff and protocol overhead. Restart the ChatGPT desktop
+app, Codex CLI session, or IDE extension after adding the server; an
+already-running task does not gain newly configured tools.
 
 Start the site and keep its tab visible while using the MCP tools:
 
@@ -87,7 +115,7 @@ Start the site and keep its tab visible while using the MCP tools:
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000), then start a new local Codex
+Open [http://localhost:3000/projects/demo-project](http://localhost:3000/projects/demo-project), then start a new local Codex
 task in this repository and ask:
 
 > Using the `rjls-cad` MCP tools and project ID `demo-project`, inspect the current
@@ -101,8 +129,9 @@ or the local bridge is disabled, `validate_and_render` fails safely and the
 current revision does not change.
 
 After changing MCP/runtime source, run `pnpm mcp:build` again and restart the
-Codex client or task so it launches the rebuilt process. Remove the registration
-when it is no longer needed:
+Codex client or task so it launches the rebuilt process. To remove a
+repository-only registration, delete the `mcp_servers.rjls-cad` tables from
+`.codex/config.toml`. To remove the global registration, run:
 
 ```bash
 codex mcp remove rjls-cad

@@ -11,8 +11,7 @@ import { streamChat } from "@/lib/stream-client";
 import { completeBrowserRender, completeLocalMcpBrowserRender, downloadBrowserExport, fetchRevisionSource, renderOpenScad } from "@/lib/browser-renderer";
 
 const ModelViewer = dynamic(() => import("./ModelViewer").then((module) => module.ModelViewer), { ssr: false, loading: () => <div className="viewer-loading">Preparing 3D viewer…</div> });
-const PROJECT_ID = "demo-project";
-const SESSION_KEY = "rjls-cad-session";
+const SESSION_KEY_PREFIX = "rjls-cad-session:";
 const activeObjectUrls = new Set<string>();
 
 function newOpaqueId(prefix: string): string { return `${prefix}-${crypto.randomUUID()}`; }
@@ -48,7 +47,7 @@ export function promotionStatusLabel(selectedLabel: string, hasSelectedRevision:
     : "Promoting the first validated revision. The viewer remains empty until it is verified for display.";
 }
 
-export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBridgeEnabled?: boolean }) {
+export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { projectId: string; localMcpBridgeEnabled?: boolean }) {
   const [state, dispatch] = useReducer(workspaceReducer, initialWorkspaceState);
   const [readiness, setReadiness] = useState<"checking" | "ready" | "unavailable">("checking");
   const [exportState, setExportState] = useState<"idle" | "preparing" | "failed" | "complete">("idle");
@@ -61,7 +60,7 @@ export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBrid
   const [sessionId, setSessionId] = useState("");
 
   const refreshProject = useCallback(async (signal?: AbortSignal) => {
-    const response = await fetch(`/v1/projects/${encodeURIComponent(PROJECT_ID)}`, { cache: "no-store", signal });
+    const response = await fetch(`/v1/projects/${encodeURIComponent(projectId)}`, { cache: "no-store", signal });
     if (!response.ok) return false;
     const raw = await response.json() as { state?: unknown; revisions?: unknown };
     const project = projectStateSchema.safeParse(raw.state);
@@ -69,7 +68,7 @@ export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBrid
     if (!project.success || revisions.some((item) => !item.success)) return false;
     dispatch({ type: "hydrate", currentRevision: project.data.currentRevision, revisions: revisions.map((item) => item.data as RevisionManifest) });
     return true;
-  }, []);
+  }, [projectId]);
 
   const checkRuntime = useCallback(async () => {
     const [readinessResponse, rendererResponse] = await Promise.all([
@@ -85,16 +84,17 @@ export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBrid
   }, []);
 
   useEffect(() => {
-    const existing = sessionStorage.getItem(SESSION_KEY);
+    const sessionKey = `${SESSION_KEY_PREFIX}${projectId}`;
+    const existing = sessionStorage.getItem(sessionKey);
     if (existing) setSessionId(existing);
     else {
       const created = newOpaqueId("session");
-      sessionStorage.setItem(SESSION_KEY, created);
+      sessionStorage.setItem(sessionKey, created);
       setSessionId(created);
     }
     void Promise.all([refreshProject(), checkRuntime()]);
     return () => abortRef.current?.abort();
-  }, [checkRuntime, refreshProject]);
+  }, [checkRuntime, projectId, refreshProject]);
 
   useEffect(() => {
     if (!localMcpBridgeEnabled || state.active || restorePending) return;
@@ -140,7 +140,7 @@ export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBrid
       if (document.visibilityState !== "visible") { schedule(500); return; }
       controller = new AbortController();
       try {
-        const response = await fetch(`/v1/local-mcp/browser-renders/next?projectId=${encodeURIComponent(PROJECT_ID)}`, {
+        const response = await fetch(`/v1/local-mcp/browser-renders/next?projectId=${encodeURIComponent(projectId)}`, {
           cache: "no-store",
           headers: { "x-rjls-session-id": sessionId },
           signal: controller.signal,
@@ -167,7 +167,7 @@ export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBrid
       controller?.abort();
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [localMcpBridgeEnabled, restorePending, sessionId, state.active]);
+  }, [localMcpBridgeEnabled, projectId, restorePending, sessionId, state.active]);
 
   const submit = useCallback(async (message: string) => {
     if (!sessionId) return;
@@ -177,7 +177,7 @@ export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBrid
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      await streamChat({ version: "3", projectId: PROJECT_ID, sessionId, message }, controller.signal, async (event: ChatEvent) => {
+      await streamChat({ version: "3", projectId, sessionId, message }, controller.signal, async (event: ChatEvent) => {
         dispatch({ type: "event", event });
         if (event.type === "browser_render_request" && event.purpose === "export") {
           setExportState("preparing");
@@ -198,7 +198,7 @@ export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBrid
     } finally {
       abortRef.current = undefined;
     }
-  }, [refreshProject, sessionId, state.revisions]);
+  }, [projectId, refreshProject, sessionId, state.revisions]);
 
   useLayoutEffect(() => {
     const available = readiness === "ready" && Boolean(sessionId);
@@ -209,7 +209,7 @@ export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBrid
   const restore = async (revisionId: string) => {
     setRestorePending(true);
     try {
-      const response = await fetch(`/v1/projects/${encodeURIComponent(PROJECT_ID)}/revisions/${encodeURIComponent(revisionId)}/restore`, { method: "POST" });
+      const response = await fetch(`/v1/projects/${encodeURIComponent(projectId)}/revisions/${encodeURIComponent(revisionId)}/restore`, { method: "POST" });
       const raw = await response.json() as { revision?: unknown };
       const revision = revisionManifestSchema.safeParse(raw.revision);
       if (!response.ok || !revision.success) throw new Error("Restore failed");
@@ -240,7 +240,7 @@ export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBrid
     if (!currentManifest) return;
     setExportState("preparing");
     try {
-      const source = await fetchRevisionSource(PROJECT_ID, currentManifest.revisionId, currentManifest.sourceHash);
+      const source = await fetchRevisionSource(projectId, currentManifest.revisionId, currentManifest.sourceHash);
       const result = await renderOpenScad(source, "3mf");
       const exportBuffer = result.bytes.buffer.slice(result.bytes.byteOffset, result.bytes.byteOffset + result.bytes.byteLength) as ArrayBuffer;
       const objectUrl = trackObjectUrl(URL.createObjectURL(new Blob([exportBuffer], { type: "model/3mf" })));
@@ -270,7 +270,7 @@ export function ModelWorkspace({ localMcpBridgeEnabled = false }: { localMcpBrid
           </div>
           <div className="revision-rail" aria-hidden="true"><span className={state.active ? "rail-working" : ""} /></div>
           {promotionPending && <p className="notice" role="status">{promotionStatusLabel(selectedLabel, Boolean(state.selectedRevision))}</p>}
-          <ModelViewer projectId={PROJECT_ID} revisionId={selectedManifest?.revisionId} sourceHash={selectedManifest?.sourceHash} currentLabel={selectedLabel} updating={state.active} onLoadStateChange={setPreviewLoadState} />
+          <ModelViewer projectId={projectId} revisionId={selectedManifest?.revisionId} sourceHash={selectedManifest?.sourceHash} currentLabel={selectedLabel} updating={state.active} onLoadStateChange={setPreviewLoadState} />
           <div className="model-facts" aria-label="Model facts">
             <div><span>Revision</span><strong>{selectedLabel}</strong></div>
             <div><span>Bounds</span><strong>{dimensions} mm</strong></div>
