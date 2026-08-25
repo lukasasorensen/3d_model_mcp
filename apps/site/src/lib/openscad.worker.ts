@@ -40,8 +40,9 @@ self.onmessage = async (event: MessageEvent<RenderMessage>) => {
     });
     instance.FS.mkdirTree("/libraries/BOSL2");
     const boslFiles = unzipSync(boslBytes);
+    const boslArchiveRoot = `BOSL2-${BROWSER_RENDERER.bosl2Version.replace(/^v/, "")}/`;
     for (const [name, bytes] of Object.entries(boslFiles)) {
-      const relative = name.replace(/^BOSL2-2\.0\.741\//, "");
+      const relative = name.startsWith(boslArchiveRoot) ? name.slice(boslArchiveRoot.length) : name;
       if (!relative || name === relative || (!relative.endsWith(".scad") && relative !== "LICENSE")) continue;
       const destination = `/libraries/BOSL2/${relative}`;
       instance.FS.mkdirTree(destination.slice(0, destination.lastIndexOf("/")));
