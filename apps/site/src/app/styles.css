@@ -23,10 +23,10 @@
 * { box-sizing: border-box; }
 html { background: var(--canvas); }
 body { margin: 0; min-width: 320px; background: var(--canvas); }
-button, textarea { font: inherit; }
+button, textarea, select { font: inherit; }
 button { min-height: 44px; color: inherit; }
-button:focus-visible, textarea:focus-visible, [tabindex]:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
-button:disabled, textarea:disabled { cursor: not-allowed; color: var(--text-muted); }
+button:focus-visible, textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible, summary:focus-visible, a:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+button:disabled, textarea:disabled, select:disabled { cursor: not-allowed; color: var(--text-muted); }
 h1, h2, h3, p { margin: 0; }
 h1, h2 { font-size: clamp(1.15rem, 2vw, 1.35rem); line-height: 1.2; }
 p { line-height: 1.55; }
@@ -37,22 +37,32 @@ code, .eyebrow, .turn-label, .model-facts span, .status-chip { font-family: "SFM
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 .app-shell { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
 .app-header { min-height: 62px; padding: 8px 18px; border-bottom: 1px solid var(--line); background: var(--surface-1); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.brand-mark, .header-status, .pane-heading, .revision-badges, .composer-actions, .model-actions { display: flex; align-items: center; }
+.brand-mark, .header-controls, .header-status, .pane-heading, .revision-badges, .composer-actions, .model-actions, .chat-heading-actions, .export-controls { display: flex; align-items: center; }
 .brand-mark { gap: 10px; }
 .brand-mark > span { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid var(--mint); color: var(--mint); font-weight: 700; }
 .brand-mark strong, .brand-mark small { display: block; }
 .brand-mark small { margin-top: 2px; color: var(--text-muted); font-family: monospace; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .08em; }
 .header-status { gap: 8px; color: var(--text-muted); font-size: .82rem; }
+.header-controls { justify-content: flex-end; gap: 14px; }
+.project-selector { display: flex; align-items: center; gap: 7px; color: var(--text-muted); font-size: .78rem; }
+.project-selector select, .export-controls select { min-height: 44px; padding: 8px 32px 8px 10px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface-2); color: var(--text); }
 .header-status code { margin-left: 8px; padding: 5px 8px; border: 1px solid var(--line); color: var(--text); }
 .readiness-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); }
 .readiness-ready { background: var(--success); }
 .readiness-unavailable { background: var(--danger); }
 
 .workspace-grid { min-height: 0; display: grid; grid-template-columns: minmax(560px, 1.65fr) minmax(400px, 1fr); }
+.workspace-grid.chat-collapsed { grid-template-columns: minmax(0, 1fr) 78px; }
 .model-pane, .chat-pane { min-width: 0; min-height: 0; background: var(--surface-1); }
 .model-pane { padding: 18px; border-right: 1px solid var(--line); display: grid; grid-template-rows: auto 2px minmax(260px, 1fr) auto auto auto; gap: 12px; overflow: auto; }
-.chat-pane { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.chat-pane { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.chat-content { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; }
 .chat-pane > .pane-heading { padding: 18px 20px; border-bottom: 1px solid var(--line); }
+.chat-heading-actions { gap: 8px; }
+.chat-toggle { padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface-2); }
+.chat-pane.is-collapsed > .pane-heading { height: 100%; padding: 10px; align-items: flex-start; justify-content: center; }
+.chat-pane.is-collapsed .chat-heading-copy, .chat-pane.is-collapsed .status-chip, .chat-pane.is-collapsed .chat-content { display: none; }
+.chat-pane.is-collapsed .chat-toggle { width: 58px; padding: 9px 4px; }
 .pane-heading { justify-content: space-between; gap: 16px; }
 .eyebrow { margin-bottom: 5px; color: var(--mint); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; }
 .revision-badges { gap: 8px; flex-wrap: wrap; justify-content: flex-end; font: .72rem monospace; }
@@ -84,6 +94,8 @@ code, .eyebrow, .turn-label, .model-facts span, .status-chip { font-family: "SFM
 .model-facts span { display: block; margin-bottom: 4px; color: var(--text-muted); font-size: .68rem; text-transform: uppercase; }
 .model-facts strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
 .model-actions { align-items: flex-start; justify-content: space-between; gap: 12px; }
+.export-controls { flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+.export-controls label { width: 100%; color: var(--text-muted); text-align: right; font-size: .72rem; }
 .revision-history { flex: 1; border: 1px solid var(--line); background: var(--surface-2); }
 .revision-history summary { min-height: 44px; padding: 11px 12px; cursor: pointer; }
 .revision-history summary span { float: right; color: var(--text-muted); }
@@ -141,15 +153,19 @@ code, .eyebrow, .turn-label, .model-facts span, .status-chip { font-family: "SFM
 @media (max-width: 1023px) {
   .app-shell { overflow: visible; }
   .workspace-grid { display: block; }
+  .workspace-grid.chat-collapsed { display: grid; grid-template-columns: minmax(0, 1fr) 68px; }
+  .workspace-grid.chat-collapsed .model-pane { border-right: 1px solid var(--line); border-bottom: 0; }
   .model-pane { min-height: 52svh; border-right: 0; border-bottom: 1px solid var(--line); }
   .viewer-shell { height: 42svh; min-height: 320px; }
   .chat-pane { min-height: 680px; }
+  .chat-pane.is-collapsed { min-height: 0; }
   .transcript { max-height: 62svh; }
   .composer { position: sticky; bottom: 0; }
 }
 
 @media (max-width: 767px) {
   .app-header { align-items: flex-start; padding: 10px 12px; }
+  .header-controls { display: grid; gap: 6px; justify-items: end; }
   .brand-mark small, .header-status code { display: none; }
   .header-status { max-width: 130px; justify-content: flex-end; text-align: right; }
   .model-pane { padding: 12px; }
@@ -160,7 +176,13 @@ code, .eyebrow, .turn-label, .model-facts span, .status-chip { font-family: "SFM
   .viewer-toolbar button { flex: 0 0 auto; }
   .viewer-help { max-width: calc(100% - 20px); }
   .model-actions { display: grid; }
-  .export-button { width: 100%; }
+  .export-controls, .export-button { width: 100%; }
+  .export-controls label { text-align: left; }
+  .export-controls select { flex: 1; }
+  .workspace-grid.chat-collapsed { display: block; }
+  .workspace-grid.chat-collapsed .model-pane { border-right: 0; border-bottom: 1px solid var(--line); }
+  .chat-pane.is-collapsed > .pane-heading { height: auto; justify-content: flex-end; }
+  .chat-pane.is-collapsed .chat-toggle { width: auto; padding: 9px 12px; }
   .chat-pane > .pane-heading, .transcript, .composer { padding-left: 14px; padding-right: 14px; }
 }
 
@@ -174,6 +196,6 @@ code, .eyebrow, .turn-label, .model-facts span, .status-chip { font-family: "SFM
 }
 
 @media (forced-colors: active) {
-  button, textarea, .viewer-shell, .model-facts, .revision-history { border: 1px solid CanvasText; }
+  button, textarea, select, .viewer-shell, .model-facts, .revision-history { border: 1px solid CanvasText; }
   .readiness-dot, .revision-rail span { forced-color-adjust: none; }
 }

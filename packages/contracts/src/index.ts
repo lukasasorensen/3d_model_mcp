@@ -316,6 +316,9 @@ export const projectStateSchema = z
     diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
   })
   .strict();
+export const projectSummarySchema = z.object({ projectId: projectIdSchema }).strict();
+export const projectListSchema = z.object({ projects: z.array(projectSummarySchema) }).strict();
+export type ProjectSummary = z.infer<typeof projectSummarySchema>;
 export const getProjectStateOutputSchema = z.object({ state: projectStateSchema }).strict();
 export const readModelSourceOutputSchema = z
   .object({

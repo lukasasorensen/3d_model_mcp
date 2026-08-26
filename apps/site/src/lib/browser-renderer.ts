@@ -1,6 +1,17 @@
 import { BROWSER_RENDERER, CAD_LIMITS, type BrowserRenderCompletion, type Diagnostic, type LocalMcpBrowserRenderJob } from "@rjls/contracts";
+import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
+import { STLLoader } from "three/addons/loaders/STLLoader.js";
+import { Group, Mesh, MeshStandardMaterial } from "three";
 
 const previewCache = new Map<string, Uint8Array>();
+
+export type DownloadFormat = "stl" | "3mf" | "glb";
+
+export const DOWNLOAD_MIME_TYPES: Readonly<Record<DownloadFormat, string>> = Object.freeze({
+  stl: "model/stl",
+  "3mf": "model/3mf",
+  glb: "model/gltf-binary",
+});
 
 export const browserRendererProvenance = Object.freeze({
   profile: "browser-wasm" as const,
@@ -96,13 +107,57 @@ export async function completeLocalMcpBrowserRender(job: LocalMcpBrowserRenderJo
 
 export async function downloadBrowserExport(event: Extract<import("@rjls/contracts").ChatEvent, { type: "browser_render_request" }>, label: string): Promise<void> {
   if (event.purpose !== "export" || event.format !== "3mf" || !event.revisionId) throw new Error("Invalid browser export request.");
-  const result = await renderOpenScad(event.source, "3mf");
-  const bytes = result.bytes.buffer.slice(result.bytes.byteOffset, result.bytes.byteOffset + result.bytes.byteLength) as ArrayBuffer;
-  const objectUrl = URL.createObjectURL(new Blob([bytes], { type: "model/3mf" }));
+  const generated = await generateDownload(event.source, "3mf");
+  downloadGeneratedBytes(generated.bytes, generated.mimeType, `RJLS-${label}.${generated.extension}`);
+}
+
+function checkedArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  if (bytes.byteLength === 0 || bytes.byteLength > CAD_LIMITS.exportBytes) throw new Error("Generated download exceeds the browser artifact limit.");
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+}
+
+async function convertStlToGlb(stl: Uint8Array): Promise<Uint8Array> {
+  const geometry = new STLLoader().parse(checkedArrayBuffer(stl));
+  geometry.computeVertexNormals();
+  const material = new MeshStandardMaterial({ color: "#dde5dd", roughness: 0.72, metalness: 0.05 });
+  const mesh = new Mesh(geometry, material);
+  const scene = new Group();
+  scene.rotation.x = -Math.PI / 2;
+  scene.scale.setScalar(0.001);
+  scene.add(mesh);
+  try {
+    const output = await new GLTFExporter().parseAsync(scene, { binary: true, onlyVisible: true });
+    if (!(output instanceof ArrayBuffer)) throw new Error("GLB generation returned an unexpected result.");
+    return new Uint8Array(output);
+  } finally {
+    geometry.dispose();
+    material.dispose();
+  }
+}
+
+export async function generateDownload(source: string, format: DownloadFormat, signal?: AbortSignal): Promise<{ bytes: Uint8Array; mimeType: string; extension: DownloadFormat }> {
+  if (format === "3mf") {
+    const result = await renderOpenScad(source, "3mf", signal);
+    checkedArrayBuffer(result.bytes);
+    return { bytes: result.bytes, mimeType: DOWNLOAD_MIME_TYPES[format], extension: format };
+  }
+  const result = await renderOpenScad(source, "stl", signal);
+  if (format === "stl") {
+    checkedArrayBuffer(result.bytes);
+    return { bytes: result.bytes, mimeType: DOWNLOAD_MIME_TYPES[format], extension: format };
+  }
+  const bytes = await convertStlToGlb(result.bytes);
+  checkedArrayBuffer(bytes);
+  return { bytes, mimeType: DOWNLOAD_MIME_TYPES[format], extension: format };
+}
+
+export function downloadGeneratedBytes(bytes: Uint8Array, mimeType: string, filename: string): void {
+  const buffer = checkedArrayBuffer(bytes);
+  const objectUrl = URL.createObjectURL(new Blob([buffer], { type: mimeType }));
   try {
     const anchor = document.createElement("a");
     anchor.href = objectUrl;
-    anchor.download = `RJLS-${label}.3mf`;
+    anchor.download = filename;
     anchor.click();
   } finally {
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);

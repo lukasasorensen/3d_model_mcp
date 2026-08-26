@@ -119,6 +119,20 @@ test("enforces explicit genesis, exact candidate transitions, and immutable prom
   });
 });
 
+test("lists only valid project directories in stable order", async () => {
+  await withWorkspace(async (workspaceRoot) => {
+    const repository = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance });
+    await mkdir(join(workspaceRoot, "zeta-project"));
+    await mkdir(join(workspaceRoot, "alpha-project"));
+    await mkdir(join(workspaceRoot, ".internal"));
+    await writeFile(join(workspaceRoot, "file-project"), "not a directory");
+    assert.deepEqual(await repository.listProjects(), [
+      { projectId: "alpha-project" },
+      { projectId: "zeta-project" },
+    ]);
+  });
+});
+
 test("checks UTF-8 bytes and rejects escaping source references before persistence", async () => {
   await withWorkspace(async (workspaceRoot) => {
     const repository = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance });

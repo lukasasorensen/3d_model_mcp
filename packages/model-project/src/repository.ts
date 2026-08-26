@@ -23,6 +23,7 @@ import {
   mkdir,
   open,
   readFile,
+  readdir,
   rename,
   rm,
   stat,
@@ -127,6 +128,10 @@ export interface ProjectState {
   source: { hash: string; byteSize: number } | null;
   artifacts: ArtifactManifest[];
   diagnostics: Diagnostic[];
+}
+
+export interface ProjectSummary {
+  projectId: string;
 }
 
 const includeReferencePattern = /\b(?:include|use)\s*<([^>]+)>/g;
@@ -760,6 +765,20 @@ export class ModelProjectRepository {
       artifacts: manifest.artifacts,
       diagnostics: manifest.diagnostics,
     };
+  }
+
+  async listProjects(): Promise<ProjectSummary[]> {
+    let entries;
+    try {
+      entries = await readdir(this.options.workspaceRoot, { withFileTypes: true });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+      throw error;
+    }
+    return entries
+      .filter((entry) => entry.isDirectory() && projectIdSchema.safeParse(entry.name).success)
+      .map((entry) => ({ projectId: entry.name }))
+      .sort((left, right) => left.projectId.localeCompare(right.projectId));
   }
 
   async readModelSource(projectId: string, revision?: string): Promise<{ revision: string; source: string; sourceHash: string }> {
