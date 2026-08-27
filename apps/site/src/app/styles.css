@@ -93,6 +93,18 @@ code, .eyebrow, .turn-label, .model-facts span, .status-chip { font-family: "SFM
 .model-facts > div:last-child { border-right: 0; }
 .model-facts span { display: block; margin-bottom: 4px; color: var(--text-muted); font-size: .68rem; text-transform: uppercase; }
 .model-facts strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .85rem; }
+.model-source-panel { color: var(--text-muted); }
+.model-source-panel summary { width: fit-content; min-height: 32px; padding: 7px 2px; cursor: pointer; font-size: .72rem; letter-spacing: .04em; }
+.model-source-panel summary::marker { color: var(--text-muted); }
+.model-source-panel[open] summary { color: var(--text); }
+.model-source-content { padding: 5px 0 2px 14px; border-left: 1px solid var(--line); }
+.model-source-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+.model-source-heading h2 { color: var(--text-muted); font-size: .78rem; font-weight: 600; }
+.model-source-heading small { color: var(--text-muted); font: .68rem monospace; }
+.model-source-content > p { color: var(--text-muted); font-size: .78rem; }
+.model-source-meta { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; color: var(--text-muted); font: .68rem monospace; text-transform: uppercase; }
+.model-source-meta code { overflow: hidden; text-overflow: ellipsis; text-transform: none; }
+.model-source-content pre { max-height: min(38vh, 420px); margin: 0; padding: 12px; overflow: auto; border: 1px solid var(--line); background: var(--canvas); color: var(--model); font: .78rem/1.55 "SFMono-Regular", Consolas, "Liberation Mono", monospace; tab-size: 2; white-space: pre; }
 .model-actions { align-items: flex-start; justify-content: space-between; gap: 12px; }
 .export-controls { flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
 .export-controls label { width: 100%; color: var(--text-muted); text-align: right; font-size: .72rem; }

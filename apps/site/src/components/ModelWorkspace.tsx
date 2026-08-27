@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 import { ChatPane } from "./ChatPane";
+import { ModelSourcePanel } from "./ModelSourcePanel";
 import { RevisionHistory } from "./RevisionHistory";
 import type { PreviewLoadState } from "./ModelViewer";
 import { initialWorkspaceState, revisionLabel, workspaceReducer } from "@/lib/workspace-state";
@@ -289,6 +290,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
             <div><span>Preview</span><strong>{selectedManifest ? "Browser-rendered STL" : "Unavailable"}</strong></div>
             <div><span>State</span><strong>{previewStatusLabel(Boolean(selectedManifest), previewLoadState)}</strong></div>
           </div>
+          <ModelSourcePanel projectId={projectId} revisionId={selectedManifest?.revisionId} sourceHash={selectedManifest?.sourceHash} revisionLabel={selectedLabel} />
           <div className="model-actions">
             <RevisionHistory revisions={state.revisions} currentRevision={state.currentRevision} selectedRevision={state.selectedRevision} disabled={state.active || restorePending || previewLoadState !== "ready"} onSelect={(revisionId) => dispatch({ type: "select_revision", revisionId })} onRestore={(revisionId) => void restore(revisionId)} />
             <div className="export-controls">
