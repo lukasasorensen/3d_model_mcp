@@ -1,35 +1,30 @@
 import { projectListSchema, projectSummarySchema } from "@rjls/contracts";
-import { getConfiguredCadRuntime } from "@rjls/runtime";
-import { authenticatedUser, isAuthResponse } from "@/lib/server-auth";
+import { withConfiguredCadRuntime } from "@rjls/runtime";
+import { NO_STORE_HEADERS, authenticateRequest, isPolicyResponse, jsonError, requireSameOrigin } from "@/lib/route-policy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const headers = { "cache-control": "no-store", "x-content-type-options": "nosniff" };
-
 export async function GET(request: Request): Promise<Response> {
-  const user = await authenticatedUser(request);
-  if (isAuthResponse(user)) return user;
-  const configured = await getConfiguredCadRuntime(user.id).catch(() => undefined);
-  if (!configured) return Response.json({ error: { code: "RUNTIME_UNAVAILABLE", message: "The local CAD runtime is unavailable." } }, { status: 503, headers });
+  const user = await authenticateRequest(request);
+  if (isPolicyResponse(user)) return user;
   try {
-    const response = projectListSchema.parse({ projects: await configured.repository.listProjects() });
-    return Response.json(response, { headers });
+    const response = await withConfiguredCadRuntime(user.id, async (runtime) => projectListSchema.parse({ projects: await runtime.repository.listProjects() }));
+    return Response.json(response, { headers: NO_STORE_HEADERS });
   } catch {
-    return Response.json({ error: { code: "PROJECT_LIST_FAILED", message: "Projects could not be listed safely." } }, { status: 500, headers });
+    return jsonError("PROJECT_LIST_FAILED", 500, "Projects could not be listed safely.");
   }
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const user = await authenticatedUser(request);
-  if (isAuthResponse(user)) return user;
-  const allowedOrigin = process.env.RJLS_ALLOWED_ORIGIN ?? "http://localhost:3000";
-  if (request.headers.get("origin") !== allowedOrigin) return Response.json({ error: { code: "ORIGIN_DENIED" } }, { status: 403, headers });
+  const originError = requireSameOrigin(request);
+  if (originError) return originError;
+  const user = await authenticateRequest(request);
+  if (isPolicyResponse(user)) return user;
   try {
-    const configured = await getConfiguredCadRuntime(user.id);
-    const project = projectSummarySchema.parse(await configured.repository.createProject());
-    return Response.json({ project }, { status: 201, headers });
+    const project = await withConfiguredCadRuntime(user.id, async (runtime) => projectSummarySchema.parse(await runtime.repository.createProject()));
+    return Response.json({ project }, { status: 201, headers: NO_STORE_HEADERS });
   } catch {
-    return Response.json({ error: { code: "PROJECT_CREATE_FAILED", message: "The project could not be created safely." } }, { status: 500, headers });
+    return jsonError("PROJECT_CREATE_FAILED", 500, "The project could not be created safely.");
   }
 }

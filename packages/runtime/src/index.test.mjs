@@ -7,10 +7,32 @@ import { ModelProjectRepository, PostgresModelProjectRepository, createProjectDa
 import { isBrowserRendererProvenance } from "@rjls/contracts";
 import { CAD_TOOL_NAMES } from "@rjls/gateway";
 import { streamCadChat } from "@rjls/gateway";
-import { BrowserRenderCoordinator, FilesystemBrowserRenderBridge, PostgresBrowserRenderCoordinator, RUNTIME_BOUNDARY, RuntimeObservabilityStore, createInMemoryCadMcpClient, createObservedReadinessProbe, createStdioCadMcpClient, expectedBrowserProvenance, probeConfiguredReadiness, sanitizeBrowserRenderCompletion } from "../dist/index.js";
+import { BrowserRenderCoordinator, ConfiguredCadRuntimeManager, FilesystemBrowserRenderBridge, PostgresBrowserRenderCoordinator, RUNTIME_BOUNDARY, RuntimeObservabilityStore, createInMemoryCadMcpClient, createObservedReadinessProbe, createStdioCadMcpClient, expectedBrowserProvenance, probeConfiguredReadiness, sanitizeBrowserRenderCompletion } from "../dist/index.js";
 
 test("exposes the local runtime package boundary", () => {
   assert.equal(RUNTIME_BOUNDARY, "runtime");
+});
+
+test("configured runtime manager bounds owners and holds stream leases until completion", async () => {
+  const closedOwners = [];
+  let streamController;
+  const manager = new ConfiguredCadRuntimeManager({
+    maxEntries: 1,
+    idleTtlMs: 60_000,
+    createRuntime: async (ownerId) => ({ close: async () => { closedOwners.push(ownerId); } }),
+  });
+  const response = await manager.withRuntime("owner-a", async () => new Response(new ReadableStream({
+    start(controller) { streamController = controller; },
+  })));
+  await assert.rejects(manager.withRuntime("owner-b", async () => undefined), /at capacity/);
+  streamController.enqueue(new TextEncoder().encode("complete"));
+  streamController.close();
+  assert.equal(await response.text(), "complete");
+  await manager.withRuntime("owner-b", async () => undefined);
+  assert.deepEqual(closedOwners, ["owner-a"]);
+  assert.equal(manager.size, 1);
+  await manager.close();
+  assert.deepEqual(closedOwners, ["owner-a", "owner-b"]);
 });
 
 test("browser render jobs are source-bound, session-bound, and one-time", async () => {

@@ -4,15 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 import { getProjectDatabase } from "./infrastructure.js";
 
-export interface ConfiguredAuth {
-  handler(request: Request): Promise<Response>;
-  api: {
-    getSession(input: { headers: Headers }): Promise<{ user: { id: string; email: string; name: string } } | null>;
-    signUpEmail(input: { body: { email: string; password: string; name: string } }): Promise<{ user: { id: string; email: string; name: string } }>;
-  };
-}
-
-function createConfiguredAuth(): ConfiguredAuth {
+function createConfiguredAuth() {
   const secret = process.env.BETTER_AUTH_SECRET;
   if (!secret || secret.length < 32) throw new Error("BETTER_AUTH_SECRET must contain at least 32 characters.");
   return betterAuth({
@@ -23,12 +15,12 @@ function createConfiguredAuth(): ConfiguredAuth {
     emailAndPassword: { enabled: true, disableSignUp: process.env.RJLS_AUTH_ALLOW_SIGNUP !== "1" },
     session: { cookieCache: { enabled: false } },
     advanced: { useSecureCookies: process.env.NODE_ENV === "production" },
-  }) as unknown as ConfiguredAuth;
+  });
 }
 
-let configuredAuth: ConfiguredAuth | undefined;
+let configuredAuth: ReturnType<typeof createConfiguredAuth> | undefined;
 
-export function getAuth(): ConfiguredAuth {
+function getAuth() {
   configuredAuth ??= createConfiguredAuth();
   return configuredAuth;
 }
@@ -39,4 +31,13 @@ export async function getAuthenticatedUser(headers: Headers): Promise<Authentica
   const session = await getAuth().api.getSession({ headers });
   if (!session?.user) return null;
   return { id: session.user.id, email: session.user.email, name: session.user.name };
+}
+
+export function handleAuthRequest(request: Request): Promise<Response> {
+  return getAuth().handler(request);
+}
+
+export async function provisionAuthenticatedUser(input: { email: string; password: string; name: string }): Promise<AuthenticatedUser> {
+  const result = await getAuth().api.signUpEmail({ body: input });
+  return { id: result.user.id, email: result.user.email, name: result.user.name };
 }

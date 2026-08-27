@@ -1,12 +1,12 @@
-import { getConfiguredCadRuntime } from "@rjls/runtime";
+import { withConfiguredCadRuntime } from "@rjls/runtime";
 import { createClaimLocalMcpRenderHandler } from "@/lib/local-mcp-browser-routes";
-import { authenticatedUser, isAuthResponse } from "@/lib/server-auth";
+import { authenticateRequest, isPolicyResponse } from "@/lib/route-policy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request): Promise<Response> {
-  const user = await authenticatedUser(request);
-  if (isAuthResponse(user)) return user;
-  return createClaimLocalMcpRenderHandler(async () => getConfiguredCadRuntime(user.id))(request);
+  const user = await authenticateRequest(request);
+  if (isPolicyResponse(user)) return user;
+  return withConfiguredCadRuntime(user.id, async (runtime) => createClaimLocalMcpRenderHandler(async () => runtime)(request));
 }

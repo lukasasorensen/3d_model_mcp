@@ -1,4 +1,4 @@
-import { getAuth } from "./auth.js";
+import { provisionAuthenticatedUser } from "./auth.js";
 
 const [email, name = "RJLS User"] = process.argv.slice(2).filter((argument) => argument !== "--");
 const password = process.env.RJLS_INITIAL_PASSWORD;
@@ -7,8 +7,8 @@ if (!email || !password) {
   process.exitCode = 1;
 } else {
   try {
-    const result = await getAuth().api.signUpEmail({ body: { email, password, name } });
-    process.stdout.write(`Provisioned account ${result.user.email} with user ID ${result.user.id}.\n`);
+    const user = await provisionAuthenticatedUser({ email, password, name });
+    process.stdout.write(`Provisioned account ${user.email} with user ID ${user.id}.\n`);
   } catch (error) {
     process.stderr.write(`Account provisioning failed: ${error instanceof Error ? error.message : "unknown error"}\n`);
     process.exitCode = 1;

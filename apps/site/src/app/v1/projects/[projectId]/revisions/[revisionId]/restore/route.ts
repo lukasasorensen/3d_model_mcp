@@ -1,34 +1,30 @@
 import { projectIdSchema, revisionIdSchema } from "@rjls/contracts";
-import { getConfiguredCadRuntime } from "@rjls/runtime";
+import { withConfiguredCadRuntime } from "@rjls/runtime";
 import { randomUUID } from "node:crypto";
-import { authenticatedUser, isAuthResponse } from "@/lib/server-auth";
+import { NO_STORE_HEADERS, authenticateRequest, isPolicyResponse, jsonError, requireSameOrigin } from "@/lib/route-policy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const headers = { "cache-control": "no-store", "x-content-type-options": "nosniff" };
-
 export async function POST(request: Request, context: { params: Promise<{ projectId: string; revisionId: string }> }): Promise<Response> {
-  const allowedOrigin = process.env.RJLS_ALLOWED_ORIGIN ?? "http://localhost:3000";
-  if (request.headers.get("origin") !== allowedOrigin) return Response.json({ error: { code: "ORIGIN_DENIED", message: "The request origin is not allowed." } }, { status: 403, headers });
-  const user = await authenticatedUser(request);
-  if (isAuthResponse(user)) return user;
+  const originError = requireSameOrigin(request);
+  if (originError) return originError;
+  const user = await authenticateRequest(request);
+  if (isPolicyResponse(user)) return user;
   const params = await context.params;
   const projectId = projectIdSchema.safeParse(params.projectId);
   const revisionId = revisionIdSchema.safeParse(params.revisionId);
-  if (!projectId.success || !revisionId.success) return Response.json({ error: { code: "INVALID_REQUEST", message: "The restore request is invalid." } }, { status: 400, headers });
-  const configured = await getConfiguredCadRuntime(user.id).catch(() => undefined);
-  if (!configured) return Response.json({ error: { code: "RUNTIME_UNAVAILABLE", message: "The local CAD runtime is unavailable." } }, { status: 503, headers });
+  if (!projectId.success || !revisionId.success) return jsonError("INVALID_REQUEST", 400, "The restore request is invalid.");
   try {
-    const revision = await configured.repository.restoreRevision({
+    const revision = await withConfiguredCadRuntime(user.id, (runtime) => runtime.repository.restoreRevision({
       projectId: projectId.data,
       revision: revisionId.data,
       requestId: randomUUID(),
       toolCallId: randomUUID(),
       signal: request.signal,
-    });
-    return Response.json({ revision }, { status: 201, headers });
+    }));
+    return Response.json({ revision }, { status: 201, headers: NO_STORE_HEADERS });
   } catch {
-    return Response.json({ error: { code: "RESTORE_FAILED", message: "The revision could not be restored safely." } }, { status: 409, headers });
+    return jsonError("RESTORE_FAILED", 409, "The revision could not be restored safely.");
   }
 }

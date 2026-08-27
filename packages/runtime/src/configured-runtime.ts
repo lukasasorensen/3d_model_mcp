@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 
 import { PostgresBrowserRenderCoordinator } from "./browser-renderer.js";
+import { ConfiguredCadRuntimeManager } from "./configured-runtime-manager.js";
 import { FilesystemBrowserRenderBridge } from "./filesystem-browser-renderer.js";
 import { getProjectDatabase } from "./infrastructure.js";
 import { createInMemoryCadMcpClient, type ConnectedCadMcpClient } from "./mcp-client.js";
@@ -16,11 +17,9 @@ export interface ConfiguredCadRuntime extends ChatOrchestratorOptions {
   browserRenderer: PostgresBrowserRenderCoordinator;
   localBrowserRenderer: FilesystemBrowserRenderBridge;
   observability: RuntimeObservabilityStore;
+  close(): Promise<void>;
   probeReadiness(): Promise<{ status: "ready"; profile: "browser-wasm" }>;
 }
-
-const runtimes = new Map<string, Promise<ConfiguredCadRuntime>>();
-let sharedObservability: RuntimeObservabilityStore | undefined;
 
 export async function probeConfiguredReadiness(
   client: Pick<ConnectedCadMcpClient, "listTools">,
@@ -52,39 +51,45 @@ export function createObservedReadinessProbe(
   };
 }
 
-export function getConfiguredCadRuntime(ownerId: string): Promise<ConfiguredCadRuntime> {
-  if (!ownerId) return Promise.reject(new Error("An authenticated owner is required."));
-  const existing = runtimes.get(ownerId);
-  if (existing) return existing;
-  const configured: Promise<ConfiguredCadRuntime> = (async (): Promise<ConfiguredCadRuntime> => {
-    const database = getProjectDatabase();
-    const browserRenderer = new PostgresBrowserRenderCoordinator(VALIDATION_POLICY_VERSION, database.pool, ownerId);
-    const repository = new PostgresModelProjectRepository({ pool: database.pool, ownerId, renderer: browserRenderer, acceptRendererProvenance: isBrowserRendererProvenance });
-    const client = await createInMemoryCadMcpClient(repository);
-    sharedObservability ??= new RuntimeObservabilityStore();
-    const localBrowserRenderer = new FilesystemBrowserRenderBridge(resolve(process.env.RJLS_LOCAL_BRIDGE_ROOT ?? ".rjls-local-bridge"), VALIDATION_POLICY_VERSION, ownerId);
-    const readiness = createObservedReadinessProbe(sharedObservability, () => probeConfiguredReadiness(client, async () => {
-      const result = await database.pool.query<{ projects: string | null }>("SELECT to_regclass('public.projects')::text AS projects");
-      if (result.rows[0]?.projects !== "projects") throw new Error("The project database schema is not migrated.");
-    }));
-    let lastReadyAt = 0;
-    return {
-      client,
-      provider: createCadProvider(),
-      browserRenderer,
-      localBrowserRenderer,
-      createObservabilitySink: sharedObservability.createRequestSink,
-      observability: sharedObservability,
-      repository,
-      async probeReadiness() {
-        if (Date.now() - lastReadyAt < 5_000) return { status: "ready" as const, profile: "browser-wasm" as const };
-        const result = await readiness();
-        lastReadyAt = Date.now();
-        return result;
-      },
-    };
-  })();
-  runtimes.set(ownerId, configured);
-  configured.catch(() => runtimes.delete(ownerId));
-  return configured;
+async function createConfiguredCadRuntime(ownerId: string): Promise<ConfiguredCadRuntime> {
+  const database = getProjectDatabase();
+  const browserRenderer = new PostgresBrowserRenderCoordinator(VALIDATION_POLICY_VERSION, database.pool, ownerId);
+  const repository = new PostgresModelProjectRepository({ pool: database.pool, ownerId, renderer: browserRenderer, acceptRendererProvenance: isBrowserRendererProvenance });
+  const client = await createInMemoryCadMcpClient(repository);
+  const observability = new RuntimeObservabilityStore();
+  const localBrowserRenderer = new FilesystemBrowserRenderBridge(resolve(process.env.RJLS_LOCAL_BRIDGE_ROOT ?? ".rjls-local-bridge"), VALIDATION_POLICY_VERSION, ownerId);
+  const readiness = createObservedReadinessProbe(observability, () => probeConfiguredReadiness(client, async () => {
+    const result = await database.pool.query<{ projects: string | null }>("SELECT to_regclass('public.projects')::text AS projects");
+    if (result.rows[0]?.projects !== "projects") throw new Error("The project database schema is not migrated.");
+  }));
+  let lastReadyAt = 0;
+  return {
+    client,
+    provider: createCadProvider(),
+    browserRenderer,
+    localBrowserRenderer,
+    createObservabilitySink: observability.createRequestSink,
+    observability,
+    repository,
+    close: () => client.close(),
+    async probeReadiness() {
+      if (Date.now() - lastReadyAt < 5_000) return { status: "ready" as const, profile: "browser-wasm" as const };
+      const result = await readiness();
+      lastReadyAt = Date.now();
+      return result;
+    },
+  };
+}
+
+const configuredRuntimeManager = new ConfiguredCadRuntimeManager({ createRuntime: createConfiguredCadRuntime });
+
+export function withConfiguredCadRuntime<T>(ownerId: string, operation: (runtime: ConfiguredCadRuntime) => Promise<T>): Promise<T> {
+  return configuredRuntimeManager.withRuntime(ownerId, operation);
+}
+
+export async function probeSystemReadiness(): Promise<{ status: "ready"; profile: "browser-wasm" }> {
+  const database = getProjectDatabase();
+  const result = await database.pool.query<{ projects: string | null }>("SELECT to_regclass('public.projects')::text AS projects");
+  if (result.rows[0]?.projects !== "projects") throw new Error("The project database schema is not migrated.");
+  return { status: "ready", profile: "browser-wasm" };
 }

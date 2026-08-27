@@ -1,6 +1,6 @@
 import type { CandidateRecord, RevisionManifest } from "@rjls/contracts";
 
-import type { ProjectState, ProjectSummary } from "./repository.js";
+import type { ProjectState, ProjectSummary } from "./project-types.js";
 
 /** Project persistence scoped to one authenticated owner. */
 export interface ModelProjectStore {

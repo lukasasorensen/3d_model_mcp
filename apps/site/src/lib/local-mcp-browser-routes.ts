@@ -7,6 +7,7 @@ import {
   sessionIdSchema,
   type LocalMcpBrowserRenderJob,
 } from "@rjls/contracts";
+import { NO_STORE_HEADERS, configuredOrigin, jsonError } from "./route-policy";
 
 interface LocalBrowserRenderer {
   claimNext(projectId: string, sessionId: string): Promise<LocalMcpBrowserRenderJob | null>;
@@ -16,8 +17,6 @@ interface LocalBrowserRenderer {
 interface LocalBridgeRuntime {
   localBrowserRenderer: LocalBrowserRenderer;
 }
-
-const headers = { "cache-control": "no-store", "x-content-type-options": "nosniff" };
 
 export function localMcpBridgeEnabled(environment: NodeJS.ProcessEnv = process.env): boolean {
   return environment.NODE_ENV !== "production" && environment.RJLS_LOCAL_MCP_BRIDGE === "1";
@@ -38,20 +37,20 @@ export function createClaimLocalMcpRenderHandler(
   environment: NodeJS.ProcessEnv = process.env,
 ) {
   return async function GET(request: Request): Promise<Response> {
-    if (!localMcpBridgeEnabled(environment)) return new Response(null, { status: 404, headers });
-    const allowedOrigin = environment.RJLS_ALLOWED_ORIGIN ?? "http://localhost:3000";
+    if (!localMcpBridgeEnabled(environment)) return new Response(null, { status: 404, headers: NO_STORE_HEADERS });
+    const allowedOrigin = configuredOrigin(environment);
     const sessionId = sessionFrom(request);
     const projectId = projectIdSchema.safeParse(new URL(request.url).searchParams.get("projectId"));
     if (!originAllowed(request, allowedOrigin, false) || !sessionId) {
-      return Response.json({ error: { code: "SESSION_MISMATCH" } }, { status: 403, headers });
+      return jsonError("SESSION_MISMATCH", 403);
     }
-    if (!projectId.success) return Response.json({ error: { code: "INVALID_REQUEST" } }, { status: 400, headers });
+    if (!projectId.success) return jsonError("INVALID_REQUEST", 400);
     try {
       const job = await (await getRuntime()).localBrowserRenderer.claimNext(projectId.data, sessionId);
-      if (!job) return new Response(null, { status: 204, headers });
-      return Response.json({ job: localMcpBrowserRenderJobSchema.parse(job) }, { headers });
+      if (!job) return new Response(null, { status: 204, headers: NO_STORE_HEADERS });
+      return Response.json({ job: localMcpBrowserRenderJobSchema.parse(job) }, { headers: NO_STORE_HEADERS });
     } catch {
-      return Response.json({ error: { code: "BRIDGE_UNAVAILABLE" } }, { status: 503, headers });
+      return jsonError("BRIDGE_UNAVAILABLE", 503);
     }
   };
 }
@@ -61,37 +60,37 @@ export function createCompleteLocalMcpRenderHandler(
   environment: NodeJS.ProcessEnv = process.env,
 ) {
   return async function POST(request: Request, context: { params: Promise<{ jobId: string }> }): Promise<Response> {
-    if (!localMcpBridgeEnabled(environment)) return new Response(null, { status: 404, headers });
-    const allowedOrigin = environment.RJLS_ALLOWED_ORIGIN ?? "http://localhost:3000";
+    if (!localMcpBridgeEnabled(environment)) return new Response(null, { status: 404, headers: NO_STORE_HEADERS });
+    const allowedOrigin = configuredOrigin(environment);
     const sessionId = sessionFrom(request);
     if (!originAllowed(request, allowedOrigin, true) || !sessionId) {
-      return Response.json({ error: { code: "SESSION_MISMATCH" } }, { status: 403, headers });
+      return jsonError("SESSION_MISMATCH", 403);
     }
     const jobId = opaqueIdSchema.safeParse((await context.params).jobId);
-    if (!jobId.success) return Response.json({ error: { code: "INVALID_REQUEST" } }, { status: 400, headers });
+    if (!jobId.success) return jsonError("INVALID_REQUEST", 400);
     const byteLimit = Math.min(CAD_LIMITS.toolResultBytes, 128 * 1024);
     const contentLength = Number(request.headers.get("content-length") ?? "0");
     if (!Number.isFinite(contentLength) || contentLength > byteLimit) {
-      return Response.json({ error: { code: "REQUEST_TOO_LARGE" } }, { status: 413, headers });
+      return jsonError("REQUEST_TOO_LARGE", 413);
     }
     let raw: unknown;
     try {
       const body = await request.text();
       if (new TextEncoder().encode(body).byteLength > byteLimit) {
-        return Response.json({ error: { code: "REQUEST_TOO_LARGE" } }, { status: 413, headers });
+        return jsonError("REQUEST_TOO_LARGE", 413);
       }
       raw = JSON.parse(body) as unknown;
     }
-    catch { return Response.json({ error: { code: "INVALID_REQUEST" } }, { status: 400, headers }); }
+    catch { return jsonError("INVALID_REQUEST", 400); }
     const completion = browserRenderCompletionSchema.safeParse(raw);
     if (!completion.success || completion.data.sessionId !== sessionId) {
-      return Response.json({ error: { code: "SESSION_MISMATCH" } }, { status: 403, headers });
+      return jsonError("SESSION_MISMATCH", 403);
     }
     try {
       await (await getRuntime()).localBrowserRenderer.complete(jobId.data, completion.data);
-      return Response.json({ accepted: true }, { headers });
+      return Response.json({ accepted: true }, { headers: NO_STORE_HEADERS });
     } catch {
-      return Response.json({ error: { code: "RENDER_COMPLETION_REJECTED" } }, { status: 409, headers });
+      return jsonError("RENDER_COMPLETION_REJECTED", 409);
     }
   };
 }
