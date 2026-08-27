@@ -1,0 +1,4 @@
+ALTER TABLE "candidates" ADD CONSTRAINT "candidates_parent_revision_id_revisions_id_fk" FOREIGN KEY ("parent_revision_id") REFERENCES "public"."revisions"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "projects" ADD CONSTRAINT "projects_current_revision_id_revisions_id_fk" FOREIGN KEY ("current_revision_id") REFERENCES "public"."revisions"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "revisions" ADD CONSTRAINT "revisions_parent_revision_id_revisions_id_fk" FOREIGN KEY ("parent_revision_id") REFERENCES "public"."revisions"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "revisions" ADD CONSTRAINT "revisions_restored_from_revision_id_revisions_id_fk" FOREIGN KEY ("restored_from_revision_id") REFERENCES "public"."revisions"("id") ON DELETE restrict ON UPDATE no action;

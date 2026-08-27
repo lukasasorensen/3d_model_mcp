@@ -4,7 +4,7 @@ import "./styles.css";
 
 export const metadata: Metadata = {
   title: "RJLS Conversational CAD",
-  description: "Reliable local-first conversational CAD workspace",
+  description: "Reliable authenticated conversational CAD workspace",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

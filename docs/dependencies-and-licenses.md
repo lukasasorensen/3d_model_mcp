@@ -15,6 +15,9 @@ The lockfile is authoritative for transitive versions. Direct runtime pins inclu
 | LangChain Core | 1.2.4 | provider/model contracts | MIT |
 | MCP TypeScript SDK | 1.30.0 | official client/server transports | MIT |
 | Zod | 4.4.3 | boundary schemas | MIT |
+| Better Auth | 1.7.2 | invite-only email/password accounts and cookie sessions | MIT |
+| Drizzle ORM / Kit | 0.45.2 / 0.31.10 | PostgreSQL schema and committed migrations | Apache-2.0 |
+| node-postgres (`pg`) | 8.23.0 | bounded PostgreSQL connection pool and transactions | MIT |
 | OpenSCAD WASM | 2026.07.20 | browser Web Worker renderer | GPL obligations and notices require release review |
 | BOSL2 | v2.0.741 | browser-mounted OpenSCAD library | retain upstream license/notice at the selected tag |
 

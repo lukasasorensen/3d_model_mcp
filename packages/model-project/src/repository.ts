@@ -79,7 +79,7 @@ const renderedArtifactSchema = z
   })
   .strict();
 
-const renderValidationResultSchema = z
+export const renderValidationResultSchema = z
   .object({
     outcome: z.enum(["VALID", "REJECTED"]),
     diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
@@ -137,7 +137,7 @@ export interface ProjectSummary {
 const includeReferencePattern = /\b(?:include|use)\s*<([^>]+)>/g;
 const fileFunctionPattern = /\b(import|surface)\s*\(([^;]*)\)/g;
 
-function sha256(value: string | Uint8Array): string {
+export function sha256(value: string | Uint8Array): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
@@ -145,7 +145,7 @@ function safeJson(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
-function assertSourcePolicy(source: string): void {
+export function assertSourcePolicy(source: string): void {
   const byteSize = Buffer.byteLength(source);
   if (byteSize > CAD_LIMITS.sourceBytes) {
     throw new CadDomainError("SOURCE_TOO_LARGE", "Model source exceeds the configured byte limit.", {
@@ -239,6 +239,12 @@ export class ModelProjectRepository {
     this.validationPolicyVersion = options.validationPolicyVersion ?? VALIDATION_POLICY_VERSION;
     this.lockTimeoutMs = options.lockTimeoutMs ?? 5_000;
     this.lockStaleMs = options.lockStaleMs ?? 120_000;
+  }
+
+  async createProject(): Promise<ProjectSummary> {
+    const projectId = this.createId();
+    await this.ensureProject(projectId);
+    return { projectId };
   }
 
   private projectRoot(projectId: string): string {

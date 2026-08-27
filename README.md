@@ -1,6 +1,6 @@
 # 3d_model_mcp
 
-Local-first conversational CAD using React, MCP tools, and OpenSCAD.
+Authenticated conversational CAD using React, MCP tools, PostgreSQL, and OpenSCAD.
 
 ## Workspace
 
@@ -11,7 +11,7 @@ renderer, MCP, gateway, and runtime concerns.
 ```text
 apps/site              React/Next.js application shell
 packages/contracts     browser-safe shared contracts
-packages/model-project project and revision domain boundary
+packages/model-project PostgreSQL schema plus project/revision domain boundary
 packages/renderer      legacy bounded STL/3MF codecs
 packages/mcp           transport-neutral MCP boundary
 packages/gateway       chat and provider orchestration boundary
@@ -20,13 +20,15 @@ packages/runtime       local combined-process boundary
 
 OpenSCAD runs in the browser as a pinned WebAssembly module. A fresh Web Worker mounts the
 pinned BOSL2 source bundle, renders with the Manifold backend, and is terminated after each
-job. The server stores canonical OpenSCAD source and revision history only; generated STL
+job. PostgreSQL stores owner-scoped canonical OpenSCAD source and revision history; generated STL
 previews and 3MF downloads remain in the browser.
 
-Install and verify the workspace:
+Install, migrate the database, provision an invite-only account, and verify the workspace:
 
 ```bash
 pnpm install --frozen-lockfile
+pnpm db:migrate
+RJLS_AUTH_ALLOW_SIGNUP=1 RJLS_INITIAL_PASSWORD='a-long-initial-password' pnpm auth:provision -- user@example.com "Demo User"
 pnpm verify
 ```
 
@@ -34,7 +36,7 @@ pnpm verify
 
 This workflow uses Codex as the MCP client, so model reasoning uses the ChatGPT
 account signed into Codex instead of an API key in this application. OpenSCAD,
-BOSL2, project history, and generated previews remain local. The site chat stays
+BOSL2, and generated previews remain local while project history is stored in PostgreSQL. The site chat stays
 on the deterministic `mock` provider and is not involved.
 
 Codex supports local stdio MCP servers and shares their configuration across the
@@ -47,14 +49,18 @@ codex login status
 codex login
 ```
 
-Create `apps/site/.env.local` from `.env.example`. Use the same **absolute** projects root
-for both the site and the MCP server:
+Create `apps/site/.env.local` from `.env.example`. The site and MCP server use the
+same database; the stdio server is explicitly bound to an existing account ID:
 
 ```dotenv
-RJLS_PROJECTS_ROOT=/absolute/path/to/3d_model_mcp/.rjls-projects
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/rjls
+BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=replace-with-at-least-32-random-characters
 RJLS_ALLOWED_ORIGIN=http://localhost:3000
 RJLS_CHAT_PROVIDER=mock
 RJLS_LOCAL_MCP_BRIDGE=1
+RJLS_LOCAL_BRIDGE_ROOT=/absolute/path/to/3d_model_mcp/.rjls-local-bridge
+RJLS_ACTOR_USER_ID=the-provisioned-better-auth-user-id
 ```
 
 Install dependencies, prepare the pinned browser renderer, and build the MCP
@@ -80,7 +86,9 @@ args = ["--dir", "/absolute/path/to/3d_model_mcp", "mcp:serve"]
 tool_timeout_sec = 120
 
 [mcp_servers.rjls-cad.env]
-RJLS_PROJECTS_ROOT = "/absolute/path/to/3d_model_mcp/.rjls-projects"
+DATABASE_URL = "postgres://postgres:postgres@localhost:5432/rjls"
+RJLS_LOCAL_BRIDGE_ROOT = "/absolute/path/to/3d_model_mcp/.rjls-local-bridge"
+RJLS_ACTOR_USER_ID = "the-provisioned-better-auth-user-id"
 ```
 
 Project-scoped configuration is loaded only for trusted repositories.
@@ -91,7 +99,8 @@ Register the server in `~/.codex/config.toml` with the CLI:
 
 ```bash
 codex mcp add rjls-cad \
-  --env RJLS_PROJECTS_ROOT=/absolute/path/to/3d_model_mcp/.rjls-projects \
+  --env DATABASE_URL=postgres://postgres:postgres@localhost:5432/rjls \
+  --env RJLS_ACTOR_USER_ID=the-provisioned-better-auth-user-id \
   -- pnpm --dir /absolute/path/to/3d_model_mcp mcp:serve
 ```
 
@@ -115,10 +124,10 @@ Start the site and keep its tab visible while using the MCP tools:
 pnpm dev
 ```
 
-Open [http://localhost:3000/projects/demo-project](http://localhost:3000/projects/demo-project), then start a new local Codex
+Open [http://localhost:3000](http://localhost:3000), sign in, create a project, then start a new local Codex
 task in this repository and ask:
 
-> Using the `rjls-cad` MCP tools and project ID `demo-project`, inspect the current
+> Using the `rjls-cad` MCP tools and the project ID shown in the workspace, inspect the current
 > state, create or edit the requested OpenSCAD model, validate it in the open
 > browser, and promote the valid candidate.
 

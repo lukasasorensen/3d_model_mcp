@@ -270,6 +270,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
       <header className="app-header">
         <div className="brand-mark"><span aria-hidden="true">R</span><div><strong>RJLS Conversational CAD</strong><small>Precision workshop</small></div></div>
         <div className="header-controls">
+          <button type="button" onClick={() => router.push("/projects")} disabled={state.active || restorePending || exportState === "preparing"}>All projects</button>
           <label className="project-selector">Project<span className="sr-only"> selector</span><select value={projectId} onChange={(event) => router.push(`/projects/${encodeURIComponent(event.target.value)}`)} disabled={state.active || restorePending || exportState === "preparing"}>{projects.map((project) => <option key={project} value={project}>{project}</option>)}</select></label>
           <div className="header-status"><span className={`readiness-dot readiness-${readiness}`} aria-hidden="true" /><span>{readinessLabel}</span><code>mm · Z up</code></div>
         </div>

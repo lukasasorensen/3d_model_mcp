@@ -4,3 +4,5 @@ export * from "./configured-runtime.js";
 export * from "./browser-renderer.js";
 export * from "./filesystem-browser-renderer.js";
 export * from "./observability.js";
+export * from "./auth.js";
+export * from "./infrastructure.js";

@@ -211,3 +211,19 @@ code, .eyebrow, .turn-label, .model-facts span, .status-chip { font-family: "SFM
   button, textarea, select, .viewer-shell, .model-facts, .revision-history { border: 1px solid CanvasText; }
   .readiness-dot, .revision-rail span { forced-color-adjust: none; }
 }
+
+.auth-shell, .project-landing { min-height: 100vh; padding: clamp(24px, 6vw, 80px); background: var(--canvas); color: var(--text); }
+.auth-shell { display: grid; place-items: center; }
+.auth-shell > section, .project-landing > section { width: min(100%, 680px); padding: 24px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-1); }
+.auth-shell h1, .project-landing h1 { margin: 4px 0 8px; }
+.eyebrow { color: var(--mint); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; }
+.auth-form { display: grid; gap: 16px; margin-top: 24px; }
+.auth-form label { display: grid; gap: 6px; color: var(--text-muted); }
+.auth-form input { min-height: 44px; padding: 10px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface-2); color: var(--text); }
+.auth-error { color: var(--danger); }
+.project-landing { display: grid; align-content: start; justify-items: center; gap: 24px; }
+.project-landing > header { width: min(100%, 680px); display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+.project-list-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.project-landing ul { display: grid; gap: 8px; padding: 0; list-style: none; }
+.project-landing li button { width: 100%; min-height: 56px; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 12px; text-align: left; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); }
+.project-landing code { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; }

@@ -12,6 +12,7 @@ import {
 import { randomBytes } from "node:crypto";
 import { mkdir, open, readFile, readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
+import { sha256 } from "@rjls/model-project";
 
 import { expectedBrowserProvenance } from "./browser-renderer.js";
 
@@ -80,8 +81,8 @@ async function delay(milliseconds: number, signal?: AbortSignal): Promise<void> 
 export class FilesystemBrowserRenderBridge implements CadRenderer {
   private readonly jobsRoot: string;
 
-  constructor(workspaceRoot: string, private readonly validationPolicyVersion: string) {
-    this.jobsRoot = join(workspaceRoot, BRIDGE_DIRECTORY, "jobs");
+  constructor(workspaceRoot: string, private readonly validationPolicyVersion: string, ownerId = "legacy-test-owner") {
+    this.jobsRoot = join(workspaceRoot, BRIDGE_DIRECTORY, "jobs", sha256(ownerId));
   }
 
   private jobRoot(jobId: string): string {

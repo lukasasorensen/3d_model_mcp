@@ -13,6 +13,8 @@
     "dev:site": "pnpm prepare:browser-renderer && pnpm --filter @rjls/site dev",
     "mcp:build": "pnpm build:packages",
     "mcp:serve": "node packages/runtime/dist/stdio-server.js",
+    "db:migrate": "pnpm --filter @rjls/model-project db:migrate",
+    "auth:provision": "pnpm build:packages && pnpm --filter @rjls/runtime auth:provision",
     "build": "pnpm prepare:browser-renderer && pnpm build:packages && pnpm --filter @rjls/site build",
     "build:packages": "pnpm --filter @rjls/contracts build && pnpm --filter @rjls/model-project build && pnpm --filter @rjls/renderer build && pnpm --filter @rjls/mcp build && pnpm --filter @rjls/gateway build && pnpm --filter @rjls/runtime build",
     "typecheck": "pnpm build:packages && pnpm --filter @rjls/site typecheck",

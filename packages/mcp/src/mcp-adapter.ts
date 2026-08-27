@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import type { ModelProjectRepository } from "@rjls/model-project";
+import type { ModelProjectStore } from "@rjls/model-project";
 
 import { createCadToolRegistry, invokeCadTool, type CadToolName } from "./tools.js";
 
@@ -19,7 +19,7 @@ function mcpResult(result: Awaited<ReturnType<typeof invokeCadTool>>) {
 }
 
 /** Registers domain tools only. Stdio/HTTP lifecycle adapters are deliberately outside this core. */
-export function createCadMcpServer(repository: ModelProjectRepository): McpServer {
+export function createCadMcpServer(repository: ModelProjectStore): McpServer {
   const registry = createCadToolRegistry(repository);
   const server = new McpServer(
     { name: "rjls-cad", version: "0.1.0" },
@@ -44,7 +44,7 @@ export function createCadMcpServer(repository: ModelProjectRepository): McpServe
 }
 
 /** Default standalone MCP lifecycle: protocol frames use stdout; diagnostics belong on stderr. */
-export async function connectCadMcpStdio(repository: ModelProjectRepository): Promise<McpServer> {
+export async function connectCadMcpStdio(repository: ModelProjectStore): Promise<McpServer> {
   const server = createCadMcpServer(repository);
   await server.connect(new StdioServerTransport());
   return server;

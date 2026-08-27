@@ -4,6 +4,7 @@ import { POST as restoreRevision } from "./app/v1/projects/[projectId]/revisions
 import { BROWSER_RENDERER } from "@rjls/contracts";
 import { createClaimLocalMcpRenderHandler, createCompleteLocalMcpRenderHandler, localMcpBridgeEnabled } from "./lib/local-mcp-browser-routes";
 import { createReadinessHandler } from "./lib/readiness-route";
+import { isCadDomainError } from "./lib/server-auth";
 
 test("readiness route returns 503 unless the renderer probe succeeds", async () => {
   const unavailable = createReadinessHandler(async () => ({ probeReadiness: async () => { throw new Error("/private/toolchain detail"); } }));
@@ -21,6 +22,11 @@ test("restore route enforces exact same-origin requests", async () => {
   const response = await restoreRevision(new Request("http://localhost/v1", { method: "POST", headers: { origin: "https://attacker.invalid" } }), { params: Promise.resolve({ projectId: "demo-project", revisionId: "revision-1" }) });
   assert.equal(response.status, 403);
   assert.deepEqual(await response.json(), { error: { code: "ORIGIN_DENIED", message: "The request origin is not allowed." } });
+});
+
+test("project read errors distinguish hidden projects from operational failures", () => {
+  assert.equal(isCadDomainError({ code: "PROJECT_NOT_FOUND" }, "PROJECT_NOT_FOUND"), true);
+  assert.equal(isCadDomainError(new Error("database unavailable"), "PROJECT_NOT_FOUND"), false);
 });
 
 test("local MCP bridge is opt-in and disabled in production", () => {

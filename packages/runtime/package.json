@@ -5,11 +5,19 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
-  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rimraf dist",
+    "auth:provision": "node dist/provision-user.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node --test src/*.test.mjs"
   },
@@ -18,7 +26,15 @@
     "@rjls/contracts": "workspace:*",
     "@rjls/gateway": "workspace:*",
     "@rjls/mcp": "workspace:*",
-    "@rjls/model-project": "workspace:*"
+    "@rjls/model-project": "workspace:*",
+    "better-auth": "^1.7.2",
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.23.0"
   },
-  "devDependencies": { "@rjls/renderer": "workspace:*", "@types/node": "^22.20.1", "rimraf": "^6.0.1" }
+  "devDependencies": {
+    "@rjls/renderer": "workspace:*",
+    "@types/node": "^22.20.1",
+    "@types/pg": "^8.23.1",
+    "rimraf": "^6.0.1"
+  }
 }

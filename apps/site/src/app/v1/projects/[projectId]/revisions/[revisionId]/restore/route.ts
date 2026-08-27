@@ -1,6 +1,7 @@
 import { projectIdSchema, revisionIdSchema } from "@rjls/contracts";
 import { getConfiguredCadRuntime } from "@rjls/runtime";
 import { randomUUID } from "node:crypto";
+import { authenticatedUser, isAuthResponse } from "@/lib/server-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,11 +11,13 @@ const headers = { "cache-control": "no-store", "x-content-type-options": "nosnif
 export async function POST(request: Request, context: { params: Promise<{ projectId: string; revisionId: string }> }): Promise<Response> {
   const allowedOrigin = process.env.RJLS_ALLOWED_ORIGIN ?? "http://localhost:3000";
   if (request.headers.get("origin") !== allowedOrigin) return Response.json({ error: { code: "ORIGIN_DENIED", message: "The request origin is not allowed." } }, { status: 403, headers });
+  const user = await authenticatedUser(request);
+  if (isAuthResponse(user)) return user;
   const params = await context.params;
   const projectId = projectIdSchema.safeParse(params.projectId);
   const revisionId = revisionIdSchema.safeParse(params.revisionId);
   if (!projectId.success || !revisionId.success) return Response.json({ error: { code: "INVALID_REQUEST", message: "The restore request is invalid." } }, { status: 400, headers });
-  const configured = await getConfiguredCadRuntime().catch(() => undefined);
+  const configured = await getConfiguredCadRuntime(user.id).catch(() => undefined);
   if (!configured) return Response.json({ error: { code: "RUNTIME_UNAVAILABLE", message: "The local CAD runtime is unavailable." } }, { status: 503, headers });
   try {
     const revision = await configured.repository.restoreRevision({
