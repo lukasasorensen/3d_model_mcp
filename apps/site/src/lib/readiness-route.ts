@@ -1,16 +1,15 @@
 import type { ConfiguredCadRuntime } from "@rjls/runtime";
+import { NO_STORE_HEADERS } from "./route-policy";
 
-const headers = { "cache-control": "no-store", "x-content-type-options": "nosniff" };
+type Readiness = Awaited<ReturnType<ConfiguredCadRuntime["probeReadiness"]>>;
 
-export function createReadinessHandler(getRuntime: () => Promise<Pick<ConfiguredCadRuntime, "probeReadiness"> | undefined>) {
+export function createReadinessHandler(probeReadiness: () => Promise<Readiness>) {
   return async function GET(): Promise<Response> {
-    const configured = await getRuntime().catch(() => undefined);
-    if (!configured) return Response.json({ readiness: { status: "unavailable", message: "The local CAD runtime is not configured." } }, { status: 503, headers });
     try {
-      const readiness = await configured.probeReadiness();
-      return Response.json({ readiness }, { headers });
+      const readiness = await probeReadiness();
+      return Response.json({ readiness }, { headers: NO_STORE_HEADERS });
     } catch {
-      return Response.json({ readiness: { status: "unavailable", message: "The local CAD runtime is unavailable." } }, { status: 503, headers });
+      return Response.json({ readiness: { status: "unavailable", message: "The local CAD runtime is unavailable." } }, { status: 503, headers: NO_STORE_HEADERS });
     }
   };
 }

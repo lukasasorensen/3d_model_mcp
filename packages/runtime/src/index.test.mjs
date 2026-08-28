@@ -3,13 +3,36 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { ModelProjectRepository } from "@rjls/model-project";
+import { ModelProjectRepository, PostgresModelProjectRepository, createProjectDatabase } from "@rjls/model-project";
+import { isBrowserRendererProvenance } from "@rjls/contracts";
 import { CAD_TOOL_NAMES } from "@rjls/gateway";
 import { streamCadChat } from "@rjls/gateway";
-import { BrowserRenderCoordinator, FilesystemBrowserRenderBridge, RUNTIME_BOUNDARY, RuntimeObservabilityStore, createInMemoryCadMcpClient, createObservedReadinessProbe, createStdioCadMcpClient, expectedBrowserProvenance, probeConfiguredReadiness } from "../dist/index.js";
+import { BrowserRenderCoordinator, ConfiguredCadRuntimeManager, FilesystemBrowserRenderBridge, PostgresBrowserRenderCoordinator, RUNTIME_BOUNDARY, RuntimeObservabilityStore, createInMemoryCadMcpClient, createObservedReadinessProbe, createStdioCadMcpClient, expectedBrowserProvenance, probeConfiguredReadiness, sanitizeBrowserRenderCompletion } from "../dist/index.js";
 
 test("exposes the local runtime package boundary", () => {
   assert.equal(RUNTIME_BOUNDARY, "runtime");
+});
+
+test("configured runtime manager bounds owners and holds stream leases until completion", async () => {
+  const closedOwners = [];
+  let streamController;
+  const manager = new ConfiguredCadRuntimeManager({
+    maxEntries: 1,
+    idleTtlMs: 60_000,
+    createRuntime: async (ownerId) => ({ close: async () => { closedOwners.push(ownerId); } }),
+  });
+  const response = await manager.withRuntime("owner-a", async () => new Response(new ReadableStream({
+    start(controller) { streamController = controller; },
+  })));
+  await assert.rejects(manager.withRuntime("owner-b", async () => undefined), /at capacity/);
+  streamController.enqueue(new TextEncoder().encode("complete"));
+  streamController.close();
+  assert.equal(await response.text(), "complete");
+  await manager.withRuntime("owner-b", async () => undefined);
+  assert.deepEqual(closedOwners, ["owner-a"]);
+  assert.equal(manager.size, 1);
+  await manager.close();
+  assert.deepEqual(closedOwners, ["owner-a", "owner-b"]);
 });
 
 test("browser render jobs are source-bound, session-bound, and one-time", async () => {
@@ -34,13 +57,15 @@ test("browser render jobs are source-bound, session-bound, and one-time", async 
 
 test("filesystem browser bridge claims across processes and binds one completion", async () => {
   const workspaceRoot = await mkdtemp(join(tmpdir(), "rjls-browser-bridge-"));
-  const producer = new FilesystemBrowserRenderBridge(workspaceRoot, "cad-validation-v1");
-  const consumer = new FilesystemBrowserRenderBridge(workspaceRoot, "cad-validation-v1");
+  const producer = new FilesystemBrowserRenderBridge(workspaceRoot, "cad-validation-v1", "owner-a");
+  const consumer = new FilesystemBrowserRenderBridge(workspaceRoot, "cad-validation-v1", "owner-a");
+  const otherOwner = new FilesystemBrowserRenderBridge(workspaceRoot, "cad-validation-v1", "owner-b");
   const validation = producer.validateAndRender({
     projectId: "bridge-project", candidateId: "candidate-1", source: "cube(1);",
     sourceHash: "a".repeat(64), previewProfile: "standard",
   });
   let job;
+  assert.equal(await otherOwner.claimNext("bridge-project", "intruder-session"), null);
   for (let attempt = 0; attempt < 20 && !job; attempt += 1) {
     job = await consumer.claimNext("bridge-project", "session-1");
     if (!job) await new Promise((resolve) => setTimeout(resolve, 10));
@@ -58,6 +83,31 @@ test("filesystem browser bridge claims across processes and binds one completion
   await consumer.complete(job.jobId, completion);
   await assert.rejects(consumer.complete(job.jobId, completion), /exist/i);
   assert.equal((await validation).outcome, "VALID");
+});
+
+test("database render completion persistence excludes reusable binding secrets", () => {
+  const completion = {
+    token: "a".repeat(64), sessionId: "session-1", sourceHash: "b".repeat(64), outcome: "VALID", diagnostics: [],
+    provenance: expectedBrowserProvenance("cad-validation-v1"),
+  };
+  assert.deepEqual(sanitizeBrowserRenderCompletion(completion), {
+    outcome: "VALID", diagnostics: [], provenance: completion.provenance,
+  });
+  assert.doesNotMatch(JSON.stringify(sanitizeBrowserRenderCompletion(completion)), /token|sessionId|sourceHash|a{64}|b{64}/);
+});
+
+test("PostgreSQL completion updates bind with the raw token but persist only sanitized metadata", async () => {
+  let parameters;
+  const pool = { async query(_query, values) { parameters = values; return { rows: [{ id: "render-1" }] }; } };
+  const coordinator = new PostgresBrowserRenderCoordinator("cad-validation-v1", pool, "owner-1");
+  const completion = {
+    token: "a".repeat(64), sessionId: "session-1", sourceHash: "b".repeat(64), outcome: "VALID", diagnostics: [],
+    provenance: expectedBrowserProvenance("cad-validation-v1"),
+  };
+  await coordinator.complete("render-1", completion);
+  const persisted = JSON.parse(parameters[0]);
+  assert.deepEqual(persisted, { outcome: "VALID", diagnostics: [], provenance: completion.provenance });
+  assert.notEqual(parameters[4], completion.token);
 });
 
 test("configured readiness requires exact official MCP discovery", async () => {
@@ -166,29 +216,37 @@ test("default stdio adapter negotiates cleanly, propagates cancel, observes chil
   }
 });
 
-test("standalone stdio server validates in an open-browser peer and promotes", async () => {
+test("standalone PostgreSQL stdio server validates in an open-browser peer and promotes", { skip: !process.env.RJLS_TEST_DATABASE_URL || !process.env.RJLS_TEST_ACTOR_USER_ID }, async () => {
   const workspaceRoot = await mkdtemp(join(tmpdir(), "rjls-runtime-live-stdio-"));
+  const projectId = `stdio-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const database = createProjectDatabase(process.env.RJLS_TEST_DATABASE_URL);
+  const repository = new PostgresModelProjectRepository({
+    pool: database.pool, ownerId: process.env.RJLS_TEST_ACTOR_USER_ID,
+    renderer: { async validateAndRender() { throw new Error("unused"); } },
+    acceptRendererProvenance: isBrowserRendererProvenance, createId: () => projectId,
+  });
+  await repository.createProject();
   const executable = new URL("../dist/stdio-server.js", import.meta.url);
   const client = await createStdioCadMcpClient({
     command: process.execPath,
     args: [executable.pathname],
     cwd: process.cwd(),
-    env: { ...process.env, RJLS_PROJECTS_ROOT: workspaceRoot },
+    env: { ...process.env, DATABASE_URL: process.env.RJLS_TEST_DATABASE_URL, RJLS_ACTOR_USER_ID: process.env.RJLS_TEST_ACTOR_USER_ID, RJLS_LOCAL_BRIDGE_ROOT: workspaceRoot },
     stderr: "pipe",
   });
-  const browser = new FilesystemBrowserRenderBridge(workspaceRoot, "cad-validation-v1");
+  const browser = new FilesystemBrowserRenderBridge(workspaceRoot, "cad-validation-v1", process.env.RJLS_TEST_ACTOR_USER_ID);
   try {
     const proposed = await client.callTool("propose_model_source", {
-      projectId: "demo-project", parentRevision: null, source: "cube([10,10,10]);",
+      projectId, parentRevision: null, source: "cube([10,10,10]);",
       requestId: "stdio-live-request", toolCallId: "stdio-live-propose",
     }, {});
     const candidateId = proposed.structuredContent.candidate.candidateId;
     const pending = client.callTool("validate_and_render", {
-      projectId: "demo-project", candidateId, previewProfile: "standard",
+      projectId, candidateId, previewProfile: "standard",
     }, {});
     let job;
     for (let attempt = 0; attempt < 40 && !job; attempt += 1) {
-      job = await browser.claimNext("demo-project", "browser-session");
+      job = await browser.claimNext(projectId, "browser-session");
       if (!job) await new Promise((resolve) => setTimeout(resolve, 10));
     }
     assert.ok(job);
@@ -199,12 +257,13 @@ test("standalone stdio server validates in an open-browser peer and promotes", a
     const validated = await pending;
     assert.equal(validated.structuredContent.candidate.state, "VALID");
     const promoted = await client.callTool("promote_candidate", {
-      projectId: "demo-project", candidateId, expectedParentRevision: null,
+      projectId, candidateId, expectedParentRevision: null,
     }, {});
     assert.equal(promoted.isError, false);
-    const state = await client.callTool("get_project_state", { projectId: "demo-project" }, {});
+    const state = await client.callTool("get_project_state", { projectId }, {});
     assert.equal(state.structuredContent.state.currentRevision, promoted.structuredContent.revision.revisionId);
   } finally {
     await client.close();
+    await database.close();
   }
 });

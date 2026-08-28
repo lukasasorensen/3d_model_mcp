@@ -16,6 +16,7 @@
     "@rjls/contracts": "workspace:*",
     "@rjls/gateway": "workspace:*",
     "@rjls/runtime": "workspace:*",
+    "better-auth": "^1.7.2",
     "fflate": "0.8.2",
     "next": "15.5.22",
     "react": "^19.2.0",

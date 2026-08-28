@@ -2,14 +2,11 @@ import {
   CAD_LIMITS,
   CONTRACT_VERSION,
   artifactManifestSchema,
-  boundingBoxSchema,
   candidateRecordSchema,
-  diagnosticSchema,
   isBrowserRendererProvenance,
   isProductionRendererProvenance,
   projectIdSchema,
   revisionManifestSchema,
-  rendererProvenanceSchema,
   type ArtifactManifest,
   type CadRenderer,
   type CandidateRecord,
@@ -17,12 +14,13 @@ import {
   type RendererProvenance,
   type RevisionManifest,
 } from "@rjls/contracts";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import {
   copyFile,
   mkdir,
   open,
   readFile,
+  readdir,
   rename,
   rm,
   stat,
@@ -30,63 +28,19 @@ import {
 import { basename, dirname, join } from "node:path";
 import * as z from "zod/v4";
 
+import { CadDomainError } from "./cad-domain-error.js";
+import { sha256 } from "./hash.js";
+import type { ProjectState, ProjectSummary } from "./project-types.js";
+import { assertArtifactSet, evaluateRenderResult } from "./render-policy.js";
+
 export const VALIDATION_POLICY_VERSION = "cad-validation-v1";
 
-export type CadDomainErrorCode =
-  | "PROJECT_NOT_FOUND"
-  | "REVISION_NOT_FOUND"
-  | "CANDIDATE_NOT_FOUND"
-  | "ARTIFACT_NOT_FOUND"
-  | "INVALID_CANDIDATE_STATE"
-  | "STALE_REVISION"
-  | "SOURCE_TOO_LARGE"
-  | "FORBIDDEN_SOURCE_REFERENCE"
-  | "SOURCE_HASH_MISMATCH"
-  | "ARTIFACT_HASH_MISMATCH"
-  | "ARTIFACT_LIMIT_EXCEEDED"
-  | "POLICY_MISMATCH"
-  | "PROVENANCE_MISMATCH"
-  | "CORRUPT_PROJECT"
-  | "RENDER_FAILED"
-  | "BROWSER_RENDERER_UNAVAILABLE"
-  | "CANCELLED"
-  | "LOCK_TIMEOUT";
-
-export class CadDomainError extends Error {
-  constructor(
-    public readonly code: CadDomainErrorCode,
-    message: string,
-    public readonly details: Readonly<Record<string, string | number | boolean | null>> = {},
-  ) {
-    super(message);
-    this.name = "CadDomainError";
-  }
-}
+export { CadDomainError, type CadDomainErrorCode } from "./cad-domain-error.js";
+export { sha256 } from "./hash.js";
+export type { ProjectState, ProjectSummary } from "./project-types.js";
+export { renderValidationResultSchema } from "./render-policy.js";
 
 export type { CadRenderer, CandidateRenderRequest, RenderedArtifact, RenderValidationResult } from "@rjls/contracts";
-
-const renderedArtifactSchema = z
-  .object({
-    format: z.enum(["stl", "3mf"]),
-    bytes: z.instanceof(Uint8Array),
-    mimeType: z.enum(["model/stl", "model/3mf"]),
-    triangleCount: z.number().int().nonnegative(),
-    boundingBox: boundingBoxSchema,
-    tessellation: z
-      .record(z.string().max(80), z.union([z.string().max(200), z.number().finite(), z.boolean()]))
-      .refine((value) => Object.keys(value).length <= 32),
-  })
-  .strict();
-
-const renderValidationResultSchema = z
-  .object({
-    outcome: z.enum(["VALID", "REJECTED"]),
-    diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
-    provenance: rendererProvenanceSchema,
-    validationPolicyVersion: z.string().min(1).max(100),
-    artifacts: z.array(renderedArtifactSchema).max(8).default([]),
-  })
-  .strict();
 
 export interface ModelProjectRepositoryOptions {
   workspaceRoot: string;
@@ -121,26 +75,14 @@ export type PromotionDurabilityStep =
   | "model-directory-durable"
   | "model-materialized";
 
-export interface ProjectState {
-  projectId: string;
-  currentRevision: string | null;
-  source: { hash: string; byteSize: number } | null;
-  artifacts: ArtifactManifest[];
-  diagnostics: Diagnostic[];
-}
-
 const includeReferencePattern = /\b(?:include|use)\s*<([^>]+)>/g;
 const fileFunctionPattern = /\b(import|surface)\s*\(([^;]*)\)/g;
-
-function sha256(value: string | Uint8Array): string {
-  return createHash("sha256").update(value).digest("hex");
-}
 
 function safeJson(value: unknown): string {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
-function assertSourcePolicy(source: string): void {
+export function assertSourcePolicy(source: string): void {
   const byteSize = Buffer.byteLength(source);
   if (byteSize > CAD_LIMITS.sourceBytes) {
     throw new CadDomainError("SOURCE_TOO_LARGE", "Model source exceeds the configured byte limit.", {
@@ -236,6 +178,12 @@ export class ModelProjectRepository {
     this.lockStaleMs = options.lockStaleMs ?? 120_000;
   }
 
+  async createProject(): Promise<ProjectSummary> {
+    const projectId = this.createId();
+    await this.ensureProject(projectId);
+    return { projectId };
+  }
+
   private projectRoot(projectId: string): string {
     return join(this.options.workspaceRoot, projectIdSchema.parse(projectId));
   }
@@ -286,7 +234,7 @@ export class ModelProjectRepository {
       if (manifest.projectId !== projectId || manifest.revisionId !== revisionId) throw new Error("binding mismatch");
       const source = await readFile(join(this.versionRoot(projectId, revisionId), "model.scad"));
       if (sha256(source) !== manifest.sourceHash || source.byteLength !== manifest.sourceBytes) throw new Error("source mismatch");
-      this.assertArtifactSet(manifest.artifacts, manifest.sourceHash, manifest.renderer, revisionId);
+      assertArtifactSet(manifest.artifacts, manifest.sourceHash, manifest.renderer, revisionId);
       for (const artifact of manifest.artifacts) {
         const artifactPath = join(this.controlRoot(projectId), "artifacts", artifact.hash, artifact.format === "stl" ? "preview.stl" : "export.3mf");
         const bytes = await readFile(artifactPath);
@@ -300,34 +248,6 @@ export class ModelProjectRepository {
       if (error instanceof CadDomainError) throw error;
       throw new CadDomainError("CORRUPT_PROJECT", "Revision data failed integrity validation.", { revisionId });
     }
-  }
-
-  private assertArtifactSet(
-    artifacts: ReadonlyArray<Omit<ArtifactManifest, "sourceRevision"> & { sourceRevision?: string }>,
-    sourceHash: string,
-    renderer: RendererProvenance,
-    sourceRevision?: string,
-  ): void {
-    const formats = new Set<string>();
-    for (const artifact of artifacts) {
-      const byteLimit = artifact.format === "stl" ? CAD_LIMITS.previewBytes : CAD_LIMITS.exportBytes;
-      const mimeType = artifact.format === "stl" ? "model/stl" : "model/3mf";
-      if (
-        formats.has(artifact.format) ||
-        artifact.mimeType !== mimeType ||
-        artifact.byteSize > byteLimit ||
-        (artifact.format === "stl" && artifact.triangleCount > CAD_LIMITS.previewTriangles) ||
-        artifact.sourceHash !== sourceHash ||
-        (sourceRevision !== undefined && artifact.sourceRevision !== sourceRevision)
-      ) {
-        throw new CadDomainError("ARTIFACT_HASH_MISMATCH", "Artifact metadata failed binding or limit validation.");
-      }
-      if (JSON.stringify(artifact.renderer) !== JSON.stringify(renderer)) {
-        throw new CadDomainError("PROVENANCE_MISMATCH", "Artifact renderer provenance does not match the revision.");
-      }
-      formats.add(artifact.format);
-    }
-    if (!formats.has("stl") && !isBrowserRendererProvenance(renderer)) throw new CadDomainError("ARTIFACT_NOT_FOUND", "Validated STL preview metadata is missing.");
   }
 
   private async readCandidate(projectId: string, candidateId: string): Promise<CandidateRecord> {
@@ -454,81 +374,26 @@ export class ModelProjectRepository {
           throw new CadDomainError("RENDER_FAILED", "Renderer failed safely.");
         }
         if (input.signal?.aborted) throw new CadDomainError("CANCELLED", "Rendering was cancelled.");
-        const parsedResult = renderValidationResultSchema.safeParse(rawResult);
-        if (!parsedResult.success) throw new CadDomainError("RENDER_FAILED", "Renderer returned invalid bounded metadata.");
-        const result = parsedResult.data;
-        const diagnostics = result.diagnostics;
-        if (result.outcome === "REJECTED") return this.updateCandidate(running, "REJECTED", { diagnostics });
-        if (result.validationPolicyVersion !== this.validationPolicyVersion || result.provenance.validationPolicyVersion !== this.validationPolicyVersion) {
-          return this.updateCandidate(running, "REJECTED", {
-            diagnostics: [{ code: "POLICY_MISMATCH", severity: "error", message: "Renderer validation policy does not match the repository policy." }],
-          });
-        }
-        if (!this.options.acceptRendererProvenance(result.provenance)) {
-          return this.updateCandidate(running, "REJECTED", {
-            diagnostics: [{ code: "PROVENANCE_MISMATCH", severity: "error", message: "Renderer provenance is not approved." }],
-          });
-        }
-        const prepared: Array<{ filename: string; bytes: Uint8Array; manifest: CandidateRecord["artifacts"][number] }> = [];
-        const formats = new Set<string>();
-        for (const artifact of result.artifacts) {
-          if (!(artifact.bytes instanceof Uint8Array) || formats.has(artifact.format)) {
-            return this.updateCandidate(running, "REJECTED", {
-              diagnostics: [{ code: "INVALID_RENDER_RESULT", severity: "error", message: "Renderer returned duplicate or invalid artifact content." }],
-            });
-          }
-          formats.add(artifact.format);
-          const limit = artifact.format === "stl" ? CAD_LIMITS.previewBytes : CAD_LIMITS.exportBytes;
-          if (artifact.bytes.byteLength > limit || (artifact.format === "stl" && artifact.triangleCount > CAD_LIMITS.previewTriangles)) {
-            return this.updateCandidate(running, "REJECTED", {
-              diagnostics: [{ code: "ARTIFACT_LIMIT_EXCEEDED", severity: "error", message: "Rendered artifact exceeds configured limits." }],
-            });
-          }
-          if ((artifact.format === "stl" && artifact.mimeType !== "model/stl") || (artifact.format === "3mf" && artifact.mimeType !== "model/3mf")) {
-            return this.updateCandidate(running, "REJECTED", {
-              diagnostics: [{ code: "ARTIFACT_TYPE_MISMATCH", severity: "error", message: "Rendered artifact format and MIME type disagree." }],
-            });
-          }
-          const hash = sha256(artifact.bytes);
-          const filename = artifact.format === "stl" ? "preview.stl" : "export.3mf";
-          const parsedManifest = candidateRecordSchema.shape.artifacts.unwrap().element.safeParse({
-            artifactId: hash.slice(0, 32),
-            format: artifact.format,
-            mimeType: artifact.mimeType,
-            hash,
-            byteSize: artifact.bytes.byteLength,
-            triangleCount: artifact.triangleCount,
-            units: "mm",
-            axisConvention: "right-handed-z-up",
-            boundingBox: artifact.boundingBox,
-            sourceHash: running.sourceHash,
-            renderer: result.provenance,
-            tessellation: artifact.tessellation,
-          });
-          if (!parsedManifest.success) {
-            return this.updateCandidate(running, "REJECTED", {
-              diagnostics: [{ code: "INVALID_RENDER_RESULT", severity: "error", message: "Renderer returned invalid artifact metadata." }],
-            });
-          }
-          prepared.push({ filename, bytes: artifact.bytes, manifest: parsedManifest.data });
-        }
-        const manifests = prepared.map((item) => item.manifest);
-        if (!manifests.some((artifact) => artifact.format === "stl") && !isBrowserRendererProvenance(result.provenance)) {
-          return this.updateCandidate(running, "REJECTED", {
-            diagnostics: [{ code: "MISSING_PREVIEW", severity: "error", message: "Renderer did not produce a validated STL preview." }],
-          });
-        }
-        if (prepared.length > 0) {
+        const decision = evaluateRenderResult({
+          rawResult,
+          sourceHash: running.sourceHash,
+          validationPolicyVersion: this.validationPolicyVersion,
+          acceptRendererProvenance: this.options.acceptRendererProvenance,
+          hashBytes: sha256,
+        });
+        if (decision.outcome === "REJECTED") return this.updateCandidate(running, "REJECTED", { diagnostics: decision.diagnostics });
+        const manifests = decision.artifacts.map((artifact) => artifact.manifest);
+        if (decision.artifacts.length > 0) {
           const artifactsDirectory = join(this.candidateRoot(input.projectId, input.candidateId), "artifacts");
           await mkdir(artifactsDirectory, { recursive: false });
-          for (const artifact of prepared) await writeDurable(join(artifactsDirectory, artifact.filename), artifact.bytes);
+          for (const artifact of decision.artifacts) await writeDurable(join(artifactsDirectory, artifact.filename), artifact.bytes);
           await fsyncDirectory(artifactsDirectory);
           await fsyncDirectory(dirname(artifactsDirectory));
         }
         return this.updateCandidate(running, "VALID", {
-          diagnostics,
-          renderer: result.provenance,
-          validationPolicyVersion: result.validationPolicyVersion,
+          diagnostics: decision.diagnostics,
+          renderer: decision.provenance,
+          validationPolicyVersion: decision.validationPolicyVersion,
           artifacts: manifests,
         });
       } catch (error) {
@@ -724,7 +589,7 @@ export class ModelProjectRepository {
       if ((!isProductionRendererProvenance(candidate.renderer) && !isBrowserRendererProvenance(candidate.renderer)) || !this.options.acceptRendererProvenance(candidate.renderer)) {
         throw new CadDomainError("PROVENANCE_MISMATCH", "Candidate renderer provenance is not approved.");
       }
-      this.assertArtifactSet(candidate.artifacts, candidate.sourceHash, candidate.renderer);
+      assertArtifactSet(candidate.artifacts, candidate.sourceHash, candidate.renderer);
       const revisionId = this.createId();
       const manifest = await this.publishRevision({
         projectId: input.projectId,
@@ -760,6 +625,20 @@ export class ModelProjectRepository {
       artifacts: manifest.artifacts,
       diagnostics: manifest.diagnostics,
     };
+  }
+
+  async listProjects(): Promise<ProjectSummary[]> {
+    let entries;
+    try {
+      entries = await readdir(this.options.workspaceRoot, { withFileTypes: true });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+      throw error;
+    }
+    return entries
+      .filter((entry) => entry.isDirectory() && projectIdSchema.safeParse(entry.name).success)
+      .map((entry) => ({ projectId: entry.name }))
+      .sort((left, right) => left.projectId.localeCompare(right.projectId));
   }
 
   async readModelSource(projectId: string, revision?: string): Promise<{ revision: string; source: string; sourceHash: string }> {

@@ -17,7 +17,7 @@ import {
   validateAndRenderInputSchema,
   validateAndRenderOutputSchema,
 } from "@rjls/contracts";
-import { CadDomainError, type ModelProjectRepository } from "@rjls/model-project";
+import { CadDomainError, type ModelProjectStore } from "@rjls/model-project";
 import type * as z from "zod/v4";
 
 export type CadToolName =
@@ -53,7 +53,7 @@ function boundedResult(value: Record<string, unknown>): Record<string, unknown> 
   return value;
 }
 
-export function createCadToolRegistry(repository: ModelProjectRepository): CadToolRegistry {
+export function createCadToolRegistry(repository: ModelProjectStore): CadToolRegistry {
   return {
     get_project_state: {
       title: "Get project state",

@@ -1,14 +1,16 @@
 "use client";
 
-import { BROWSER_RENDERER, localMcpBrowserRenderJobSchema, projectStateSchema, revisionManifestSchema, type ChatEvent, type RevisionManifest } from "@rjls/contracts";
+import { BROWSER_RENDERER, localMcpBrowserRenderJobSchema, projectListSchema, projectStateSchema, revisionManifestSchema, type ChatEvent, type RevisionManifest } from "@rjls/contracts";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 import { ChatPane } from "./ChatPane";
+import { ModelSourcePanel } from "./ModelSourcePanel";
 import { RevisionHistory } from "./RevisionHistory";
 import type { PreviewLoadState } from "./ModelViewer";
 import { initialWorkspaceState, revisionLabel, workspaceReducer } from "@/lib/workspace-state";
 import { streamChat } from "@/lib/stream-client";
-import { completeBrowserRender, completeLocalMcpBrowserRender, downloadBrowserExport, fetchRevisionSource, renderOpenScad } from "@/lib/browser-renderer";
+import { completeBrowserRender, completeLocalMcpBrowserRender, downloadBrowserExport, downloadGeneratedBytes, fetchRevisionSource, generateDownload, type DownloadFormat } from "@/lib/browser-renderer";
 
 const ModelViewer = dynamic(() => import("./ModelViewer").then((module) => module.ModelViewer), { ssr: false, loading: () => <div className="viewer-loading">Preparing 3D viewer…</div> });
 const SESSION_KEY_PREFIX = "rjls-cad-session:";
@@ -48,9 +50,13 @@ export function promotionStatusLabel(selectedLabel: string, hasSelectedRevision:
 }
 
 export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { projectId: string; localMcpBridgeEnabled?: boolean }) {
+  const router = useRouter();
   const [state, dispatch] = useReducer(workspaceReducer, initialWorkspaceState);
   const [readiness, setReadiness] = useState<"checking" | "ready" | "unavailable">("checking");
   const [exportState, setExportState] = useState<"idle" | "preparing" | "failed" | "complete">("idle");
+  const [exportFormat, setExportFormat] = useState<DownloadFormat>("stl");
+  const [projects, setProjects] = useState<string[]>([projectId]);
+  const [chatCollapsed, setChatCollapsed] = useState(false);
   const [restorePending, setRestorePending] = useState(false);
   const [previewLoadState, setPreviewLoadState] = useState<PreviewLoadState>("empty");
   const abortRef = useRef<AbortController | undefined>(undefined);
@@ -83,6 +89,16 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
     setReadiness(readinessResponse.ok && rendererReady ? "ready" : "unavailable");
   }, []);
 
+  const refreshProjects = useCallback(async () => {
+    const response = await fetch("/v1/projects", { cache: "no-store" });
+    if (!response.ok) return;
+    const parsed = projectListSchema.safeParse(await response.json());
+    if (!parsed.success) return;
+    const available = new Set(parsed.data.projects.map((project) => project.projectId));
+    available.add(projectId);
+    setProjects([...available].sort((left, right) => left.localeCompare(right)));
+  }, [projectId]);
+
   useEffect(() => {
     const sessionKey = `${SESSION_KEY_PREFIX}${projectId}`;
     const existing = sessionStorage.getItem(sessionKey);
@@ -92,9 +108,9 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
       sessionStorage.setItem(sessionKey, created);
       setSessionId(created);
     }
-    void Promise.all([refreshProject(), checkRuntime()]);
+    void Promise.all([refreshProject(), refreshProjects(), checkRuntime()]);
     return () => abortRef.current?.abort();
-  }, [checkRuntime, projectId, refreshProject]);
+  }, [checkRuntime, projectId, refreshProject, refreshProjects]);
 
   useEffect(() => {
     if (!localMcpBridgeEnabled || state.active || restorePending) return;
@@ -241,14 +257,8 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
     setExportState("preparing");
     try {
       const source = await fetchRevisionSource(projectId, currentManifest.revisionId, currentManifest.sourceHash);
-      const result = await renderOpenScad(source, "3mf");
-      const exportBuffer = result.bytes.buffer.slice(result.bytes.byteOffset, result.bytes.byteOffset + result.bytes.byteLength) as ArrayBuffer;
-      const objectUrl = trackObjectUrl(URL.createObjectURL(new Blob([exportBuffer], { type: "model/3mf" })));
-      const anchor = document.createElement("a");
-      anchor.href = objectUrl;
-      anchor.download = `RJLS-${currentLabel}.3mf`;
-      anchor.click();
-      window.setTimeout(() => releaseObjectUrl(objectUrl), 0);
+      const generated = await generateDownload(source, exportFormat);
+      downloadGeneratedBytes(generated.bytes, generated.mimeType, `RJLS-${currentLabel}.${generated.extension}`);
       setExportState("complete");
     }
     catch { setExportState("failed"); }
@@ -259,10 +269,14 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
       <a className="skip-link" href="#conversation-heading">Skip to conversation</a>
       <header className="app-header">
         <div className="brand-mark"><span aria-hidden="true">R</span><div><strong>RJLS Conversational CAD</strong><small>Precision workshop</small></div></div>
-        <div className="header-status"><span className={`readiness-dot readiness-${readiness}`} aria-hidden="true" /><span>{readinessLabel}</span><code>mm · Z up</code></div>
+        <div className="header-controls">
+          <button type="button" onClick={() => router.push("/projects")} disabled={state.active || restorePending || exportState === "preparing"}>All projects</button>
+          <label className="project-selector">Project<span className="sr-only"> selector</span><select value={projectId} onChange={(event) => router.push(`/projects/${encodeURIComponent(event.target.value)}`)} disabled={state.active || restorePending || exportState === "preparing"}>{projects.map((project) => <option key={project} value={project}>{project}</option>)}</select></label>
+          <div className="header-status"><span className={`readiness-dot readiness-${readiness}`} aria-hidden="true" /><span>{readinessLabel}</span><code>mm · Z up</code></div>
+        </div>
       </header>
 
-      <div className="workspace-grid">
+      <div className={`workspace-grid ${chatCollapsed ? "chat-collapsed" : ""}`}>
         <section className="model-pane" aria-labelledby="model-heading">
           <div className="pane-heading">
             <div><p className="eyebrow">Model inspection</p><h1 id="model-heading">{state.selectedRevision ? `Inspecting ${selectedLabel}` : "No model yet"}</h1></div>
@@ -277,16 +291,21 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
             <div><span>Preview</span><strong>{selectedManifest ? "Browser-rendered STL" : "Unavailable"}</strong></div>
             <div><span>State</span><strong>{previewStatusLabel(Boolean(selectedManifest), previewLoadState)}</strong></div>
           </div>
+          <ModelSourcePanel projectId={projectId} revisionId={selectedManifest?.revisionId} sourceHash={selectedManifest?.sourceHash} revisionLabel={selectedLabel} />
           <div className="model-actions">
             <RevisionHistory revisions={state.revisions} currentRevision={state.currentRevision} selectedRevision={state.selectedRevision} disabled={state.active || restorePending || previewLoadState !== "ready"} onSelect={(revisionId) => dispatch({ type: "select_revision", revisionId })} onRestore={(revisionId) => void restore(revisionId)} />
-            <button type="button" className="export-button" onClick={() => void exportCurrent()} disabled={!currentManifest || state.active || exportState === "preparing"} aria-describedby="export-help">{exportState === "preparing" ? "Preparing 3MF…" : `Export ${currentLabel} as 3MF`}</button>
+            <div className="export-controls">
+              <label htmlFor="export-format">Download format</label>
+              <select id="export-format" value={exportFormat} onChange={(event) => { setExportFormat(event.target.value as DownloadFormat); setExportState("idle"); }} disabled={!currentManifest || state.active || exportState === "preparing"}><option value="stl">STL</option><option value="glb">GLB</option><option value="3mf">3MF</option></select>
+              <button type="button" className="export-button" onClick={() => void exportCurrent()} disabled={!currentManifest || state.active || exportState === "preparing"} aria-describedby="export-help">{exportState === "preparing" ? `Preparing ${exportFormat.toUpperCase()}…` : `Download ${currentLabel}`}</button>
+            </div>
           </div>
-          <p id="export-help" className="action-help">{currentManifest ? `${currentLabel} · 3MF · generated locally in this browser` : "A current revision is required for export."}</p>
+          <p id="export-help" className="action-help">{currentManifest ? `${currentLabel} · ${exportFormat.toUpperCase()} · generated locally in this browser` : "A current revision is required for export."}</p>
           {exportState === "failed" && <p role="alert" className="notice notice-error">The export could not be verified. No file was downloaded.</p>}
-          {exportState === "complete" && <p role="status" className="notice notice-success">{currentLabel} · 3MF · millimeters downloaded.</p>}
+          {exportState === "complete" && <p role="status" className="notice notice-success">{currentLabel} · {exportFormat.toUpperCase()} downloaded.</p>}
         </section>
 
-        <ChatPane turns={state.turns} hasCurrentRevision={Boolean(state.currentRevision)} active={state.active} available={readiness === "ready" && Boolean(sessionId)} onSubmit={(message) => void submit(message)} onCancel={() => abortRef.current?.abort()} onRetry={() => void submit(lastMessage.current)} composerRef={composerRef} />
+        <ChatPane turns={state.turns} hasCurrentRevision={Boolean(state.currentRevision)} active={state.active} available={readiness === "ready" && Boolean(sessionId)} collapsed={chatCollapsed} onToggleCollapsed={() => setChatCollapsed((value) => !value)} onSubmit={(message) => void submit(message)} onCancel={() => abortRef.current?.abort()} onRetry={() => void submit(lastMessage.current)} composerRef={composerRef} />
       </div>
       {state.notice && <div className="global-notice" role="alert">{state.notice}</div>}
       <div className="sr-only" aria-live="polite" aria-atomic="true">{state.announcement && <span key={state.announcement.key}>{state.announcement.text}</span>}</div>

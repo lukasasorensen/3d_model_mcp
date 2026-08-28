@@ -2,16 +2,19 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { POST as restoreRevision } from "./app/v1/projects/[projectId]/revisions/[revisionId]/restore/route";
 import { BROWSER_RENDERER } from "@rjls/contracts";
+import { CadDomainError } from "@rjls/runtime";
 import { createClaimLocalMcpRenderHandler, createCompleteLocalMcpRenderHandler, localMcpBridgeEnabled } from "./lib/local-mcp-browser-routes";
 import { createReadinessHandler } from "./lib/readiness-route";
+import { isCadDomainError } from "./lib/cad-errors";
+import { authenticateRequest } from "./lib/route-policy";
 
 test("readiness route returns 503 unless the renderer probe succeeds", async () => {
-  const unavailable = createReadinessHandler(async () => ({ probeReadiness: async () => { throw new Error("/private/toolchain detail"); } }));
+  const unavailable = createReadinessHandler(async () => { throw new Error("/private/toolchain detail"); });
   const failedResponse = await unavailable();
   assert.equal(failedResponse.status, 503);
   assert.deepEqual(await failedResponse.json(), { readiness: { status: "unavailable", message: "The local CAD runtime is unavailable." } });
 
-  const ready = createReadinessHandler(async () => ({ probeReadiness: async () => ({ status: "ready" as const, profile: "browser-wasm" as const }) }));
+  const ready = createReadinessHandler(async () => ({ status: "ready" as const, profile: "browser-wasm" as const }));
   const readyResponse = await ready();
   assert.equal(readyResponse.status, 200);
   assert.deepEqual(await readyResponse.json(), { readiness: { status: "ready", profile: "browser-wasm" } });
@@ -21,6 +24,23 @@ test("restore route enforces exact same-origin requests", async () => {
   const response = await restoreRevision(new Request("http://localhost/v1", { method: "POST", headers: { origin: "https://attacker.invalid" } }), { params: Promise.resolve({ projectId: "demo-project", revisionId: "revision-1" }) });
   assert.equal(response.status, 403);
   assert.deepEqual(await response.json(), { error: { code: "ORIGIN_DENIED", message: "The request origin is not allowed." } });
+});
+
+test("project read errors distinguish hidden projects from operational failures", () => {
+  assert.equal(isCadDomainError(new CadDomainError("PROJECT_NOT_FOUND", "missing"), "PROJECT_NOT_FOUND"), true);
+  assert.equal(isCadDomainError(new Error("database unavailable"), "PROJECT_NOT_FOUND"), false);
+});
+
+test("authentication distinguishes anonymous sessions from infrastructure failures", async () => {
+  const request = new Request("http://localhost/v1/projects");
+  const anonymous = await authenticateRequest(request, async () => null);
+  assert.ok(anonymous instanceof Response);
+  assert.equal(anonymous.status, 401);
+  assert.equal((await anonymous.json()).error.code, "UNAUTHENTICATED");
+  const unavailable = await authenticateRequest(request, async () => { throw new Error("database unavailable"); });
+  assert.ok(unavailable instanceof Response);
+  assert.equal(unavailable.status, 503);
+  assert.equal((await unavailable.json()).error.code, "AUTHENTICATION_UNAVAILABLE");
 });
 
 test("local MCP bridge is opt-in and disabled in production", () => {
