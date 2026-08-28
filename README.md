@@ -32,6 +32,39 @@ RJLS_AUTH_ALLOW_SIGNUP=1 RJLS_INITIAL_PASSWORD='a-long-initial-password' pnpm au
 pnpm verify
 ```
 
+## Database development workflow
+
+Drizzle ORM provides the typed PostgreSQL query layer, while Drizzle Kit turns
+the TypeScript schema into versioned SQL migrations. Schema definitions live in
+`packages/model-project/src/schema/`, with one table or enum per file and
+`schema.ts` acting only as the public barrel.
+
+For an intentional schema change:
+
+1. Update the relevant schema file.
+2. Generate and review the migration:
+
+   ```bash
+   pnpm --filter @rjls/model-project db:generate
+   ```
+
+3. Update the PostgreSQL persistence and repository layers. HTTP routes should
+   remain thin: authenticate, validate input, call the repository or runtime,
+   and translate known domain errors into responses.
+4. Add tests for the behavior, including ownership isolation and both repository
+   implementations when the contract applies to both.
+5. Apply the migration to the development database and verify the workspace:
+
+   ```bash
+   pnpm db:migrate
+   pnpm verify
+   ```
+
+Commit the generated SQL file, `drizzle/meta/*_snapshot.json`, and
+`drizzle/meta/_journal.json` together. These files are the migration history and
+should not be edited by hand. Production migrations should run as a controlled
+deployment step before application code begins relying on the new schema.
+
 ## Test the MCP tools with Codex
 
 This workflow uses Codex as the MCP client, so model reasoning uses the ChatGPT
