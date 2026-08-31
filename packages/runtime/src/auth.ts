@@ -1,15 +1,20 @@
-import { schema } from "@rjls/model-project";
+import { schema, type ProjectDatabase } from "@rjls/model-project";
 import { betterAuth } from "better-auth/minimal";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
+import { createOAuthPlugins } from "./oauth-configuration.js";
+import { remoteMcpEnabled } from "./remote-mcp-policy.js";
+
 import { getProjectDatabase } from "./infrastructure.js";
 
-function createConfiguredAuth() {
+export function createConfiguredAuth(database: Pick<ProjectDatabase, "pool" | "db"> = getProjectDatabase()) {
   const secret = process.env.BETTER_AUTH_SECRET;
   if (!secret || secret.length < 32) throw new Error("BETTER_AUTH_SECRET must contain at least 32 characters.");
   return betterAuth({
-    database: drizzleAdapter(getProjectDatabase().db, { provider: "pg", schema }),
+    database: drizzleAdapter(database.db, { provider: "pg", schema }),
     secret,
+    plugins: remoteMcpEnabled() ? createOAuthPlugins(database.pool) : [],
+    disabledPaths: ["/token"],
     baseURL: process.env.BETTER_AUTH_URL ?? process.env.RJLS_ALLOWED_ORIGIN ?? "http://localhost:3000",
     trustedOrigins: [process.env.RJLS_ALLOWED_ORIGIN ?? "http://localhost:3000"],
     emailAndPassword: { enabled: true, disableSignUp: process.env.RJLS_AUTH_ALLOW_SIGNUP !== "1" },
@@ -20,7 +25,7 @@ function createConfiguredAuth() {
 
 let configuredAuth: ReturnType<typeof createConfiguredAuth> | undefined;
 
-function getAuth() {
+export function getAuth() {
   configuredAuth ??= createConfiguredAuth();
   return configuredAuth;
 }

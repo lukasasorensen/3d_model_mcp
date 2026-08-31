@@ -211,3 +211,60 @@ selection, public deployment, and
 the repository license/third-party notice decision remain blocked or deferred. See
 [`docs/g006-verification-evidence.json`](docs/g006-verification-evidence.json). A2A
 is a future research item and is not implemented.
+
+## Remote Codex connection (deployed application)
+
+Remote MCP is opt-in: set `RJLS_REMOTE_MCP_ENABLED=1` only after applying the
+committed migrations and provisioning a public OAuth client. The existing stdio
+configuration above remains separate and unchanged.
+
+```bash
+pnpm db:migrate
+pnpm oauth:provision -- http://127.0.0.1/callback
+```
+
+Use the same database and public-origin environment as the deployed application.
+Provisioning prints the public client ID `rjls-codex`; it creates no client secret.
+The callback must be an exact HTTP loopback URL. Repeating provisioning is safe;
+additional exact callbacks are added without wildcard matching.
+
+On your Codex computer:
+
+```bash
+codex mcp add rjls-cad-remote --url https://YOUR-CAD-DOMAIN/mcp --oauth-client-id rjls-codex
+codex mcp login rjls-cad-remote --scopes cad:tools,offline_access
+```
+
+If Codex reports a different callback URL, provision that exact URL and retry.
+Set `tool_timeout_sec = 120` in `[mcp_servers.rjls-cad-remote]` in your Codex
+configuration and restart Codex. Sign in through the browser and approve access
+to your own projects. Public registration and client-secret authentication are
+not used. See [Codex MCP configuration](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
+
+Create/open a project on the deployed website and keep its tab visible. Give
+Codex the project ID shown in the workspace, then request inspection, source
+changes, validation, and promotion. Jobs wait fifteen seconds for a browser;
+rendering retains its sixty-second WASM limit and a ninety-second server deadline.
+After a timeout or cancellation, the current revision stays unchanged. Create a
+new candidate to retry. Mesh downloads remain website actions; `export_model`
+returns source/export metadata and does not save a file on the Codex computer.
+
+The website’s **Connected Apps** page revokes an authorization and its refresh
+tokens. Subsequent MCP requests fail immediately, including requests using a
+previously issued access token; already-running operations may finish. Access
+tokens last five minutes and refresh tokens thirty days. Token verifiers are
+hashed and JWT signing keys encrypted with the stable `BETTER_AUTH_SECRET`.
+Never put database credentials, an actor user ID, or this secret in Codex config.
+
+The API is `POST /mcp`; OAuth discovery is exposed at
+`/.well-known/oauth-protected-resource/mcp` (also the root alias) and
+`/.well-known/oauth-authorization-server/api/auth`. Browser render claiming uses
+an authenticated same-origin POST scoped to the owner and project. The existing
+production completion endpoint verifies the single-use token, tab session,
+source hash, deadline, and pinned renderer provenance.
+
+Set `RJLS_REMOTE_MCP_ENABLED=0` and restart the application to disable remote MCP
+without disabling website chat. Retain the additive schema on rollback. The
+sibling deployment repository’s Proxmox runbook covers Compose, provisioning,
+tunnel acceptance tests, and rollback. No additional network ports or renderer
+service are required.

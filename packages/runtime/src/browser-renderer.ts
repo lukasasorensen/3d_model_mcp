@@ -11,6 +11,8 @@ import { sha256 } from "@rjls/model-project";
 import { randomBytes } from "node:crypto";
 import type { Pool } from "pg";
 
+export class BrowserRenderCompletionError extends Error {}
+
 export const BROWSER_COMMAND_POLICY_VERSION = "openscad-browser-manifold-v1";
 export const BROWSER_RENDERER_VERSION = "1.0.0";
 const storedBrowserCompletionSchema = browserRenderCompletionSchema.pick({ outcome: true, diagnostics: true, provenance: true });
@@ -109,10 +111,10 @@ export class BrowserRenderCoordinator implements CadRenderer {
     if (!pending) throw new Error("Render job is unavailable or expired.");
     const completion = browserRenderCompletionSchema.parse(raw);
     if (completion.sessionId !== pending.sessionId || completion.token !== pending.token || completion.sourceHash !== pending.sourceHash) {
-      throw new Error("Render completion binding failed.");
+      throw new BrowserRenderCompletionError("Render completion binding failed.");
     }
     const expected = expectedBrowserProvenance(this.validationPolicyVersion);
-    if (JSON.stringify(completion.provenance) !== JSON.stringify(expected)) throw new Error("Browser renderer provenance does not match the configured pin.");
+    if (JSON.stringify(completion.provenance) !== JSON.stringify(expected)) throw new BrowserRenderCompletionError("Browser renderer provenance does not match the configured pin.");
     clearTimeout(pending.timeout);
     this.pending.delete(jobId);
     pending.resolve(completion);
@@ -173,13 +175,13 @@ export class PostgresBrowserRenderCoordinator implements CadRenderer {
     const completion = browserRenderCompletionSchema.parse(raw);
     const storedCompletion = sanitizeBrowserRenderCompletion(completion);
     const expected = expectedBrowserProvenance(this.validationPolicyVersion);
-    if (JSON.stringify(completion.provenance) !== JSON.stringify(expected)) throw new Error("Browser renderer provenance does not match the configured pin.");
+    if (JSON.stringify(completion.provenance) !== JSON.stringify(expected)) throw new BrowserRenderCompletionError("Browser renderer provenance does not match the configured pin.");
     const result = await this.pool.query(
       `UPDATE browser_render_jobs SET state = 'COMPLETED', completion = $1, updated_at = now()
        WHERE id = $2 AND owner_id = $3 AND state = 'PENDING' AND session_id = $4 AND token_hash = $5 AND source_hash = $6 AND deadline > now()
        RETURNING id`,
       [JSON.stringify(storedCompletion), jobId, this.ownerId, completion.sessionId, sha256(completion.token), completion.sourceHash],
     );
-    if (!result.rows[0]) throw new Error("Render completion binding failed or the job is unavailable.");
+    if (!result.rows[0]) throw new BrowserRenderCompletionError("Render completion binding failed or the job is unavailable.");
   }
 }

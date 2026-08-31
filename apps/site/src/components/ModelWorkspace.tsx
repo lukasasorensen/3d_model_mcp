@@ -1,6 +1,6 @@
 "use client";
 
-import { BROWSER_RENDERER, localMcpBrowserRenderJobSchema, projectListSchema, projectStateSchema, revisionManifestSchema, type ChatEvent, type RevisionManifest } from "@rjls/contracts";
+import { BROWSER_RENDERER, projectListSchema, projectStateSchema, revisionManifestSchema, type ChatEvent, type RevisionManifest } from "@rjls/contracts";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
@@ -9,8 +9,9 @@ import { ModelSourcePanel } from "./ModelSourcePanel";
 import { RevisionHistory } from "./RevisionHistory";
 import type { PreviewLoadState } from "./ModelViewer";
 import { initialWorkspaceState, revisionLabel, workspaceReducer } from "@/lib/workspace-state";
+import { useMcpBrowserRenderer } from "@/lib/use-mcp-browser-renderer";
 import { streamChat } from "@/lib/stream-client";
-import { completeBrowserRender, completeLocalMcpBrowserRender, downloadBrowserExport, downloadGeneratedBytes, fetchRevisionSource, generateDownload, type DownloadFormat } from "@/lib/browser-renderer";
+import { completeBrowserRender, downloadBrowserExport, downloadGeneratedBytes, fetchRevisionSource, generateDownload, type DownloadFormat } from "@/lib/browser-renderer";
 
 const ModelViewer = dynamic(() => import("./ModelViewer").then((module) => module.ModelViewer), { ssr: false, loading: () => <div className="viewer-loading">Preparing 3D viewer…</div> });
 const SESSION_KEY_PREFIX = "rjls-cad-session:";
@@ -49,7 +50,7 @@ export function promotionStatusLabel(selectedLabel: string, hasSelectedRevision:
     : "Promoting the first validated revision. The viewer remains empty until it is verified for display.";
 }
 
-export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { projectId: string; localMcpBridgeEnabled?: boolean }) {
+export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remoteMcpEnabled = false }: { projectId: string; localMcpBridgeEnabled?: boolean; remoteMcpEnabled?: boolean }) {
   const router = useRouter();
   const [state, dispatch] = useReducer(workspaceReducer, initialWorkspaceState);
   const [readiness, setReadiness] = useState<"checking" | "ready" | "unavailable">("checking");
@@ -112,81 +113,14 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
     return () => abortRef.current?.abort();
   }, [checkRuntime, projectId, refreshProject, refreshProjects]);
 
-  useEffect(() => {
-    if (!localMcpBridgeEnabled || state.active || restorePending) return;
-    let stopped = false;
-    let timeout: number | undefined;
-    let controller: AbortController | undefined;
-    const schedule = (delay: number) => {
-      if (stopped) return;
-      if (timeout !== undefined) window.clearTimeout(timeout);
-      timeout = window.setTimeout(() => { void poll(); }, delay);
-    };
-    const poll = async () => {
-      if (stopped) return;
-      if (document.visibilityState !== "visible") { schedule(1_000); return; }
-      controller = new AbortController();
-      try { await refreshProject(controller.signal); }
-      catch { /* A later poll retries without replacing the last-known-valid state. */ }
-      finally { controller = undefined; schedule(1_000); }
-    };
-    const visible = () => { if (document.visibilityState === "visible") schedule(0); };
-    document.addEventListener("visibilitychange", visible);
-    schedule(1_000);
-    return () => {
-      stopped = true;
-      if (timeout !== undefined) window.clearTimeout(timeout);
-      controller?.abort();
-      document.removeEventListener("visibilitychange", visible);
-    };
-  }, [localMcpBridgeEnabled, refreshProject, restorePending, state.active]);
-
-  useEffect(() => {
-    if (!localMcpBridgeEnabled || !sessionId || state.active || restorePending) return;
-    let stopped = false;
-    let timeout: number | undefined;
-    let controller: AbortController | undefined;
-    const schedule = (delay: number) => {
-      if (stopped) return;
-      if (timeout !== undefined) window.clearTimeout(timeout);
-      timeout = window.setTimeout(() => { void poll(); }, delay);
-    };
-    const poll = async () => {
-      if (stopped) return;
-      if (document.visibilityState !== "visible") { schedule(500); return; }
-      controller = new AbortController();
-      try {
-        const response = await fetch(`/v1/local-mcp/browser-renders/next?projectId=${encodeURIComponent(projectId)}`, {
-          cache: "no-store",
-          headers: { "x-rjls-session-id": sessionId },
-          signal: controller.signal,
-        });
-        if (response.status === 200) {
-          const raw = await response.json() as { job?: unknown };
-          const job = localMcpBrowserRenderJobSchema.safeParse(raw.job);
-          if (!job.success) throw new Error("The local MCP render job was invalid.");
-          await completeLocalMcpBrowserRender(job.data, sessionId);
-        } else if (response.status !== 204) throw new Error("The local MCP render bridge is unavailable.");
-      } catch (error) {
-        if (controller.signal.aborted) void error;
-      } finally {
-        controller = undefined;
-        schedule(500);
-      }
-    };
-    const visible = () => { if (document.visibilityState === "visible") schedule(0); };
-    document.addEventListener("visibilitychange", visible);
-    schedule(0);
-    return () => {
-      stopped = true;
-      if (timeout !== undefined) window.clearTimeout(timeout);
-      controller?.abort();
-      document.removeEventListener("visibilitychange", visible);
-    };
-  }, [localMcpBridgeEnabled, projectId, restorePending, sessionId, state.active]);
+  const { isRendering: isMcpRendering, status: mcpStatus, acquire: acquireRenderer, release: releaseRenderer } = useMcpBrowserRenderer({
+    projectId, sessionId, localEnabled: localMcpBridgeEnabled, remoteEnabled: remoteMcpEnabled,
+    isAvailable: !state.active && !restorePending && exportState !== "preparing" && readiness === "ready",
+    refreshProject,
+  });
 
   const submit = useCallback(async (message: string) => {
-    if (!sessionId) return;
+    if (!sessionId || !(await acquireRenderer())) return;
     lastMessage.current = message;
     const requestId = newOpaqueId("turn");
     dispatch({ type: "submit", id: requestId, text: message });
@@ -213,8 +147,9 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
       } else dispatch({ type: "local_error", message: error instanceof Error ? error.message : "The request failed safely." });
     } finally {
       abortRef.current = undefined;
+      releaseRenderer();
     }
-  }, [projectId, refreshProject, sessionId, state.revisions]);
+  }, [projectId, refreshProject, sessionId, state.revisions, acquireRenderer, releaseRenderer]);
 
   useLayoutEffect(() => {
     const available = readiness === "ready" && Boolean(sessionId);
@@ -223,6 +158,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
   }, [readiness, sessionId, state.active]);
 
   const restore = async (revisionId: string) => {
+    if (!(await acquireRenderer())) return;
     setRestorePending(true);
     try {
       const response = await fetch(`/v1/projects/${encodeURIComponent(projectId)}/revisions/${encodeURIComponent(revisionId)}/restore`, { method: "POST" });
@@ -232,7 +168,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
       dispatch({ type: "restored", revision: revision.data });
       await refreshProject();
     } catch { dispatch({ type: "local_error", message: "The historical revision could not be restored safely." }); }
-    finally { setRestorePending(false); }
+    finally { setRestorePending(false); releaseRenderer(); }
   };
 
   const currentLabel = revisionLabel(state.revisions, state.currentRevision);
@@ -241,9 +177,9 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
   const selectedManifest = state.revisions.find((revision) => revision.revisionId === state.selectedRevision);
   const currentManifest = state.revisions.find((revision) => revision.revisionId === state.currentRevision);
   const dimensions = "—";
-  let readinessLabel = "Local runtime unavailable";
-  if (readiness === "checking") readinessLabel = "Checking local project…";
-  else if (readiness === "ready") readinessLabel = "Local runtime ready";
+  let readinessLabel = "CAD runtime unavailable";
+  if (readiness === "checking") readinessLabel = "Checking CAD project…";
+  else if (readiness === "ready") readinessLabel = "CAD runtime ready";
 
   let currentBadgeLabel = `Current · ${currentLabel}`;
   if (promotionPending) {
@@ -253,7 +189,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
   }
 
   const exportCurrent = async () => {
-    if (!currentManifest) return;
+    if (!currentManifest || !(await acquireRenderer())) return;
     setExportState("preparing");
     try {
       const source = await fetchRevisionSource(projectId, currentManifest.revisionId, currentManifest.sourceHash);
@@ -262,6 +198,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
       setExportState("complete");
     }
     catch { setExportState("failed"); }
+    finally { releaseRenderer(); }
   };
 
   return (
@@ -270,8 +207,8 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
       <header className="app-header">
         <div className="brand-mark"><span aria-hidden="true">R</span><div><strong>RJLS Conversational CAD</strong><small>Precision workshop</small></div></div>
         <div className="header-controls">
-          <button type="button" onClick={() => router.push("/projects")} disabled={state.active || restorePending || exportState === "preparing"}>All projects</button>
-          <label className="project-selector">Project<span className="sr-only"> selector</span><select value={projectId} onChange={(event) => router.push(`/projects/${encodeURIComponent(event.target.value)}`)} disabled={state.active || restorePending || exportState === "preparing"}>{projects.map((project) => <option key={project} value={project}>{project}</option>)}</select></label>
+          <button type="button" onClick={() => router.push("/projects")} disabled={isMcpRendering || state.active || restorePending || exportState === "preparing"}>All projects</button>
+          <label className="project-selector">Project<span className="sr-only"> selector</span><select value={projectId} onChange={(event) => router.push(`/projects/${encodeURIComponent(event.target.value)}`)} disabled={isMcpRendering || state.active || restorePending || exportState === "preparing"}>{projects.map((project) => <option key={project} value={project}>{project}</option>)}</select></label>
           <div className="header-status"><span className={`readiness-dot readiness-${readiness}`} aria-hidden="true" /><span>{readinessLabel}</span><code>mm · Z up</code></div>
         </div>
       </header>
@@ -282,6 +219,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
             <div><p className="eyebrow">Model inspection</p><h1 id="model-heading">{state.selectedRevision ? `Inspecting ${selectedLabel}` : "No model yet"}</h1></div>
             <div className="revision-badges"><span className="current-badge">{currentBadgeLabel}</span>{!promotionPending && state.selectedRevision !== state.currentRevision && <span>Viewing · {selectedLabel}</span>}</div>
           </div>
+          {(localMcpBridgeEnabled || remoteMcpEnabled) && <p className="notice" role="status">{mcpStatus || "Ready for Codex. Keep this project tab visible during validation."}</p>}
           <div className="revision-rail" aria-hidden="true"><span className={state.active ? "rail-working" : ""} /></div>
           {promotionPending && <p className="notice" role="status">{promotionStatusLabel(selectedLabel, Boolean(state.selectedRevision))}</p>}
           <ModelViewer projectId={projectId} revisionId={selectedManifest?.revisionId} sourceHash={selectedManifest?.sourceHash} currentLabel={selectedLabel} updating={state.active} onLoadStateChange={setPreviewLoadState} />
@@ -293,11 +231,11 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
           </div>
           <ModelSourcePanel projectId={projectId} revisionId={selectedManifest?.revisionId} sourceHash={selectedManifest?.sourceHash} revisionLabel={selectedLabel} />
           <div className="model-actions">
-            <RevisionHistory revisions={state.revisions} currentRevision={state.currentRevision} selectedRevision={state.selectedRevision} disabled={state.active || restorePending || previewLoadState !== "ready"} onSelect={(revisionId) => dispatch({ type: "select_revision", revisionId })} onRestore={(revisionId) => void restore(revisionId)} />
+            <RevisionHistory revisions={state.revisions} currentRevision={state.currentRevision} selectedRevision={state.selectedRevision} disabled={isMcpRendering || state.active || restorePending || previewLoadState !== "ready"} onSelect={(revisionId) => dispatch({ type: "select_revision", revisionId })} onRestore={(revisionId) => void restore(revisionId)} />
             <div className="export-controls">
               <label htmlFor="export-format">Download format</label>
-              <select id="export-format" value={exportFormat} onChange={(event) => { setExportFormat(event.target.value as DownloadFormat); setExportState("idle"); }} disabled={!currentManifest || state.active || exportState === "preparing"}><option value="stl">STL</option><option value="glb">GLB</option><option value="3mf">3MF</option></select>
-              <button type="button" className="export-button" onClick={() => void exportCurrent()} disabled={!currentManifest || state.active || exportState === "preparing"} aria-describedby="export-help">{exportState === "preparing" ? `Preparing ${exportFormat.toUpperCase()}…` : `Download ${currentLabel}`}</button>
+              <select id="export-format" value={exportFormat} onChange={(event) => { setExportFormat(event.target.value as DownloadFormat); setExportState("idle"); }} disabled={isMcpRendering || !currentManifest || state.active || exportState === "preparing"}><option value="stl">STL</option><option value="glb">GLB</option><option value="3mf">3MF</option></select>
+              <button type="button" className="export-button" onClick={() => void exportCurrent()} disabled={isMcpRendering || !currentManifest || state.active || exportState === "preparing"} aria-describedby="export-help">{exportState === "preparing" ? `Preparing ${exportFormat.toUpperCase()}…` : `Download ${currentLabel}`}</button>
             </div>
           </div>
           <p id="export-help" className="action-help">{currentManifest ? `${currentLabel} · ${exportFormat.toUpperCase()} · generated locally in this browser` : "A current revision is required for export."}</p>
@@ -305,7 +243,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false }: { p
           {exportState === "complete" && <p role="status" className="notice notice-success">{currentLabel} · {exportFormat.toUpperCase()} downloaded.</p>}
         </section>
 
-        <ChatPane turns={state.turns} hasCurrentRevision={Boolean(state.currentRevision)} active={state.active} available={readiness === "ready" && Boolean(sessionId)} collapsed={chatCollapsed} onToggleCollapsed={() => setChatCollapsed((value) => !value)} onSubmit={(message) => void submit(message)} onCancel={() => abortRef.current?.abort()} onRetry={() => void submit(lastMessage.current)} composerRef={composerRef} />
+        <ChatPane turns={state.turns} hasCurrentRevision={Boolean(state.currentRevision)} active={state.active} available={!isMcpRendering && !restorePending && exportState !== "preparing" && readiness === "ready" && Boolean(sessionId)} collapsed={chatCollapsed} onToggleCollapsed={() => setChatCollapsed((value) => !value)} onSubmit={(message) => void submit(message)} onCancel={() => abortRef.current?.abort()} onRetry={() => void submit(lastMessage.current)} composerRef={composerRef} />
       </div>
       {state.notice && <div className="global-notice" role="alert">{state.notice}</div>}
       <div className="sr-only" aria-live="polite" aria-atomic="true">{state.announcement && <span key={state.announcement.key}>{state.announcement.text}</span>}</div>

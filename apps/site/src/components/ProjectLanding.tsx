@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
-export function ProjectLanding({ projects, userName }: { projects: string[]; userName: string }) {
+export function ProjectLanding({ projects, userName, remoteMcpEnabled = false }: { projects: string[]; userName: string; remoteMcpEnabled?: boolean }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -22,6 +22,7 @@ export function ProjectLanding({ projects, userName }: { projects: string[]; use
   return (
     <main className="project-landing">
       <header><div><p className="eyebrow">RJLS Conversational CAD</p><h1>Your projects</h1><p>Signed in as {userName}</p></div><button type="button" onClick={signOut}>Sign out</button></header>
+      {remoteMcpEnabled && <p><a href="/settings/connected-apps">Connected Apps</a></p>}
       <section aria-labelledby="project-list-title">
         <div className="project-list-heading"><h2 id="project-list-title">Projects</h2><button type="button" onClick={createProject} disabled={pending}>{pending ? "Creating…" : "New project"}</button></div>
         {error ? <p role="alert" className="auth-error">{error}</p> : null}

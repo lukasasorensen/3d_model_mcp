@@ -19,11 +19,11 @@ function mcpResult(result: Awaited<ReturnType<typeof invokeCadTool>>) {
 }
 
 /** Registers domain tools only. Stdio/HTTP lifecycle adapters are deliberately outside this core. */
-export function createCadMcpServer(repository: ModelProjectStore): McpServer {
+export function createCadMcpServer(repository: ModelProjectStore, options: { signal?: AbortSignal } = {}): McpServer {
   const registry = createCadToolRegistry(repository);
   const server = new McpServer(
     { name: "rjls-cad", version: "0.1.0" },
-    { instructions: "Use only these project-scoped CAD tools. Inspect project state before editing, propose source against the exact current parent, validate_and_render before promotion, and promote only a VALID candidate. Browser validation requires the local CAD site to be open. Never infer revision or artifact success from prose." },
+    { instructions: "Use only these project-scoped CAD tools. Inspect project state before editing, propose source against the exact current parent, validate_and_render before promotion, and promote only a VALID candidate. Browser validation requires the matching CAD project to be open in a visible browser tab. Never infer revision or artifact success from prose." },
   );
 
   for (const name of Object.keys(registry) as CadToolName[]) {
@@ -37,7 +37,7 @@ export function createCadMcpServer(repository: ModelProjectStore): McpServer {
         outputSchema: definition.outputSchema,
         annotations: { readOnlyHint: definition.readOnly, openWorldHint: false, destructiveHint: false },
       },
-      async (rawInput, extra) => mcpResult(await invokeCadTool(registry, name, rawInput, { signal: extra.signal })),
+      async (rawInput, extra) => mcpResult(await invokeCadTool(registry, name, rawInput, { signal: options.signal ? AbortSignal.any([options.signal, extra.signal]) : extra.signal })),
     );
   }
   return server;

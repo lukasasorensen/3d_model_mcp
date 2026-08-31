@@ -1,4 +1,4 @@
-import { BROWSER_RENDERER, CAD_LIMITS, type BrowserRenderCompletion, type Diagnostic, type LocalMcpBrowserRenderJob } from "@rjls/contracts";
+import { BROWSER_RENDERER, CAD_LIMITS, type BrowserRenderCompletion, type Diagnostic, type RemoteMcpBrowserRenderJob, type LocalMcpBrowserRenderJob } from "@rjls/contracts";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
 import { Group, Mesh, MeshStandardMaterial } from "three";
@@ -72,13 +72,14 @@ export async function renderPreview(source: string, sourceHash: string, signal?:
   return result;
 }
 
-async function renderCompletion(request: { source: string; sourceHash: string; token: string }, sessionId: string): Promise<BrowserRenderCompletion> {
+async function renderCompletion(request: { source: string; sourceHash: string; token: string }, sessionId: string, signal?: AbortSignal): Promise<BrowserRenderCompletion> {
   let outcome: "VALID" | "REJECTED" = "VALID";
   let diagnostics: Diagnostic[] = [];
   try {
-    const result = await renderPreview(request.source, request.sourceHash);
+    const result = await renderPreview(request.source, request.sourceHash, signal);
     diagnostics = result.diagnostics;
   } catch (error) {
+    if (signal?.aborted) throw error;
     outcome = "REJECTED";
     diagnostics = (error as { diagnostics?: Diagnostic[] }).diagnostics ?? [{ code: "OPENSCAD_FAILED", severity: "error", message: "OpenSCAD rejected the model." }];
   }
@@ -95,14 +96,25 @@ export async function completeBrowserRender(event: Extract<import("@rjls/contrac
   if (!response.ok) throw new Error("The browser render result was not accepted.");
 }
 
-export async function completeLocalMcpBrowserRender(job: LocalMcpBrowserRenderJob, sessionId: string): Promise<void> {
-  const completion = await renderCompletion(job, sessionId);
+export async function completeLocalMcpBrowserRender(job: LocalMcpBrowserRenderJob, sessionId: string, signal?: AbortSignal): Promise<void> {
+  const completion = await renderCompletion(job, sessionId, signal);
   const response = await fetch(`/v1/local-mcp/browser-renders/${encodeURIComponent(job.jobId)}`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-rjls-session-id": sessionId },
     body: JSON.stringify(completion),
   });
   if (!response.ok) throw new Error("The local MCP browser render result was not accepted.");
+}
+
+
+export async function completeRemoteMcpBrowserRender(job: RemoteMcpBrowserRenderJob, sessionId: string, signal?: AbortSignal): Promise<void> {
+  const completion = await renderCompletion(job, sessionId, signal);
+  const response = await fetch(`/v1/browser-renders/${encodeURIComponent(job.jobId)}`, {
+    method: "POST", signal,
+    headers: { "content-type": "application/json", "x-rjls-session-id": sessionId },
+    body: JSON.stringify(completion),
+  });
+  if (!response.ok) throw new Error("The remote MCP render result was not accepted.");
 }
 
 export async function downloadBrowserExport(event: Extract<import("@rjls/contracts").ChatEvent, { type: "browser_render_request" }>, label: string): Promise<void> {

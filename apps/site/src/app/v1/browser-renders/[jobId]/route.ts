@@ -1,5 +1,5 @@
 import { browserRenderCompletionSchema, opaqueIdSchema } from "@rjls/contracts";
-import { withConfiguredCadRuntime } from "@rjls/runtime";
+import { BrowserRenderCompletionError, withConfiguredCadRuntime } from "@rjls/runtime";
 import { NO_STORE_HEADERS, authenticateRequest, isPolicyResponse, jsonError, requireSameOrigin } from "@/lib/route-policy";
 
 export const runtime = "nodejs";
@@ -24,7 +24,9 @@ export async function POST(request: Request, context: { params: Promise<{ jobId:
   try {
     await withConfiguredCadRuntime(user.id, (runtime) => runtime.browserRenderer.complete(jobId.data, completion.data));
     return Response.json({ accepted: true }, { headers: NO_STORE_HEADERS });
-  } catch {
-    return jsonError("RENDER_COMPLETION_REJECTED", 409);
+  } catch (error) {
+    return error instanceof BrowserRenderCompletionError
+      ? jsonError("RENDER_COMPLETION_REJECTED", 409)
+      : jsonError("RENDER_SERVICE_UNAVAILABLE", 503);
   }
 }

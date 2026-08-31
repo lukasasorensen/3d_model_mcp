@@ -9,7 +9,7 @@
     "dev": "next dev",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test src/*.test.mjs src/**/*.test.ts"
+    "test": "node --import tsx --test src/*.test.mjs src/*.test.ts src/**/*.test.ts"
   },
   "dependencies": {
     "@react-three/fiber": "9.6.1",

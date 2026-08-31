@@ -456,6 +456,10 @@ export const localMcpBrowserRenderJobSchema = z.object({
   deadline: z.string().datetime({ offset: true }),
 }).strict();
 export type LocalMcpBrowserRenderJob = z.infer<typeof localMcpBrowserRenderJobSchema>;
+
+export const remoteMcpBrowserRenderJobSchema = localMcpBrowserRenderJobSchema.omit({ version: true, projectId: true, createdAt: true }).extend({ purpose: z.literal("candidate") });
+export type RemoteMcpBrowserRenderJob = z.infer<typeof remoteMcpBrowserRenderJobSchema>;
+
 export const chatErrorCodeSchema = z.enum([
   "INVALID_REQUEST", "ORIGIN_DENIED", "SESSION_MISMATCH", "PROVIDER_FAILURE", "MCP_FAILURE",
   "CAD_TOOL_REJECTED", "RENDERER_FAILURE", "TOOL_LIMIT_EXCEEDED", "REPAIR_LIMIT_EXCEEDED",

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { submitOAuthAction } from "@/lib/oauth-navigation";
 import { authClient } from "@/lib/auth-client";
 
 export function SignInForm() {
@@ -14,6 +15,10 @@ export function SignInForm() {
     setError("");
     const data = new FormData(event.currentTarget);
     try {
+      if (new URLSearchParams(window.location.search).has("sig")) {
+        await submitOAuthAction("sign-in/email", { email: String(data.get("email") ?? ""), password: String(data.get("password") ?? "") });
+        return;
+      }
       const result = await authClient.signIn.email({ email: String(data.get("email") ?? ""), password: String(data.get("password") ?? "") });
       if (result.error) { setError("The email or password was not accepted."); return; }
       router.replace("/projects");

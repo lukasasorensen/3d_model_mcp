@@ -1,3 +1,11 @@
+import { oauthClient } from "./oauth-client.schema.js";
+import { oauthResource } from "./oauth-resource.schema.js";
+import { oauthClientResource } from "./oauth-client-resource.schema.js";
+import { oauthRefreshToken } from "./oauth-refresh-token.schema.js";
+import { oauthAccessToken } from "./oauth-access-token.schema.js";
+import { oauthConsent } from "./oauth-consent.schema.js";
+import { oauthClientAssertion } from "./oauth-client-assertion.schema.js";
+import { jwks } from "./jwks.schema.js";
 import { account } from "./account.schema.js";
 import { browserRenderJobs } from "./browser-render-job.schema.js";
 import { candidateArtifacts } from "./candidate-artifact.schema.js";
@@ -22,7 +30,25 @@ export { session } from "./session.schema.js";
 export { user } from "./user.schema.js";
 export { verification } from "./verification.schema.js";
 
+export { oauthClient } from "./oauth-client.schema.js";
+export { oauthResource } from "./oauth-resource.schema.js";
+export { oauthClientResource } from "./oauth-client-resource.schema.js";
+export { oauthRefreshToken } from "./oauth-refresh-token.schema.js";
+export { oauthAccessToken } from "./oauth-access-token.schema.js";
+export { oauthConsent } from "./oauth-consent.schema.js";
+export { oauthClientAssertion } from "./oauth-client-assertion.schema.js";
+export { jwks } from "./jwks.schema.js";
+
 export const schema = {
+  oauthClient,
+  oauthResource,
+  oauthClientResource,
+  oauthRefreshToken,
+  oauthAccessToken,
+  oauthConsent,
+  oauthClientAssertion,
+  jwks,
+
   user,
   session,
   account,
@@ -34,3 +60,4 @@ export const schema = {
   revisionArtifacts,
   browserRenderJobs,
 };
+export { renderDeliveryMode } from "./render-delivery-mode.enum.js";

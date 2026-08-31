@@ -24,7 +24,8 @@
     "test:boundaries": "node --test scripts/check-package-boundaries.test.mjs",
     "check:leaks": "node scripts/check-template-leaks.mjs",
     "clean": "pnpm --filter './packages/*' clean && pnpm --filter @rjls/site clean",
-    "verify": "pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:leaks && pnpm check:boundaries"
+    "verify": "pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:leaks && pnpm check:boundaries",
+    "oauth:provision": "pnpm build:packages && pnpm --filter @rjls/runtime oauth:provision"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.39.0",
