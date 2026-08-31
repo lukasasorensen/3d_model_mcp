@@ -23,6 +23,17 @@ test("real OAuth login, PKCE, consent, refresh, token binding, storage, and revo
     await auth.$context;
     const clientId = await provisionCodexClient(fixture.pool, callback);
     assert.equal(await provisionCodexClient(fixture.pool, callback), clientId);
+    const legacyCallback = "http://127.0.0.1/callback/legacy";
+    await provisionCodexClient(fixture.pool, legacyCallback);
+    assert.deepEqual(
+      (await fixture.pool.query("SELECT redirect_uris FROM oauth_client WHERE client_id = $1", [clientId])).rows[0].redirect_uris.sort(),
+      [callback, legacyCallback].sort(),
+    );
+    await provisionCodexClient(fixture.pool, callback, { replaceCallbacks: true });
+    assert.deepEqual(
+      (await fixture.pool.query("SELECT redirect_uris FROM oauth_client WHERE client_id = $1", [clientId])).rows[0].redirect_uris,
+      [callback],
+    );
     const signup = await auth.api.signUpEmail({ body: { email: "a@example.com", password: "Test-password-123!", name: "A" }, asResponse: true });
     assert.equal(signup.status, 200, await signup.clone().text());
     const cookie = signup.headers.getSetCookie().map((value) => value.split(";")[0]).join("; ");
