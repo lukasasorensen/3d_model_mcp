@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth/minimal";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 import { createOAuthPlugins } from "./oauth-configuration.js";
+import { recordRejectedOAuthRedirect } from "./oauth-redirect-diagnostics.js";
 import { remoteMcpEnabled } from "./remote-mcp-policy.js";
 
 import { getProjectDatabase } from "./infrastructure.js";
@@ -38,8 +39,14 @@ export async function getAuthenticatedUser(headers: Headers): Promise<Authentica
   return { id: session.user.id, email: session.user.email, name: session.user.name };
 }
 
-export function handleAuthRequest(request: Request): Promise<Response> {
-  return getAuth().handler(request);
+export async function handleAuthRequest(request: Request): Promise<Response> {
+  const auth = getAuth();
+  const response = await auth.handler(request);
+  if (new URL(request.url).pathname.endsWith("/oauth2/authorize")) {
+    const context = await auth.$context;
+    await recordRejectedOAuthRedirect(request, response, context.adapter, getProjectDatabase().pool);
+  }
+  return response;
 }
 
 export async function provisionAuthenticatedUser(input: { email: string; password: string; name: string }): Promise<AuthenticatedUser> {
