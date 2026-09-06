@@ -6,31 +6,36 @@ import { completeLocalMcpBrowserRender, completeRemoteMcpBrowserRender } from ".
 
 export function useMcpBrowserRenderer(options: {
   projectId: string; sessionId: string; localEnabled: boolean; remoteEnabled: boolean;
-  isAvailable: boolean; refreshProject: (signal?: AbortSignal) => Promise<boolean>;
+  isAvailable: boolean; renderWake: number;
 }) {
-  const { projectId, sessionId, localEnabled, remoteEnabled, isAvailable, refreshProject } = options;
+  const { projectId, sessionId, localEnabled, remoteEnabled, isAvailable, renderWake } = options;
   const lease = useRef(new BrowserRenderLease());
   const [isRendering, setIsRendering] = useState(false);
   const [status, setStatus] = useState("");
   const acquire = useCallback(() => lease.current.acquireForeground(), []);
   const tryBackground = useCallback(() => lease.current.tryBackground(), []);
-  const release = useCallback(() => lease.current.release(), []);
+  const pumpRef = useRef<() => void>(() => undefined);
+  const release = useCallback(() => { lease.current.release(); pumpRef.current(); }, []);
+  useEffect(() => { pumpRef.current(); }, [renderWake]);
 
   useEffect(() => {
     if ((!localEnabled && !remoteEnabled) || !sessionId || !isAvailable) return;
     let stopped = false;
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    let running = false;
+    let pending = false;
     const controller = new AbortController();
-    const schedule = () => { if (!stopped) timer = setTimeout(() => void poll(), 1_000); };
-    const poll = async () => {
-      if (stopped || document.visibilityState !== "visible" || !tryBackground()) { schedule(); return; }
+
+    const claim = async () => {
+      if (running) { pending = true; return; }
+      if (stopped || document.visibilityState !== "visible" || !tryBackground()) return;
+      running = true; pending = false;
       try {
-        await refreshProject(controller.signal);
         const headers = { "x-rjls-session-id": sessionId };
         if (remoteEnabled) {
           const response = await fetch(`/v1/projects/${encodeURIComponent(projectId)}/mcp-render-jobs/claim`, { method: "POST", headers, signal: controller.signal, cache: "no-store" });
           if (response.status === 200) {
             const parsed = remoteMcpBrowserRenderJobSchema.parse((await response.json()).job);
+            pending = true;
             setIsRendering(true); setStatus("Validating a model requested by Codex…");
             await completeRemoteMcpBrowserRender(parsed, sessionId, controller.signal);
             setStatus("Codex validation finished. Waiting for a revision update.");
@@ -42,6 +47,7 @@ export function useMcpBrowserRenderer(options: {
           const response = await fetch(`/v1/local-mcp/browser-renders/next?projectId=${encodeURIComponent(projectId)}`, { headers, signal: controller.signal, cache: "no-store" });
           if (response.status === 200) {
             const parsed = localMcpBrowserRenderJobSchema.parse((await response.json()).job);
+            pending = true;
             setIsRendering(true); setStatus("Validating a model requested by local Codex…");
             await completeLocalMcpBrowserRender(parsed, sessionId, controller.signal);
             setStatus("Local Codex validation finished.");
@@ -50,11 +56,15 @@ export function useMcpBrowserRenderer(options: {
       } catch {
         if (!stopped) setStatus("MCP rendering is unavailable. Keep this project visible and retry from Codex.");
       } finally {
-        release(); setIsRendering(false); schedule();
+        lease.current.release(); running = false; setIsRendering(false);
+        if (pending && !stopped) void claim();
       }
     };
-    void poll();
-    return () => { stopped = true; clearTimeout(timer); controller.abort(); };
-  }, [projectId, sessionId, localEnabled, remoteEnabled, isAvailable, refreshProject, tryBackground, release]);
+    const wake = () => { void claim(); };
+    pumpRef.current = wake;
+    document.addEventListener("visibilitychange", wake);
+    wake();
+    return () => { stopped = true; pumpRef.current = () => undefined; document.removeEventListener("visibilitychange", wake); controller.abort(); };
+  }, [projectId, sessionId, localEnabled, remoteEnabled, isAvailable, tryBackground]);
   return { isRendering, status, acquire, release };
 }

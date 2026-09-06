@@ -1,11 +1,14 @@
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool, type PoolConfig } from "pg";
 
+import { PostgresProjectNotifications } from "./project-notifications.js";
+
 import { schema } from "./schema.js";
 
 export interface ProjectDatabase {
   pool: Pool;
   db: NodePgDatabase<typeof schema>;
+  notifications: PostgresProjectNotifications;
   close(): Promise<void>;
 }
 
@@ -18,5 +21,8 @@ export function createProjectDatabase(connectionString: string, options: { max?:
     connectionTimeoutMillis: 5_000,
   };
   const pool = new Pool(config);
-  return { pool, db: drizzle(pool, { schema }), close: () => pool.end() };
+  const notificationPool = new Pool({ ...config, max: 1 });
+  const notifications = new PostgresProjectNotifications(notificationPool);
+  let closing: Promise<void> | undefined;
+  return { pool, db: drizzle(pool, { schema }), notifications, close: () => { notifications.close(); return closing ??= Promise.all([notificationPool.end(), pool.end()]).then(() => undefined); } };
 }

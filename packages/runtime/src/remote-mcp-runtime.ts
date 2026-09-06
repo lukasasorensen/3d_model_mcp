@@ -9,7 +9,7 @@ export async function createRemoteCadMcpServer(ownerId: string, signal: AbortSig
   const jobs = new RemoteRenderJobsRepository(pool, ownerId);
   await jobs.recover();
   return createCadMcpServer(new PostgresModelProjectRepository({
-    pool, ownerId, renderer: new RemoteBrowserRenderer(jobs, VALIDATION_POLICY_VERSION),
+    pool, ownerId, renderer: new RemoteBrowserRenderer(jobs, VALIDATION_POLICY_VERSION, getProjectDatabase().notifications),
     acceptRendererProvenance: isBrowserRendererProvenance,
   }), { signal });
 }

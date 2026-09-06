@@ -537,3 +537,4 @@ export const metricSampleSchema = z.object({
   }).strict(),
 }).strict();
 export type MetricSample = z.infer<typeof metricSampleSchema>;
+export * from "./project-event.js";

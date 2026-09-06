@@ -23,12 +23,111 @@ pinned BOSL2 source bundle, renders with the Manifold backend, and is terminated
 job. PostgreSQL stores owner-scoped canonical OpenSCAD source and revision history; generated STL
 previews and 3MF downloads remain in the browser.
 
-Install, migrate the database, provision an invite-only account, and verify the workspace:
+## Run everything locally
+
+Prerequisites: Node.js 22.9 or newer, pnpm 11.17.0, and Docker Desktop (or Docker
+Engine with Docker Compose v2). Start Docker before running the database commands.
+Run the following commands from the repository root.
+
+### 1. Install and configure
 
 ```bash
 pnpm install --frozen-lockfile
+cp -n .env.example apps/site/.env.local
+openssl rand -hex 32
+```
+
+In `apps/site/.env.local`, replace `BETTER_AUTH_SECRET` with the generated value.
+Keep that value across restarts. The local database configuration is:
+
+```dotenv
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/rjls
+BETTER_AUTH_URL=http://localhost:3000
+RJLS_ALLOWED_ORIGIN=http://localhost:3000
+```
+
+Local MCP and the website coordinate rendering through the same PostgreSQL database.
+Enable `RJLS_LOCAL_MCP_BRIDGE=1` for the local browser claim endpoints.
+
+Next.js loads this file automatically. The root `pnpm db:migrate`,
+`pnpm auth:provision`, `pnpm oauth:provision`, and `pnpm mcp:serve` commands also
+load it automatically using `dotenv-cli`; no `source` or `export` step is needed.
+Existing environment variables take precedence, so explicit command-line or
+deployment settings still work. These CLI commands preserve literal `$` characters
+in values rather than expanding variable references. When the local file is
+absent, they use the supplied environment. Direct package-level commands still
+expect their environment to be supplied by the caller.
+
+### 2. Start PostgreSQL and create the tables
+
+```bash
+pnpm db:start
 pnpm db:migrate
+```
+
+`db:start` starts PostgreSQL 17 in the background and waits for its health check
+before returning. It is safe to run again. The database listens only on
+`127.0.0.1:5432` and stores its contents in the persistent Docker volume
+`rjls-postgres-data`. These credentials are for local development.
+
+If you already started the `rjls-postgres` container using the earlier manual
+`docker run` command, stop it with `docker stop rjls-postgres` first. This setup
+reuses its named volume. Any other server using port 5432 must also be stopped
+before starting this one.
+
+### 3. Create your local account
+
+Replace the example email, name, and password, then run once per account:
+
+```bash
 RJLS_AUTH_ALLOW_SIGNUP=1 RJLS_INITIAL_PASSWORD='a-long-initial-password' pnpm auth:provision -- user@example.com "Demo User"
+```
+
+The command prints `Provisioned account ... with user ID ...`. Copy that ID into
+`RJLS_ACTOR_USER_ID` in `apps/site/.env.local` and, when registering the local MCP
+server below, into its environment configuration. Use the same database and
+account for the site and MCP server. The site itself gets your identity from
+your signed-in session.
+
+To look up an existing account's ID without installing `psql` on your computer:
+
+```bash
+pnpm db:shell -c 'SELECT id, email FROM "user";'
+```
+
+### 4. Start the site
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000), sign in with the account you
+created, and create a project. Provisioning above builds the workspace packages;
+`pnpm dev` prepares the pinned browser renderer and starts Next.js. The default
+site chat uses the deterministic `mock` provider. To use Codex for model changes,
+continue with [Test the MCP tools with Codex](#test-the-mcp-tools-with-codex)
+and keep the project tab visible for browser rendering.
+
+### Everyday commands
+
+```bash
+pnpm db:start   # Start or resume the database; wait until ready
+pnpm dev        # Run the site (Ctrl+C stops it)
+```
+
+In another terminal, you can inspect or stop PostgreSQL:
+
+```bash
+pnpm db:logs    # Follow database logs (Ctrl+C exits the log viewer)
+pnpm db:shell   # Open SQL prompt; enter \q to exit
+pnpm db:stop    # Stop PostgreSQL while preserving accounts and projects
+```
+
+After pulling changes, run `pnpm db:migrate`
+for any new migrations, and run `pnpm build:packages` to rebuild shared packages.
+For the full development checks, run:
+
+```bash
 pnpm verify
 ```
 
@@ -82,8 +181,10 @@ codex login status
 codex login
 ```
 
-Create `apps/site/.env.local` from `.env.example`. The site and MCP server use the
-same database; the stdio server is explicitly bound to an existing account ID:
+Complete [Run everything locally](#run-everything-locally) first, including
+starting PostgreSQL, applying migrations, and provisioning your account. Keep
+your existing `BETTER_AUTH_SECRET`. The site and MCP server use the same database;
+the stdio server is explicitly bound to your provisioned account ID:
 
 ```dotenv
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/rjls
@@ -92,7 +193,6 @@ BETTER_AUTH_SECRET=replace-with-at-least-32-random-characters
 RJLS_ALLOWED_ORIGIN=http://localhost:3000
 RJLS_CHAT_PROVIDER=mock
 RJLS_LOCAL_MCP_BRIDGE=1
-RJLS_LOCAL_BRIDGE_ROOT=/absolute/path/to/3d_model_mcp/.rjls-local-bridge
 RJLS_ACTOR_USER_ID=the-provisioned-better-auth-user-id
 ```
 
@@ -105,12 +205,19 @@ pnpm prepare:browser-renderer
 pnpm mcp:build
 ```
 
-Choose whether to register the stdio server for this repository only or for all
-repositories. Replace both example paths in either option.
+Register the stdio server at the project level in this repository.
 
-### Repository-only registration
+### Project-level registration
 
-Add the server to this repository's `.codex/config.toml`:
+From the repository root, create the configuration directory:
+
+```bash
+mkdir -p .codex
+```
+
+Create `.codex/config.toml` in the repository root and add the following TOML.
+If the file already exists, add these tables to it. Replace the example path
+and the account ID with your local values:
 
 ```toml
 [mcp_servers.rjls-cad]
@@ -120,27 +227,12 @@ tool_timeout_sec = 120
 
 [mcp_servers.rjls-cad.env]
 DATABASE_URL = "postgres://postgres:postgres@localhost:5432/rjls"
-RJLS_LOCAL_BRIDGE_ROOT = "/absolute/path/to/3d_model_mcp/.rjls-local-bridge"
 RJLS_ACTOR_USER_ID = "the-provisioned-better-auth-user-id"
 ```
 
 Project-scoped configuration is loaded only for trusted repositories.
 
-### Global registration
-
-Register the server in `~/.codex/config.toml` with the CLI:
-
-```bash
-codex mcp add rjls-cad \
-  --env DATABASE_URL=postgres://postgres:postgres@localhost:5432/rjls \
-  --env RJLS_ACTOR_USER_ID=the-provisioned-better-auth-user-id \
-  -- pnpm --dir /absolute/path/to/3d_model_mcp mcp:serve
-```
-
-Then add `tool_timeout_sec = 120` inside the generated
-`[mcp_servers.rjls-cad]` table in `~/.codex/config.toml`.
-
-After either option, confirm that Codex sees the server:
+From the repository root, confirm that Codex sees the server:
 
 ```bash
 codex mcp get rjls-cad
@@ -172,12 +264,8 @@ current revision does not change.
 
 After changing MCP/runtime source, run `pnpm mcp:build` again and restart the
 Codex client or task so it launches the rebuilt process. To remove a
-repository-only registration, delete the `mcp_servers.rjls-cad` tables from
-`.codex/config.toml`. To remove the global registration, run:
-
-```bash
-codex mcp remove rjls-cad
-```
+project-level registration, delete the `mcp_servers.rjls-cad` tables from
+this repository's `.codex/config.toml`.
 
 Official references: [Codex MCP configuration](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
 and [Codex authentication](https://learn.chatgpt.com/docs/auth).

@@ -1,16 +1,14 @@
 import { isBrowserRendererProvenance } from "@rjls/contracts";
 import { connectCadMcpStdio } from "@rjls/mcp";
-import { PostgresModelProjectRepository, VALIDATION_POLICY_VERSION } from "@rjls/model-project";
-import { resolve } from "node:path";
+import { RemoteRenderJobsRepository, PostgresModelProjectRepository, VALIDATION_POLICY_VERSION } from "@rjls/model-project";
 
-import { FilesystemBrowserRenderBridge } from "./filesystem-browser-renderer.js";
+import { RemoteBrowserRenderer } from "./remote-browser-renderer.js";
 import { getProjectDatabase } from "./infrastructure.js";
 
-const bridgeRoot = resolve(process.env.RJLS_LOCAL_BRIDGE_ROOT ?? ".rjls-local-bridge");
 const ownerId = process.env.RJLS_ACTOR_USER_ID;
 if (!ownerId) throw new Error("RJLS_ACTOR_USER_ID is required for the standalone MCP server.");
 const database = getProjectDatabase();
-const renderer = new FilesystemBrowserRenderBridge(bridgeRoot, VALIDATION_POLICY_VERSION, ownerId);
+const renderer = new RemoteBrowserRenderer(new RemoteRenderJobsRepository(database.pool, ownerId, "local-mcp"), VALIDATION_POLICY_VERSION, database.notifications);
 const repository = new PostgresModelProjectRepository({
   pool: database.pool,
   ownerId,

@@ -7,7 +7,8 @@ import {
   type CandidateRenderRequest,
   type RenderValidationResult,
 } from "@rjls/contracts";
-import { sha256 } from "@rjls/model-project";
+import { PostgresProjectNotifications, type ProjectChangeSource, sha256 } from "@rjls/model-project";
+import { waitForRenderOutcome } from "./render-outcome-wait.js";
 import { randomBytes } from "node:crypto";
 import type { Pool } from "pg";
 
@@ -129,6 +130,7 @@ export class PostgresBrowserRenderCoordinator implements CadRenderer {
     private readonly validationPolicyVersion: string,
     private readonly pool: Pool,
     private readonly ownerId: string,
+    private readonly changes: ProjectChangeSource = new PostgresProjectNotifications(pool),
   ) {}
 
   subscribe(candidateId: string, sessionId: string, callback: (request: BrowserRenderRequest) => void): () => void {
@@ -148,26 +150,29 @@ export class PostgresBrowserRenderCoordinator implements CadRenderer {
        VALUES ($1,$2,$3,$4,$5,$6,$7,'PENDING',$8)`,
       [jobId, this.ownerId, request.projectId, request.candidateId, listener.sessionId, sha256(token), request.sourceHash, deadline],
     );
-    listener.callback({ jobId, token, purpose: "candidate", candidateId: request.candidateId, source: request.source, sourceHash: request.sourceHash, format: "stl", deadline: deadline.toISOString() });
-
-    for (;;) {
-      if (request.signal?.aborted) {
-        await this.pool.query("UPDATE browser_render_jobs SET state = 'CANCELLED', updated_at = now() WHERE id = $1 AND owner_id = $2 AND state = 'PENDING'", [jobId, this.ownerId]);
-        throw new Error("Browser rendering was cancelled.");
-      }
-      const result = await this.pool.query<{ state: string; completion: unknown; deadline: Date }>("SELECT state, completion, deadline FROM browser_render_jobs WHERE id = $1 AND owner_id = $2", [jobId, this.ownerId]);
-      const job = result.rows[0];
-      if (!job) throw new Error("Render job is unavailable or expired.");
-      if (job.state === "COMPLETED") {
-        const completion = storedBrowserCompletionSchema.parse(job.completion);
-        return { outcome: completion.outcome, diagnostics: completion.diagnostics, provenance: completion.provenance, validationPolicyVersion: this.validationPolicyVersion, artifacts: [] };
-      }
-      if (job.state !== "PENDING") throw new Error(`Browser rendering ended in ${job.state.toLowerCase()} state.`);
-      if (Date.now() >= new Date(job.deadline).getTime()) {
-        await this.pool.query("UPDATE browser_render_jobs SET state = 'EXPIRED', updated_at = now() WHERE id = $1 AND owner_id = $2 AND state = 'PENDING'", [jobId, this.ownerId]);
-        throw new Error("Browser rendering timed out.");
-      }
-      await new Promise<void>((resolve) => setTimeout(resolve, 250));
+    try {
+      listener.callback({ jobId, token, purpose: "candidate", candidateId: request.candidateId, source: request.source, sourceHash: request.sourceHash, format: "stl", deadline: deadline.toISOString() });
+      return await waitForRenderOutcome<RenderValidationResult>({
+        changes: this.changes, ownerId: this.ownerId, jobId, signal: request.signal,
+        read: async () => {
+          const result = await this.pool.query<{ state: string; completion: unknown; deadline: Date }>("SELECT state, completion, deadline FROM browser_render_jobs WHERE id = $1 AND owner_id = $2", [jobId, this.ownerId]);
+          const job = result.rows[0];
+          if (!job) throw new Error("Render job is unavailable or expired.");
+          if (job.state === "COMPLETED") {
+            const completion = storedBrowserCompletionSchema.parse(job.completion);
+            return { result: { ...completion, validationPolicyVersion: this.validationPolicyVersion, artifacts: [] }, deadline: 0 };
+          }
+          if (job.state !== "PENDING") throw new Error(`Browser rendering ended in ${job.state.toLowerCase()} state.`);
+          if (Date.now() >= new Date(job.deadline).getTime()) {
+            await this.pool.query("UPDATE browser_render_jobs SET state = 'EXPIRED', updated_at = now() WHERE id = $1 AND owner_id = $2 AND state = 'PENDING'", [jobId, this.ownerId]);
+            throw new Error("Browser rendering timed out.");
+          }
+          return { deadline: new Date(job.deadline).getTime() };
+        },
+      });
+    } catch (error) {
+      await this.pool.query("UPDATE browser_render_jobs SET state = 'CANCELLED', updated_at = now() WHERE id = $1 AND owner_id = $2 AND state = 'PENDING'", [jobId, this.ownerId]);
+      throw error;
     }
   }
 

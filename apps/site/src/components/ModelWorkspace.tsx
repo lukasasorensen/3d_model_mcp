@@ -1,6 +1,6 @@
 "use client";
 
-import { BROWSER_RENDERER, projectListSchema, projectStateSchema, revisionManifestSchema, type ChatEvent, type RevisionManifest } from "@rjls/contracts";
+import { BROWSER_RENDERER, projectListSchema, revisionManifestSchema, type ChatEvent } from "@rjls/contracts";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
@@ -9,6 +9,8 @@ import { ModelSourcePanel } from "./ModelSourcePanel";
 import { RevisionHistory } from "./RevisionHistory";
 import type { PreviewLoadState } from "./ModelViewer";
 import { initialWorkspaceState, revisionLabel, workspaceReducer } from "@/lib/workspace-state";
+import { createProjectSnapshotLoader } from "@/lib/project-snapshot-loader";
+import { useProjectEvents } from "@/lib/use-project-events";
 import { useMcpBrowserRenderer } from "@/lib/use-mcp-browser-renderer";
 import { streamChat } from "@/lib/stream-client";
 import { completeBrowserRender, downloadBrowserExport, downloadGeneratedBytes, fetchRevisionSource, generateDownload, type DownloadFormat } from "@/lib/browser-renderer";
@@ -66,16 +68,14 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
   const wasActive = useRef(false);
   const [sessionId, setSessionId] = useState("");
 
-  const refreshProject = useCallback(async (signal?: AbortSignal) => {
-    const response = await fetch(`/v1/projects/${encodeURIComponent(projectId)}`, { cache: "no-store", signal });
-    if (!response.ok) return false;
-    const raw = await response.json() as { state?: unknown; revisions?: unknown };
-    const project = projectStateSchema.safeParse(raw.state);
-    const revisions = Array.isArray(raw.revisions) ? raw.revisions.map((item) => revisionManifestSchema.safeParse(item)) : [];
-    if (!project.success || revisions.some((item) => !item.success)) return false;
-    dispatch({ type: "hydrate", currentRevision: project.data.currentRevision, revisions: revisions.map((item) => item.data as RevisionManifest) });
-    return true;
+  const snapshotLoader = useRef<ReturnType<typeof createProjectSnapshotLoader> | undefined>(undefined);
+  useEffect(() => {
+    const loader = createProjectSnapshotLoader(projectId, (snapshot) => dispatch({ type: "hydrate", ...snapshot }));
+    snapshotLoader.current = loader;
+    return () => { loader.close(); if (snapshotLoader.current === loader) snapshotLoader.current = undefined; };
   }, [projectId]);
+  const refreshProject = useCallback(() => snapshotLoader.current?.refresh() ?? Promise.resolve(false), []);
+  const { renderWake, syncStatus } = useProjectEvents(projectId, refreshProject);
 
   const checkRuntime = useCallback(async () => {
     const [readinessResponse, rendererResponse] = await Promise.all([
@@ -116,7 +116,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
   const { isRendering: isMcpRendering, status: mcpStatus, acquire: acquireRenderer, release: releaseRenderer } = useMcpBrowserRenderer({
     projectId, sessionId, localEnabled: localMcpBridgeEnabled, remoteEnabled: remoteMcpEnabled,
     isAvailable: !state.active && !restorePending && exportState !== "preparing" && readiness === "ready",
-    refreshProject,
+    renderWake,
   });
 
   const submit = useCallback(async (message: string) => {
@@ -128,7 +128,8 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
     abortRef.current = controller;
     try {
       await streamChat({ version: "3", projectId, sessionId, message }, controller.signal, async (event: ChatEvent) => {
-        dispatch({ type: "event", event });
+        if (event.type === "revision" && (event.status === "current" || event.status === "candidate_promoted")) void refreshProject();
+        else dispatch({ type: "event", event });
         if (event.type === "browser_render_request" && event.purpose === "export") {
           setExportState("preparing");
           try {
@@ -165,7 +166,6 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
       const raw = await response.json() as { revision?: unknown };
       const revision = revisionManifestSchema.safeParse(raw.revision);
       if (!response.ok || !revision.success) throw new Error("Restore failed");
-      dispatch({ type: "restored", revision: revision.data });
       await refreshProject();
     } catch { dispatch({ type: "local_error", message: "The historical revision could not be restored safely." }); }
     finally { setRestorePending(false); releaseRenderer(); }
@@ -219,6 +219,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
             <div><p className="eyebrow">Model inspection</p><h1 id="model-heading">{state.selectedRevision ? `Inspecting ${selectedLabel}` : "No model yet"}</h1></div>
             <div className="revision-badges"><span className="current-badge">{currentBadgeLabel}</span>{!promotionPending && state.selectedRevision !== state.currentRevision && <span>Viewing · {selectedLabel}</span>}</div>
           </div>
+          {syncStatus && <p className="notice" role="status">{syncStatus}</p>}
           {(localMcpBridgeEnabled || remoteMcpEnabled) && <p className="notice" role="status">{mcpStatus || "Ready for Codex. Keep this project tab visible during validation."}</p>}
           <div className="revision-rail" aria-hidden="true"><span className={state.active ? "rail-working" : ""} /></div>
           {promotionPending && <p className="notice" role="status">{promotionStatusLabel(selectedLabel, Boolean(state.selectedRevision))}</p>}

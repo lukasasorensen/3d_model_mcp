@@ -16,13 +16,15 @@ reject Node, provider, MCP-server, repository, and renderer imports.
 
 For local Codex testing, the standalone MCP process and Next.js process share a
 `DATABASE_URL`; the trusted stdio process is explicitly bound with `RJLS_ACTOR_USER_ID`.
-A development-only filesystem bridge stores bounded,
-source-bound render jobs outside individual projects. The open browser atomically
-claims one job through same-origin HTTP, renders with the same pinned Web Worker,
-and posts a session/token/hash-bound completion. The stdio process consumes the
-completion and deletes the job. Expiration, cancellation, duplicate completion,
-or process loss cannot advance candidate or revision state. The bridge requires
-`RJLS_LOCAL_MCP_BRIDGE=1` and is unavailable when `NODE_ENV=production`.
+Local render jobs use the `local-mcp` delivery mode in PostgreSQL's
+`browser_render_jobs` table. Eligible open browsers atomically claim jobs through
+same-origin HTTP, render with the pinned Web Worker, and post a
+session/token/hash-bound completion. Only token hashes are persisted. Database
+notifications wake the stdio process to read the committed completion; one-shot
+deadline timers handle expiration. The local HTTP endpoints require
+`RJLS_LOCAL_MCP_BRIDGE=1` and are unavailable when `NODE_ENV=production`.
+No shared filesystem directory is required. See [Project live updates](project-live-updates.md)
+for notification delivery and reconnect behavior.
 
 `projects.current_revision_id` and its immutable revision row are authoritative. A candidate
 must move through `CREATED -> RUNNING -> VALID -> PROMOTED`. Promotion rechecks the

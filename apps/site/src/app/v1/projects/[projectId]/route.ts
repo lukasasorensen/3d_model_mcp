@@ -13,11 +13,7 @@ export async function GET(request: Request, context: { params: Promise<{ project
   if (!parsed.success) return jsonError("INVALID_REQUEST", 400, "The project ID is invalid.");
   try {
     const result = await withConfiguredCadRuntime(user.id, async (runtime) => {
-      const [state, revisions] = await Promise.all([
-        runtime.repository.getProjectState(parsed.data),
-        runtime.repository.listRevisions(parsed.data),
-      ]);
-      return { state, revisions };
+      return runtime.repository.getProjectSnapshot(parsed.data);
     });
     return Response.json(result, { headers: NO_STORE_HEADERS });
   } catch (error) {

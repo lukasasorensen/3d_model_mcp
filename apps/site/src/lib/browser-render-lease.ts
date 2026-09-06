@@ -1,4 +1,4 @@
-/** A user action waits for a claim poll, but never queues behind another user action. */
+/** A user action waits for a background claim, but never queues behind another user action. */
 export class BrowserRenderLease {
   private owner: "background" | "foreground" | undefined;
   private waiting: ((acquired: boolean) => void) | undefined;

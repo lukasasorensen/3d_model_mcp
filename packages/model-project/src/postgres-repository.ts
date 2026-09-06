@@ -68,6 +68,23 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     };
   }
 
+  async assertProjectAccess(projectId: string): Promise<void> {
+    await this.persistence.requireProject(projectId);
+  }
+
+  async getProjectSnapshot(projectId: string): Promise<{ state: ProjectState; revisions: RevisionManifest[] }> {
+    return this.persistence.transaction(async (transaction) => {
+      const project = await transaction.requireProject(projectId, true);
+      const revisions = project.currentRevision ? await transaction.listRevisionHistory(projectId, project.currentRevision) : [];
+      const current = revisions[0];
+      return { state: current ? {
+        projectId, currentRevision: current.revisionId,
+        source: { hash: current.sourceHash, byteSize: current.sourceBytes },
+        artifacts: current.artifacts, diagnostics: current.diagnostics,
+      } : { projectId, currentRevision: null, source: null, artifacts: [], diagnostics: [] }, revisions };
+    });
+  }
+
   async readModelSource(projectId: string, revision?: string): Promise<{ revision: string; source: string; sourceHash: string }> {
     const project = await this.persistence.requireProject(projectId);
     const selectedRevision = revision ?? project.currentRevision;
