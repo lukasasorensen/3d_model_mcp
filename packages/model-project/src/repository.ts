@@ -641,6 +641,14 @@ export class ModelProjectRepository {
       .sort((left, right) => left.projectId.localeCompare(right.projectId));
   }
 
+  async readValidatedCandidateSource(projectId: string, candidateId: string) {
+    const candidate = await this.readCandidate(projectId, candidateId);
+    if (candidate.state !== "VALID") throw new CadDomainError("INVALID_CANDIDATE_STATE", "Validate the candidate before requesting a preview.");
+    const source = await readFile(join(this.candidateRoot(projectId, candidateId), "model.scad"), "utf8");
+    if (sha256(source) !== candidate.sourceHash) throw new CadDomainError("SOURCE_HASH_MISMATCH", "Candidate source failed integrity validation.");
+    return { candidateId, source, sourceHash: candidate.sourceHash };
+  }
+
   async readModelSource(projectId: string, revision?: string): Promise<{ revision: string; source: string; sourceHash: string }> {
     const selected = revision ?? (await this.readCurrent(projectId));
     if (!selected) throw new CadDomainError("PROJECT_NOT_FOUND", "Project has no current revision.");

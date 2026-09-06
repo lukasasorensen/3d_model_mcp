@@ -356,3 +356,30 @@ without disabling website chat. Retain the additive schema on rollback. The
 sibling deployment repository’s Proxmox runbook covers Compose, provisioning,
 tunnel acceptance tests, and rollback. No additional network ports or renderer
 service are required.
+
+## MCP model PNG previews
+
+`get_model_preview` returns a native MCP `image/png` block through both remote HTTP
+and local stdio. Provide `projectId`, optionally `revisionId` or `candidateId`
+(exclusive), and `view`. Omitted targets resolve to the current revision once.
+Candidates must already be `VALID`; previewing does not promote them.
+
+Views: `isometric` (default), `front`, `back`, `left`, `right`, `top`, `bottom`.
+Each call returns one automatically fitted 768×768 image with target/source/camera
+metadata. The browser uses its cached mesh or the pinned OpenSCAD worker and a
+separate Three.js canvas, preserving the visible viewer and historical selection.
+
+Keep the signed-in project tab visible. If no eligible tab has acknowledged SSE
+recently, the tool returns `BROWSER_REQUIRED` with a trusted project URL and
+instructions for clients with browser tools to open/focus it and retry. Clients
+without browser tools should show the link. `BROWSER_BUSY` means retry after the
+current work finishes, not open duplicate tabs. Browser opening is client-assisted.
+
+Apply migrations with `pnpm db:migrate`, rebuild MCP with `pnpm mcp:build`, and
+restart the app and MCP processes. PNG previews use the existing database,
+notification connection, SSE stream, and HTTP port; no renderer service or shared
+filesystem is needed. Keep MCP tool timeouts at 120 seconds.
+
+See [project live updates](docs/project-live-updates.md) for security, lifecycle,
+and rollout details and [PNG acceptance evidence](docs/model-preview-verification.md)
+for the checks performed.

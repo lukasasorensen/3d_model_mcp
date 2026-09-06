@@ -22,6 +22,9 @@ test("project streams scope events, resync on listener gaps, and release cancell
   await tick(); assert.equal(checks, 1);
   listener({ kind: "project", ownerId: "owner", projectId: "project" });
   assert.match(await text(), /project-updated/);
+  listener({ kind: "preview", ownerId: "other", projectId: "project", jobId: "private" });
+  listener({ kind: "preview", ownerId: "owner", projectId: "project", jobId: "private" });
+  const preview = await text(); assert.match(preview, /preview-jobs-available/); assert.doesNotMatch(preview, /private/);
   listener(null); assert.equal((await reader.read()).done, true);
   assert.equal(released, true);
 });

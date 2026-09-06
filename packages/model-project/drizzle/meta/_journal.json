@@ -36,6 +36,27 @@
       "when": 1788656183335,
       "tag": "0004_milky_slapstick",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788658597488,
+      "tag": "0005_watery_kulan_gath",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788658606651,
+      "tag": "0006_preview-notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788660169359,
+      "tag": "0007_noisy_wiccan",
+      "breakpoints": true
     }
   ]
 }

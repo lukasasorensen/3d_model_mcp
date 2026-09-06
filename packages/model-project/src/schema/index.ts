@@ -1,3 +1,6 @@
+import { browserPreviewJobs } from "./browser-preview-job.schema.js";
+import { browserPresence } from "./browser-presence.schema.js";
+export { browserPreviewJobs, browserPresence };
 import { oauthClient } from "./oauth-client.schema.js";
 import { oauthResource } from "./oauth-resource.schema.js";
 import { oauthClientResource } from "./oauth-client-resource.schema.js";
@@ -40,6 +43,7 @@ export { oauthClientAssertion } from "./oauth-client-assertion.schema.js";
 export { jwks } from "./jwks.schema.js";
 
 export const schema = {
+  browserPreviewJobs, browserPresence,
   oauthClient,
   oauthResource,
   oauthClientResource,

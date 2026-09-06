@@ -44,7 +44,7 @@ export async function createProjectEventStream(options: {
     unsubscribe = await options.changes.subscribe((event) => {
       if (!event && subscribed) { close(); return; }
       if (event && (event.ownerId !== options.ownerId || event.projectId !== options.projectId)) return;
-      pending.add(event ? event.kind === "project" ? "project-updated" : "render-jobs-available" : "ready");
+      pending.add(event ? event.kind === "project" ? "project-updated" : event.kind === "preview" ? "preview-jobs-available" : "render-jobs-available" : "ready");
       void drain();
     });
     subscribed = true;

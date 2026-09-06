@@ -10,6 +10,8 @@ test("split schema modules assemble the complete database schema", () => {
     Object.values(schema).map(getTableName).sort(),
     [
       "account",
+      "browser_presence",
+      "browser_preview_jobs",
       "browser_render_jobs",
       "candidate_artifacts",
       "candidates",

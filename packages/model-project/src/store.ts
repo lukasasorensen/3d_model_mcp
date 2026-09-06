@@ -7,6 +7,7 @@ export interface ModelProjectStore {
   createProject(): Promise<ProjectSummary>;
   getProjectState(projectId: string): Promise<ProjectState>;
   listProjects(): Promise<ProjectSummary[]>;
+  readValidatedCandidateSource(projectId: string, candidateId: string): Promise<{ candidateId: string; source: string; sourceHash: string }>;
   readModelSource(projectId: string, revision?: string): Promise<{ revision: string; source: string; sourceHash: string }>;
   listRevisions(projectId: string): Promise<RevisionManifest[]>;
   proposeModelSource(input: {

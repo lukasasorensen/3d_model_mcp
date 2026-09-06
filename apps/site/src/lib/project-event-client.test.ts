@@ -2,16 +2,17 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { receiveProjectEvents } from "./project-event-client";
 
-test("SSE client parses split frames and ignores heartbeats", async () => {
+test("SSE client parses split frames and acknowledges heartbeats without job invalidations", async () => {
   const original = globalThis.fetch;
   globalThis.fetch = async () => new Response(new ReadableStream({ start(controller) {
     for (const part of [': heartbeat\n\ndata: {"type":', '"ready"}\n', '\ndata: {"type":"project-updated"}\n\n']) controller.enqueue(new TextEncoder().encode(part));
     controller.close();
   } }));
   try {
-    const received: string[] = [];
-    assert.equal(await receiveProjectEvents("project", new AbortController().signal, (event) => received.push(event.type)), true);
+    const received: string[] = []; let heartbeats = 0;
+    assert.equal(await receiveProjectEvents("project", new AbortController().signal, (event) => received.push(event.type), () => { heartbeats++; }), true);
     assert.deepEqual(received, ["ready", "project-updated"]);
+    assert.equal(heartbeats, 1);
   } finally { globalThis.fetch = original; }
 });
 

@@ -85,6 +85,13 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     });
   }
 
+  async readValidatedCandidateSource(projectId: string, candidateId: string) {
+    await this.persistence.requireProject(projectId);
+    const { candidate, source } = await this.persistence.readCandidate(projectId, candidateId);
+    if (candidate.state !== "VALID") throw new CadDomainError("INVALID_CANDIDATE_STATE", "Validate the candidate before requesting a preview.");
+    return { candidateId, source, sourceHash: candidate.sourceHash };
+  }
+
   async readModelSource(projectId: string, revision?: string): Promise<{ revision: string; source: string; sourceHash: string }> {
     const project = await this.persistence.requireProject(projectId);
     const selectedRevision = revision ?? project.currentRevision;

@@ -76,8 +76,10 @@ async function exerciseRepositoryContract(repository) {
     toolCallId: "contract-tool-1",
   });
   assert.equal(candidate.state, "CREATED");
+  await assert.rejects(repository.readValidatedCandidateSource(project.projectId, candidate.candidateId), { code: "INVALID_CANDIDATE_STATE" });
   const validated = await repository.validateAndRender({ projectId: project.projectId, candidateId: candidate.candidateId, previewProfile: "standard" });
   assert.equal(validated.state, "VALID");
+  assert.deepEqual(await repository.readValidatedCandidateSource(project.projectId, candidate.candidateId), { candidateId: candidate.candidateId, source: "cube([10,10,10]);", sourceHash: candidate.sourceHash });
   const firstRevision = await repository.promoteCandidate({ projectId: project.projectId, candidateId: candidate.candidateId, expectedParentRevision: null });
   const state = await repository.getProjectState(project.projectId);
   assert.equal(state.currentRevision, firstRevision.revisionId);
@@ -131,6 +133,7 @@ test("PostgreSQL repository satisfies the project-store contract and isolates ow
     const projectId = await exerciseRepositoryContract(ownerA);
     const ownerB = new PostgresModelProjectRepository({ pool, ownerId: "owner-b", renderer, acceptRendererProvenance: () => true });
     await assert.rejects(ownerB.getProjectState(projectId), (error) => error?.code === "PROJECT_NOT_FOUND");
+    await assert.rejects(ownerB.readValidatedCandidateSource(projectId, "unknown"), { code: "PROJECT_NOT_FOUND" });
     assert.deepEqual(await ownerB.listProjects(), []);
   } finally {
     await pool.end();

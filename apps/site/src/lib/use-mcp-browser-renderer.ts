@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { localMcpBrowserRenderJobSchema, remoteMcpBrowserRenderJobSchema } from "@rjls/contracts";
+import { localMcpBrowserRenderJobSchema, remoteMcpBrowserRenderJobSchema, previewJobSchema, previewStatusSchema } from "@rjls/contracts";
+import { ActivePreview } from "./active-preview";
+import { completeModelPreview } from "./model-preview-renderer";
 import { BrowserRenderLease } from "./browser-render-lease";
 import { completeLocalMcpBrowserRender, completeRemoteMcpBrowserRender } from "./browser-renderer";
 
@@ -20,13 +22,14 @@ export function useMcpBrowserRenderer(options: {
 
   useEffect(() => {
     if ((!localEnabled && !remoteEnabled) || !sessionId || !isAvailable) return;
+    let activePreview: ActivePreview | undefined;
     let stopped = false;
     let running = false;
     let pending = false;
     const controller = new AbortController();
 
     const claim = async () => {
-      if (running) { pending = true; return; }
+      if (running) { pending = true; activePreview?.invalidate(); return; }
       if (stopped || document.visibilityState !== "visible" || !tryBackground()) return;
       running = true; pending = false;
       try {
@@ -51,8 +54,28 @@ export function useMcpBrowserRenderer(options: {
             setIsRendering(true); setStatus("Validating a model requested by local Codex…");
             await completeLocalMcpBrowserRender(parsed, sessionId, controller.signal);
             setStatus("Local Codex validation finished.");
+            return;
           } else if (response.status !== 204) throw new Error("Local rendering is unavailable.");
         }
+        const preview = await fetch(`/v1/projects/${encodeURIComponent(projectId)}/preview-jobs/claim`, { method: "POST", headers, signal: controller.signal, cache: "no-store" });
+        if (preview.status === 200) {
+          pending = true; setIsRendering(true); setStatus("Rendering a PNG preview requested by Codex…");
+          const job = previewJobSchema.parse((await preview.json()).job);
+          const active = new ActivePreview(controller.signal, async (signal) => {
+            const response = await fetch(`/v1/projects/${encodeURIComponent(projectId)}/preview-jobs/status`, {
+              method: "POST", signal, cache: "no-store", headers: { ...headers, "content-type": "application/json" },
+              body: JSON.stringify({ jobId: job.jobId, token: job.token }),
+            });
+            if (!response.ok) throw new Error("Preview status is unavailable.");
+            return previewStatusSchema.parse(await response.json()).state;
+          });
+          activePreview = active;
+          // Covers deletion between the claim and installing this monitor.
+          active.invalidate();
+          try { await completeModelPreview(job, sessionId, active.signal, () => active.close()); }
+          finally { active.close(); if (activePreview === active) activePreview = undefined; }
+          setStatus("PNG preview delivered to Codex.");
+        } else if (preview.status !== 204) throw new Error("Preview rendering is unavailable.");
       } catch {
         if (!stopped) setStatus("MCP rendering is unavailable. Keep this project visible and retry from Codex.");
       } finally {
@@ -64,7 +87,7 @@ export function useMcpBrowserRenderer(options: {
     pumpRef.current = wake;
     document.addEventListener("visibilitychange", wake);
     wake();
-    return () => { stopped = true; pumpRef.current = () => undefined; document.removeEventListener("visibilitychange", wake); controller.abort(); };
+    return () => { activePreview?.close(); stopped = true; pumpRef.current = () => undefined; document.removeEventListener("visibilitychange", wake); controller.abort(); };
   }, [projectId, sessionId, localEnabled, remoteEnabled, isAvailable, tryBackground]);
   return { isRendering, status, acquire, release };
 }

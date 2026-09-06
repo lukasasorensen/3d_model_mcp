@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { receiveProjectEvents } from "./project-event-client";
 
 export function useProjectEvents(projectId: string, refreshProject: () => Promise<boolean>) {
+  const [presenceWake, setPresenceWake] = useState(0);
   const [renderWake, setRenderWake] = useState(0);
   const [syncStatus, setSyncStatus] = useState("Connecting to project updates…");
   useEffect(() => {
@@ -23,10 +24,10 @@ export function useProjectEvents(projectId: string, refreshProject: () => Promis
       try {
         const shouldRetry = await receiveProjectEvents(projectId, connection.signal, (event) => {
           if (stopped) return;
-          if (event.type === "ready") resync();
+          if (event.type === "ready") { setPresenceWake((value) => value + 1); resync(); }
           else if (event.type === "project-updated") void refresh();
           else setRenderWake((value) => value + 1);
-        });
+        }, () => { if (!stopped) setPresenceWake((value) => value + 1); });
         if (!shouldRetry) {
           if (!stopped) setSyncStatus("Project updates unavailable. Sign in again or reload.");
           return;
@@ -41,5 +42,5 @@ export function useProjectEvents(projectId: string, refreshProject: () => Promis
     void connect();
     return () => { stopped = true; connection?.abort(); clearTimeout(retry); document.removeEventListener("visibilitychange", visible); };
   }, [projectId, refreshProject]);
-  return { renderWake, syncStatus };
+  return { renderWake, syncStatus, presenceWake };
 }

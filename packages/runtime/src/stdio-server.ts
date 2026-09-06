@@ -1,3 +1,5 @@
+import { PostgresModelPreviewService } from "./model-preview-service.js";
+import { BrowserPreviewJobsRepository } from "@rjls/model-project";
 import { isBrowserRendererProvenance } from "@rjls/contracts";
 import { connectCadMcpStdio } from "@rjls/mcp";
 import { RemoteRenderJobsRepository, PostgresModelProjectRepository, VALIDATION_POLICY_VERSION } from "@rjls/model-project";
@@ -17,7 +19,8 @@ const repository = new PostgresModelProjectRepository({
 });
 
 try {
-  const server = await connectCadMcpStdio(repository);
+  await new BrowserPreviewJobsRepository(database.pool, ownerId).sweep();
+  const server = await connectCadMcpStdio(repository, { previewService: new PostgresModelPreviewService(database, repository, ownerId, "local-mcp") });
   process.stderr.write(`rjls-cad MCP ready; actor: ${ownerId}\n`);
   let closing = false;
   const close = async () => {

@@ -6,3 +6,6 @@ export * from "./schema.js";
 export const MODEL_PROJECT_BOUNDARY = "model-project" as const;
 export * from "./remote-render-jobs.repository.js";
 export * from "./project-notifications.js";
+
+export * from "./browser-presence.repository.js";
+export * from "./browser-preview-jobs.repository.js";

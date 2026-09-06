@@ -37,6 +37,7 @@ function diagnosticsFrom(lines: string[], failed: boolean): Diagnostic[] {
 }
 
 export async function renderOpenScad(source: string, format: "stl" | "3mf", signal?: AbortSignal): Promise<{ bytes: Uint8Array; diagnostics: Diagnostic[] }> {
+  signal?.throwIfAborted();
   const worker = new Worker(new URL("./openscad.worker.ts", import.meta.url), { type: "module", name: "openscad-render" });
   return new Promise((resolve, reject) => {
     const timeout = window.setTimeout(() => finish(() => reject(new Error("Browser rendering timed out."))), BROWSER_RENDERER.timeoutMs);

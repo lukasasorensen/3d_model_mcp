@@ -10,6 +10,7 @@ import { RevisionHistory } from "./RevisionHistory";
 import type { PreviewLoadState } from "./ModelViewer";
 import { initialWorkspaceState, revisionLabel, workspaceReducer } from "@/lib/workspace-state";
 import { createProjectSnapshotLoader } from "@/lib/project-snapshot-loader";
+import { useBrowserPresence } from "@/lib/use-browser-presence";
 import { useProjectEvents } from "@/lib/use-project-events";
 import { useMcpBrowserRenderer } from "@/lib/use-mcp-browser-renderer";
 import { streamChat } from "@/lib/stream-client";
@@ -75,7 +76,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
     return () => { loader.close(); if (snapshotLoader.current === loader) snapshotLoader.current = undefined; };
   }, [projectId]);
   const refreshProject = useCallback(() => snapshotLoader.current?.refresh() ?? Promise.resolve(false), []);
-  const { renderWake, syncStatus } = useProjectEvents(projectId, refreshProject);
+  const { renderWake, syncStatus, presenceWake } = useProjectEvents(projectId, refreshProject);
 
   const checkRuntime = useCallback(async () => {
     const [readinessResponse, rendererResponse] = await Promise.all([
@@ -118,6 +119,8 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
     isAvailable: !state.active && !restorePending && exportState !== "preparing" && readiness === "ready",
     renderWake,
   });
+
+  useBrowserPresence({ projectId, sessionId, ready: readiness === "ready", busy: isMcpRendering || Boolean(state.active) || restorePending || exportState === "preparing", localEnabled: localMcpBridgeEnabled, remoteEnabled: remoteMcpEnabled, presenceWake });
 
   const submit = useCallback(async (message: string) => {
     if (!sessionId || !(await acquireRenderer())) return;

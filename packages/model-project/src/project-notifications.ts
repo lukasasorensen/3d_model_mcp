@@ -1,7 +1,7 @@
 import type { Notification, Pool, PoolClient } from "pg";
 
 export interface ProjectNotification {
-  kind: "project" | "render";
+  kind: "project" | "render" | "preview";
   ownerId: string;
   projectId: string;
   jobId?: string;
@@ -52,7 +52,7 @@ export class PostgresProjectNotifications implements ProjectChangeSource {
       if (notification.channel !== "rjls_changes" || !notification.payload) return;
       try {
         const event = JSON.parse(notification.payload) as ProjectNotification;
-        if ((event.kind !== "project" && event.kind !== "render") || typeof event.ownerId !== "string" || typeof event.projectId !== "string") return;
+        if ((event.kind !== "project" && event.kind !== "render" && event.kind !== "preview") || typeof event.ownerId !== "string" || typeof event.projectId !== "string") return;
         for (const listener of this.listeners) listener(event);
       } catch { /* Ignore malformed external notification payloads. */ }
     });

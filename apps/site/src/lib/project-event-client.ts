@@ -1,7 +1,7 @@
 import { projectEventSchema, type ProjectEvent } from "@rjls/contracts";
 
 /** One connection attempt; callers own retry policy and lifecycle. */
-export async function receiveProjectEvents(projectId: string, signal: AbortSignal, receive: (event: ProjectEvent) => void): Promise<boolean> {
+export async function receiveProjectEvents(projectId: string, signal: AbortSignal, receive: (event: ProjectEvent) => void, heartbeat: () => void = () => undefined): Promise<boolean> {
   const controller = new AbortController();
   const abort = () => controller.abort();
   signal.addEventListener("abort", abort, { once: true });
@@ -26,6 +26,7 @@ export async function receiveProjectEvents(projectId: string, signal: AbortSigna
       while ((end = buffer.indexOf("\n\n")) >= 0) {
         const frame = buffer.slice(0, end); buffer = buffer.slice(end + 2);
         const json = frame.split("\n").filter((line) => line.startsWith("data:")).map((line) => line.slice(5).trimStart()).join("\n");
+        if (frame.split("\n").some((line) => line === ": heartbeat")) heartbeat();
         if (json) receive(projectEventSchema.parse(JSON.parse(json)));
       }
     }

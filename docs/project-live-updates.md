@@ -28,3 +28,65 @@ Browser claims run on stream readiness, render notifications, tab visibility, re
 - Code rollback can retain the additive migration. Do not drop enum values or remove triggers while updated processes still use them.
 
 Tests cover transaction rollback, local/remote claims and token binding, notification-driven waits, deadline and abort wakeups, SSE isolation and revocation, and historical-selection behavior. Live tunnel delivery is an environment acceptance check and is not established by the unit suite.
+
+## PNG preview delivery
+
+Migrations `0005_watery_kulan_gath` and `0006_preview-notifications` add
+`browser_preview_jobs`, `browser_presence`, and the `preview_job_changed` trigger.
+Readiness requires the enabled preview trigger. Apply both before restarting app
+and stdio processes; rollback can retain these additive migrations.
+
+The preview service pins an authorized revision or validated candidate before
+checking browser availability. Jobs are distinct from validation receipts. Local
+and remote MCP use the same preview endpoints, respecting their existing gates:
+
+- `POST /v1/projects/:projectId/preview-presence`
+- `POST /v1/projects/:projectId/preview-jobs/claim`
+- `POST /v1/projects/:projectId/preview-jobs/complete`
+
+Preview triggers publish only owner/project/job identifiers with `kind: preview`
+on `rjls_changes`. SSE maps these to `preview-jobs-available` invalidations.
+Browsers check pending jobs on stream readiness, invalidations, visibility,
+availability, and lease release, giving existing validation and foreground work
+priority. MCP waiters subscribe before reading and recover missed notifications
+through persisted outcomes. There is no job polling or durable event replay.
+
+The SSE parser exposes fifteen-second heartbeat comments separately from job
+invalidations. Browser acknowledgements refresh owner/project/tab-scoped presence,
+including visibility, readiness, busy state, and supported delivery modes. Presence
+uses a fresh in-memory tab ID, independently of the sessionStorage session ID, so
+cloned tabs cannot overwrite each other. Migration `0007_noisy_wiccan` backfills
+existing rows with distinct IDs and changes the presence primary key; apply it
+before restarting and reload existing browser tabs. Presence
+expires after forty-five seconds; this is an availability estimate, not proof of a
+closed tab. A heartbeat alone does not issue project reads or job claims.
+
+Claims are exclusive and tokens are minted only after a successful claim; the
+database stores hashes. Completion verifies owner, project, tab, token, target,
+source hash, camera, dimensions, deadline, and pinned provenance. Browser receipts
+remain an owner-controlled rendering trust boundary, not server attestation of
+what the pixels depict. PNG validation enforces canonical base64, CRCs, format,
+dimensions, bounded decompression, and pixel filter framing.
+
+One pending preview per owner/project is allowed. Claiming has fifteen seconds,
+the worker retains sixty seconds, and the preview request has an eighty-second
+overall deadline. PNGs are limited to 2 MiB; encoded HTTP/MCP payloads to 3 MiB.
+Images travel via authenticated HTTP uploads and native MCP image blocks, never
+SSE/NOTIFY. Temporary completions are deleted after delivery/failure/cancellation;
+expired jobs are swept on startup and preview/presence activity. An idle stopped
+application may retain expired rows until the next sweep. No permanent PNG cache
+is created. Log records contain only duration, outcome, and byte count.
+
+Production acceptance: verify the existing tunnel streams `ready` and preview
+invalidations without buffering; request a preview with the page absent, follow
+the returned URL, sign in and retry; inspect all camera presets before promotion;
+repeat after an SSE disconnect. Confirm idle tabs send only presence acknowledgements
+and that SQL job reads occur on notifications/deadlines rather than timers.
+
+During rendering, SSE invalidations and reconnect readiness trigger coalesced
+`POST /v1/projects/:projectId/preview-jobs/status` checks for the active job.
+Checks require the owner, project, session and claim token. A removed or expired
+job aborts the browser worker and releases the render lease. The browser also
+checks immediately after claiming to cover cancellation before its monitor starts.
+Monitoring stops when rendering finishes, before upload, so normal completion
+cleanup cannot abort successful delivery. These checks do not use a polling timer.

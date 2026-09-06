@@ -1,3 +1,5 @@
+import { PostgresModelPreviewService } from "./model-preview-service.js";
+import { BrowserPreviewJobsRepository } from "@rjls/model-project";
 import { isBrowserRendererProvenance } from "@rjls/contracts";
 import { PostgresModelProjectRepository, RemoteRenderJobsRepository, VALIDATION_POLICY_VERSION } from "@rjls/model-project";
 import { createCadMcpServer } from "@rjls/mcp";
@@ -8,10 +10,12 @@ export async function createRemoteCadMcpServer(ownerId: string, signal: AbortSig
   const pool = getProjectDatabase().pool;
   const jobs = new RemoteRenderJobsRepository(pool, ownerId);
   await jobs.recover();
-  return createCadMcpServer(new PostgresModelProjectRepository({
+  await new BrowserPreviewJobsRepository(pool, ownerId).sweep();
+  const repository = new PostgresModelProjectRepository({
     pool, ownerId, renderer: new RemoteBrowserRenderer(jobs, VALIDATION_POLICY_VERSION, getProjectDatabase().notifications),
     acceptRendererProvenance: isBrowserRendererProvenance,
-  }), { signal });
+  });
+  return createCadMcpServer(repository, { signal, previewService: new PostgresModelPreviewService(getProjectDatabase(), repository, ownerId, "remote-mcp") });
 }
 
 export async function claimConfiguredRemoteRender(ownerId: string, projectId: string, sessionId: string) {

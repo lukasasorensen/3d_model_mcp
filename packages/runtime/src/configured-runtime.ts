@@ -58,8 +58,8 @@ async function createConfiguredCadRuntime(ownerId: string): Promise<ConfiguredCa
   const observability = new RuntimeObservabilityStore();
   const localBrowserRenderer = new LocalBrowserRenderer(database, ownerId, VALIDATION_POLICY_VERSION);
   const readiness = createObservedReadinessProbe(observability, () => probeConfiguredReadiness(client, async () => {
-    const result = await database.pool.query<{ projects: string | null; notifications: string | null }>("SELECT to_regclass('public.projects')::text AS projects, to_regprocedure('notify_project_change()')::text AS notifications");
-    if (result.rows[0]?.projects !== "projects" || !result.rows[0]?.notifications) throw new Error("The project database schema is not migrated.");
+    const result = await database.pool.query<{ projects: string | null; notifications: string | null; previews: boolean }>("SELECT to_regclass('public.projects')::text AS projects, to_regprocedure('notify_project_change()')::text AS notifications, EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'preview_job_changed' AND tgrelid = to_regclass('public.browser_preview_jobs') AND tgenabled <> 'D') AS previews");
+    if (result.rows[0]?.projects !== "projects" || !result.rows[0]?.notifications || !result.rows[0]?.previews) throw new Error("The project database schema is not migrated.");
   }));
   let lastReadyAt = 0;
   return {
@@ -88,7 +88,7 @@ export function withConfiguredCadRuntime<T>(ownerId: string, operation: (runtime
 
 export async function probeSystemReadiness(): Promise<{ status: "ready"; profile: "browser-wasm" }> {
   const database = getProjectDatabase();
-  const result = await database.pool.query<{ projects: string | null; notifications: string | null }>("SELECT to_regclass('public.projects')::text AS projects, to_regprocedure('notify_project_change()')::text AS notifications");
-  if (result.rows[0]?.projects !== "projects" || !result.rows[0]?.notifications) throw new Error("The project database schema is not migrated.");
+  const result = await database.pool.query<{ projects: string | null; notifications: string | null; previews: boolean }>("SELECT to_regclass('public.projects')::text AS projects, to_regprocedure('notify_project_change()')::text AS notifications, EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'preview_job_changed' AND tgrelid = to_regclass('public.browser_preview_jobs') AND tgenabled <> 'D') AS previews");
+  if (result.rows[0]?.projects !== "projects" || !result.rows[0]?.notifications || !result.rows[0]?.previews) throw new Error("The project database schema is not migrated.");
   return { status: "ready", profile: "browser-wasm" };
 }

@@ -1,3 +1,5 @@
+import type { ModelPreviewService } from "@rjls/contracts";
+import { registerModelPreviewTool } from "./model-preview-tool.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { ModelProjectStore } from "@rjls/model-project";
@@ -19,7 +21,7 @@ function mcpResult(result: Awaited<ReturnType<typeof invokeCadTool>>) {
 }
 
 /** Registers domain tools only. Stdio/HTTP lifecycle adapters are deliberately outside this core. */
-export function createCadMcpServer(repository: ModelProjectStore, options: { signal?: AbortSignal } = {}): McpServer {
+export function createCadMcpServer(repository: ModelProjectStore, options: { signal?: AbortSignal; previewService?: ModelPreviewService } = {}): McpServer {
   const registry = createCadToolRegistry(repository);
   const server = new McpServer(
     { name: "rjls-cad", version: "0.1.0" },
@@ -40,12 +42,13 @@ export function createCadMcpServer(repository: ModelProjectStore, options: { sig
       async (rawInput, extra) => mcpResult(await invokeCadTool(registry, name, rawInput, { signal: options.signal ? AbortSignal.any([options.signal, extra.signal]) : extra.signal })),
     );
   }
+  if (options.previewService) registerModelPreviewTool(server, options.previewService, options.signal);
   return server;
 }
 
 /** Default standalone MCP lifecycle: protocol frames use stdout; diagnostics belong on stderr. */
-export async function connectCadMcpStdio(repository: ModelProjectStore): Promise<McpServer> {
-  const server = createCadMcpServer(repository);
+export async function connectCadMcpStdio(repository: ModelProjectStore, options: { previewService?: ModelPreviewService } = {}): Promise<McpServer> {
+  const server = createCadMcpServer(repository, options);
   await server.connect(new StdioServerTransport());
   return server;
 }
