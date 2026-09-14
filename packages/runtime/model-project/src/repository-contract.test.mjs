@@ -66,8 +66,16 @@ const renderer = {
 };
 
 async function exerciseRepositoryContract(repository) {
-  const project = await repository.createProject();
+  const project = await repository.createProject({ name: "Bracket", description: "Initial design" });
   assert.deepEqual(await repository.listProjects(), [project]);
+  const updated = await repository.updateProject({ projectId: project.projectId, name: "Updated bracket" });
+  assert.equal(updated.description, "Initial design");
+  assert.equal(updated.name, "Updated bracket");
+  const cleared = await repository.updateProject({ projectId: project.projectId, description: "" });
+  assert.equal(cleared.name, "Updated bracket");
+  assert.deepEqual(await repository.listProjects(), [cleared]);
+  await assert.rejects(repository.updateProject({ projectId: "missing", name: "New" }), { code: "PROJECT_NOT_FOUND" });
+  await assert.rejects(repository.updateProject({ projectId: project.projectId }));
   const candidate = await repository.proposeModelSource({
     projectId: project.projectId,
     parentRevision: null,
@@ -108,7 +116,7 @@ async function migratedMemoryPool() {
   });
   const adapter = database.adapters.createPg();
   const pool = new adapter.Pool();
-  for (const migration of ["0000_tough_jetstream.sql", "0001_material_ben_grimm.sql", "0002_marvelous_puff_adder.sql"]) {
+  for (const migration of ["0000_tough_jetstream.sql", "0001_material_ben_grimm.sql", "0002_marvelous_puff_adder.sql", "0008_sad_starhawk.sql"]) {
     const sql = await readFile(new URL(`../drizzle/${migration}`, import.meta.url), "utf8");
     for (const statement of sql.split("--> statement-breakpoint").map((part) => part.trim()).filter(Boolean)) await pool.query(statement);
   }
@@ -120,6 +128,18 @@ test("filesystem repository satisfies the project-store contract", async () => {
   try {
     const repository = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance: () => true });
     await exerciseRepositoryContract(repository);
+    const reopened = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance: () => true });
+    assert.equal((await reopened.listProjects())[0].name, "Updated bracket");
+    const blank = await reopened.createProject();
+    assert.equal(blank.name, "Untitled project");
+    assert.equal(blank.description, "");
+    await Promise.all([
+      reopened.updateProject({ projectId: blank.projectId, name: "Concurrent name" }),
+      reopened.updateProject({ projectId: blank.projectId, description: "Concurrent description" }),
+    ]);
+    assert.deepEqual((await reopened.listProjects()).find((project) => project.projectId === blank.projectId), {
+      projectId: blank.projectId, name: "Concurrent name", description: "Concurrent description",
+    });
   } finally {
     await rm(workspaceRoot, { recursive: true, force: true });
   }
@@ -132,6 +152,8 @@ test("PostgreSQL repository satisfies the project-store contract and isolates ow
     const ownerA = new PostgresModelProjectRepository({ pool, ownerId: "owner-a", renderer, acceptRendererProvenance: () => true });
     const projectId = await exerciseRepositoryContract(ownerA);
     const ownerB = new PostgresModelProjectRepository({ pool, ownerId: "owner-b", renderer, acceptRendererProvenance: () => true });
+    await assert.rejects(ownerB.updateProject({ projectId, name: "Stolen" }), { code: "PROJECT_NOT_FOUND" });
+    assert.equal((await ownerA.listProjects())[0].name, "Updated bracket");
     await assert.rejects(ownerB.getProjectState(projectId), (error) => error?.code === "PROJECT_NOT_FOUND");
     await assert.rejects(ownerB.readValidatedCandidateSource(projectId, "unknown"), { code: "PROJECT_NOT_FOUND" });
     assert.deepEqual(await ownerB.listProjects(), []);

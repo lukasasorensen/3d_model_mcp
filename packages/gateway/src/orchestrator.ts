@@ -26,6 +26,7 @@ import type { CadMcpClient, CadMcpToolResult } from "./cad-client.js";
 import { DeterministicMockCadProvider, type CadChatProvider } from "./provider.js";
 
 export const CAD_TOOL_NAMES = [
+  "create_project", "update_project",
   "get_project_state", "read_model_source", "propose_model_source", "validate_and_render",
   "promote_candidate", "export_model", "list_revisions", "restore_revision",
 ] as const satisfies readonly CadToolName[];

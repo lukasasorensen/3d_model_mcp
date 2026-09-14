@@ -19,6 +19,8 @@ const repository = new Proxy({}, {
 test("exposes exactly the approved transport-neutral CAD tool allowlist", () => {
   const registry = createCadToolRegistry(repository);
   assert.deepEqual(Object.keys(registry), [
+    "create_project",
+    "update_project",
     "get_project_state",
     "read_model_source",
     "propose_model_source",
@@ -101,4 +103,24 @@ test("unexpected failures are redacted from tool results", async () => {
   const result = await invokeCadTool(createCadToolRegistry(unsafeRepository), "get_project_state", { projectId: "demo" });
   assert.deepEqual(result, { ok: false, error: { code: "INTERNAL_ERROR", message: "The CAD tool failed safely." } });
   assert.doesNotMatch(JSON.stringify(result), /Users|private-key/);
+});
+
+ test("project tools validate details and dispatch mutations", async () => {
+  const registry = createCadToolRegistry(repository);
+  for (const [name, input] of [
+    ["create_project", { name: "Bracket", description: "Mounting bracket" }],
+    ["update_project", { projectId: "demo", description: "" }],
+  ]) {
+    assert.equal((await invokeCadTool(registry, name, input)).ok, true);
+    assert.equal(registry[name].readOnly, false);
+    assert.deepEqual(calls.at(-1), [name === "create_project" ? "createProject" : "updateProject", [input]]);
+  }
+  for (const [name, input] of [
+    ["create_project", { name: " " }],
+    ["create_project", { ownerId: "other" }],
+    ["create_project", { description: "x".repeat(4001) }],
+    ["update_project", { projectId: "demo" }],
+    ["update_project", { projectId: "../demo", name: "New" }],
+    ["update_project", { projectId: "demo", name: null }],
+  ]) assert.equal((await invokeCadTool(registry, name, input)).error.code, "INVALID_TOOL_INPUT");
 });

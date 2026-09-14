@@ -1,5 +1,9 @@
 import {
   CAD_LIMITS,
+  createProjectInputSchema,
+  createProjectOutputSchema,
+  updateProjectInputSchema,
+  updateProjectOutputSchema,
   exportModelInputSchema,
   exportModelOutputSchema,
   getProjectStateInputSchema,
@@ -21,6 +25,8 @@ import { CadDomainError, type ModelProjectStore } from "@rjls/model-project";
 import type * as z from "zod/v4";
 
 export type CadToolName =
+  | "create_project"
+  | "update_project"
   | "get_project_state"
   | "read_model_source"
   | "propose_model_source"
@@ -55,6 +61,22 @@ function boundedResult(value: Record<string, unknown>): Record<string, unknown> 
 
 export function createCadToolRegistry(repository: ModelProjectStore): CadToolRegistry {
   return {
+    create_project: {
+      title: "Create project",
+      description: "Create a project for the authenticated owner with an optional name and description. Returns its project ID for subsequent CAD tools.",
+      inputSchema: createProjectInputSchema,
+      outputSchema: createProjectOutputSchema,
+      readOnly: false,
+      execute: async (raw) => boundedResult({ project: await repository.createProject(createProjectInputSchema.parse(raw)) }),
+    },
+    update_project: {
+      title: "Update project details",
+      description: "Update a project's name or description. Omitted fields are preserved; an empty description clears it.",
+      inputSchema: updateProjectInputSchema,
+      outputSchema: updateProjectOutputSchema,
+      readOnly: false,
+      execute: async (raw) => boundedResult({ project: await repository.updateProject(updateProjectInputSchema.parse(raw)) }),
+    },
     get_project_state: {
       title: "Get project state",
       description: "Inspect the authoritative current CAD revision and its validated artifact metadata.",

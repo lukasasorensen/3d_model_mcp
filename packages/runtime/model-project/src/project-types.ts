@@ -8,6 +8,4 @@ export interface ProjectState {
   diagnostics: Diagnostic[];
 }
 
-export interface ProjectSummary {
-  projectId: string;
-}
+export type { ProjectSummary } from "@rjls/contracts";

@@ -57,6 +57,13 @@
       "when": 1788660169359,
       "tag": "0007_noisy_wiccan",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789416688230,
+      "tag": "0008_sad_starhawk",
+      "breakpoints": true
     }
   ]
 }

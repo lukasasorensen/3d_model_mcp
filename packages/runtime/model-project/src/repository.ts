@@ -1,4 +1,9 @@
 import {
+  createProjectInputSchema,
+  updateProjectInputSchema,
+  projectSummarySchema,
+  type CreateProjectInput,
+  type UpdateProjectInput,
   CAD_LIMITS,
   CONTRACT_VERSION,
   artifactManifestSchema,
@@ -178,10 +183,32 @@ export class ModelProjectRepository {
     this.lockStaleMs = options.lockStaleMs ?? 120_000;
   }
 
-  async createProject(): Promise<ProjectSummary> {
+  async createProject(input: CreateProjectInput = {}): Promise<ProjectSummary> {
+    const details = createProjectInputSchema.parse(input);
     const projectId = this.createId();
     await this.ensureProject(projectId);
-    return { projectId };
+    const project = { projectId, ...details };
+    await writeAtomic(join(this.controlRoot(projectId), "project.json"), JSON.stringify(project));
+    return project;
+  }
+
+  async updateProject(raw: UpdateProjectInput): Promise<ProjectSummary> {
+    const { projectId, ...details } = updateProjectInputSchema.parse(raw);
+    if (!(await exists(this.projectRoot(projectId)))) throw new CadDomainError("PROJECT_NOT_FOUND", "Project not found.");
+    return this.withProjectLock(projectId, "details", async () => {
+      const project = projectSummarySchema.parse({ ...await this.readProjectDetails(projectId), ...details });
+      await writeAtomic(join(this.controlRoot(projectId), "project.json"), JSON.stringify(project));
+      return project;
+    });
+  }
+
+  private async readProjectDetails(projectId: string): Promise<ProjectSummary> {
+    try {
+      return projectSummarySchema.parse(JSON.parse(await readFile(join(this.controlRoot(projectId), "project.json"), "utf8")));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return projectSummarySchema.parse({ projectId });
+      throw error;
+    }
   }
 
   private projectRoot(projectId: string): string {
@@ -635,10 +662,10 @@ export class ModelProjectRepository {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
       throw error;
     }
-    return entries
+    return Promise.all(entries
       .filter((entry) => entry.isDirectory() && projectIdSchema.safeParse(entry.name).success)
-      .map((entry) => ({ projectId: entry.name }))
-      .sort((left, right) => left.projectId.localeCompare(right.projectId));
+      .sort((left, right) => left.name.localeCompare(right.name))
+      .map((entry) => this.readProjectDetails(entry.name)));
   }
 
   async readValidatedCandidateSource(projectId: string, candidateId: string) {

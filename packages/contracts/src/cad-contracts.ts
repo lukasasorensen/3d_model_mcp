@@ -316,7 +316,22 @@ export const projectStateSchema = z
     diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
   })
   .strict();
-export const projectSummarySchema = z.object({ projectId: projectIdSchema }).strict();
+export const projectDetailsSchema = z.object({
+  name: z.string().trim().min(1).max(200).default("Untitled project"),
+  description: z.string().max(4000).default(""),
+}).strict();
+export const projectSummarySchema = projectDetailsSchema.extend({ projectId: projectIdSchema }).strict();
+export const createProjectInputSchema = projectDetailsSchema;
+export const updateProjectInputSchema = z.object({
+  projectId: projectIdSchema,
+  name: projectDetailsSchema.shape.name.removeDefault().optional(),
+  description: projectDetailsSchema.shape.description.removeDefault().optional(),
+}).strict()
+  .refine((input) => input.name !== undefined || input.description !== undefined, "Provide at least one project detail.");
+export const createProjectOutputSchema = z.object({ project: projectSummarySchema }).strict();
+export const updateProjectOutputSchema = createProjectOutputSchema;
+export type CreateProjectInput = z.input<typeof createProjectInputSchema>;
+export type UpdateProjectInput = z.input<typeof updateProjectInputSchema>;
 export const projectListSchema = z.object({ projects: z.array(projectSummarySchema) }).strict();
 export type ProjectSummary = z.infer<typeof projectSummarySchema>;
 export const getProjectStateOutputSchema = z.object({ state: projectStateSchema }).strict();

@@ -1,4 +1,8 @@
 import {
+  createProjectInputSchema,
+  updateProjectInputSchema,
+  type CreateProjectInput,
+  type UpdateProjectInput,
   artifactManifestSchema,
   candidateRecordSchema,
   revisionManifestSchema,
@@ -47,8 +51,12 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     this.validationPolicyVersion = options.validationPolicyVersion ?? VALIDATION_POLICY_VERSION;
   }
 
-  async createProject(): Promise<ProjectSummary> {
-    return this.persistence.createProject(this.createProjectId());
+  async createProject(input: CreateProjectInput = {}): Promise<ProjectSummary> {
+    return this.persistence.createProject(this.createProjectId(), createProjectInputSchema.parse(input));
+  }
+
+  async updateProject(input: UpdateProjectInput): Promise<ProjectSummary> {
+    return this.persistence.updateProject(updateProjectInputSchema.parse(input));
   }
 
   async listProjects(): Promise<ProjectSummary[]> {

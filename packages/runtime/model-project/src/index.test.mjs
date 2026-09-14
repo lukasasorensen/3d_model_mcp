@@ -127,8 +127,8 @@ test("lists only valid project directories in stable order", async () => {
     await mkdir(join(workspaceRoot, ".internal"));
     await writeFile(join(workspaceRoot, "file-project"), "not a directory");
     assert.deepEqual(await repository.listProjects(), [
-      { projectId: "alpha-project" },
-      { projectId: "zeta-project" },
+      { projectId: "alpha-project", name: "Untitled project", description: "" },
+      { projectId: "zeta-project", name: "Untitled project", description: "" },
     ]);
   });
 });

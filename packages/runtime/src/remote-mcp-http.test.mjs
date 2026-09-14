@@ -41,7 +41,7 @@ test("official MCP client negotiates remote transport, preserves tools, and clos
   try {
     await client.connect(transport);
     const listed = await client.listTools();
-    assert.deepEqual(listed.tools.map((tool) => tool.name).sort(), ["export_model", "get_project_state", "list_revisions", "promote_candidate", "propose_model_source", "read_model_source", "restore_revision", "validate_and_render"]);
+    assert.deepEqual(listed.tools.map((tool) => tool.name).sort(), ["create_project", "export_model", "get_project_state", "list_revisions", "promote_candidate", "propose_model_source", "read_model_source", "restore_revision", "update_project", "validate_and_render"]);
     const result = await client.callTool({ name: "get_project_state", arguments: { projectId: project.projectId } });
     assert.equal(result.structuredContent.state.projectId, project.projectId);
     assert.equal(created, closed);

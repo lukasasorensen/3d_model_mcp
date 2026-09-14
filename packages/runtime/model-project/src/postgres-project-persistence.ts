@@ -1,4 +1,9 @@
 import {
+  createProjectInputSchema,
+  updateProjectInputSchema,
+  projectSummarySchema,
+  type CreateProjectInput,
+  type UpdateProjectInput,
   CONTRACT_VERSION,
   candidateRecordSchema,
   projectIdSchema,
@@ -99,15 +104,27 @@ export class PostgresProjectPersistence {
     return { currentRevision: result.rows[0].current_revision_id };
   }
 
-  async createProject(projectId: string): Promise<ProjectSummary> {
+  async createProject(projectId: string, input: CreateProjectInput = {}): Promise<ProjectSummary> {
     projectIdSchema.parse(projectId);
-    await this.executor.query("INSERT INTO projects (id, owner_id) VALUES ($1, $2)", [projectId, this.ownerId]);
-    return { projectId };
+    const details = createProjectInputSchema.parse(input);
+    await this.executor.query("INSERT INTO projects (id, owner_id, name, description) VALUES ($1, $2, $3, $4)", [projectId, this.ownerId, details.name, details.description]);
+    return { projectId, ...details };
+  }
+
+  async updateProject(raw: UpdateProjectInput): Promise<ProjectSummary> {
+    const input = updateProjectInputSchema.parse(raw);
+    const result = await this.executor.query<{ id: string; name: string; description: string }>(
+      "UPDATE projects SET name = COALESCE($3, name), description = COALESCE($4, description), updated_at = now() WHERE id = $1 AND owner_id = $2 RETURNING id, name, description",
+      [input.projectId, this.ownerId, input.name ?? null, input.description ?? null],
+    );
+    const row = result.rows[0];
+    if (!row) throw new CadDomainError("PROJECT_NOT_FOUND", "Project not found.");
+    return projectSummarySchema.parse({ projectId: row.id, name: row.name, description: row.description });
   }
 
   async listProjects(): Promise<ProjectSummary[]> {
-    const result = await this.executor.query<{ id: string }>("SELECT id FROM projects WHERE owner_id = $1 ORDER BY id", [this.ownerId]);
-    return result.rows.map((row) => ({ projectId: projectIdSchema.parse(row.id) }));
+    const result = await this.executor.query<{ id: string; name: string; description: string }>("SELECT id, name, description FROM projects WHERE owner_id = $1 ORDER BY id", [this.ownerId]);
+    return result.rows.map((row) => projectSummarySchema.parse({ projectId: row.id, name: row.name, description: row.description }));
   }
 
   async readCandidate(projectId: string, candidateId: string, lock = false): Promise<PersistedCandidate> {

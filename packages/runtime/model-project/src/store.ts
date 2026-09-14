@@ -1,10 +1,11 @@
-import type { CandidateRecord, RevisionManifest } from "@rjls/contracts";
+import type { CandidateRecord, RevisionManifest, CreateProjectInput, UpdateProjectInput } from "@rjls/contracts";
 
 import type { ProjectState, ProjectSummary } from "./project-types.js";
 
 /** Project persistence scoped to one authenticated owner. */
 export interface ModelProjectStore {
-  createProject(): Promise<ProjectSummary>;
+  createProject(input?: CreateProjectInput): Promise<ProjectSummary>;
+  updateProject(input: UpdateProjectInput): Promise<ProjectSummary>;
   getProjectState(projectId: string): Promise<ProjectState>;
   listProjects(): Promise<ProjectSummary[]>;
   readValidatedCandidateSource(projectId: string, candidateId: string): Promise<{ candidateId: string; source: string; sourceHash: string }>;

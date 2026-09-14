@@ -383,3 +383,14 @@ filesystem is needed. Keep MCP tool timeouts at 120 seconds.
 See [project live updates](docs/project-live-updates.md) for security, lifecycle,
 and rollout details and [PNG acceptance evidence](docs/model-preview-verification.md)
 for the checks performed.
+
+### Project management tools
+
+`create_project` accepts optional `name` (1–200 characters) and `description`
+(up to 4,000 characters), and returns `{ project: { projectId, name, description } }`.
+Defaults are `Untitled project` and an empty description.
+
+`update_project` accepts `projectId` and at least one of `name` or `description`.
+Omitted fields are preserved; `description: ""` clears the description. Both tools
+use the authenticated owner's repository. Apply the project-details database
+migration with `pnpm db:migrate` before using the updated PostgreSQL runtime.
