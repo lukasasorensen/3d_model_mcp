@@ -19,7 +19,7 @@ test("database triggers cover local validation, promotion, restore, rollback, an
     const jobs = new RemoteRenderJobsRepository(fixture.pool, "owner", "local-mcp");
     const repository = new PostgresModelProjectRepository({ pool: fixture.pool, ownerId: "owner", renderer: new RemoteBrowserRenderer(jobs, VALIDATION_POLICY_VERSION, fixture.notifications), acceptRendererProvenance: () => true });
     const browser = new LocalBrowserRenderer(fixture, "owner", VALIDATION_POLICY_VERSION);
-    const { projectId } = await repository.createProject();
+    const { projectId } = await repository.createProject({ name: "Test project", description: "Test model" });
     const candidate = await repository.proposeModelSource({ projectId, parentRevision: null, source: "cube(1);", requestId: "request", toolCallId: "tool" });
     let resolveJob;
     const available = new Promise((resolve) => { resolveJob = resolve; });
@@ -57,7 +57,7 @@ test("chat rendering observes a completion sent immediately from its browser req
     await fixture.pool.query(`INSERT INTO "user" (id,name,email) VALUES ('chat-owner','Owner','chat@example.com')`);
     const renderer = new PostgresBrowserRenderCoordinator(VALIDATION_POLICY_VERSION, fixture.pool, "chat-owner", fixture.notifications);
     const repository = new PostgresModelProjectRepository({ pool: fixture.pool, ownerId: "chat-owner", renderer, acceptRendererProvenance: () => true });
-    const { projectId } = await repository.createProject();
+    const { projectId } = await repository.createProject({ name: "Test project", description: "Test model" });
     const candidate = await repository.proposeModelSource({ projectId, parentRevision: null, source: "cube(1);", requestId: "chat-request", toolCallId: "chat-tool" });
     let completion;
     stop = renderer.subscribe(candidate.candidateId, "chat-tab", (job) => {

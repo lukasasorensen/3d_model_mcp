@@ -64,7 +64,9 @@ export async function checkWorkspaceBoundaries(workspaceRoot = process.cwd()) {
   for (const absoluteFile of files) {
     const file = relative(absoluteRoot, absoluteFile);
     const source = sources.get(absoluteFile) ?? "";
-    const packageName = file.match(/^packages\/([^/]+)\//)?.[1];
+    const packageName = file.startsWith("packages/runtime/model-project/")
+      ? "model-project"
+      : file.match(/^packages\/([^/]+)\//)?.[1];
     for (const specifier of importsFrom(source)) {
       if (/^@rjls\/[^/]+\/(?:src|dist)(?:\/|$)/.test(specifier)) findings.push(`${file}: deep-imports another workspace package`);
       const workspaceImport = specifier.match(/^@rjls\/([^/]+)$/)?.[1];
@@ -102,7 +104,7 @@ export async function checkWorkspaceBoundaries(workspaceRoot = process.cwd()) {
   }
 
   for (const packageName of allowedDependencies.keys()) {
-    const manifestPath = join(absoluteRoot, "packages", packageName, "package.json");
+    const manifestPath = join(absoluteRoot, "packages", packageName === "model-project" && !files.some((file) => relative(absoluteRoot, file).startsWith("packages/model-project/")) ? "runtime/model-project" : packageName, "package.json");
     const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
     const dependencies = Object.keys(manifest.dependencies ?? {});
     for (const dependency of dependencies) {

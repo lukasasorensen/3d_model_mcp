@@ -386,11 +386,11 @@ for the checks performed.
 
 ### Project management tools
 
-`create_project` accepts optional `name` (1–200 characters) and `description`
+`create_project` requires `name` (1–200 characters) and a nonempty `description`
 (up to 4,000 characters), and returns `{ project: { projectId, name, description } }`.
-Defaults are `Untitled project` and an empty description.
+The website labels the name as the project title.
 
 `update_project` accepts `projectId` and at least one of `name` or `description`.
-Omitted fields are preserved; `description: ""` clears the description. Both tools
+Omitted fields are preserved; the description must remain nonempty. Both tools
 use the authenticated owner's repository. Apply the project-details database
 migration with `pnpm db:migrate` before using the updated PostgreSQL runtime.

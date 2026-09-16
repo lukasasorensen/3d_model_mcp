@@ -1,6 +1,6 @@
 "use client";
 
-import { BROWSER_RENDERER, projectListSchema, revisionManifestSchema, type ChatEvent } from "@rjls/contracts";
+import { BROWSER_RENDERER, projectListSchema, revisionManifestSchema, type ChatEvent, type ProjectSummary } from "@rjls/contracts";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
@@ -59,7 +59,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
   const [readiness, setReadiness] = useState<"checking" | "ready" | "unavailable">("checking");
   const [exportState, setExportState] = useState<"idle" | "preparing" | "failed" | "complete">("idle");
   const [exportFormat, setExportFormat] = useState<DownloadFormat>("stl");
-  const [projects, setProjects] = useState<string[]>([projectId]);
+  const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [chatCollapsed, setChatCollapsed] = useState(false);
   const [restorePending, setRestorePending] = useState(false);
   const [previewLoadState, setPreviewLoadState] = useState<PreviewLoadState>("empty");
@@ -96,9 +96,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
     if (!response.ok) return;
     const parsed = projectListSchema.safeParse(await response.json());
     if (!parsed.success) return;
-    const available = new Set(parsed.data.projects.map((project) => project.projectId));
-    available.add(projectId);
-    setProjects([...available].sort((left, right) => left.localeCompare(right)));
+    setProjects(parsed.data.projects);
   }, [projectId]);
 
   useEffect(() => {
@@ -211,7 +209,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
         <div className="brand-mark"><span aria-hidden="true">R</span><div><strong>RJLS Conversational CAD</strong><small>Precision workshop</small></div></div>
         <div className="header-controls">
           <button type="button" onClick={() => router.push("/projects")} disabled={isMcpRendering || state.active || restorePending || exportState === "preparing"}>All projects</button>
-          <label className="project-selector">Project<span className="sr-only"> selector</span><select value={projectId} onChange={(event) => router.push(`/projects/${encodeURIComponent(event.target.value)}`)} disabled={isMcpRendering || state.active || restorePending || exportState === "preparing"}>{projects.map((project) => <option key={project} value={project}>{project}</option>)}</select></label>
+          <label className="project-selector">Project<span className="sr-only"> selector</span><select value={projectId} onChange={(event) => router.push(`/projects/${encodeURIComponent(event.target.value)}`)} disabled={isMcpRendering || state.active || restorePending || exportState === "preparing"}>{projects.length === 0 && <option value={projectId}>{projectId}</option>}{projects.map((project) => <option key={project.projectId} value={project.projectId}>{project.name}</option>)}</select></label>
           <div className="header-status"><span className={`readiness-dot readiness-${readiness}`} aria-hidden="true" /><span>{readinessLabel}</span><code>mm · Z up</code></div>
         </div>
       </header>

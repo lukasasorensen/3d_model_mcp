@@ -321,11 +321,14 @@ export const projectDetailsSchema = z.object({
   description: z.string().max(4000).default(""),
 }).strict();
 export const projectSummarySchema = projectDetailsSchema.extend({ projectId: projectIdSchema }).strict();
-export const createProjectInputSchema = projectDetailsSchema;
+export const createProjectInputSchema = z.object({
+  name: projectDetailsSchema.shape.name.removeDefault(),
+  description: projectDetailsSchema.shape.description.removeDefault().trim().min(1),
+}).strict();
 export const updateProjectInputSchema = z.object({
   projectId: projectIdSchema,
   name: projectDetailsSchema.shape.name.removeDefault().optional(),
-  description: projectDetailsSchema.shape.description.removeDefault().optional(),
+  description: projectDetailsSchema.shape.description.removeDefault().trim().min(1).optional(),
 }).strict()
   .refine((input) => input.name !== undefined || input.description !== undefined, "Provide at least one project detail.");
 export const createProjectOutputSchema = z.object({ project: projectSummarySchema }).strict();

@@ -23,7 +23,7 @@ test("official MCP client negotiates remote transport, preserves tools, and clos
   const previous = process.env.RJLS_REMOTE_MCP_ENABLED;
   process.env.RJLS_REMOTE_MCP_ENABLED = "1";
   const repository = new ModelProjectRepository({ workspaceRoot, renderer: { async validateAndRender() { throw new Error("unused"); } } });
-  const project = await repository.createProject();
+  const project = await repository.createProject({ name: "Test project", description: "Test model" });
   let created = 0, closed = 0;
   const handler = createRemoteMcpHandler({
     authenticate: async () => "owner-a",

@@ -104,7 +104,7 @@ export class PostgresProjectPersistence {
     return { currentRevision: result.rows[0].current_revision_id };
   }
 
-  async createProject(projectId: string, input: CreateProjectInput = {}): Promise<ProjectSummary> {
+  async createProject(projectId: string, input: CreateProjectInput): Promise<ProjectSummary> {
     projectIdSchema.parse(projectId);
     const details = createProjectInputSchema.parse(input);
     await this.executor.query("INSERT INTO projects (id, owner_id, name, description) VALUES ($1, $2, $3, $4)", [projectId, this.ownerId, details.name, details.description]);

@@ -7,5 +7,5 @@ export default async function ProjectsPage() {
   const user = await getAuthenticatedUser(await headers());
   if (!user) redirect("/sign-in");
   const projects = await withConfiguredCadRuntime(user.id, (runtime) => runtime.repository.listProjects());
-  return <ProjectLanding projects={projects.map((project) => project.projectId)} userName={user.name} remoteMcpEnabled={remoteMcpEnabled()} />;
+  return <ProjectLanding projects={projects} userName={user.name} remoteMcpEnabled={remoteMcpEnabled()} />;
 }

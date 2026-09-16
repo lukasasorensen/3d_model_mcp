@@ -194,7 +194,7 @@ test("standalone PostgreSQL stdio server validates in an open-browser peer and p
     renderer: { async validateAndRender() { throw new Error("unused"); } },
     acceptRendererProvenance: isBrowserRendererProvenance, createId: () => projectId,
   });
-  await repository.createProject();
+  await repository.createProject({ name: "Test project", description: "Test model" });
   const executable = new URL("../dist/stdio-server.js", import.meta.url);
   const client = await createStdioCadMcpClient({
     command: process.execPath,

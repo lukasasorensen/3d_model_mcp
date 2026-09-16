@@ -183,7 +183,7 @@ export class ModelProjectRepository {
     this.lockStaleMs = options.lockStaleMs ?? 120_000;
   }
 
-  async createProject(input: CreateProjectInput = {}): Promise<ProjectSummary> {
+  async createProject(input: CreateProjectInput): Promise<ProjectSummary> {
     const details = createProjectInputSchema.parse(input);
     const projectId = this.createId();
     await this.ensureProject(projectId);

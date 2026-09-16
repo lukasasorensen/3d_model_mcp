@@ -25,7 +25,7 @@ test("PostgreSQL remote validation, ownership, one-time claims, receipts, and re
     const renderer = new RemoteBrowserRenderer(jobs, VALIDATION_POLICY_VERSION, fixture.notifications);
     const repository = new PostgresModelProjectRepository({ pool, ownerId: "owner-a", renderer, acceptRendererProvenance: () => true });
     const other = new PostgresModelProjectRepository({ pool, ownerId: "owner-b", renderer, acceptRendererProvenance: () => true });
-    const project = await repository.createProject();
+    const project = await repository.createProject({ name: "Test project", description: "Test model" });
     const propose = () => repository.proposeModelSource({ projectId: project.projectId, parentRevision: null, source: "cube(10);", requestId: crypto.randomUUID(), toolCallId: crypto.randomUUID() });
     const candidate = await propose();
     const validation = repository.validateAndRender({ projectId: project.projectId, candidateId: candidate.candidateId, previewProfile: "standard" });
@@ -70,7 +70,7 @@ test("atomic claims and expired browser jobs cannot complete or strand candidate
     await pool.query(`INSERT INTO "user" (id,name,email) VALUES ('owner','Owner','owner@example.com')`);
     const jobs = new RemoteRenderJobsRepository(pool, "owner");
     const repository = new PostgresModelProjectRepository({ pool, ownerId: "owner", renderer: new RemoteBrowserRenderer(jobs, VALIDATION_POLICY_VERSION, fixture.notifications), acceptRendererProvenance: () => true });
-    const project = await repository.createProject();
+    const project = await repository.createProject({ name: "Test project", description: "Test model" });
     const enqueue = async (id) => {
       const candidate = await repository.proposeModelSource({ projectId: project.projectId, parentRevision: null, source: "cube(10);", requestId: crypto.randomUUID(), toolCallId: crypto.randomUUID() });
       await pool.query("UPDATE candidates SET state = 'RUNNING' WHERE id = $1", [candidate.candidateId]);

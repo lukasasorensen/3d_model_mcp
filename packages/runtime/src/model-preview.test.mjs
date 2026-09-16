@@ -33,7 +33,7 @@ test("preview notifications, ownership, candidate/revision targets, claims and c
   try {
     await pool.query(`INSERT INTO "user" (id,name,email) VALUES ('owner','Owner','owner@example.com'),('other','Other','other@example.com')`);
     const repository = new PostgresModelProjectRepository({ pool, ownerId: "owner", renderer: { validateAndRender: async () => ({ outcome: "VALID", diagnostics: [], provenance, validationPolicyVersion: "cad-validation-v1", artifacts: [] }) }, acceptRendererProvenance: () => true });
-    const { projectId } = await repository.createProject();
+    const { projectId } = await repository.createProject({ name: "Test project", description: "Test model" });
     const candidate = await repository.proposeModelSource({ projectId, parentRevision: null, source: "cube(10);", requestId: "request", toolCallId: "call" });
     await assert.rejects(repository.readValidatedCandidateSource(projectId, candidate.candidateId), { code: "INVALID_CANDIDATE_STATE" });
     await repository.validateAndRender({ projectId, candidateId: candidate.candidateId, previewProfile: "standard" });

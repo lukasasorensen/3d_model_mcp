@@ -63,7 +63,7 @@ export function createCadToolRegistry(repository: ModelProjectStore): CadToolReg
   return {
     create_project: {
       title: "Create project",
-      description: "Create a project for the authenticated owner with an optional name and description. Returns its project ID for subsequent CAD tools.",
+      description: "Create a project for the authenticated owner with a name and description. Returns its project ID for subsequent CAD tools.",
       inputSchema: createProjectInputSchema,
       outputSchema: createProjectOutputSchema,
       readOnly: false,
@@ -71,7 +71,7 @@ export function createCadToolRegistry(repository: ModelProjectStore): CadToolReg
     },
     update_project: {
       title: "Update project details",
-      description: "Update a project's name or description. Omitted fields are preserved; an empty description clears it.",
+      description: "Update a project's name or description. Omitted fields are preserved; the description must remain nonempty.",
       inputSchema: updateProjectInputSchema,
       outputSchema: updateProjectOutputSchema,
       readOnly: false,

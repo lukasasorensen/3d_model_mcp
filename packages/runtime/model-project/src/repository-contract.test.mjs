@@ -71,9 +71,8 @@ async function exerciseRepositoryContract(repository) {
   const updated = await repository.updateProject({ projectId: project.projectId, name: "Updated bracket" });
   assert.equal(updated.description, "Initial design");
   assert.equal(updated.name, "Updated bracket");
-  const cleared = await repository.updateProject({ projectId: project.projectId, description: "" });
-  assert.equal(cleared.name, "Updated bracket");
-  assert.deepEqual(await repository.listProjects(), [cleared]);
+  await assert.rejects(repository.updateProject({ projectId: project.projectId, description: "" }));
+  assert.deepEqual(await repository.listProjects(), [updated]);
   await assert.rejects(repository.updateProject({ projectId: "missing", name: "New" }), { code: "PROJECT_NOT_FOUND" });
   await assert.rejects(repository.updateProject({ projectId: project.projectId }));
   const candidate = await repository.proposeModelSource({
@@ -130,9 +129,11 @@ test("filesystem repository satisfies the project-store contract", async () => {
     await exerciseRepositoryContract(repository);
     const reopened = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance: () => true });
     assert.equal((await reopened.listProjects())[0].name, "Updated bracket");
-    const blank = await reopened.createProject();
-    assert.equal(blank.name, "Untitled project");
-    assert.equal(blank.description, "");
+    await assert.rejects(reopened.createProject({ name: " ", description: "Test model" }));
+    await assert.rejects(reopened.createProject({ name: "Test project", description: " " }));
+    const blank = await reopened.createProject({ name: "Test project", description: "Test model" });
+    assert.equal(blank.name, "Test project");
+    assert.equal(blank.description, "Test model");
     await Promise.all([
       reopened.updateProject({ projectId: blank.projectId, name: "Concurrent name" }),
       reopened.updateProject({ projectId: blank.projectId, description: "Concurrent description" }),

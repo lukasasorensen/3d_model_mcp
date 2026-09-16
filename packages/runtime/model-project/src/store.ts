@@ -4,7 +4,7 @@ import type { ProjectState, ProjectSummary } from "./project-types.js";
 
 /** Project persistence scoped to one authenticated owner. */
 export interface ModelProjectStore {
-  createProject(input?: CreateProjectInput): Promise<ProjectSummary>;
+  createProject(input: CreateProjectInput): Promise<ProjectSummary>;
   updateProject(input: UpdateProjectInput): Promise<ProjectSummary>;
   getProjectState(projectId: string): Promise<ProjectState>;
   listProjects(): Promise<ProjectSummary[]>;

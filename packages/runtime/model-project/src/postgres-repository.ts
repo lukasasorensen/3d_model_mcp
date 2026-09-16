@@ -51,7 +51,7 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     this.validationPolicyVersion = options.validationPolicyVersion ?? VALIDATION_POLICY_VERSION;
   }
 
-  async createProject(input: CreateProjectInput = {}): Promise<ProjectSummary> {
+  async createProject(input: CreateProjectInput): Promise<ProjectSummary> {
     return this.persistence.createProject(this.createProjectId(), createProjectInputSchema.parse(input));
   }
 

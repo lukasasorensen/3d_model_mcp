@@ -109,7 +109,7 @@ test("unexpected failures are redacted from tool results", async () => {
   const registry = createCadToolRegistry(repository);
   for (const [name, input] of [
     ["create_project", { name: "Bracket", description: "Mounting bracket" }],
-    ["update_project", { projectId: "demo", description: "" }],
+    ["update_project", { projectId: "demo", description: "Updated bracket" }],
   ]) {
     assert.equal((await invokeCadTool(registry, name, input)).ok, true);
     assert.equal(registry[name].readOnly, false);
@@ -117,6 +117,8 @@ test("unexpected failures are redacted from tool results", async () => {
   }
   for (const [name, input] of [
     ["create_project", { name: " " }],
+    ["create_project", { name: "Bracket", description: " " }],
+    ["update_project", { projectId: "demo", description: "" }],
     ["create_project", { ownerId: "other" }],
     ["create_project", { description: "x".repeat(4001) }],
     ["update_project", { projectId: "demo" }],
