@@ -24,6 +24,7 @@ async function verifiedBytes(path: string, origin: string, expectedHash: string,
 
 self.onmessage = async (event: MessageEvent<RenderMessage>) => {
   const diagnostics: string[] = [];
+  let failureKind: "operational" | "model" = "operational";
   try {
     const [, wasmBytes, boslBytes] = await Promise.all([
       verifiedBytes("/vendor/openscad/openscad.js", event.data.origin, BROWSER_RENDERER.openscadGlueSha256, "OpenSCAD JavaScript"),
@@ -54,14 +55,16 @@ self.onmessage = async (event: MessageEvent<RenderMessage>) => {
     const args = ["--backend=manifold", "-o", output];
     if (event.data.format === "stl") args.push("--export-format", "binstl");
     args.push("/model.scad");
+    failureKind = "model";
     const exitCode = instance.callMain(args);
     if (exitCode !== 0) throw new Error(`OpenSCAD exited with status ${exitCode}.`);
     const bytes = instance.FS.readFile(output).slice();
     self.postMessage({ ok: true, bytes, diagnostics }, [bytes.buffer]);
   } catch (error) {
+    if (error instanceof WebAssembly.RuntimeError) failureKind = "operational";
     const message = error instanceof Error ? error.message : "OpenSCAD rendering failed.";
     if (diagnostics.length === 0) diagnostics.push(message);
-    self.postMessage({ ok: false, diagnostics, message });
+    self.postMessage({ ok: false, diagnostics, message, failureKind });
   }
 };
 

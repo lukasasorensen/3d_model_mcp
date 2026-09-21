@@ -1,4 +1,7 @@
 export type CadDomainErrorCode =
+  | "VALIDATION_RUNNING"
+  | "EXPORT_CAPACITY"
+  | "EXPORT_UNAVAILABLE"
   | "BROWSER_REQUIRED"
   | "BROWSER_BUSY"
   | "PREVIEW_TIMEOUT"

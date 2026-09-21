@@ -7,7 +7,7 @@ export function useBrowserPresence(options: { projectId: string; sessionId: stri
   const latest = useRef(options); latest.current = options;
   const wake = useRef<() => void>(() => undefined);
   useEffect(() => {
-    if (!options.sessionId || (!options.localEnabled && !options.remoteEnabled)) return;
+    if (!options.sessionId) return;
     tabId.current ??= crypto.randomUUID();
     const controller = new AbortController(); let running = false; let pending = false;
     const send = async () => {

@@ -255,7 +255,7 @@ test("concurrent validation serializes CREATED to one terminal transition withou
     assert.equal(outcomes.filter((outcome) => outcome.status === "fulfilled" && outcome.value.state === "VALID").length, 1);
     const conflict = outcomes.find((outcome) => outcome.status === "rejected");
     assert.ok(conflict);
-    assert.equal(conflict.reason.code, "INVALID_CANDIDATE_STATE");
+    assert.equal(conflict.reason.code, "VALIDATION_RUNNING");
     const persisted = JSON.parse(await readFile(join(workspaceRoot, "demo", ".rjls", "candidates", candidate.candidateId, "candidate.json"), "utf8"));
     assert.equal(persisted.state, "VALID");
   });

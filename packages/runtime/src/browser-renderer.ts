@@ -7,7 +7,7 @@ import {
   type CandidateRenderRequest,
   type RenderValidationResult,
 } from "@rjls/contracts";
-import { PostgresProjectNotifications, type ProjectChangeSource, sha256 } from "@rjls/model-project";
+import { PostgresProjectNotifications, type ProjectChangeSource, CadDomainError, sha256 } from "@rjls/model-project";
 import { waitForRenderOutcome } from "./render-outcome-wait.js";
 import { randomBytes } from "node:crypto";
 import type { Pool } from "pg";
@@ -16,10 +16,10 @@ export class BrowserRenderCompletionError extends Error {}
 
 export const BROWSER_COMMAND_POLICY_VERSION = "openscad-browser-manifold-v1";
 export const BROWSER_RENDERER_VERSION = "1.0.0";
-const storedBrowserCompletionSchema = browserRenderCompletionSchema.pick({ outcome: true, diagnostics: true, provenance: true });
+const storedBrowserCompletionSchema = browserRenderCompletionSchema.pick({ outcome: true, diagnostics: true, provenance: true, geometry: true });
 
-export function sanitizeBrowserRenderCompletion(completion: BrowserRenderCompletion): Pick<BrowserRenderCompletion, "outcome" | "diagnostics" | "provenance"> {
-  return storedBrowserCompletionSchema.parse({ outcome: completion.outcome, diagnostics: completion.diagnostics, provenance: completion.provenance });
+export function sanitizeBrowserRenderCompletion(completion: BrowserRenderCompletion): Pick<BrowserRenderCompletion, "outcome" | "diagnostics" | "provenance" | "geometry"> {
+  return storedBrowserCompletionSchema.parse({ outcome: completion.outcome, diagnostics: completion.diagnostics, provenance: completion.provenance, ...(completion.geometry ? { geometry: completion.geometry } : {}) });
 }
 
 export interface BrowserRenderRequest {
@@ -98,7 +98,9 @@ export class BrowserRenderCoordinator implements CadRenderer {
       request.signal?.addEventListener("abort", abort, { once: true });
       listener.callback({ jobId, token, purpose: "candidate", candidateId: request.candidateId, source: request.source, sourceHash: request.sourceHash, format: "stl", deadline });
     });
+    if (completion.outcome === "FAILED") throw new CadDomainError("RENDER_FAILED", "Browser worker failed; retry the same candidate.", { retryable: true });
     return {
+      geometry: completion.geometry,
       outcome: completion.outcome,
       diagnostics: completion.diagnostics,
       provenance: completion.provenance,
@@ -160,7 +162,8 @@ export class PostgresBrowserRenderCoordinator implements CadRenderer {
           if (!job) throw new Error("Render job is unavailable or expired.");
           if (job.state === "COMPLETED") {
             const completion = storedBrowserCompletionSchema.parse(job.completion);
-            return { result: { ...completion, validationPolicyVersion: this.validationPolicyVersion, artifacts: [] }, deadline: 0 };
+            if (completion.outcome === "FAILED") throw new CadDomainError("RENDER_FAILED", "Browser worker failed; retry the same candidate.", { retryable: true });
+            return { result: { ...completion, outcome: completion.outcome, validationPolicyVersion: this.validationPolicyVersion, artifacts: [] }, deadline: 0 };
           }
           if (job.state !== "PENDING") throw new Error(`Browser rendering ended in ${job.state.toLowerCase()} state.`);
           if (Date.now() >= new Date(job.deadline).getTime()) {

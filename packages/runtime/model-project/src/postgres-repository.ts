@@ -93,6 +93,8 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     });
   }
 
+  async getCandidate(projectId: string, candidateId: string) { return (await this.persistence.readCandidate(projectId,candidateId)).candidate; }
+
   async readValidatedCandidateSource(projectId: string, candidateId: string) {
     await this.persistence.requireProject(projectId);
     const { candidate, source } = await this.persistence.readCandidate(projectId, candidateId);
@@ -150,20 +152,26 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     signal?: AbortSignal;
   }): Promise<CandidateRecord> {
     if (input.signal?.aborted) throw new CadDomainError("CANCELLED", "Operation cancelled.");
+    const attemptId = `attempt-${randomUUID()}`;
     const claimed = await this.persistence.transaction(async (transaction) => {
       const persistedCandidate = await transaction.readCandidate(input.projectId, input.candidateId, true);
+      if (persistedCandidate.candidate.state === "VALID") return persistedCandidate;
+      if (persistedCandidate.candidate.state === "RUNNING") throw new CadDomainError("VALIDATION_RUNNING", "Candidate validation is already running.", { attemptId: persistedCandidate.candidate.activeAttemptId ?? "legacy", retryable: true });
       if (persistedCandidate.candidate.state !== "CREATED") {
         throw new CadDomainError("INVALID_CANDIDATE_STATE", "Only a created candidate can be rendered.");
       }
       const updatedAt = this.clock();
-      await transaction.markCandidateRunning(input.candidateId, updatedAt);
+      await transaction.markCandidateRunning(input.projectId, input.candidateId, attemptId, updatedAt);
       return {
         ...persistedCandidate,
         candidate: { ...persistedCandidate.candidate, state: "RUNNING" as const, updatedAt: updatedAt.toISOString() },
       };
     });
 
-    let state: "VALID" | "REJECTED" = "REJECTED";
+    if (claimed.candidate.state === "VALID") return claimed.candidate;
+    let operationalError: CadDomainError | undefined;
+    let geometry: import("@rjls/contracts").GeometrySummary | undefined;
+    let state: "VALID" | "REJECTED" | "CREATED" = "REJECTED";
     let diagnostics: Diagnostic[] = claimed.candidate.diagnostics;
     let renderer: RendererProvenance | undefined;
     let artifacts: CandidateRecord["artifacts"] = [];
@@ -172,6 +180,7 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
       const rawResult = await this.options.renderer.validateAndRender({
         projectId: input.projectId,
         candidateId: input.candidateId,
+        attemptId,
         source: claimed.source,
         sourceHash: claimed.candidate.sourceHash,
         previewProfile: input.previewProfile,
@@ -188,12 +197,15 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
       diagnostics = decision.diagnostics;
       if (decision.outcome === "VALID") {
         state = "VALID";
+        geometry = decision.geometry;
         renderer = decision.provenance;
         validationPolicyVersion = decision.validationPolicyVersion;
         artifacts = decision.artifacts.map((artifact) => artifact.manifest);
         assertArtifactSet(artifacts, claimed.candidate.sourceHash, decision.provenance);
       }
     } catch (error) {
+      state = "CREATED";
+      operationalError = error instanceof CadDomainError ? new CadDomainError(error.code,error.message,{retryable:true,...error.details}) : new CadDomainError(input.signal?.aborted ? "CANCELLED" : "RENDER_FAILED", "Validation could not complete; retry the same candidate.", { retryable: true });
       diagnostics = [{
         code: error instanceof CadDomainError ? error.code : "RENDER_FAILED",
         severity: "error",
@@ -205,12 +217,14 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
       projectId: input.projectId,
       candidateId: input.candidateId,
       state,
+      attemptId, geometry, error: operationalError,
       diagnostics,
       renderer,
       validationPolicyVersion,
       artifacts,
       updatedAt: this.clock(),
     }));
+    if (operationalError) throw operationalError;
     return (await this.persistence.readCandidate(input.projectId, input.candidateId)).candidate;
   }
 
@@ -249,6 +263,7 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
         validationPolicyVersion: this.validationPolicyVersion,
         diagnostics: candidate.diagnostics,
         renderer: candidate.renderer!,
+        geometry: candidate.geometry,
         createdAt,
       });
       const revisionArtifacts = candidate.artifacts.map((artifact) => artifactManifestSchema.parse({ ...artifact, sourceRevision: revisionId }));
@@ -301,6 +316,7 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
         validationPolicyVersion: this.validationPolicyVersion,
         diagnostics: target.manifest.diagnostics,
         renderer: target.manifest.renderer,
+        geometry: target.manifest.geometry,
         createdAt,
       });
       const restoredArtifacts = target.manifest.artifacts.map((artifact) => artifactManifestSchema.parse({ ...artifact, sourceRevision: revisionId }));

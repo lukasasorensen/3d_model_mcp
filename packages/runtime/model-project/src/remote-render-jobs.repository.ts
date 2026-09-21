@@ -6,7 +6,7 @@ export interface RemoteRenderJob {
 }
 export interface PersistedRenderOutcome {
   deadline: Date; claim_deadline: Date | null; claimed_at: Date | null;
-  state: string; completion: Pick<BrowserRenderCompletion, "outcome" | "diagnostics" | "provenance"> | null;
+  state: string; completion: Pick<BrowserRenderCompletion, "outcome" | "diagnostics" | "provenance" | "geometry"> | null;
 }
 
 /** All job access is scoped to an authenticated owner, including recovery. */
@@ -62,11 +62,15 @@ export class RemoteRenderJobsRepository {
 
   async recover(): Promise<void> {
     await this.expire();
-    await this.pool.query(`UPDATE candidates c SET state = 'REJECTED', updated_at = now(), diagnostics = $2::jsonb
-      FROM projects p WHERE c.project_id = p.id AND p.owner_id = $1 AND c.state = 'RUNNING'
-        AND c.updated_at < now() - interval '120 seconds'
-        AND NOT EXISTS (SELECT 1 FROM browser_render_jobs j WHERE j.candidate_id = c.id AND j.owner_id = $1 AND j.state = 'PENDING' AND j.deadline > now())`,
-    [this.ownerId, JSON.stringify([{ code: "RENDER_FAILED", severity: "error", message: "Rendering was interrupted. Create a new candidate and retry with the project tab open." }])]);
+    await this.pool.query(`WITH expired AS (
+      UPDATE candidates c SET state='CREATED',active_attempt_id=NULL,updated_at=now()
+      FROM validation_attempts a,projects p WHERE c.project_id=p.id AND p.owner_id=$1 AND c.state='RUNNING'
+      AND c.active_attempt_id=a.id AND a.deadline<=now() RETURNING a.id
+    ) UPDATE validation_attempts SET state='FAILED',error='{"code":"RENDER_FAILED","message":"Validation interrupted; retry the same candidate.","details":{"retryable":true}}'::jsonb,updated_at=now() WHERE id IN (SELECT id FROM expired)`, [this.ownerId]);
+    await this.pool.query(`UPDATE candidates c SET state='CREATED',updated_at=now() FROM projects p
+      WHERE c.project_id=p.id AND p.owner_id=$1 AND c.state='RUNNING' AND c.active_attempt_id IS NULL
+      AND c.updated_at<now()-interval '120 seconds'
+      AND NOT EXISTS (SELECT 1 FROM browser_render_jobs j WHERE j.candidate_id=c.id AND j.owner_id=$1 AND j.state='PENDING' AND j.deadline>now())`,[this.ownerId]);
     await this.pool.query(`DELETE FROM browser_render_jobs WHERE owner_id = $1 AND delivery_mode = '${this.deliveryMode}' AND state <> 'PENDING' AND updated_at < now() - interval '1 day'`, [this.ownerId]);
   }
 }

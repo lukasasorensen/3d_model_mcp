@@ -1,4 +1,5 @@
-import { BROWSER_RENDERER, CAD_LIMITS, type BrowserRenderCompletion, type Diagnostic, type RemoteMcpBrowserRenderJob, type LocalMcpBrowserRenderJob } from "@rjls/contracts";
+import { summarizeStl } from "./mesh-summary";
+import { BROWSER_RENDERER, CAD_LIMITS, type BrowserRenderCompletion, type Diagnostic, type GeometrySummary, type RemoteMcpBrowserRenderJob, type LocalMcpBrowserRenderJob } from "@rjls/contracts";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
 import { Group, Mesh, MeshStandardMaterial } from "three";
@@ -50,9 +51,9 @@ export async function renderOpenScad(source: string, format: "stl" | "3mf", sign
     };
     signal?.addEventListener("abort", abort, { once: true });
     worker.onerror = () => finish(() => reject(new Error("The browser OpenSCAD worker failed.")));
-    worker.onmessage = (event: MessageEvent<{ ok: boolean; bytes?: Uint8Array; diagnostics?: string[]; message?: string }>) => {
+    worker.onmessage = (event: MessageEvent<{ ok: boolean; bytes?: Uint8Array; diagnostics?: string[]; message?: string; failureKind?: "operational" | "model" }>) => {
       const diagnostics = diagnosticsFrom(event.data.diagnostics ?? [], !event.data.ok);
-      if (!event.data.ok || !event.data.bytes) finish(() => reject(Object.assign(new Error(event.data.message ?? "OpenSCAD rejected the model."), { diagnostics })));
+      if (!event.data.ok || !event.data.bytes) finish(() => reject(Object.assign(new Error(event.data.message ?? "OpenSCAD rejected the model."), { diagnostics, failureKind: event.data.failureKind ?? "operational" })));
       else {
         const limit = format === "stl" ? CAD_LIMITS.previewBytes : CAD_LIMITS.exportBytes;
         if (event.data.bytes.byteLength > limit) finish(() => reject(new Error("Rendered output exceeds the browser artifact limit.")));
@@ -74,17 +75,19 @@ export async function renderPreview(source: string, sourceHash: string, signal?:
 }
 
 async function renderCompletion(request: { source: string; sourceHash: string; token: string }, sessionId: string, signal?: AbortSignal): Promise<BrowserRenderCompletion> {
-  let outcome: "VALID" | "REJECTED" = "VALID";
+  let outcome: "VALID" | "REJECTED" | "FAILED" = "VALID";
+  let geometry: GeometrySummary | undefined;
   let diagnostics: Diagnostic[] = [];
   try {
     const result = await renderPreview(request.source, request.sourceHash, signal);
     diagnostics = result.diagnostics;
+    geometry = summarizeStl(result.bytes);
   } catch (error) {
     if (signal?.aborted) throw error;
-    outcome = "REJECTED";
+    outcome = (error as { failureKind?: string }).failureKind === "model" ? "REJECTED" : "FAILED";
     diagnostics = (error as { diagnostics?: Diagnostic[] }).diagnostics ?? [{ code: "OPENSCAD_FAILED", severity: "error", message: "OpenSCAD rejected the model." }];
   }
-  return { token: request.token, sessionId, sourceHash: request.sourceHash, outcome, diagnostics, provenance: browserRendererProvenance };
+  return { token: request.token, sessionId, sourceHash: request.sourceHash, outcome, diagnostics, geometry, provenance: browserRendererProvenance };
 }
 
 export async function completeBrowserRender(event: Extract<import("@rjls/contracts").ChatEvent, { type: "browser_render_request" }>): Promise<void> {
@@ -116,12 +119,6 @@ export async function completeRemoteMcpBrowserRender(job: RemoteMcpBrowserRender
     body: JSON.stringify(completion),
   });
   if (!response.ok) throw new Error("The remote MCP render result was not accepted.");
-}
-
-export async function downloadBrowserExport(event: Extract<import("@rjls/contracts").ChatEvent, { type: "browser_render_request" }>, label: string): Promise<void> {
-  if (event.purpose !== "export" || event.format !== "3mf" || !event.revisionId) throw new Error("Invalid browser export request.");
-  const generated = await generateDownload(event.source, "3mf");
-  downloadGeneratedBytes(generated.bytes, generated.mimeType, `RJLS-${label}.${generated.extension}`);
 }
 
 function checkedArrayBuffer(bytes: Uint8Array): ArrayBuffer {

@@ -115,7 +115,7 @@ async function migratedMemoryPool() {
   });
   const adapter = database.adapters.createPg();
   const pool = new adapter.Pool();
-  for (const migration of ["0000_tough_jetstream.sql", "0001_material_ben_grimm.sql", "0002_marvelous_puff_adder.sql", "0008_sad_starhawk.sql"]) {
+  for (const migration of ["0000_tough_jetstream.sql", "0001_material_ben_grimm.sql", "0002_marvelous_puff_adder.sql", "0008_sad_starhawk.sql", "0009_clever_spot.sql"]) {
     const sql = await readFile(new URL(`../drizzle/${migration}`, import.meta.url), "utf8");
     for (const statement of sql.split("--> statement-breakpoint").map((part) => part.trim()).filter(Boolean)) await pool.query(statement);
   }

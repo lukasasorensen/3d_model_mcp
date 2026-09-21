@@ -1,4 +1,6 @@
 import * as z from "zod/v4";
+import { geometrySummarySchema, exportMetadataSchema, exportReceiptSchema, type GeometrySummary } from "./workflow-contracts.js";
+export * from "./workflow-contracts.js";
 
 export const CONTRACT_VERSION = "1" as const;
 export const CHAT_CONTRACT_VERSION = "3" as const;
@@ -66,6 +68,7 @@ export const diagnosticSchema = z
 export type Diagnostic = z.infer<typeof diagnosticSchema>;
 
 export const cadErrorCodeSchema = z.enum([
+  "BROWSER_REQUIRED", "BROWSER_BUSY", "VALIDATION_RUNNING", "EXPORT_CAPACITY", "EXPORT_UNAVAILABLE",
   "INVALID_TOOL_INPUT",
   "PROJECT_NOT_FOUND",
   "REVISION_NOT_FOUND",
@@ -175,6 +178,7 @@ export interface RenderedArtifact {
 
 export interface RenderValidationResult {
   outcome: "VALID" | "REJECTED";
+  geometry?: GeometrySummary;
   diagnostics: Diagnostic[];
   provenance: RendererProvenance;
   validationPolicyVersion: string;
@@ -184,6 +188,7 @@ export interface RenderValidationResult {
 export interface CandidateRenderRequest {
   projectId: string;
   candidateId: string;
+  attemptId?: string;
   source: string;
   sourceHash: string;
   previewProfile: "standard";
@@ -242,6 +247,7 @@ export const revisionManifestSchema = z
     diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
     artifacts: z.array(artifactManifestSchema).max(8),
     renderer: rendererProvenanceSchema,
+    geometry: geometrySummarySchema.optional(),
   })
   .strict();
 export type RevisionManifest = z.infer<typeof revisionManifestSchema>;
@@ -255,6 +261,8 @@ export const candidateRecordSchema = z
     sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
     sourceBytes: z.number().int().positive().max(CAD_LIMITS.sourceBytes),
     state: candidateStateSchema,
+    activeAttemptId: opaqueIdSchema.optional(),
+    geometry: geometrySummarySchema.optional(),
     createdAt: z.string().datetime({ offset: true }),
     updatedAt: z.string().datetime({ offset: true }),
     requestId: opaqueIdSchema,
@@ -295,7 +303,7 @@ export const promoteCandidateInputSchema = z
   })
   .strict();
 export const exportModelInputSchema = z
-  .object({ projectId: projectIdSchema, revision: revisionIdSchema, format: z.literal("3mf") })
+  .object({ projectId: projectIdSchema, revision: revisionIdSchema, format: z.enum(["stl", "3mf"]) })
   .strict();
 export const listRevisionsInputSchema = z.object({ projectId: projectIdSchema }).strict();
 export const restoreRevisionInputSchema = z
@@ -311,6 +319,9 @@ export const projectStateSchema = z
   .object({
     projectId: projectIdSchema,
     currentRevision: revisionIdSchema.nullable(),
+    projectUrl: z.string().url().optional(),
+    rendererAvailability: z.enum(["ready", "busy", "unavailable"]).optional(),
+    exports: z.array(exportMetadataSchema).optional(),
     source: z.object({ hash: z.string().regex(/^[a-f0-9]{64}$/), byteSize: z.number().int().nonnegative() }).strict().nullable(),
     artifacts: z.array(artifactManifestSchema).max(8),
     diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
@@ -320,7 +331,7 @@ export const projectDetailsSchema = z.object({
   name: z.string().trim().min(1).max(200).default("Untitled project"),
   description: z.string().max(4000).default(""),
 }).strict();
-export const projectSummarySchema = projectDetailsSchema.extend({ projectId: projectIdSchema }).strict();
+export const projectSummarySchema = projectDetailsSchema.extend({ projectId: projectIdSchema, projectUrl: z.string().url().optional() }).strict();
 export const createProjectInputSchema = z.object({
   name: projectDetailsSchema.shape.name.removeDefault(),
   description: projectDetailsSchema.shape.description.removeDefault().trim().min(1),
@@ -347,7 +358,7 @@ export const proposeModelSourceOutputSchema = z.object({ candidate: candidateRec
 export const validateAndRenderOutputSchema = z.object({ candidate: candidateRecordSchema }).strict();
 export const promoteCandidateOutputSchema = z.object({ revision: revisionManifestSchema }).strict();
 export const exportModelOutputSchema = z.object({
-  export: z.object({ revision: revisionIdSchema, source: z.string().min(1).max(CAD_LIMITS.sourceBytes), sourceHash: z.string().regex(/^[a-f0-9]{64}$/), format: z.literal("3mf") }).strict(),
+  export: exportReceiptSchema,
 }).strict();
 export const listRevisionsOutputSchema = z.object({ revisions: z.array(revisionManifestSchema) }).strict();
 export const restoreRevisionOutputSchema = z.object({ revision: revisionManifestSchema }).strict();
@@ -454,7 +465,8 @@ export const browserRenderCompletionSchema = z.object({
   token: z.string().regex(/^[a-f0-9]{64}$/),
   sessionId: sessionIdSchema,
   sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
-  outcome: z.enum(["VALID", "REJECTED"]),
+  outcome: z.enum(["VALID", "REJECTED", "FAILED"]),
+  geometry: geometrySummarySchema.optional(),
   diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
   provenance: rendererProvenanceSchema.refine((value) => value.profile === "browser-wasm", "browser WASM provenance required"),
 }).strict();
@@ -497,7 +509,9 @@ export const doneEventSchema = z.object({
   outcome: z.enum(["completed", "failed", "cancelled"]),
   toolRounds: z.number().int().nonnegative().max(CHAT_LIMITS.maxToolRounds),
 }).strict();
+export const exportReadyEventSchema = z.object({ ...chatEventBase, type: z.literal("export_ready"), export: exportReceiptSchema }).strict();
 export const chatEventSchema = z.union([
+  exportReadyEventSchema,
   assistantDeltaEventSchema, toolStartEventSchema, toolResultEventSchema, revisionEventSchema,
   artifactEventSchema, browserRenderRequestEventSchema, chatErrorEventSchema, doneEventSchema,
 ]);

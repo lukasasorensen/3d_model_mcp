@@ -18,3 +18,7 @@ coverage/
 .omc
 .codex
 apps/site/public/vendor/openscad/
+
+.cad-exports/
+
+.next-acceptance/

@@ -1,10 +1,10 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { localMcpBrowserRenderJobSchema, remoteMcpBrowserRenderJobSchema, previewJobSchema, previewStatusSchema } from "@rjls/contracts";
+import { localMcpBrowserRenderJobSchema, remoteMcpBrowserRenderJobSchema, previewJobSchema, previewStatusSchema, exportJobSchema } from "@rjls/contracts";
 import { ActivePreview } from "./active-preview";
 import { completeModelPreview } from "./model-preview-renderer";
 import { BrowserRenderLease } from "./browser-render-lease";
-import { completeLocalMcpBrowserRender, completeRemoteMcpBrowserRender } from "./browser-renderer";
+import { completeLocalMcpBrowserRender, completeRemoteMcpBrowserRender, generateDownload } from "./browser-renderer";
 
 export function useMcpBrowserRenderer(options: {
   projectId: string; sessionId: string; localEnabled: boolean; remoteEnabled: boolean;
@@ -21,7 +21,7 @@ export function useMcpBrowserRenderer(options: {
   useEffect(() => { pumpRef.current(); }, [renderWake]);
 
   useEffect(() => {
-    if ((!localEnabled && !remoteEnabled) || !sessionId || !isAvailable) return;
+    if (!sessionId || !isAvailable) return;
     let activePreview: ActivePreview | undefined;
     let stopped = false;
     let running = false;
@@ -57,6 +57,23 @@ export function useMcpBrowserRenderer(options: {
             return;
           } else if (response.status !== 204) throw new Error("Local rendering is unavailable.");
         }
+        const exportResponse = await fetch(`/v1/projects/${encodeURIComponent(projectId)}/export-jobs/claim`, {method:"POST",headers,signal:controller.signal,cache:"no-store"});
+        if(exportResponse.status===200) {
+          pending=true;setIsRendering(true);setStatus("Generating a downloadable export…");
+          const job=exportJobSchema.parse((await exportResponse.json()).job);
+          const uploadHeaders={...headers,"content-type":"application/octet-stream","x-export-id":job.jobId,"x-export-token":job.token,"x-source-hash":job.sourceHash};
+          try {
+            const generated=await generateDownload(job.source,job.format,controller.signal);
+            const completed=await fetch(`/v1/projects/${encodeURIComponent(projectId)}/export-jobs/complete`,{method:"POST",signal:controller.signal,headers:uploadHeaders,body:new Uint8Array(generated.bytes)});
+            if(!completed.ok) { const failure=await completed.json(); console.error("Export rejected:",failure); throw new Error("Export upload failed."); }
+          } catch(error) {
+            if(!controller.signal.aborted) await fetch(`/v1/projects/${encodeURIComponent(projectId)}/export-jobs/complete`,{method:"POST",signal:controller.signal,headers:{...uploadHeaders,"x-export-failed":"true"}}).catch(()=>undefined);
+            throw error;
+          }
+          setStatus("Export ready for download.");return;
+        }
+        if(exportResponse.status!==204)throw new Error("Export delivery unavailable.");
+        if (!localEnabled && !remoteEnabled) return;
         const preview = await fetch(`/v1/projects/${encodeURIComponent(projectId)}/preview-jobs/claim`, { method: "POST", headers, signal: controller.signal, cache: "no-store" });
         if (preview.status === 200) {
           pending = true; setIsRendering(true); setStatus("Rendering a PNG preview requested by Codex…");

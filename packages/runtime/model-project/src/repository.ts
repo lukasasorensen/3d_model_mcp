@@ -277,6 +277,8 @@ export class ModelProjectRepository {
     }
   }
 
+  async getCandidate(projectId: string, candidateId: string) { await this.ensureProject(projectId); return this.readCandidate(projectId,candidateId); }
+
   private async readCandidate(projectId: string, candidateId: string): Promise<CandidateRecord> {
     try {
       const value: unknown = JSON.parse(await readFile(join(this.candidateRoot(projectId, candidateId), "candidate.json"), "utf8"));
@@ -317,7 +319,7 @@ export class ModelProjectRepository {
   private async updateCandidate(candidate: CandidateRecord, nextState: CandidateRecord["state"], patch: Partial<CandidateRecord> = {}): Promise<CandidateRecord> {
     const allowed: Partial<Record<CandidateRecord["state"], CandidateRecord["state"][]>> = {
       CREATED: ["RUNNING"],
-      RUNNING: ["VALID", "REJECTED"],
+      RUNNING: ["VALID", "REJECTED", "CREATED"],
       VALID: ["PROMOTED", "SUPERSEDED"],
     };
     if (!allowed[candidate.state]?.includes(nextState)) {
@@ -379,10 +381,20 @@ export class ModelProjectRepository {
     signal?: AbortSignal;
   }): Promise<CandidateRecord> {
     candidateRecordSchema.shape.candidateId.parse(input.candidateId);
+    const observed = await this.readCandidate(input.projectId, input.candidateId);
+    if (observed.state === "RUNNING" && Date.now() - new Date(observed.updatedAt).getTime() < 120_000) throw new CadDomainError("VALIDATION_RUNNING", "Candidate validation is already running.", { attemptId: observed.activeAttemptId ?? "legacy", retryable: true });
     return this.withProjectLock(input.projectId, `candidate-${input.candidateId}`, async () => {
-      const candidate = await this.readCandidate(input.projectId, input.candidateId);
+      let candidate = await this.readCandidate(input.projectId, input.candidateId);
+      if (candidate.state === "VALID") return candidate;
+      if (candidate.state === "RUNNING") {
+        if (Date.now() - new Date(candidate.updatedAt).getTime() < 120_000) throw new CadDomainError("VALIDATION_RUNNING", "Candidate validation is already running.", { attemptId: candidate.activeAttemptId ?? "legacy", retryable: true });
+        candidate = await this.updateCandidate(candidate, "CREATED", { activeAttemptId: undefined });
+      }
       if (candidate.state !== "CREATED") throw new CadDomainError("INVALID_CANDIDATE_STATE", "Only a created candidate can be rendered.");
-      const running = await this.updateCandidate(candidate, "RUNNING");
+      const attemptId = `attempt-${randomUUID()}`;
+      const attemptPath = join(this.candidateRoot(input.projectId, input.candidateId), `${attemptId}.json`);
+      await writeDurable(attemptPath, safeJson({ attemptId, state: "RUNNING", deadline: new Date(Date.now()+120_000).toISOString() }));
+      const running = await this.updateCandidate(candidate, "RUNNING", { activeAttemptId: attemptId });
       try {
         const source = await readFile(join(this.candidateRoot(input.projectId, input.candidateId), "model.scad"), "utf8");
         if (sha256(source) !== running.sourceHash) throw new CadDomainError("SOURCE_HASH_MISMATCH", "Candidate source hash mismatch.");
@@ -391,12 +403,14 @@ export class ModelProjectRepository {
           rawResult = await this.options.renderer.validateAndRender({
             projectId: input.projectId,
             candidateId: input.candidateId,
+            attemptId,
             source,
             sourceHash: running.sourceHash,
             previewProfile: input.previewProfile,
             signal: input.signal,
           });
-        } catch {
+        } catch (error) {
+          if (error instanceof CadDomainError) throw error;
           if (input.signal?.aborted) throw new CadDomainError("CANCELLED", "Rendering was cancelled.");
           throw new CadDomainError("RENDER_FAILED", "Renderer failed safely.");
         }
@@ -408,7 +422,8 @@ export class ModelProjectRepository {
           acceptRendererProvenance: this.options.acceptRendererProvenance,
           hashBytes: sha256,
         });
-        if (decision.outcome === "REJECTED") return this.updateCandidate(running, "REJECTED", { diagnostics: decision.diagnostics });
+        await writeAtomic(attemptPath, safeJson({ attemptId, state: decision.outcome }));
+        if (decision.outcome === "REJECTED") return this.updateCandidate(running, "REJECTED", { activeAttemptId: undefined, diagnostics: decision.diagnostics });
         const manifests = decision.artifacts.map((artifact) => artifact.manifest);
         if (decision.artifacts.length > 0) {
           const artifactsDirectory = join(this.candidateRoot(input.projectId, input.candidateId), "artifacts");
@@ -419,6 +434,7 @@ export class ModelProjectRepository {
         }
         return this.updateCandidate(running, "VALID", {
           diagnostics: decision.diagnostics,
+          activeAttemptId: undefined, geometry: decision.geometry,
           renderer: decision.provenance,
           validationPolicyVersion: decision.validationPolicyVersion,
           artifacts: manifests,
@@ -428,9 +444,13 @@ export class ModelProjectRepository {
         if (latest.state !== "RUNNING") throw error;
         const code = error instanceof CadDomainError ? error.code : "RENDER_FAILED";
         const message = error instanceof CadDomainError ? error.message : "Validation failed safely.";
-        return this.updateCandidate(latest, "REJECTED", {
-          diagnostics: [{ code, severity: "error", message }],
-        });
+        if (error instanceof CadDomainError && ["SOURCE_HASH_MISMATCH", "ARTIFACT_HASH_MISMATCH", "CORRUPT_PROJECT", "PROVENANCE_MISMATCH", "POLICY_MISMATCH"].includes(error.code)) {
+          await writeAtomic(attemptPath, safeJson({ attemptId, state: "REJECTED", code, message }));
+          return this.updateCandidate(latest, "REJECTED", { activeAttemptId: undefined, diagnostics: [{code,severity:"error",message}] });
+        }
+        await writeAtomic(attemptPath, safeJson({ attemptId, state: "FAILED", code, message, details: error instanceof CadDomainError ? error.details : {} }));
+        await this.updateCandidate(latest, "CREATED", { activeAttemptId: undefined, diagnostics: [{ code, severity: "error", message }] });
+        throw error instanceof CadDomainError ? error : new CadDomainError("RENDER_FAILED", message, { retryable: true });
       }
     }, input.signal);
   }
@@ -509,6 +529,7 @@ export class ModelProjectRepository {
     requestId: string;
     toolCallId: string;
     diagnostics: Diagnostic[];
+    geometry?: import("@rjls/contracts").GeometrySummary;
     renderer: RendererProvenance;
     artifacts: CandidateRecord["artifacts"];
   }): Promise<RevisionManifest> {
@@ -555,6 +576,7 @@ export class ModelProjectRepository {
       diagnostics: input.diagnostics,
       artifacts,
       renderer: input.renderer,
+      geometry: input.geometry,
     });
     const versions = join(this.controlRoot(input.projectId), "versions");
     const temporary = join(versions, `.${input.revisionId}.${randomUUID()}.tmp`);
@@ -629,6 +651,7 @@ export class ModelProjectRepository {
         toolCallId: candidate.toolCallId,
         diagnostics: candidate.diagnostics,
         renderer: candidate.renderer,
+        geometry: candidate.geometry,
         artifacts: candidate.artifacts,
       });
       await this.reconcilePromotedCandidate(manifest);
@@ -762,6 +785,7 @@ export class ModelProjectRepository {
         toolCallId: input.toolCallId,
         diagnostics: target.diagnostics,
         renderer: target.renderer,
+      geometry: target.geometry,
         artifacts: target.artifacts.map(({ sourceRevision, ...artifact }) => {
           void sourceRevision;
           return artifact;

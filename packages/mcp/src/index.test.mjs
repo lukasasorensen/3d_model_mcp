@@ -80,7 +80,7 @@ test("export_model fails safely when the requested revision is not current", asy
       };
     },
   });
-  const result = await invokeCadTool(createCadToolRegistry(staleRepository), "export_model", { projectId: "demo", revision: "revision-old", format: "3mf" });
+  const result = await invokeCadTool(createCadToolRegistry(staleRepository, { exportModel: () => staleRepository.getExportMetadata() }), "export_model", { projectId: "demo", revision: "revision-old", format: "3mf" });
   assert.deepEqual(result, { ok: false, error: { code: "STALE_REVISION", message: "Exports are available only for the current revision.", details: {} } });
 });
 

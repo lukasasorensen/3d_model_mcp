@@ -1,3 +1,4 @@
+import { zipDirectory, zipEntrySizes } from "./zip64.js";
 import { inflateRawSync } from "node:zlib";
 import { CAD_LIMITS } from "@rjls/contracts";
 import { RendererError } from "./diagnostics.js";
@@ -108,28 +109,28 @@ function unzip(bytes: Uint8Array): ZipEntry[] {
     if (view.getUint32(cursor, true) === 0x06054b50) { eocd = cursor; break; }
   }
   if (eocd < 0 || eocd + 22 + view.getUint16(eocd + 20, true) !== bytes.byteLength) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP end record is missing or inconsistent.");
-  const entryCount = view.getUint16(eocd + 10, true);
-  const centralSize = view.getUint32(eocd + 12, true);
-  const centralOffset = view.getUint32(eocd + 16, true);
-  if (view.getUint16(eocd + 8, true) !== entryCount || centralOffset + centralSize !== eocd) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP central directory is inconsistent.");
+  const {count:entryCount,offset:centralOffset,end:centralEnd} = zipDirectory(view,eocd);
   const central: CentralZipEntry[] = [];
   let centralCursor = centralOffset;
   for (let index = 0; index < entryCount; index += 1) {
-    if (centralCursor + 46 > eocd || view.getUint32(centralCursor, true) !== 0x02014b50) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP central directory is malformed.");
+    if (centralCursor + 46 > centralEnd || view.getUint32(centralCursor, true) !== 0x02014b50) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP central directory is malformed.");
     const nameLength = view.getUint16(centralCursor + 28, true);
     const extraLength = view.getUint16(centralCursor + 30, true);
     const commentLength = view.getUint16(centralCursor + 32, true);
     const end = centralCursor + 46 + nameLength + extraLength + commentLength;
-    if (end > eocd) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP central directory is truncated.");
+    if (end > centralEnd) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP central directory is truncated.");
+    const sizes = zipEntrySizes(view, centralCursor + 46 + nameLength, extraLength, {
+      compressedSize:view.getUint32(centralCursor+20,true),uncompressedSize:view.getUint32(centralCursor+24,true),localOffset:view.getUint32(centralCursor+42,true),
+    });
     central.push({
       name: new TextDecoder().decode(bytes.subarray(centralCursor + 46, centralCursor + 46 + nameLength)),
       flags: view.getUint16(centralCursor + 8, true), method: view.getUint16(centralCursor + 10, true),
-      crc: view.getUint32(centralCursor + 16, true), compressedSize: view.getUint32(centralCursor + 20, true),
-      uncompressedSize: view.getUint32(centralCursor + 24, true), localOffset: view.getUint32(centralCursor + 42, true),
+      crc: view.getUint32(centralCursor + 16, true), compressedSize: sizes.compressedSize,
+      uncompressedSize: sizes.uncompressedSize, localOffset: sizes.localOffset!,
     });
     centralCursor = end;
   }
-  if (centralCursor !== eocd || new Set(central.map((entry) => entry.name)).size !== central.length) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP central directory has trailing or duplicate entries.");
+  if (centralCursor !== centralEnd || new Set(central.map((entry) => entry.name)).size !== central.length) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP central directory has trailing or duplicate entries.");
   const entries: ZipEntry[] = [];
   let offset = 0;
   let expanded = 0;
@@ -137,12 +138,13 @@ function unzip(bytes: Uint8Array): ZipEntry[] {
     if (expected.localOffset !== offset || offset + 30 > centralOffset || view.getUint32(offset, true) !== 0x04034b50) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP local headers do not match the central directory.");
     const flags = view.getUint16(offset + 6, true);
     const method = view.getUint16(offset + 8, true);
-    const compressedSize = view.getUint32(offset + 18, true);
-    const uncompressedSize = view.getUint32(offset + 22, true);
+    let compressedSize = view.getUint32(offset + 18, true);
+    let uncompressedSize = view.getUint32(offset + 22, true);
     const expectedCrc = view.getUint32(offset + 14, true);
     const nameLength = view.getUint16(offset + 26, true);
     const extraLength = view.getUint16(offset + 28, true);
-    if ((flags & 0x08) !== 0 || (method !== 0 && method !== 8)) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP uses an unsupported streaming or compression mode.");
+    ({compressedSize,uncompressedSize} = zipEntrySizes(view,offset+30+nameLength,extraLength,{compressedSize,uncompressedSize}));
+    if ((flags & 0x09) !== 0 || (method !== 0 && method !== 8)) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP uses an unsupported streaming or compression mode.");
     const dataOffset = offset + 30 + nameLength + extraLength;
     const end = dataOffset + compressedSize;
     if (end > bytes.byteLength || uncompressedSize > CAD_LIMITS.exportBytes) throw new RendererError("INVALID_ARTIFACT", "3MF ZIP entry is truncated or oversized.");
@@ -237,7 +239,7 @@ export function parseThreeMf(bytes: Uint8Array, expectedSourceHash?: string): Pa
   if (!targetValue || targetValue.includes("\\") || targetValue.split("/").includes("..")) throw new RendererError("INVALID_ARTIFACT", "3MF model relationship target is unsafe or missing.");
   const target = targetValue.replace(/^\//, "");
   const escapedTarget = `/${target}`.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  if (!new RegExp(`<Override\\b(?=[^>]*\\bPartName=["']${escapedTarget}["'])(?=[^>]*\\bContentType=["']application/vnd\\.ms-package\\.3dmanufacturing-3dmodel\\+xml["'])[^>]*/?>`, "i").test(contentTypesXml)) throw new RendererError("INVALID_ARTIFACT", "3MF content types do not declare the related model part.");
+  if (!/<Default\b(?=[^>]*\bExtension=["']model["'])(?=[^>]*\bContentType=["']application\/vnd\.ms-package\.3dmanufacturing-3dmodel\+xml["'])[^>]*\/?>/i.test(contentTypesXml) && !new RegExp(`<Override\\b(?=[^>]*\\bPartName=["']${escapedTarget}["'])(?=[^>]*\\bContentType=["']application/vnd\\.ms-package\\.3dmanufacturing-3dmodel\\+xml["'])[^>]*/?>`, "i").test(contentTypesXml)) throw new RendererError("INVALID_ARTIFACT", "3MF content types do not declare the related model part.");
   const model = target ? entries.find((entry) => entry.name === target) : undefined;
   if (!model) throw new RendererError("INVALID_ARTIFACT", "3MF package has no model part.");
   const xml = new TextDecoder("utf-8", { fatal: true }).decode(model.bytes);

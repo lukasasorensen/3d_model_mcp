@@ -1,5 +1,5 @@
 import {
-  CAD_LIMITS,
+  CAD_LIMITS, geometrySummarySchema, type GeometrySummary,
   boundingBoxSchema,
   candidateRecordSchema,
   diagnosticSchema,
@@ -30,6 +30,7 @@ const renderedArtifactSchema = z
 export const renderValidationResultSchema = z
   .object({
     outcome: z.enum(["VALID", "REJECTED"]),
+    geometry: geometrySummarySchema.optional(),
     diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
     provenance: rendererProvenanceSchema,
     validationPolicyVersion: z.string().min(1).max(100),
@@ -51,6 +52,7 @@ export type RenderPolicyDecision =
     provenance: RendererProvenance;
     validationPolicyVersion: string;
     artifacts: PreparedRenderArtifact[];
+    geometry?: GeometrySummary;
   };
 
 function rejection(code: string, message: string): RenderPolicyDecision {
@@ -113,6 +115,7 @@ export function evaluateRenderResult(input: {
   }
   return {
     outcome: "VALID",
+    geometry: result.geometry,
     diagnostics: result.diagnostics,
     provenance: result.provenance,
     validationPolicyVersion: result.validationPolicyVersion,
