@@ -1,3 +1,6 @@
+import { validationAttempts } from "./validation-attempt.schema.js";
+import { modelExports } from "./model-export.schema.js";
+import { exportDownloadTokens } from "./export-download-token.schema.js";
 import { browserPreviewJobs } from "./browser-preview-job.schema.js";
 import { browserPresence } from "./browser-presence.schema.js";
 export { browserPreviewJobs, browserPresence };
@@ -43,6 +46,7 @@ export { oauthClientAssertion } from "./oauth-client-assertion.schema.js";
 export { jwks } from "./jwks.schema.js";
 
 export const schema = {
+  validationAttempts, modelExports, exportDownloadTokens,
   browserPreviewJobs, browserPresence,
   oauthClient,
   oauthResource,
@@ -65,3 +69,7 @@ export const schema = {
   browserRenderJobs,
 };
 export { renderDeliveryMode } from "./render-delivery-mode.enum.js";
+
+export * from "./validation-attempt.schema.js";
+export * from "./model-export.schema.js";
+export * from "./export-download-token.schema.js";

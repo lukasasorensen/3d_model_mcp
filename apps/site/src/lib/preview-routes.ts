@@ -20,7 +20,7 @@ async function boundedJson(request: Request, limit: number): Promise<unknown> {
 
 export function previewRoute(action: "presence" | "claim" | "complete" | "status") {
   return async (request: Request, context: { params: Promise<{ projectId: string }> }): Promise<Response> => {
-    if (!remoteMcpEnabled() && !localMcpBridgeEnabled()) return jsonError("NOT_FOUND", 404);
+    if (action !== "presence" && !remoteMcpEnabled() && !localMcpBridgeEnabled()) return jsonError("NOT_FOUND", 404);
     const origin = requireSameOrigin(request); if (origin) return origin;
     const user = await authenticateRequest(request); if (isPolicyResponse(user)) return user;
     const project = projectIdSchema.safeParse((await context.params).projectId);

@@ -9,3 +9,5 @@ export * from "./project-notifications.js";
 
 export * from "./browser-presence.repository.js";
 export * from "./browser-preview-jobs.repository.js";
+
+export * from "./model-exports.repository.js";

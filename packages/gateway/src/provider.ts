@@ -145,7 +145,7 @@ class DeterministicCadChatModel extends BaseChatModel {
     } else if (last.name === "promote_candidate") {
       message = new AIMessage({ content: "The validated CAD revision is now current." });
     } else if (last.name === "export_model") {
-      message = new AIMessage({ content: "The validated 3MF export was generated in your browser." });
+      message = new AIMessage({ content: "The verified export is ready and its download has been requested." });
     } else {
       message = new AIMessage({ content: "The CAD request is complete." });
     }

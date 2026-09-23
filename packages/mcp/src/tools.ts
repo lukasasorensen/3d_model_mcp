@@ -1,5 +1,5 @@
 import {
-  CAD_LIMITS,
+  CAD_LIMITS, type CadWorkflowService,
   createProjectInputSchema,
   createProjectOutputSchema,
   updateProjectInputSchema,
@@ -59,15 +59,15 @@ function boundedResult(value: Record<string, unknown>): Record<string, unknown> 
   return value;
 }
 
-export function createCadToolRegistry(repository: ModelProjectStore): CadToolRegistry {
+export function createCadToolRegistry(repository: ModelProjectStore, workflow?: CadWorkflowService): CadToolRegistry {
   return {
     create_project: {
       title: "Create project",
-      description: "Create a project for the authenticated owner with a name and description. Returns its project ID for subsequent CAD tools.",
+      description: "Create a project for the authenticated owner with a name and description. Returns its project ID and configured project URL for subsequent CAD tools. Obtain fit-critical measurements or clearly disclose assumptions.",
       inputSchema: createProjectInputSchema,
       outputSchema: createProjectOutputSchema,
       readOnly: false,
-      execute: async (raw) => boundedResult({ project: await repository.createProject(createProjectInputSchema.parse(raw)) }),
+      execute: async (raw) => { const project = await repository.createProject(createProjectInputSchema.parse(raw)); return boundedResult({ project: { ...project, ...(workflow ? { projectUrl: workflow.projectUrl(project.projectId) } : {}) } }); },
     },
     update_project: {
       title: "Update project details",
@@ -85,7 +85,7 @@ export function createCadToolRegistry(repository: ModelProjectStore): CadToolReg
       readOnly: true,
       execute: async (raw) => {
         const input = getProjectStateInputSchema.parse(raw);
-        return boundedResult({ state: await repository.getProjectState(input.projectId) });
+        return boundedResult({ state: { ...await repository.getProjectState(input.projectId), ...(workflow ? { projectUrl: workflow.projectUrl(input.projectId), ...await workflow.inspect(input.projectId) } : {}) } });
       },
     },
     read_model_source: {
@@ -109,13 +109,15 @@ export function createCadToolRegistry(repository: ModelProjectStore): CadToolReg
     },
     validate_and_render: {
       title: "Validate and render candidate",
-      description: "Request validation and preview rendering through the server-owned standard profile.",
+      description: "Validate immutable source using the standard profile in a visible project browser. On BROWSER_REQUIRED open/focus projectUrl and retry the same candidate; on BROWSER_BUSY wait. Operational failures are retryable, not invalid models. Inspect get_model_preview before promotion. Geometry validation does not establish fit, strength or printability.",
       inputSchema: validateAndRenderInputSchema,
       outputSchema: validateAndRenderOutputSchema,
       readOnly: false,
       execute: async (raw, context) => {
         const input = validateAndRenderInputSchema.parse(raw);
-        return boundedResult({ candidate: await repository.validateAndRender({ ...input, signal: context.signal }) });
+        if (workflow && (await repository.getCandidate(input.projectId,input.candidateId)).state === "CREATED") await workflow.requireReady(input.projectId);
+        try { return boundedResult({ candidate: await repository.validateAndRender({ ...input, signal: context.signal }) }); }
+        catch (error) { if (workflow && error instanceof CadDomainError) throw new CadDomainError(error.code, error.message, { ...error.details, projectUrl: workflow.projectUrl(input.projectId) }); throw error; }
       },
     },
     promote_candidate: {
@@ -130,14 +132,15 @@ export function createCadToolRegistry(repository: ModelProjectStore): CadToolReg
       },
     },
     export_model: {
-      title: "Get export metadata",
-      description: "Authorize browser-side 3MF generation for the authoritative current revision.",
+      title: "Generate downloadable export",
+      description: "Generate or reuse STL/3MF for the current revision. Requires a visible ready project browser for new exports. Returns exact file hash, bytes, filename and an expiring bearer download link. Retrieve the link to save the file; tool success does not mean it was saved locally.",
       inputSchema: exportModelInputSchema,
       outputSchema: exportModelOutputSchema,
-      readOnly: true,
-      execute: async (raw) => {
+      readOnly: false,
+      execute: async (raw, context) => {
         const input = exportModelInputSchema.parse(raw);
-        return boundedResult({ export: await repository.getExportMetadata(input.projectId, input.revision, input.format) });
+        if (!workflow) throw new CadDomainError("EXPORT_UNAVAILABLE", "Export delivery is not configured.");
+        return boundedResult({ export: await workflow.exportModel({ ...input, signal: context.signal }) });
       },
     },
     list_revisions: {

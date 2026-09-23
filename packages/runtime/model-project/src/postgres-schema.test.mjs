@@ -15,7 +15,9 @@ test("split schema modules assemble the complete database schema", () => {
       "browser_render_jobs",
       "candidate_artifacts",
       "candidates",
+      "export_download_tokens",
       "jwks",
+      "model_exports",
       "oauth_access_token",
       "oauth_client",
       "oauth_client_assertion",
@@ -28,6 +30,7 @@ test("split schema modules assemble the complete database schema", () => {
       "revisions",
       "session",
       "user",
+      "validation_attempts",
       "verification",
     ],
   );

@@ -64,6 +64,13 @@
       "when": 1789416688230,
       "tag": "0008_sad_starhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790004368816,
+      "tag": "0009_clever_spot",
+      "breakpoints": true
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { index, pgTable, text, uniqueIndex, type AnyPgColumn } from "drizzle-orm/pg-core";
+import { jsonb, index, pgTable, text, uniqueIndex, type AnyPgColumn } from "drizzle-orm/pg-core";
 
 import { projects } from "./project.schema.js";
 import {
@@ -13,6 +13,7 @@ import {
 
 export const revisions = pgTable("revisions", {
   id: primaryTextId(),
+  geometry: jsonb("geometry"),
   projectId: text("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   parentRevisionId: text("parent_revision_id").references((): AnyPgColumn => revisions.id, { onDelete: "restrict" }),
   restoredFromRevisionId: text("restored_from_revision_id").references((): AnyPgColumn => revisions.id, { onDelete: "restrict" }),

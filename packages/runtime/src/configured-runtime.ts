@@ -1,3 +1,4 @@
+import { RuntimeCadWorkflowService } from "./cad-workflow-service.js";
 import { isBrowserRendererProvenance } from "@rjls/contracts";
 import { CAD_TOOL_NAMES, createCadProvider, type ChatOrchestratorOptions } from "@rjls/gateway";
 import { PostgresModelProjectRepository, VALIDATION_POLICY_VERSION } from "@rjls/model-project";
@@ -54,7 +55,7 @@ async function createConfiguredCadRuntime(ownerId: string): Promise<ConfiguredCa
   const database = getProjectDatabase();
   const browserRenderer = new PostgresBrowserRenderCoordinator(VALIDATION_POLICY_VERSION, database.pool, ownerId, database.notifications);
   const repository = new PostgresModelProjectRepository({ pool: database.pool, ownerId, renderer: browserRenderer, acceptRendererProvenance: isBrowserRendererProvenance });
-  const client = await createInMemoryCadMcpClient(repository);
+  const client = await createInMemoryCadMcpClient(repository, new RuntimeCadWorkflowService(database, repository, ownerId, "chat"));
   const observability = new RuntimeObservabilityStore();
   const localBrowserRenderer = new LocalBrowserRenderer(database, ownerId, VALIDATION_POLICY_VERSION);
   const readiness = createObservedReadinessProbe(observability, () => probeConfiguredReadiness(client, async () => {

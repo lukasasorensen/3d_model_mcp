@@ -8,6 +8,7 @@ import {
   candidateRecordSchema,
   projectIdSchema,
   revisionManifestSchema,
+  type GeometrySummary,
   type CandidateRecord,
   type Diagnostic,
   type RendererProvenance,
@@ -35,6 +36,8 @@ interface CandidateRow extends QueryResultRow {
   validation_policy_version: string | null;
   diagnostics: unknown;
   renderer: unknown;
+  geometry: unknown;
+  active_attempt_id?: string;
   created_at: Date;
   updated_at: Date;
 }
@@ -53,6 +56,8 @@ interface RevisionRow extends QueryResultRow {
   validation_policy_version: string;
   diagnostics: unknown;
   renderer: unknown;
+  geometry: unknown;
+  active_attempt_id?: string;
   created_at: Date;
 }
 
@@ -144,6 +149,8 @@ export class PostgresProjectPersistence {
       sourceHash: row.source_hash,
       sourceBytes: row.source_bytes,
       state: row.state,
+      ...(row.active_attempt_id ? { activeAttemptId: row.active_attempt_id } : {}),
+      ...(row.geometry ? { geometry: row.geometry } : {}),
       createdAt: asIsoTimestamp(row.created_at),
       updatedAt: asIsoTimestamp(row.updated_at),
       requestId: row.request_id,
@@ -203,30 +210,28 @@ export class PostgresProjectPersistence {
     );
   }
 
-  async markCandidateRunning(candidateId: string, updatedAt: Date): Promise<void> {
-    const result = await this.executor.query("UPDATE candidates SET state = 'RUNNING', updated_at = $1 WHERE id = $2 AND state = 'CREATED' RETURNING id", [updatedAt, candidateId]);
+  async markCandidateRunning(projectId: string, candidateId: string, attemptId: string, updatedAt: Date): Promise<void> {
+    await this.requireProject(projectId);
+    await this.executor.query("INSERT INTO validation_attempts (id, candidate_id, state, deadline) VALUES ($1,$2,'RUNNING',$3)", [attemptId, candidateId, new Date(updatedAt.getTime() + 120_000)]);
+    const result = await this.executor.query("UPDATE candidates SET state = 'RUNNING', active_attempt_id = $3, updated_at = $1 WHERE id = $2 AND project_id = $4 AND state = 'CREATED' RETURNING id", [updatedAt, candidateId, attemptId, projectId]);
     if (!result.rows[0]) throw new CadDomainError("INVALID_CANDIDATE_STATE", "Candidate validation ownership was lost.");
   }
 
   async completeCandidateValidation(input: {
-    projectId: string;
-    candidateId: string;
-    state: "VALID" | "REJECTED";
-    diagnostics: Diagnostic[];
-    renderer?: RendererProvenance;
-    validationPolicyVersion?: string;
-    artifacts: CandidateRecord["artifacts"];
-    updatedAt: Date;
+    projectId: string; candidateId: string; attemptId: string; state: "VALID" | "REJECTED" | "CREATED";
+    diagnostics: Diagnostic[]; renderer?: RendererProvenance; geometry?: GeometrySummary;
+    validationPolicyVersion?: string; artifacts: CandidateRecord["artifacts"]; updatedAt: Date;
+    error?: { code: string; message: string; details: Readonly<Record<string, string | number | boolean | null>> };
   }): Promise<void> {
+    await this.requireProject(input.projectId);
     const updated = await this.executor.query(
-      "UPDATE candidates SET state = $1, diagnostics = $2, renderer = $3, validation_policy_version = $4, updated_at = $5 WHERE id = $6 AND project_id = $7 AND state = 'RUNNING' RETURNING id",
-      [input.state, JSON.stringify(input.diagnostics), input.renderer ? JSON.stringify(input.renderer) : null, input.validationPolicyVersion ?? null, input.updatedAt, input.candidateId, input.projectId],
+      "UPDATE candidates SET state = $1, diagnostics = $2, renderer = $3, validation_policy_version = $4, updated_at = $5, active_attempt_id = NULL, geometry = $9 WHERE id = $6 AND project_id = $7 AND state = 'RUNNING' AND active_attempt_id = $8 RETURNING id",
+      [input.state, JSON.stringify(input.diagnostics), input.renderer ? JSON.stringify(input.renderer) : null, input.validationPolicyVersion ?? null, input.updatedAt, input.candidateId, input.projectId, input.attemptId, input.geometry ? JSON.stringify(input.geometry) : null],
     );
-    if (!updated.rows[0]) throw new CadDomainError("INVALID_CANDIDATE_STATE", "Candidate validation ownership was lost.");
-    if (input.state === "VALID") {
-      for (const artifact of input.artifacts) {
-        await this.executor.query("INSERT INTO candidate_artifacts (candidate_id, format, metadata) VALUES ($1,$2,$3)", [input.candidateId, artifact.format, JSON.stringify(artifact)]);
-      }
+    if (!updated.rows[0]) return;
+    await this.executor.query("UPDATE validation_attempts SET state = $2, error = $3, updated_at = $4 WHERE id = $1 AND candidate_id = $5 AND state = 'RUNNING'", [input.attemptId, input.state === "CREATED" ? "FAILED" : input.state, input.error ? JSON.stringify(input.error) : null, input.updatedAt, input.candidateId]);
+    if (input.state === "VALID") for (const artifact of input.artifacts) {
+      await this.executor.query("INSERT INTO candidate_artifacts (candidate_id, format, metadata) VALUES ($1,$2,$3)", [input.candidateId, artifact.format, JSON.stringify(artifact)]);
     }
   }
 
@@ -248,12 +253,13 @@ export class PostgresProjectPersistence {
     validationPolicyVersion: string;
     diagnostics: Diagnostic[];
     renderer: RendererProvenance;
+    geometry?: GeometrySummary;
     createdAt: Date;
   }): Promise<void> {
     await this.executor.query(
-      `INSERT INTO revisions (id, project_id, parent_revision_id, restored_from_revision_id, source, source_hash, source_bytes, request_id, tool_call_id, candidate_id, validation_policy_version, diagnostics, renderer, created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
-      [input.id, input.projectId, input.parentRevision, input.restoredFromRevision ?? null, input.source, input.sourceHash, input.sourceBytes, input.requestId, input.toolCallId, input.candidateId, input.validationPolicyVersion, JSON.stringify(input.diagnostics), JSON.stringify(input.renderer), input.createdAt],
+      `INSERT INTO revisions (id, project_id, parent_revision_id, restored_from_revision_id, source, source_hash, source_bytes, request_id, tool_call_id, candidate_id, validation_policy_version, diagnostics, renderer, created_at, geometry)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+      [input.id, input.projectId, input.parentRevision, input.restoredFromRevision ?? null, input.source, input.sourceHash, input.sourceBytes, input.requestId, input.toolCallId, input.candidateId, input.validationPolicyVersion, JSON.stringify(input.diagnostics), JSON.stringify(input.renderer), input.createdAt, input.geometry ? JSON.stringify(input.geometry) : null],
     );
   }
 
@@ -300,6 +306,7 @@ export class PostgresProjectPersistence {
       diagnostics: row.diagnostics,
       artifacts,
       renderer: row.renderer,
+      ...(row.geometry ? { geometry: row.geometry } : {}),
     });
     if (sha256(row.source) !== manifest.sourceHash || Buffer.byteLength(row.source) !== manifest.sourceBytes) {
       throw new CadDomainError("CORRUPT_PROJECT", "Revision source failed integrity validation.", { revisionId: row.id });

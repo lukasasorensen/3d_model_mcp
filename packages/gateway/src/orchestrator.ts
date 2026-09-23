@@ -1,7 +1,7 @@
+import { exportReceiptSchema } from "@rjls/contracts";
 import { randomUUID } from "node:crypto";
 import {
   CHAT_LIMITS,
-  BROWSER_RENDERER,
   CAD_LIMITS,
   artifactManifestSchema,
   chatEventSchema,
@@ -141,7 +141,7 @@ const toolSpecs = [
   { name: "propose_model_source", description: "Propose bounded OpenSCAD source against a parent revision.", schema: proposeModelSourceInputSchema.omit({ requestId: true, toolCallId: true }) },
   { name: "validate_and_render", description: "Validate and render a candidate using the standard profile.", schema: validateAndRenderInputSchema },
   { name: "promote_candidate", description: "Atomically promote a valid candidate.", schema: promoteCandidateInputSchema },
-  { name: "export_model", description: "Authorize browser-side 3MF generation for the current revision.", schema: exportModelInputSchema },
+  { name: "export_model", description: "Generate or reuse a verifiable STL/3MF download receipt for the current revision.", schema: exportModelInputSchema },
   { name: "list_revisions", description: "List authoritative revision history.", schema: listRevisionsInputSchema },
   { name: "restore_revision", description: "Restore a historical revision as a new current child.", schema: restoreRevisionInputSchema.omit({ requestId: true, toolCallId: true }) },
 ] as const satisfies ReadonlyArray<{ name: CadToolName; description: string; schema: z.ZodType }>;
@@ -299,21 +299,10 @@ export async function* streamCadChat(request: ChatRequest, options: ChatOrchestr
         }
         const modelSource = (result.structuredContent.model as { source?: unknown } | undefined)?.source;
         if (typeof modelSource === "string") sensitiveValues.add(modelSource);
-        const exportRequest = result.structuredContent.export as { revision?: unknown; source?: unknown; sourceHash?: unknown; format?: unknown } | undefined;
-        if (spec.name === "export_model" && typeof exportRequest?.revision === "string" && typeof exportRequest.source === "string" && typeof exportRequest.sourceHash === "string" && exportRequest.format === "3mf") {
-          sensitiveValues.add(exportRequest.source);
-          emit({
-            type: "browser_render_request",
-            toolCallId,
-            jobId: `${toolCallId}-export`,
-            token: `${randomUUID()}${randomUUID()}`.replaceAll("-", ""),
-            purpose: "export",
-            revisionId: exportRequest.revision,
-            source: exportRequest.source,
-            sourceHash: exportRequest.sourceHash,
-            format: "3mf",
-            deadline: new Date(clock().getTime() + BROWSER_RENDERER.timeoutMs).toISOString(),
-          });
+        if (spec.name === "export_model") {
+          const receipt = exportReceiptSchema.parse(result.structuredContent.export);
+          sensitiveValues.add(receipt.downloadUrl);
+          emit({ type: "export_ready", export: receipt });
         }
         projectStructuredEvents(spec.name, toolCallId, result.structuredContent, emit);
         return serialized;

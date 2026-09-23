@@ -53,13 +53,13 @@ test("PostgreSQL remote validation, ownership, one-time claims, receipts, and re
     const interrupted = repository.validateAndRender({ projectId: project.projectId, candidateId: next.candidateId, previewProfile: "standard", signal: cancelled.signal });
     const interruptedJob = await waitForClaim(jobs, project.projectId, "tab-a");
     cancelled.abort();
-    assert.equal((await interrupted).state, "REJECTED");
+    await assert.rejects(interrupted, { code: "CANCELLED" });
     await assert.rejects(coordinator.complete(interruptedJob.jobId, { ...completion, token: interruptedJob.token, sourceHash: interruptedJob.sourceHash }));
     assert.equal((await repository.getProjectState(project.projectId)).currentRevision, revision.revisionId);
 
     await pool.query("UPDATE candidates SET state = 'RUNNING', updated_at = now() - interval '3 minutes' WHERE id = $1", [next.candidateId]);
     await new RemoteRenderJobsRepository(pool, "owner-a").recover();
-    assert.equal((await pool.query("SELECT state FROM candidates WHERE id = $1", [next.candidateId])).rows[0].state, "REJECTED");
+    assert.equal((await pool.query("SELECT state FROM candidates WHERE id = $1", [next.candidateId])).rows[0].state, "CREATED");
   } finally { await fixture.close(); }
 });
 
@@ -87,7 +87,7 @@ test("atomic claims and expired browser jobs cannot complete or strand candidate
     assert.equal((await jobs.outcome(job.jobId)).state, "EXPIRED");
     await pool.query("UPDATE candidates SET updated_at = now() - interval '3 minutes' WHERE id = $1", [candidate.candidateId]);
     await jobs.recover();
-    assert.equal((await pool.query("SELECT state FROM candidates WHERE id = $1", [candidate.candidateId])).rows[0].state, "REJECTED");
+    assert.equal((await pool.query("SELECT state FROM candidates WHERE id = $1", [candidate.candidateId])).rows[0].state, "CREATED");
     await enqueue("no-browser");
     await pool.query("UPDATE browser_render_jobs SET claim_deadline = now() - interval '1 second' WHERE id = 'no-browser'");
     assert.equal(await claimRemoteBrowserRender(jobs, project.projectId, "late-tab"), undefined);

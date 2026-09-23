@@ -1,4 +1,5 @@
 "use client";
+import { exportFilename } from "@rjls/contracts";
 
 import { BROWSER_RENDERER, projectListSchema, revisionManifestSchema, type ChatEvent, type ProjectSummary } from "@rjls/contracts";
 import dynamic from "next/dynamic";
@@ -14,7 +15,7 @@ import { useBrowserPresence } from "@/lib/use-browser-presence";
 import { useProjectEvents } from "@/lib/use-project-events";
 import { useMcpBrowserRenderer } from "@/lib/use-mcp-browser-renderer";
 import { streamChat } from "@/lib/stream-client";
-import { completeBrowserRender, downloadBrowserExport, downloadGeneratedBytes, fetchRevisionSource, generateDownload, type DownloadFormat } from "@/lib/browser-renderer";
+import { completeBrowserRender, downloadGeneratedBytes, fetchRevisionSource, generateDownload, type DownloadFormat } from "@/lib/browser-renderer";
 
 const ModelViewer = dynamic(() => import("./ModelViewer").then((module) => module.ModelViewer), { ssr: false, loading: () => <div className="viewer-loading">Preparing 3D viewer…</div> });
 const SESSION_KEY_PREFIX = "rjls-cad-session:";
@@ -57,6 +58,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
   const router = useRouter();
   const [state, dispatch] = useReducer(workspaceReducer, initialWorkspaceState);
   const [readiness, setReadiness] = useState<"checking" | "ready" | "unavailable">("checking");
+  const [downloadReceipt, setDownloadReceipt] = useState<{filename:string;hash:string} | undefined>();
   const [exportState, setExportState] = useState<"idle" | "preparing" | "failed" | "complete">("idle");
   const [exportFormat, setExportFormat] = useState<DownloadFormat>("stl");
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -114,14 +116,15 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
 
   const { isRendering: isMcpRendering, status: mcpStatus, acquire: acquireRenderer, release: releaseRenderer } = useMcpBrowserRenderer({
     projectId, sessionId, localEnabled: localMcpBridgeEnabled, remoteEnabled: remoteMcpEnabled,
-    isAvailable: !state.active && !restorePending && exportState !== "preparing" && readiness === "ready",
+    isAvailable: !restorePending && exportState !== "preparing" && readiness === "ready",
     renderWake,
   });
 
-  useBrowserPresence({ projectId, sessionId, ready: readiness === "ready", busy: isMcpRendering || Boolean(state.active) || restorePending || exportState === "preparing", localEnabled: localMcpBridgeEnabled, remoteEnabled: remoteMcpEnabled, presenceWake });
+  useBrowserPresence({ projectId, sessionId, ready: readiness === "ready", busy: isMcpRendering || restorePending || exportState === "preparing", localEnabled: localMcpBridgeEnabled, remoteEnabled: remoteMcpEnabled, presenceWake });
 
   const submit = useCallback(async (message: string) => {
     if (!sessionId || !(await acquireRenderer())) return;
+    releaseRenderer();
     lastMessage.current = message;
     const requestId = newOpaqueId("turn");
     dispatch({ type: "submit", id: requestId, text: message });
@@ -131,16 +134,13 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
       await streamChat({ version: "3", projectId, sessionId, message }, controller.signal, async (event: ChatEvent) => {
         if (event.type === "revision" && (event.status === "current" || event.status === "candidate_promoted")) void refreshProject();
         else dispatch({ type: "event", event });
-        if (event.type === "browser_render_request" && event.purpose === "export") {
-          setExportState("preparing");
-          try {
-            await downloadBrowserExport(event, revisionLabel(state.revisions, event.revisionId ?? null));
-            setExportState("complete");
-          } catch (error) {
-            setExportState("failed");
-            throw error;
-          }
-        } else if (event.type === "browser_render_request") await completeBrowserRender(event);
+        if (event.type === "export_ready") {
+          const anchor=document.createElement("a"); anchor.href=event.export.downloadUrl; anchor.download=event.export.filename; anchor.referrerPolicy="no-referrer"; anchor.click();
+          setDownloadReceipt(event.export); setExportState("complete");
+        } else if (event.type === "browser_render_request") {
+          if (!(await acquireRenderer())) throw new Error("Browser renderer is busy.");
+          try { await completeBrowserRender(event); } finally { releaseRenderer(); }
+        }
       });
       await refreshProject();
     } catch (error) {
@@ -149,7 +149,6 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
       } else dispatch({ type: "local_error", message: error instanceof Error ? error.message : "The request failed safely." });
     } finally {
       abortRef.current = undefined;
-      releaseRenderer();
     }
   }, [projectId, refreshProject, sessionId, state.revisions, acquireRenderer, releaseRenderer]);
 
@@ -177,7 +176,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
   const promotionPending = Boolean(state.pendingCurrentRevision);
   const selectedManifest = state.revisions.find((revision) => revision.revisionId === state.selectedRevision);
   const currentManifest = state.revisions.find((revision) => revision.revisionId === state.currentRevision);
-  const dimensions = "—";
+  const dimensions = selectedManifest?.geometry?.dimensions.map(value => Number(value.toFixed(2))).join(" × ") ?? "—";
   let readinessLabel = "CAD runtime unavailable";
   if (readiness === "checking") readinessLabel = "Checking CAD project…";
   else if (readiness === "ready") readinessLabel = "CAD runtime ready";
@@ -195,7 +194,10 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
     try {
       const source = await fetchRevisionSource(projectId, currentManifest.revisionId, currentManifest.sourceHash);
       const generated = await generateDownload(source, exportFormat);
-      downloadGeneratedBytes(generated.bytes, generated.mimeType, `RJLS-${currentLabel}.${generated.extension}`);
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(generated.bytes))), byte => byte.toString(16).padStart(2,"0")).join("");
+      const filename = exportFilename(projects.find(project => project.projectId === projectId)?.name ?? "model",projectId,currentManifest.revisionId,hash,generated.extension);
+      downloadGeneratedBytes(generated.bytes, generated.mimeType, filename);
+      setDownloadReceipt({filename,hash});
       setExportState("complete");
     }
     catch { setExportState("failed"); }
@@ -242,7 +244,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
           </div>
           <p id="export-help" className="action-help">{currentManifest ? `${currentLabel} · ${exportFormat.toUpperCase()} · generated locally in this browser` : "A current revision is required for export."}</p>
           {exportState === "failed" && <p role="alert" className="notice notice-error">The export could not be verified. No file was downloaded.</p>}
-          {exportState === "complete" && <p role="status" className="notice notice-success">{currentLabel} · {exportFormat.toUpperCase()} downloaded.</p>}
+          {exportState === "complete" && <p role="status" className="notice notice-success">Download started · {downloadReceipt?.filename} · SHA-256 {downloadReceipt?.hash}</p>}
         </section>
 
         <ChatPane turns={state.turns} hasCurrentRevision={Boolean(state.currentRevision)} active={state.active} available={!isMcpRendering && !restorePending && exportState !== "preparing" && readiness === "ready" && Boolean(sessionId)} collapsed={chatCollapsed} onToggleCollapsed={() => setChatCollapsed((value) => !value)} onSubmit={(message) => void submit(message)} onCancel={() => abortRef.current?.abort()} onRetry={() => void submit(lastMessage.current)} composerRef={composerRef} />

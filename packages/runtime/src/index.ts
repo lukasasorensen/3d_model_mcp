@@ -16,3 +16,7 @@ export * from "./remote-mcp-runtime.js";
 
 
 export { updateBrowserPreviewPresence, claimBrowserPreview, completeBrowserPreview, browserPreviewStatus } from "./browser-preview-runtime.js";
+
+export * from "./cad-workflow-service.js";
+
+export { ModelExportsRepository } from "@rjls/model-project";

@@ -194,8 +194,7 @@ test("does not turn provider prose into revision or artifact state", async () =>
   assert.equal(events.filter((event) => event.type === "done").length, 1);
 });
 
-test("projects an authorized export into a browser-side 3MF render request", async () => {
-  const source = "cube([10, 20, 30]);";
+test("projects a verified export receipt without requesting a second render", async () => {
   const sourceHash = "a".repeat(64);
   const provider = {
     id: "browser-export",
@@ -206,15 +205,12 @@ test("projects an authorized export into a browser-side 3MF render request", asy
       ] });
     },
   };
-  const client = exactClient(async () => ({ isError: false, structuredContent: { export: { revision: "revision-1", source, sourceHash, format: "3mf" } } }));
+  const client = exactClient(async () => ({ isError: false, structuredContent: { export: { exportId:"export-1",projectId:"provider-project",revision:"revision-1",sourceHash,format:"3mf",mimeType:"model/3mf",filename:"model.3mf",hash:"b".repeat(64),byteSize:100,expiresAt:"2026-09-21T12:00:00.000Z",downloadUrl:"https://cad.example.com/export?token=secret",downloadExpiresAt:"2026-09-21T11:10:00.000Z" } } }));
   const events = await collect(streamCadChat(request, { client, provider, createId: () => "request-export" }));
-  const render = events.find((event) => event.type === "browser_render_request");
-  assert.equal(render?.purpose, "export");
-  assert.equal(render?.revisionId, "revision-1");
-  assert.equal(render?.source, source);
-  assert.equal(render?.sourceHash, sourceHash);
-  assert.equal(render?.format, "3mf");
-  assert.equal(events.some((event) => event.type === "artifact"), false);
+  const ready = events.find((event) => event.type === "export_ready");
+  assert.equal(ready?.export.revision, "revision-1");
+  assert.equal(ready?.export.sourceHash, sourceHash);
+  assert.equal(events.some(event=>event.type === "browser_render_request"),false);
 });
 
 test("fails closed when MCP discovery includes any extra tool", async () => {

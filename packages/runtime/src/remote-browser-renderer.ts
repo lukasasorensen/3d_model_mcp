@@ -17,11 +17,12 @@ export class RemoteBrowserRenderer implements CadRenderer {
         read: async () => {
           const job = await this.jobs.outcome(jobId);
           if (job?.state === "COMPLETED" && job.completion) {
-            const completion = browserRenderCompletionSchema.pick({ outcome: true, diagnostics: true, provenance: true }).parse(job.completion);
+            const completion = browserRenderCompletionSchema.pick({ outcome: true, diagnostics: true, provenance: true, geometry: true }).parse(job.completion);
+            if (completion.outcome === "FAILED") throw new CadDomainError("RENDER_FAILED", "Browser worker failed; retry the same candidate.", { retryable: true });
             recordRemoteMcpEvent("render", completion.outcome);
-            return { result: { ...completion, validationPolicyVersion: this.validationPolicyVersion, artifacts: [] }, deadline: 0 };
+            return { result: { ...completion, outcome: completion.outcome, validationPolicyVersion: this.validationPolicyVersion, artifacts: [] }, deadline: 0 };
           }
-          if (!job || job.state !== "PENDING") throw new CadDomainError("BROWSER_RENDERER_UNAVAILABLE", "Open this project in a visible browser tab, create a new candidate, and retry validation.");
+          if (!job || job.state !== "PENDING") throw new CadDomainError("BROWSER_RENDERER_UNAVAILABLE", "Open this project in a visible browser tab and retry the same candidate.", { retryable: true });
           return { deadline: Math.min(new Date(job.deadline).getTime(), !job.claimed_at && job.claim_deadline ? new Date(job.claim_deadline).getTime() : Infinity) };
         },
       });

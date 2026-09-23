@@ -1,6 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { StdioClientTransport, type StdioServerParameters } from "@modelcontextprotocol/sdk/client/stdio.js";
+import type { CadWorkflowService } from "@rjls/contracts";
 import type { CadMcpClient, CadMcpToolResult } from "@rjls/gateway";
 import { createCadMcpServer, type CadToolName } from "@rjls/mcp";
 import type { ModelProjectStore } from "@rjls/model-project";
@@ -37,8 +38,8 @@ function connectedClient(client: Client, close: () => Promise<void>, processId?:
 }
 
 /** Connects the combined local runtime through the official MCP protocol client. */
-export async function createInMemoryCadMcpClient(repository: ModelProjectStore): Promise<ConnectedCadMcpClient> {
-  const server = createCadMcpServer(repository);
+export async function createInMemoryCadMcpClient(repository: ModelProjectStore, workflowService?: CadWorkflowService): Promise<ConnectedCadMcpClient> {
+  const server = createCadMcpServer(repository, { workflowService });
   const client = new Client({ name: "rjls-gateway", version: "0.1.0" }, { capabilities: {} });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);

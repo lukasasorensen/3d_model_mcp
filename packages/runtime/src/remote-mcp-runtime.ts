@@ -1,3 +1,4 @@
+import { RuntimeCadWorkflowService } from "./cad-workflow-service.js";
 import { PostgresModelPreviewService } from "./model-preview-service.js";
 import { BrowserPreviewJobsRepository } from "@rjls/model-project";
 import { isBrowserRendererProvenance } from "@rjls/contracts";
@@ -15,7 +16,7 @@ export async function createRemoteCadMcpServer(ownerId: string, signal: AbortSig
     pool, ownerId, renderer: new RemoteBrowserRenderer(jobs, VALIDATION_POLICY_VERSION, getProjectDatabase().notifications),
     acceptRendererProvenance: isBrowserRendererProvenance,
   });
-  return createCadMcpServer(repository, { signal, previewService: new PostgresModelPreviewService(getProjectDatabase(), repository, ownerId, "remote-mcp") });
+  return createCadMcpServer(repository, { signal, workflowService: new RuntimeCadWorkflowService(getProjectDatabase(), repository, ownerId, "remote-mcp"), previewService: new PostgresModelPreviewService(getProjectDatabase(), repository, ownerId, "remote-mcp") });
 }
 
 export async function claimConfiguredRemoteRender(ownerId: string, projectId: string, sessionId: string) {

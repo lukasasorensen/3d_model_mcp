@@ -1,3 +1,4 @@
+import { RuntimeCadWorkflowService } from "./cad-workflow-service.js";
 import { PostgresModelPreviewService } from "./model-preview-service.js";
 import { BrowserPreviewJobsRepository } from "@rjls/model-project";
 import { isBrowserRendererProvenance } from "@rjls/contracts";
@@ -10,7 +11,8 @@ import { getProjectDatabase } from "./infrastructure.js";
 const ownerId = process.env.RJLS_ACTOR_USER_ID;
 if (!ownerId) throw new Error("RJLS_ACTOR_USER_ID is required for the standalone MCP server.");
 const database = getProjectDatabase();
-const renderer = new RemoteBrowserRenderer(new RemoteRenderJobsRepository(database.pool, ownerId, "local-mcp"), VALIDATION_POLICY_VERSION, database.notifications);
+const renderJobs = new RemoteRenderJobsRepository(database.pool, ownerId, "local-mcp");
+const renderer = new RemoteBrowserRenderer(renderJobs, VALIDATION_POLICY_VERSION, database.notifications);
 const repository = new PostgresModelProjectRepository({
   pool: database.pool,
   ownerId,
@@ -19,8 +21,9 @@ const repository = new PostgresModelProjectRepository({
 });
 
 try {
+  await renderJobs.recover();
   await new BrowserPreviewJobsRepository(database.pool, ownerId).sweep();
-  const server = await connectCadMcpStdio(repository, { previewService: new PostgresModelPreviewService(database, repository, ownerId, "local-mcp") });
+  const server = await connectCadMcpStdio(repository, { workflowService: new RuntimeCadWorkflowService(database, repository, ownerId, "local-mcp"), previewService: new PostgresModelPreviewService(database, repository, ownerId, "local-mcp") });
   process.stderr.write(`rjls-cad MCP ready; actor: ${ownerId}\n`);
   let closing = false;
   const close = async () => {
