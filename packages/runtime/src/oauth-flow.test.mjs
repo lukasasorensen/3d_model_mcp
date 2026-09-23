@@ -45,6 +45,7 @@ test("real OAuth login, PKCE, consent, refresh, token binding, storage, and revo
     const authorize = (overrides = {}, cookieValue = cookie) => request(`/oauth2/authorize?${new URLSearchParams({ client_id: clientId, redirect_uri: callback, response_type: "code", scope: "cad:tools offline_access", resource: `${origin}/mcp`, state: "test-state", code_challenge: challenge, code_challenge_method: "S256", ...overrides })}`, undefined, cookieValue);
     const discovery = await auth.api.getOAuthServerConfig();
     assert.equal(discovery.issuer, `${origin}/api/auth`);
+    assert.equal(discovery.authorization_response_iss_parameter_supported, true);
     assert.ok(discovery.code_challenge_methods_supported.includes("S256"));
     assert.equal(discovery.registration_endpoint, undefined);
     const loginStart = await authorize({}, "");
@@ -69,6 +70,7 @@ test("real OAuth login, PKCE, consent, refresh, token binding, storage, and revo
     assert.equal(consent.status, 200, JSON.stringify(consentBody));
     const approved = new URL(consentBody.url);
     assert.equal(approved.searchParams.get("state"), "test-state");
+    assert.equal(approved.searchParams.get("iss"), `${origin}/api/auth`);
     const exchange = (code, codeVerifier = verifier) => request("/oauth2/token", { grant_type: "authorization_code", client_id: clientId, redirect_uri: callback, code, code_verifier: codeVerifier, resource: `${origin}/mcp` }, "");
     const tokenResponse = await exchange(approved.searchParams.get("code"));
     const tokens = await tokenResponse.json();

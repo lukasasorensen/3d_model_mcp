@@ -48,7 +48,8 @@ RJLS_ALLOWED_ORIGIN=http://localhost:3000
 Local MCP and the website coordinate rendering through the same PostgreSQL database.
 Enable `RJLS_LOCAL_MCP_BRIDGE=1` for the local browser claim endpoints.
 
-Next.js loads this file automatically. The root `pnpm db:migrate`,
+Next.js loads this file automatically. The root `pnpm db:start`, `pnpm db:stop`,
+`pnpm db:logs`, `pnpm db:shell`, `pnpm db:migrate`,
 `pnpm auth:provision`, `pnpm oauth:provision`, and `pnpm mcp:serve` commands also
 load it automatically using `dotenv-cli`; no `source` or `export` step is needed.
 Existing environment variables take precedence, so explicit command-line or
@@ -66,13 +67,25 @@ pnpm db:migrate
 
 `db:start` starts PostgreSQL 17 in the background and waits for its health check
 before returning. It is safe to run again. The database listens only on
-`127.0.0.1:5432` and stores its contents in the persistent Docker volume
+`127.0.0.1:5432` by default and stores its contents in the persistent Docker volume
 `rjls-postgres-data`. These credentials are for local development.
 
 If you already started the `rjls-postgres` container using the earlier manual
 `docker run` command, stop it with `docker stop rjls-postgres` first. This setup
-reuses its named volume. Any other server using port 5432 must also be stopped
-before starting this one.
+reuses its named volume. If another server uses port 5432, set a different host
+port in `apps/site/.env.local` and update the connection URL to match:
+
+```dotenv
+RJLS_POSTGRES_PORT=5433
+DATABASE_URL=postgres://postgres:postgres@localhost:5433/rjls
+```
+
+Run `pnpm db:start` again to apply the port mapping; the existing database volume
+is preserved. Then run `pnpm db:migrate` and restart the site and any standalone
+MCP process so they use the updated URL. Update any explicit `DATABASE_URL` in
+your local stdio MCP configuration too. PostgreSQL still uses port 5432 inside
+the container, so `pnpm db:shell` requires no port changes. Use a literal port in
+`DATABASE_URL`; these CLI commands do not expand references to other variables.
 
 ### 3. Create your local account
 
@@ -300,6 +313,30 @@ the repository license/third-party notice decision remain blocked or deferred. S
 is a future research item and is not implemented.
 
 ## Remote Codex connection (deployed application)
+
+When remote MCP is enabled, **Connect to Codex** appears in the project workspace
+and **Connected Apps**. Choose global or repository scope and copy the setup
+command into a macOS/Linux terminal with Node.js 22+ and the Codex CLI on PATH.
+For repository scope, run it from the Git repository root, then trust that
+repository in Codex. Scope controls configuration availability, not CAD ownership
+or authorization.
+
+The command downloads `/installers/connect-codex-v1.mjs` from this application,
+runs it, and removes the temporary download. The installer adds a deployment-specific
+server name to `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`) or the
+repository's `.codex/config.toml`, preserving existing text and backing up changed
+files. It sets the 120-second tool timeout and opens Codex OAuth authorization.
+Conflicting entries, malformed TOML, and unsupported TOML layouts are left unchanged.
+Rerunning the command is safe; failed authorization leaves the configuration
+installed and prints a login retry command. Restart Codex or begin a fresh session
+after setup, and keep the CAD project tab visible during rendering. The dialog
+also provides a starter prompt with the current CAD project ID.
+
+The installer is built from `scripts/codex-connect/` using
+`pnpm build:codex-installer`. Commit the generated public bundle with source changes;
+`pnpm test:codex-installer` (included in `pnpm verify`) checks it is current and tests
+the installer. Provision the OAuth client below before offering the connection.
+No database credentials, secrets, or tokens are included in the copied command.
 
 Remote MCP is opt-in: set `RJLS_REMOTE_MCP_ENABLED=1` only after applying the
 committed migrations and provisioning a public OAuth client. The existing stdio
