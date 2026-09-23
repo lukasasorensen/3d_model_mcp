@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ConnectToCodex } from "./connect-to-codex";
 
-export function ConnectedApps({ grants }: { grants: { id: string; name: string }[] }) {
+export function ConnectedApps({ grants, codexOrigin }: { grants: { id: string; name: string }[]; codexOrigin: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -16,6 +17,7 @@ export function ConnectedApps({ grants }: { grants: { id: string; name: string }
     finally { setPending(false); }
   };
   return <section><h1>Connected Apps</h1><p>Revoking access blocks new requests and token refreshes. An operation already in progress may finish.</p>
+    <ConnectToCodex origin={codexOrigin} />
     {grants.length === 0 ? <p>No connected apps.</p> : grants.map((grant) => <p key={grant.id}>{grant.name}{" "}<button disabled={pending} onClick={() => void revoke(grant.id)}>Revoke access</button></p>)}
     {error && <p role="alert">{error}</p>}<a href="/projects">Back to projects</a></section>;
 }

@@ -13,10 +13,10 @@
     "dev:site": "pnpm prepare:browser-renderer && pnpm --filter @rjls/site dev",
     "mcp:build": "pnpm build:packages",
     "mcp:serve": "dotenv --no-expand -e apps/site/.env.local -- node packages/runtime/dist/stdio-server.js",
-    "db:start": "docker compose -f compose.local.yaml up --wait --wait-timeout 60 postgres",
-    "db:stop": "docker compose -f compose.local.yaml stop postgres",
-    "db:logs": "docker compose -f compose.local.yaml logs --follow postgres",
-    "db:shell": "docker compose -f compose.local.yaml exec postgres psql -U postgres -d rjls",
+    "db:start": "dotenv --no-expand -e apps/site/.env.local -- docker compose -f compose.local.yaml up --wait --wait-timeout 60 postgres",
+    "db:stop": "dotenv --no-expand -e apps/site/.env.local -- docker compose -f compose.local.yaml stop postgres",
+    "db:logs": "dotenv --no-expand -e apps/site/.env.local -- docker compose -f compose.local.yaml logs --follow postgres",
+    "db:shell": "dotenv --no-expand -e apps/site/.env.local -- docker compose -f compose.local.yaml exec postgres psql -U postgres -d rjls",
     "db:migrate": "dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @rjls/model-project db:migrate",
     "auth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @rjls/runtime auth:provision",
     "build": "pnpm prepare:browser-renderer && pnpm build:packages && pnpm --filter @rjls/site build",
@@ -28,15 +28,19 @@
     "test:boundaries": "node --test scripts/check-package-boundaries.test.mjs",
     "check:leaks": "node scripts/check-template-leaks.mjs",
     "clean": "pnpm --filter './packages/*' clean && pnpm --filter @rjls/site clean",
-    "verify": "pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:leaks && pnpm check:boundaries",
-    "oauth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @rjls/runtime oauth:provision"
+    "verify": "pnpm test:codex-installer && pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:leaks && pnpm check:boundaries",
+    "oauth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @rjls/runtime oauth:provision",
+    "build:codex-installer": "node scripts/build-codex-installer.mjs",
+    "test:codex-installer": "node scripts/build-codex-installer.mjs --check && node --test scripts/codex-connect/*.test.mjs"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "dotenv-cli": "^11.0.0",
+    "esbuild": "^0.28.2",
     "eslint": "^8.57.1",
     "fflate": "0.8.2",
+    "smol-toml": "^1.9.0",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2"
   }
