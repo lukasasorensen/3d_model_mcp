@@ -296,7 +296,7 @@ export function parseThreeMf(bytes: Uint8Array, expectedSourceHash?: string): Pa
     const object = objects.get(objectId);
     if (!object) throw new RendererError("INVALID_ARTIFACT", "3MF build item references an invalid object.");
     referenced.add(objectId);
-    builtVertices.push(...object.vertices);
+    for (const vertex of object.vertices) builtVertices.push(vertex);
     triangleCount += object.triangleCount;
   }
   if (referenced.size !== objects.size) throw new RendererError("INVALID_ARTIFACT", "3MF contains mesh objects that are not referenced by the build graph.");
