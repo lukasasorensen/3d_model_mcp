@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import type { ProjectSummary } from "@rjls/contracts";
+import type { ProjectSummary } from "@theoryfoundry/contracts";
 import { authClient } from "@/lib/auth-client";
 
 export function ProjectLanding({ projects, userName, remoteMcpEnabled = false }: { projects: ProjectSummary[]; userName: string; remoteMcpEnabled?: boolean }) {
@@ -26,7 +26,7 @@ export function ProjectLanding({ projects, userName, remoteMcpEnabled = false }:
   async function signOut() { await authClient.signOut(); router.replace("/sign-in"); router.refresh(); }
   return (
     <main className="project-landing">
-      <header><div><p className="eyebrow">RJLS Conversational CAD</p><h1>Your projects</h1><p>Signed in as {userName}</p></div><button type="button" onClick={signOut}>Sign out</button></header>
+      <header><div><p className="eyebrow">TheoryFoundry Conversational CAD</p><h1>Your projects</h1><p>Signed in as {userName}</p></div><button type="button" onClick={signOut}>Sign out</button></header>
       {remoteMcpEnabled && <p><a href="/settings/connected-apps">Connected Apps</a></p>}
       <section aria-labelledby="project-list-title">
         <div className="project-list-heading"><h2 id="project-list-title">Projects</h2><button type="button" onClick={() => setIsCreating((value) => !value)} disabled={pending}>{isCreating ? "Cancel" : "New project"}</button></div>

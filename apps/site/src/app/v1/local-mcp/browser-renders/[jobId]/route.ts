@@ -1,4 +1,4 @@
-import { withConfiguredCadRuntime } from "@rjls/runtime";
+import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { createCompleteLocalMcpRenderHandler } from "@/lib/local-mcp-browser-routes";
 import { authenticateRequest, isPolicyResponse } from "@/lib/route-policy";
 

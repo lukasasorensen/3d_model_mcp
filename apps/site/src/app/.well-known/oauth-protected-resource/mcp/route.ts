@@ -1,4 +1,4 @@
-import { mcpResourceMetadata } from "@rjls/runtime";
+import { mcpResourceMetadata } from "@theoryfoundry/runtime";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const GET = mcpResourceMetadata;

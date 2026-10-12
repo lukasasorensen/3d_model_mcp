@@ -1,4 +1,4 @@
-import type { CandidateRecord, RevisionManifest, CreateProjectInput, UpdateProjectInput } from "@rjls/contracts";
+import type { CandidateRecord, RevisionManifest, CreateProjectInput, UpdateProjectInput } from "@theoryfoundry/contracts";
 
 import type { ProjectState, ProjectSummary } from "./project-types.js";
 

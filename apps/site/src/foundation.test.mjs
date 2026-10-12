@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PRODUCT_ID, projectListSchema } from "@rjls/contracts";
+import { PRODUCT_ID, projectListSchema } from "@theoryfoundry/contracts";
 
 test("site consumes the browser-safe workspace contract", () => {
   assert.equal(PRODUCT_ID, "3d_model_mcp");

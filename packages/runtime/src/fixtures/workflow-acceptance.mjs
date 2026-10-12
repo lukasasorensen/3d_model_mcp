@@ -5,8 +5,8 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { readFile,writeFile,mkdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { parseBinaryStl, parseThreeMf } from "@rjls/renderer";
-const directory=process.env.RJLS_ACCEPTANCE_DIRECTORY??"/tmp/cad-workflow-evidence";
+import { parseBinaryStl, parseThreeMf } from "@theoryfoundry/renderer";
+const directory=process.env.THEORYFOUNDRY_ACCEPTANCE_DIRECTORY??"/tmp/cad-workflow-evidence";
 const client=new Client({name:"workflow-acceptance",version:"1"});
 const transport=new StdioClientTransport({command:process.execPath,args:[fileURLToPath(new URL("../../dist/stdio-server.js",import.meta.url))],env:Object.fromEntries(Object.entries(process.env).filter(([,v])=>v!==undefined)),stderr:"inherit"});
 const call=async(name,args)=>{

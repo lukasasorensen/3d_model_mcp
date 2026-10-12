@@ -14,7 +14,7 @@
 - **Architecture checkpoint discipline:** This contract applies the requested Next.js/React, Three.js/R3F viewer, STL preview, 3MF export, and local-first architecture. It does not itself approve a new framework, viewer, persistence model, provider, deployment topology, credential flow, or user-visible scope. Any such departure must return to the applicable architecture checkpoint.
 - **Evidence reviewed:**
   - `.omx/specs/deep-interview-3d-model-ai-chat.md` — binding intent, scope, non-goals, split workspace, canonical journey, and architecture-checkpoint rule.
-  - `.omx/plans/prd-3d-model-ai-chat.md` — RJLS positioning, last-known-valid invariant, proposed R3F/Three viewer, viewer controls, artifact limits, revision semantics, and AC-03/AC-09.
+  - `.omx/plans/prd-3d-model-ai-chat.md` — TheoryFoundry positioning, last-known-valid invariant, proposed R3F/Three viewer, viewer controls, artifact limits, revision semantics, and AC-03/AC-09.
   - `.omx/plans/test-spec-3d-model-ai-chat.md` — UI race, disposal, accessibility, responsive, artifact-validation, performance, and end-to-end expectations.
   - `.omx/ultragoal/goals.json` and `.omx/ultragoal/brief.md` — G005 objective and the later G006 canonical-journey verification boundary; reviewed read-only.
   - `README.md` — current local-first product and credential-free mock-provider framing.
@@ -25,11 +25,11 @@
 
 ## Brand
 
-- **Product name in UI:** Use **RJLS Conversational CAD** as the human-facing name. Keep `3d_model_mcp` for package identity, diagnostics, and metadata where needed; do not make the repository slug the primary wordmark.
+- **Product name in UI:** Use **TheoryFoundry Conversational CAD** as the human-facing name. Keep `3d_model_mcp` for package identity, diagnostics, and metadata where needed; do not make the repository slug the primary wordmark.
 - **Personality:** Precise, capable, calm, and visibly engineered. The product should feel like a compact instrument bench where every state is inspectable, not a magical black box and not a neon science-fiction cockpit.
 - **Aesthetic direction:** **Precision workshop.** A dark graphite workspace, warm technical text, mint verification signals, and amber current-revision accents support long viewing sessions and make state changes legible. Fine grid, calibration ticks, and measured labels provide CAD specificity without pretending to offer sketching or direct geometry editing.
 - **Memorable device:** A continuous **revision rail** visually connects the current-revision badge in the viewer with the matching promoted step in chat/history. The rail changes only on an authoritative `candidate_promoted` or `current` event, making trust and continuity the distinctive interaction rather than decorative spectacle.
-- **RJLS positioning:** The headline promise is reliable conversational CAD. MCP, LangChain, OpenSCAD, and BOSL2 may appear in a restrained system-details area or activity disclosure, but the user-visible lead is creating and refining a functional part through conversation.
+- **TheoryFoundry positioning:** The headline promise is reliable conversational CAD. MCP, LangChain, OpenSCAD, and BOSL2 may appear in a restrained system-details area or activity disclosure, but the user-visible lead is creating and refining a functional part through conversation.
 - **Trust signals:** Current revision ID; explicit millimeter units; validated preview/export status; visible tool progress; honest recovery copy; immutable history; artifact format and size; an always-visible distinction between “preview validated” and any unsupported engineering claim.
 - **Avoid:** Purple/blue AI gradients; chat-bubble-first landing pages; glowing robots or sparkle icons; fake dimensions; fabricated success; “production ready,” “engineering validated,” “safe to manufacture,” or equivalent claims; dense IDE chrome; direct-manipulation affordances such as transform gizmos, selection handles, face highlights, or cursors that imply geometry editing.
 
@@ -41,7 +41,7 @@
   - Make tool work observable without forcing users to understand MCP method names.
   - Preserve the last-known-valid model during rendering, repair, cancellation, stale responses, and failure.
   - Make history, restore-as-new-revision, and export discoverable but secondary to the conversation.
-  - Present RJLS as capable of building trustworthy AI tool workflows, with implementation detail available on demand.
+  - Present TheoryFoundry as capable of building trustworthy AI tool workflows, with implementation detail available on demand.
 - **Non-goals:**
   - General CAD, sketching, constraints, assemblies, simulation, arbitrary mesh import/repair, sculpting, or direct manipulation.
   - Engineering certification, structural validation, manufacturability guarantees, or guaranteed tolerances.
@@ -58,7 +58,7 @@
 ## Personas and jobs
 
 - **Primary personas:**
-  - **Prospective RJLS client or technical stakeholder:** evaluates whether RJLS can deliver a credible, bounded agentic workflow rather than a scripted chat demo.
+  - **Prospective TheoryFoundry client or technical stakeholder:** evaluates whether TheoryFoundry can deliver a credible, bounded agentic workflow rather than a scripted chat demo.
   - **Maker or product engineer familiar with dimensions:** wants to describe a simple functional part, refine dimensions/features, inspect the result, and export it without hand-authoring OpenSCAD.
   - **Demo operator/developer:** needs a deterministic, credential-free local path whose stages and failures remain legible during a presentation.
 - **User jobs:**
@@ -72,7 +72,7 @@
 
 ## Information architecture
 
-- **Primary navigation:** There is one workspace, not a marketing site plus application. A compact top bar contains the RJLS mark/title, project state, and a restrained system-status disclosure. It must not consume meaningful vertical space.
+- **Primary navigation:** There is one workspace, not a marketing site plus application. A compact top bar contains the TheoryFoundry mark/title, project state, and a restrained system-status disclosure. It must not consume meaningful vertical space.
 - **Core routes/screens:**
   - `/` — the single conversational CAD workspace.
   - `/v1/chat` — server route only, never presented as navigable UI.
@@ -140,13 +140,13 @@
 
 ## Components
 
-- **Existing components to reuse:** No reusable UI components currently exist. Reuse `RootLayout`, the global stylesheet entry, the browser-safe `@rjls/contracts` exports, and the existing secure `/v1/chat` route. Preserve the repository's small, package-native component style rather than importing an unrelated design-system layer.
+- **Existing components to reuse:** No reusable UI components currently exist. Reuse `RootLayout`, the global stylesheet entry, the browser-safe `@theoryfoundry/contracts` exports, and the existing secure `/v1/chat` route. Preserve the repository's small, package-native component style rather than importing an unrelated design-system layer.
 - **New/changed components:**
 
   | Component | Responsibility | Key variants/states |
   | --- | --- | --- |
   | `ModelWorkspace` | Owns page composition and shared UI state derived from events | blank, ready, generating, recoverable error |
-  | `AppHeader` | RJLS identity, local/demo label, system readiness disclosure | ready, limited/mock, renderer unavailable |
+  | `AppHeader` | TheoryFoundry identity, local/demo label, system readiness disclosure | ready, limited/mock, renderer unavailable |
   | `ModelViewer` | Loads and validates the current STL, manages camera and GPU disposal | empty, loading-first, updating-with-current, ready, artifact error, WebGL unavailable |
   | `ViewerToolbar` | Orbit help, fit, reset, zoom, and accessible keyboard entry/exit | default, keyboard-focused, disabled |
   | `ModelFacts` | Current revision, bounds/dimensions, units, format, artifact size/hash disclosure | blank, current, stale-loading, unavailable |
@@ -238,7 +238,7 @@
 - **Framework/styling system:** Next.js 15 App Router, React 18, and TypeScript in `apps/site`; global CSS is the current styling system. Prefer small client components at interaction boundaries and keep the page/layout server-renderable where practical. Do not introduce a UI framework, CSS-in-JS runtime, state library, or separate design-system package for G005.
 - **Viewer constraint:** The approved/requested direction is Three.js through React Three Fiber, `STLLoader`, and only selective helpers needed for orbit/pan/zoom/fit/reset. WebGL and loader code must stay client-only and should be dynamically loaded. No direct manipulation, editing gizmos, mesh upload, or arbitrary format expansion.
 - **Design-token constraints:** Implement the semantic CSS variables above at `:root`; components consume semantic names rather than raw hex. Keep dark as the only G005 theme. Typography assets must be locally served and licensed before public distribution. If fonts cannot be vendored within G005, retain a documented fallback but do not add a remote runtime font dependency.
-- **Data/state constraints:** Parse the v3 NDJSON stream through `@rjls/contracts`. Events must remain sequence-aware and session-bound. Only revision/artifact events may update authoritative model state. The UI must abort stale artifact fetches, validate the expected MIME/revision/hash/byte and triangle budgets before display, preserve last-known-valid geometry, and dispose superseded Three resources.
+- **Data/state constraints:** Parse the v3 NDJSON stream through `@theoryfoundry/contracts`. Events must remain sequence-aware and session-bound. Only revision/artifact events may update authoritative model state. The UI must abort stale artifact fetches, validate the expected MIME/revision/hash/byte and triangle budgets before display, preserve last-known-valid geometry, and dispose superseded Three resources.
 - **Performance constraints:**
   - Honor preview limits of 10 MiB and 250,000 triangles; export limit is 25 MiB.
   - Target viewer p95 decode/swap at or below 1.5 s over 20 loads.
@@ -268,4 +268,4 @@
 - [ ] **Revision display labels / G005 executor / Low:** Confirm whether sequential `R1/R2/R3` labels can be derived deterministically from ordered revision history; always preserve the opaque canonical ID in details.
 - [ ] **System-readiness endpoint / Runtime + site owners / Medium:** G005 needs an honest renderer-unavailable state. If no browser-safe readiness contract exists, use only errors observed from the current request and avoid speculative global health claims.
 - [ ] **Screenshot harness / G006 owner / Medium:** No Playwright or visual-baseline setup exists yet. G005 should provide deterministic mock states; G006 should select and approve the browser harness without weakening the screenshot matrix.
-- [ ] **Public RJLS logo asset / Repository owner / Low:** No logo exists. Use a typographic RJLS mark for G005; introducing a brand asset later should not alter layout or accessibility.
+- [ ] **Public TheoryFoundry logo asset / Repository owner / Low:** No logo exists. Use a typographic TheoryFoundry mark for G005; introducing a brand asset later should not alter layout or accessibility.

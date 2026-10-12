@@ -1,4 +1,4 @@
-import { remoteMcpEnabled } from "@rjls/runtime";
+import { remoteMcpEnabled } from "@theoryfoundry/runtime";
 import { notFound } from "next/navigation";
 import { OAuthConsent } from "@/components/oauth-consent";
 

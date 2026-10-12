@@ -1,7 +1,7 @@
 import { RuntimeCadWorkflowService } from "./cad-workflow-service.js";
-import { isBrowserRendererProvenance } from "@rjls/contracts";
-import { CAD_TOOL_NAMES, createCadProvider, type ChatOrchestratorOptions } from "@rjls/gateway";
-import { PostgresModelProjectRepository, VALIDATION_POLICY_VERSION } from "@rjls/model-project";
+import { isBrowserRendererProvenance } from "@theoryfoundry/contracts";
+import { CAD_TOOL_NAMES, createCadProvider, type ChatOrchestratorOptions } from "@theoryfoundry/gateway";
+import { PostgresModelProjectRepository, VALIDATION_POLICY_VERSION } from "@theoryfoundry/model-project";
 import { randomUUID } from "node:crypto";
 
 import { PostgresBrowserRenderCoordinator } from "./browser-renderer.js";

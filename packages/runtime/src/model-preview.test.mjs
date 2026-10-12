@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
-import { BrowserPresenceRepository, BrowserPreviewJobsRepository, PostgresModelProjectRepository, sha256 } from "@rjls/model-project";
-import { getModelPreviewInputSchema } from "@rjls/contracts";
+import { BrowserPresenceRepository, BrowserPreviewJobsRepository, PostgresModelProjectRepository, sha256 } from "@theoryfoundry/model-project";
+import { getModelPreviewInputSchema } from "@theoryfoundry/contracts";
 import { PostgresModelPreviewService, validatePreviewCompletion } from "../dist/model-preview-service.js";
 import { validatePreviewPng } from "../dist/preview-png.js";
 import { expectedBrowserProvenance } from "../dist/browser-renderer.js";
@@ -28,8 +28,8 @@ test("PNG validation rejects corruption, dimensions, oversized and noncanonical 
 
 test("preview notifications, ownership, candidate/revision targets, claims and cleanup for both transports", async () => {
   const fixture = await createPostgresFixture(); const { pool } = fixture;
-  const previousOrigin = process.env.BETTER_AUTH_URL; const previousAllowed = process.env.RJLS_ALLOWED_ORIGIN;
-  process.env.BETTER_AUTH_URL = "https://cad.example.com"; process.env.RJLS_ALLOWED_ORIGIN = "https://cad.example.com";
+  const previousOrigin = process.env.BETTER_AUTH_URL; const previousAllowed = process.env.THEORYFOUNDRY_ALLOWED_ORIGIN;
+  process.env.BETTER_AUTH_URL = "https://cad.example.com"; process.env.THEORYFOUNDRY_ALLOWED_ORIGIN = "https://cad.example.com";
   try {
     await pool.query(`INSERT INTO "user" (id,name,email) VALUES ('owner','Owner','owner@example.com'),('other','Other','other@example.com')`);
     const repository = new PostgresModelProjectRepository({ pool, ownerId: "owner", renderer: { validateAndRender: async () => ({ outcome: "VALID", diagnostics: [], provenance, validationPolicyVersion: "cad-validation-v1", artifacts: [] }) }, acceptRendererProvenance: () => true });
@@ -112,7 +112,7 @@ test("preview notifications, ownership, candidate/revision targets, claims and c
     } finally { stop(); }
   } finally {
     if (previousOrigin === undefined) delete process.env.BETTER_AUTH_URL; else process.env.BETTER_AUTH_URL = previousOrigin;
-    if (previousAllowed === undefined) delete process.env.RJLS_ALLOWED_ORIGIN; else process.env.RJLS_ALLOWED_ORIGIN = previousAllowed;
+    if (previousAllowed === undefined) delete process.env.THEORYFOUNDRY_ALLOWED_ORIGIN; else process.env.THEORYFOUNDRY_ALLOWED_ORIGIN = previousAllowed;
     await fixture.close();
   }
 });

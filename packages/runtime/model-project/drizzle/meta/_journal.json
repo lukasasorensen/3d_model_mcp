@@ -71,6 +71,13 @@
       "when": 1790004368816,
       "tag": "0009_clever_spot",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791820831792,
+      "tag": "0010_theoryfoundry-notifications",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
-import { CAD_LIMITS, exportFilename, exportMetadataSchema } from "@rjls/contracts";
-import { CadDomainError, ModelExportsRepository, sha256, type ProjectDatabase } from "@rjls/model-project";
-import { parseBinaryStl, parseThreeMf } from "@rjls/renderer";
+import { CAD_LIMITS, exportFilename, exportMetadataSchema } from "@theoryfoundry/contracts";
+import { CadDomainError, ModelExportsRepository, sha256, type ProjectDatabase } from "@theoryfoundry/model-project";
+import { parseBinaryStl, parseThreeMf } from "@theoryfoundry/renderer";
 import type { ExportFileStore } from "./export-file-store.js";
 import { waitForRenderOutcome } from "./render-outcome-wait.js";
 export class ModelExportService {
@@ -48,7 +48,7 @@ export class ModelExportService {
             const metadata = exportMetadataSchema.parse({ exportId: id, projectId, revision: row.revision_id, sourceHash, format: row.format, mimeType: row.format === "stl" ? "model/stl" : "model/3mf", filename: exportFilename(row.name, projectId, row.revision_id, hash, row.format), hash, byteSize: bytes.byteLength, expiresAt: expiresAt.toISOString() });
             await this.files.put(id, bytes);
             await client.query("UPDATE model_exports SET state='READY',metadata=$2,reserved_bytes=$3,expires_at=$4,token_hash=NULL,updated_at=now() WHERE id=$1 AND owner_id=$5", [id, JSON.stringify(metadata), bytes.byteLength, expiresAt, ownerId]);
-            await client.query("SELECT pg_notify('rjls_changes',$1)", [JSON.stringify({ kind: "render", ownerId, projectId, jobId: id })]);
+            await client.query("SELECT pg_notify('theoryfoundry_changes',$1)", [JSON.stringify({ kind: "render", ownerId, projectId, jobId: id })]);
             await client.query("COMMIT");
         }
         catch (error) {

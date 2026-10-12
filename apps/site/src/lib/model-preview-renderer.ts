@@ -1,6 +1,6 @@
 import { AmbientLight, Box3, Color, DirectionalLight, Mesh, MeshStandardMaterial, OrthographicCamera, Scene, Vector3, WebGLRenderer } from "three";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
-import { PREVIEW_LIMITS, type PreviewJob } from "@rjls/contracts";
+import { PREVIEW_LIMITS, type PreviewJob } from "@theoryfoundry/contracts";
 import { browserRendererProvenance, renderPreview } from "./browser-renderer";
 
 const directions = { isometric: [1,-1,1], front: [0,-1,0], back: [0,1,0], left: [-1,0,0], right: [1,0,0], top: [0,0,1], bottom: [0,0,-1] } as const;
@@ -53,7 +53,7 @@ export async function completeModelPreview(job: PreviewJob, sessionId: string, s
     combined.throwIfAborted();
     const { source: _source, deadline: _deadline, ...binding } = job; void _source; void _deadline;
     const response = await fetch(`/v1/projects/${encodeURIComponent(job.projectId)}/preview-jobs/complete`, {
-      method: "POST", signal: combined, headers: { "content-type": "application/json", "x-rjls-session-id": sessionId },
+      method: "POST", signal: combined, headers: { "content-type": "application/json", "x-theoryfoundry-session-id": sessionId },
       body: JSON.stringify({ ...binding, sessionId, provenance: browserRendererProvenance, ...result }),
     });
     if (!response.ok) throw new Error("Preview completion was not accepted.");

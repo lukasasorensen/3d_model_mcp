@@ -1,5 +1,5 @@
-import { previewStatusInputSchema, browserPresenceSchema, previewCompletionSchema, PREVIEW_LIMITS, projectIdSchema, sessionIdSchema } from "@rjls/contracts";
-import { browserPreviewStatus, CadDomainError, updateBrowserPreviewPresence, claimBrowserPreview, completeBrowserPreview, withConfiguredCadRuntime, remoteMcpEnabled } from "@rjls/runtime";
+import { previewStatusInputSchema, browserPresenceSchema, previewCompletionSchema, PREVIEW_LIMITS, projectIdSchema, sessionIdSchema } from "@theoryfoundry/contracts";
+import { browserPreviewStatus, CadDomainError, updateBrowserPreviewPresence, claimBrowserPreview, completeBrowserPreview, withConfiguredCadRuntime, remoteMcpEnabled } from "@theoryfoundry/runtime";
 import { authenticateRequest, isPolicyResponse, jsonError, NO_STORE_HEADERS, requireSameOrigin } from "./route-policy";
 import { localMcpBridgeEnabled } from "./local-mcp-browser-routes";
 
@@ -24,7 +24,7 @@ export function previewRoute(action: "presence" | "claim" | "complete" | "status
     const origin = requireSameOrigin(request); if (origin) return origin;
     const user = await authenticateRequest(request); if (isPolicyResponse(user)) return user;
     const project = projectIdSchema.safeParse((await context.params).projectId);
-    const session = sessionIdSchema.safeParse(request.headers.get("x-rjls-session-id"));
+    const session = sessionIdSchema.safeParse(request.headers.get("x-theoryfoundry-session-id"));
     if (!project.success || !session.success) return jsonError("INVALID_REQUEST", 400);
     try {
       await withConfiguredCadRuntime(user.id, (runtime) => runtime.repository.getProjectState(project.data));

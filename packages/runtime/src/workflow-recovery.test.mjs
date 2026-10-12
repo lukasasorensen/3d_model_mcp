@@ -3,10 +3,10 @@ import test from "node:test";
 import { mkdtemp, rm, utimes } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { PostgresModelProjectRepository, CadDomainError, BrowserPresenceRepository, ModelExportsRepository, RemoteRenderJobsRepository, sha256 } from "@rjls/model-project";
+import { PostgresModelProjectRepository, CadDomainError, BrowserPresenceRepository, ModelExportsRepository, RemoteRenderJobsRepository, sha256 } from "@theoryfoundry/model-project";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { createCadMcpServer } from "@rjls/mcp";
+import { createCadMcpServer } from "@theoryfoundry/mcp";
 import { createRemoteMcpHandler } from "../dist/remote-mcp-http.js";
 import { createPostgresFixture } from "./test-support/postgres-fixture.mjs";
 import { expectedBrowserProvenance } from "../dist/browser-renderer.js";
@@ -126,7 +126,7 @@ test("filesystem reconciliation removes old orphan uploads and keeps retained fi
 
 test("HTTP MCP exposes readiness and retrieves verified exports without another browser render",async()=>{
   const f=await setup(),directory=await mkdtemp(join(tmpdir(),"cad-http-export-"));
-  const previous=process.env.RJLS_REMOTE_MCP_ENABLED;process.env.RJLS_REMOTE_MCP_ENABLED="1";
+  const previous=process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED;process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED="1";
   const client=new Client({name:"workflow-http",version:"1"});
   try {
     const service=new ModelExportService(f,new DirectoryExportFileStore(directory));
@@ -146,7 +146,7 @@ test("HTTP MCP exposes readiness and retrieves verified exports without another 
     const downloaded=await service.download(receipt.exportId,new URL(receipt.downloadUrl).searchParams.get("token"));
     assert.equal(sha256(downloaded.bytes),receipt.hash);
     assert.equal((await client.callTool({name:"get_project_state",arguments:{projectId:f.project.projectId}})).structuredContent.state.exports.length,1);
-  }finally{await client.close();await f.close();await rm(directory,{recursive:true,force:true});if(previous===undefined)delete process.env.RJLS_REMOTE_MCP_ENABLED;else process.env.RJLS_REMOTE_MCP_ENABLED=previous;}
+  }finally{await client.close();await f.close();await rm(directory,{recursive:true,force:true});if(previous===undefined)delete process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED;else process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED=previous;}
 });
 test("export reservations enforce owner and global capacity and pin accepted revisions",async()=>{
   const f=await setup(),directory=await mkdtemp(join(tmpdir(),"cad-quota-"));

@@ -1,4 +1,4 @@
-import { getAuthenticatedUser, type AuthenticatedUser } from "@rjls/runtime";
+import { getAuthenticatedUser, type AuthenticatedUser } from "@theoryfoundry/runtime";
 
 export const NO_STORE_HEADERS = Object.freeze({
   "cache-control": "no-store",
@@ -29,7 +29,7 @@ export function isPolicyResponse(value: AuthenticatedUser | Response): value is 
 }
 
 export function configuredOrigin(environment: NodeJS.ProcessEnv = process.env): string {
-  return environment.RJLS_ALLOWED_ORIGIN ?? "http://localhost:3000";
+  return environment.THEORYFOUNDRY_ALLOWED_ORIGIN ?? "http://localhost:3000";
 }
 
 export function requireSameOrigin(request: Request, environment: NodeJS.ProcessEnv = process.env): Response | undefined {

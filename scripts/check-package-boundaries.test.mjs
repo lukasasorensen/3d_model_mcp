@@ -8,14 +8,14 @@ import { checkWorkspaceBoundaries } from "./check-package-boundaries.mjs";
 const packageNames = ["contracts", "model-project", "renderer", "mcp", "gateway", "runtime"];
 
 async function fixture() {
-  const root = await mkdtemp(join(tmpdir(), "rjls-boundaries-"));
+  const root = await mkdtemp(join(tmpdir(), "theoryfoundry-boundaries-"));
   for (const name of packageNames) {
     await mkdir(join(root, "packages", name, "src"), { recursive: true });
-    await writeFile(join(root, "packages", name, "package.json"), JSON.stringify({ name: `@rjls/${name}`, dependencies: {} }));
+    await writeFile(join(root, "packages", name, "package.json"), JSON.stringify({ name: `@theoryfoundry/${name}`, dependencies: {} }));
     await writeFile(join(root, "packages", name, "src", "index.ts"), "export {};\n");
   }
   await mkdir(join(root, "apps", "site", "src"), { recursive: true });
-  await writeFile(join(root, "apps", "site", "package.json"), JSON.stringify({ name: "@rjls/site", dependencies: { "@rjls/contracts": "workspace:*" } }));
+  await writeFile(join(root, "apps", "site", "package.json"), JSON.stringify({ name: "@theoryfoundry/site", dependencies: { "@theoryfoundry/contracts": "workspace:*" } }));
   return root;
 }
 
@@ -42,7 +42,7 @@ test("rejects provider SDKs from browser-safe contracts", async () => {
 
 test("detects either client directive quote style and direct server imports", async () => {
   for (const quote of ['"', "'"]) {
-    const findings = await findingsFor("apps/site/src/client.ts", `${quote}use client${quote};\nimport "@rjls/renderer";\n`);
+    const findings = await findingsFor("apps/site/src/client.ts", `${quote}use client${quote};\nimport "@theoryfoundry/renderer";\n`);
     assert.ok(findings.some((finding) => finding.includes("client dependency")));
   }
 });
@@ -58,14 +58,14 @@ test("traverses local imports from client entries and rejects bare Node built-in
 test("rejects deep imports and server-only imports reachable from client code", async () => {
   const findings = await findingsFor(
     "packages/gateway/src/index.ts",
-    'import "@rjls/mcp/src/index";\n',
-    async (root) => writeFile(join(root, "apps/site/src/client.ts"), '"use client";\nimport "@rjls/gateway";\n'),
+    'import "@theoryfoundry/mcp/src/index";\n',
+    async (root) => writeFile(join(root, "apps/site/src/client.ts"), '"use client";\nimport "@theoryfoundry/gateway";\n'),
   );
   assert.ok(findings.some((finding) => finding.includes("deep-imports")));
   assert.ok(findings.some((finding) => finding.includes("client dependency")));
 });
 
 test("rejects gateway imports that bypass the MCP client boundary", async () => {
-  const findings = await findingsFor("packages/gateway/src/index.ts", 'import { invokeCadTool } from "@rjls/mcp";\nvoid invokeCadTool;\n');
+  const findings = await findingsFor("packages/gateway/src/index.ts", 'import { invokeCadTool } from "@theoryfoundry/mcp";\nvoid invokeCadTool;\n');
   assert.ok(findings.some((finding) => finding.includes("bypasses the MCP client boundary")));
 });

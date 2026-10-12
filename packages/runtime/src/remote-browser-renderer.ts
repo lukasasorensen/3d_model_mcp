@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { waitForRenderOutcome } from "./render-outcome-wait.js";
-import { browserRenderCompletionSchema, type CadRenderer, type CandidateRenderRequest, type RenderValidationResult } from "@rjls/contracts";
-import { CadDomainError, RemoteRenderJobsRepository, type ProjectChangeSource, sha256 } from "@rjls/model-project";
+import { browserRenderCompletionSchema, type CadRenderer, type CandidateRenderRequest, type RenderValidationResult } from "@theoryfoundry/contracts";
+import { CadDomainError, RemoteRenderJobsRepository, type ProjectChangeSource, sha256 } from "@theoryfoundry/model-project";
 import { recordRemoteMcpEvent } from "./remote-mcp-observability.js";
 
 export class RemoteBrowserRenderer implements CadRenderer {

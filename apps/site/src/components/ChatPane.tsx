@@ -89,7 +89,7 @@ export function ChatPane({
             </div>
           ) : turns.map((turn) => (
             <article className={`chat-turn turn-${turn.role}`} key={turn.id} aria-label={`${turn.role} message`} data-testid={`turn-${turn.role}`}>
-              <span className="turn-label">{turn.role === "user" ? "You" : "RJLS CAD"}</span>
+              <span className="turn-label">{turn.role === "user" ? "You" : "TheoryFoundry CAD"}</span>
               {turn.text && <p>{turn.text}</p>}
               {turn.activity.length > 0 && (
                 <details className="tool-activity" open={active && !turn.outcome}>

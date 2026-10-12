@@ -11,18 +11,18 @@ Next.js/React UI -> v3 NDJSON gateway -> LangChain createAgent
 The default standalone MCP transport is stdio. `connectCadMcpStdio` keeps protocol
 frames on stdout, while operator diagnostics use stderr. The combined app may use
 the official SDK's linked in-memory transport without bypassing MCP negotiation or
-tool schemas. Browser code imports only `@rjls/contracts`; package-boundary checks
+tool schemas. Browser code imports only `@theoryfoundry/contracts`; package-boundary checks
 reject Node, provider, MCP-server, repository, and renderer imports.
 
 For local Codex testing, the standalone MCP process and Next.js process share a
-`DATABASE_URL`; the trusted stdio process is explicitly bound with `RJLS_ACTOR_USER_ID`.
+`DATABASE_URL`; the trusted stdio process is explicitly bound with `THEORYFOUNDRY_ACTOR_USER_ID`.
 Local render jobs use the `local-mcp` delivery mode in PostgreSQL's
 `browser_render_jobs` table. Eligible open browsers atomically claim jobs through
 same-origin HTTP, render with the pinned Web Worker, and post a
 session/token/hash-bound completion. Only token hashes are persisted. Database
 notifications wake the stdio process to read the committed completion; one-shot
 deadline timers handle expiration. The local HTTP endpoints require
-`RJLS_LOCAL_MCP_BRIDGE=1` and are unavailable when `NODE_ENV=production`.
+`THEORYFOUNDRY_LOCAL_MCP_BRIDGE=1` and are unavailable when `NODE_ENV=production`.
 No shared filesystem directory is required. See [Project live updates](project-live-updates.md)
 for notification delivery and reconnect behavior.
 

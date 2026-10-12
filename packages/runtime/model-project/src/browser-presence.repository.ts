@@ -1,5 +1,5 @@
 import type { Pool } from "pg";
-import { browserPresenceSchema, type BrowserPresence } from "@rjls/contracts";
+import { browserPresenceSchema, type BrowserPresence } from "@theoryfoundry/contracts";
 import { CadDomainError } from "./cad-domain-error.js";
 
 export class BrowserPresenceRepository {

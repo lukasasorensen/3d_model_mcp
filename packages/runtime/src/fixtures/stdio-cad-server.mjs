@@ -1,7 +1,7 @@
 // G006 test-only child process. It exercises the production stdio adapter without OCI claims.
-import { isProductionRendererProvenance } from "@rjls/contracts";
-import { connectCadMcpStdio } from "@rjls/mcp";
-import { ModelProjectRepository } from "@rjls/model-project";
+import { isProductionRendererProvenance } from "@theoryfoundry/contracts";
+import { connectCadMcpStdio } from "@theoryfoundry/mcp";
+import { ModelProjectRepository } from "@theoryfoundry/model-project";
 
 const workspaceRoot = process.argv[2];
 if (!workspaceRoot) throw new Error("fixture workspace is required");
@@ -18,5 +18,5 @@ const renderer = {
   },
 };
 const repository = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance: isProductionRendererProvenance });
-process.stderr.write("rjls stdio fixture ready\n");
+process.stderr.write("theoryfoundry stdio fixture ready\n");
 await connectCadMcpStdio(repository);

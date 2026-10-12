@@ -1,6 +1,6 @@
 import { inflateSync } from "node:zlib";
-import { PREVIEW_LIMITS } from "@rjls/contracts";
-import { CadDomainError } from "@rjls/model-project";
+import { PREVIEW_LIMITS } from "@theoryfoundry/contracts";
+import { CadDomainError } from "@theoryfoundry/model-project";
 
 /** Decode only bounded 8-bit RGB/RGBA PNGs produced by the browser canvas. */
 export function validatePreviewPng(encoded: string): Buffer {

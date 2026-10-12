@@ -1,5 +1,5 @@
 import { EventEmitter } from "node:events";
-import { PostgresProjectNotifications } from "@rjls/model-project";
+import { PostgresProjectNotifications } from "@theoryfoundry/model-project";
 import { PGlite } from "@electric-sql/pglite";
 import { readFile } from "node:fs/promises";
 
@@ -16,8 +16,8 @@ export async function createPostgresFixture() {
       const client = new EventEmitter();
       let unlisten;
       client.query = async (sql, parameters) => {
-        if (sql === "LISTEN rjls_changes") {
-          unlisten = await database.listen("rjls_changes", (payload) => client.emit("notification", { channel: "rjls_changes", payload }));
+        if (sql === "LISTEN theoryfoundry_changes") {
+          unlisten = await database.listen("theoryfoundry_changes", (payload) => client.emit("notification", { channel: "theoryfoundry_changes", payload }));
           return { rows: [] };
         }
         return database.query(sql, parameters);

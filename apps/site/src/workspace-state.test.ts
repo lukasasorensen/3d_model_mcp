@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { BufferGeometry, MeshStandardMaterial, Texture } from "three";
-import type { ArtifactManifest, ChatEvent, RevisionManifest } from "@rjls/contracts";
+import type { ArtifactManifest, ChatEvent, RevisionManifest } from "@theoryfoundry/contracts";
 import { commitGeometryResource, disposeGeometry, disposeMaterialResources, shouldAutoFit } from "./components/ModelViewer";
 import { chatStatusLabel, isSubmitShortcut, starterPrompts } from "./components/ChatPane";
 import { previewStatusLabel, promotionStatusLabel, readinessFromProbe, releaseObjectUrl, shouldRestoreComposerFocus, trackObjectUrl } from "./components/ModelWorkspace";
@@ -80,9 +80,9 @@ test("materials, textures, and object URLs dispose exactly once", () => {
   let revocations = 0;
   URL.revokeObjectURL = () => { revocations += 1; };
   try {
-    trackObjectUrl("blob:rjls-test");
-    releaseObjectUrl("blob:rjls-test");
-    releaseObjectUrl("blob:rjls-test");
+    trackObjectUrl("blob:theoryfoundry-test");
+    releaseObjectUrl("blob:theoryfoundry-test");
+    releaseObjectUrl("blob:theoryfoundry-test");
     assert.equal(revocations, 1);
   } finally { URL.revokeObjectURL = originalRevoke; }
 });

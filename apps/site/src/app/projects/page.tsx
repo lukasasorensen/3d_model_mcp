@@ -1,4 +1,4 @@
-import { getAuthenticatedUser, remoteMcpEnabled, withConfiguredCadRuntime } from "@rjls/runtime";
+import { getAuthenticatedUser, remoteMcpEnabled, withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ProjectLanding } from "@/components/ProjectLanding";

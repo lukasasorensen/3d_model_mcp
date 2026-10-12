@@ -1,5 +1,5 @@
-import { browserRenderCompletionSchema, opaqueIdSchema } from "@rjls/contracts";
-import { BrowserRenderCompletionError, withConfiguredCadRuntime } from "@rjls/runtime";
+import { browserRenderCompletionSchema, opaqueIdSchema } from "@theoryfoundry/contracts";
+import { BrowserRenderCompletionError, withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { NO_STORE_HEADERS, authenticateRequest, isPolicyResponse, jsonError, requireSameOrigin } from "@/lib/route-policy";
 
 export const runtime = "nodejs";
@@ -18,7 +18,7 @@ export async function POST(request: Request, context: { params: Promise<{ jobId:
   try { raw = await request.json(); }
   catch { return jsonError("INVALID_REQUEST", 400); }
   const completion = browserRenderCompletionSchema.safeParse(raw);
-  if (!completion.success || request.headers.get("x-rjls-session-id") !== completion.data.sessionId) {
+  if (!completion.success || request.headers.get("x-theoryfoundry-session-id") !== completion.data.sessionId) {
     return jsonError("SESSION_MISMATCH", 403);
   }
   try {

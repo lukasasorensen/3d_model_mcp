@@ -1,5 +1,5 @@
-import { projectIdSchema } from "@rjls/contracts";
-import { withConfiguredCadRuntime } from "@rjls/runtime";
+import { projectIdSchema } from "@theoryfoundry/contracts";
+import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { isCadDomainError } from "@/lib/cad-errors";
 import { NO_STORE_HEADERS, authenticateRequest, isPolicyResponse, jsonError } from "@/lib/route-policy";
 

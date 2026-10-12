@@ -75,7 +75,7 @@ test("export_model fails safely when the requested revision is not current", asy
   const staleRepository = new Proxy({}, {
     get(_target, property) {
       return async () => {
-        if (property === "getExportMetadata") throw new (await import("@rjls/model-project")).CadDomainError("STALE_REVISION", "Exports are available only for the current revision.");
+        if (property === "getExportMetadata") throw new (await import("@theoryfoundry/model-project")).CadDomainError("STALE_REVISION", "Exports are available only for the current revision.");
         return {};
       };
     },

@@ -123,7 +123,7 @@ async function migratedMemoryPool() {
 }
 
 test("filesystem repository satisfies the project-store contract", async () => {
-  const workspaceRoot = await mkdtemp(join(tmpdir(), "rjls-filesystem-contract-"));
+  const workspaceRoot = await mkdtemp(join(tmpdir(), "theoryfoundry-filesystem-contract-"));
   try {
     const repository = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance: () => true });
     await exerciseRepositoryContract(repository);

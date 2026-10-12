@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createHash } from "node:crypto";
 import { drizzle } from "drizzle-orm/pglite";
-import { schema } from "@rjls/model-project";
+import { schema } from "@theoryfoundry/model-project";
 import { createConfiguredAuth } from "../dist/auth.js";
 import { provisionCodexClient } from "../dist/oauth-provisioning.js";
 import { revokeOAuthGrant } from "../dist/oauth-authorization.js";
@@ -17,7 +17,7 @@ const challenge = createHash("sha256").update(verifier).digest("base64url");
 test("real OAuth login, PKCE, consent, refresh, token binding, storage, and revocation", async () => {
   const fixture = await createPostgresFixture();
   const previous = { ...process.env };
-  Object.assign(process.env, { NODE_ENV: "test", BETTER_AUTH_URL: origin, RJLS_ALLOWED_ORIGIN: origin, BETTER_AUTH_SECRET: "test-only-secret-not-for-production-123456789", RJLS_REMOTE_MCP_ENABLED: "1", RJLS_AUTH_ALLOW_SIGNUP: "1" });
+  Object.assign(process.env, { NODE_ENV: "test", BETTER_AUTH_URL: origin, THEORYFOUNDRY_ALLOWED_ORIGIN: origin, BETTER_AUTH_SECRET: "test-only-secret-not-for-production-123456789", THEORYFOUNDRY_REMOTE_MCP_ENABLED: "1", THEORYFOUNDRY_AUTH_ALLOW_SIGNUP: "1" });
   try {
     const auth = createConfiguredAuth({ pool: fixture.pool, db: drizzle(fixture.database, { schema }) });
     await auth.$context;
@@ -45,6 +45,7 @@ test("real OAuth login, PKCE, consent, refresh, token binding, storage, and revo
     const authorize = (overrides = {}, cookieValue = cookie) => request(`/oauth2/authorize?${new URLSearchParams({ client_id: clientId, redirect_uri: callback, response_type: "code", scope: "cad:tools offline_access", resource: `${origin}/mcp`, state: "test-state", code_challenge: challenge, code_challenge_method: "S256", ...overrides })}`, undefined, cookieValue);
     const discovery = await auth.api.getOAuthServerConfig();
     assert.equal(discovery.issuer, `${origin}/api/auth`);
+    assert.equal(discovery.authorization_response_iss_parameter_supported, true);
     assert.ok(discovery.code_challenge_methods_supported.includes("S256"));
     assert.equal(discovery.registration_endpoint, undefined);
     const loginStart = await authorize({}, "");
@@ -69,6 +70,7 @@ test("real OAuth login, PKCE, consent, refresh, token binding, storage, and revo
     assert.equal(consent.status, 200, JSON.stringify(consentBody));
     const approved = new URL(consentBody.url);
     assert.equal(approved.searchParams.get("state"), "test-state");
+    assert.equal(approved.searchParams.get("iss"), `${origin}/api/auth`);
     const exchange = (code, codeVerifier = verifier) => request("/oauth2/token", { grant_type: "authorization_code", client_id: clientId, redirect_uri: callback, code, code_verifier: codeVerifier, resource: `${origin}/mcp` }, "");
     const tokenResponse = await exchange(approved.searchParams.get("code"));
     const tokens = await tokenResponse.json();

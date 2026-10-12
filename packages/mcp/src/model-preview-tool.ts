@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { getModelPreviewInputSchema, previewMetadataSchema, PREVIEW_LIMITS, type ModelPreviewService } from "@rjls/contracts";
-import { CadDomainError } from "@rjls/model-project";
+import { getModelPreviewInputSchema, previewMetadataSchema, PREVIEW_LIMITS, type ModelPreviewService } from "@theoryfoundry/contracts";
+import { CadDomainError } from "@theoryfoundry/model-project";
 
 export function registerModelPreviewTool(server: McpServer, service: ModelPreviewService, signal?: AbortSignal): void {
   server.registerTool("get_model_preview", {

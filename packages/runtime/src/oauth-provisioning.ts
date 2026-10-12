@@ -9,7 +9,7 @@ export async function provisionCodexClient(
   options: { replaceCallbacks?: boolean } = {},
 ): Promise<string> {
   validateOAuthCallback(callback);
-  const clientId = "rjls-codex";
+  const clientId = "theoryfoundry-codex";
   const callbackUpdate = options.replaceCallbacks
     ? "EXCLUDED.redirect_uris"
     : "ARRAY(SELECT DISTINCT unnest(oauth_client.redirect_uris || EXCLUDED.redirect_uris))";

@@ -1,4 +1,4 @@
-import type { ArtifactManifest, Diagnostic } from "@rjls/contracts";
+import type { ArtifactManifest, Diagnostic } from "@theoryfoundry/contracts";
 
 export interface ProjectState {
   projectId: string;
@@ -8,4 +8,4 @@ export interface ProjectState {
   diagnostics: Diagnostic[];
 }
 
-export type { ProjectSummary } from "@rjls/contracts";
+export type { ProjectSummary } from "@theoryfoundry/contracts";

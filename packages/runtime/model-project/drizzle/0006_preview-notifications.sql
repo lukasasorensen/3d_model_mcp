@@ -2,7 +2,7 @@ CREATE FUNCTION notify_preview_change() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE changed browser_preview_jobs;
 BEGIN
   IF TG_OP = 'DELETE' THEN changed := OLD; ELSE changed := NEW; END IF;
-  PERFORM pg_notify('rjls_changes', json_build_object('kind', 'preview', 'ownerId', changed.owner_id, 'projectId', changed.project_id, 'jobId', changed.id)::text);
+  PERFORM pg_notify('theoryfoundry_changes', json_build_object('kind', 'preview', 'ownerId', changed.owner_id, 'projectId', changed.project_id, 'jobId', changed.id)::text);
   RETURN NULL;
 END;
 $$;

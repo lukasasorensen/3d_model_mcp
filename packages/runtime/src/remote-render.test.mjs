@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
-import { PostgresModelProjectRepository, RemoteRenderJobsRepository, VALIDATION_POLICY_VERSION, sha256 } from "@rjls/model-project";
+import { PostgresModelProjectRepository, RemoteRenderJobsRepository, VALIDATION_POLICY_VERSION, sha256 } from "@theoryfoundry/model-project";
 import { RemoteBrowserRenderer, claimRemoteBrowserRender } from "../dist/remote-browser-renderer.js";
 import { PostgresBrowserRenderCoordinator, expectedBrowserProvenance } from "../dist/browser-renderer.js";
 import { createPostgresFixture } from "./test-support/postgres-fixture.mjs";

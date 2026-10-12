@@ -1,4 +1,4 @@
-import type { ConfiguredCadRuntime } from "@rjls/runtime";
+import type { ConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { NO_STORE_HEADERS } from "./route-policy";
 
 type Readiness = Awaited<ReturnType<ConfiguredCadRuntime["probeReadiness"]>>;

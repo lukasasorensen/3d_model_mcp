@@ -1,11 +1,12 @@
 "use client";
-import { exportFilename } from "@rjls/contracts";
+import { exportFilename } from "@theoryfoundry/contracts";
 
-import { BROWSER_RENDERER, projectListSchema, revisionManifestSchema, type ChatEvent, type ProjectSummary } from "@rjls/contracts";
+import { BROWSER_RENDERER, projectListSchema, revisionManifestSchema, type ChatEvent, type ProjectSummary } from "@theoryfoundry/contracts";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 import { ChatPane } from "./ChatPane";
+import { ConnectToCodex } from "./connect-to-codex";
 import { ModelSourcePanel } from "./ModelSourcePanel";
 import { RevisionHistory } from "./RevisionHistory";
 import type { PreviewLoadState } from "./ModelViewer";
@@ -18,7 +19,7 @@ import { streamChat } from "@/lib/stream-client";
 import { completeBrowserRender, downloadGeneratedBytes, fetchRevisionSource, generateDownload, type DownloadFormat } from "@/lib/browser-renderer";
 
 const ModelViewer = dynamic(() => import("./ModelViewer").then((module) => module.ModelViewer), { ssr: false, loading: () => <div className="viewer-loading">Preparing 3D viewer…</div> });
-const SESSION_KEY_PREFIX = "rjls-cad-session:";
+const SESSION_KEY_PREFIX = "theoryfoundry-cad-session:";
 const activeObjectUrls = new Set<string>();
 
 function newOpaqueId(prefix: string): string { return `${prefix}-${crypto.randomUUID()}`; }
@@ -54,7 +55,7 @@ export function promotionStatusLabel(selectedLabel: string, hasSelectedRevision:
     : "Promoting the first validated revision. The viewer remains empty until it is verified for display.";
 }
 
-export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remoteMcpEnabled = false }: { projectId: string; localMcpBridgeEnabled?: boolean; remoteMcpEnabled?: boolean }) {
+export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remoteMcpEnabled = false, codexOrigin }: { projectId: string; localMcpBridgeEnabled?: boolean; remoteMcpEnabled?: boolean; codexOrigin?: string }) {
   const router = useRouter();
   const [state, dispatch] = useReducer(workspaceReducer, initialWorkspaceState);
   const [readiness, setReadiness] = useState<"checking" | "ready" | "unavailable">("checking");
@@ -208,8 +209,9 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
     <main className="app-shell" data-testid="cad-workspace">
       <a className="skip-link" href="#conversation-heading">Skip to conversation</a>
       <header className="app-header">
-        <div className="brand-mark"><span aria-hidden="true">R</span><div><strong>RJLS Conversational CAD</strong><small>Precision workshop</small></div></div>
+        <div className="brand-mark"><span aria-hidden="true">T</span><div><strong>TheoryFoundry Conversational CAD</strong><small>Precision workshop</small></div></div>
         <div className="header-controls">
+          {remoteMcpEnabled && codexOrigin && <ConnectToCodex origin={codexOrigin} projectId={projectId} />}
           <button type="button" onClick={() => router.push("/projects")} disabled={isMcpRendering || state.active || restorePending || exportState === "preparing"}>All projects</button>
           <label className="project-selector">Project<span className="sr-only"> selector</span><select value={projectId} onChange={(event) => router.push(`/projects/${encodeURIComponent(event.target.value)}`)} disabled={isMcpRendering || state.active || restorePending || exportState === "preparing"}>{projects.length === 0 && <option value={projectId}>{projectId}</option>}{projects.map((project) => <option key={project.projectId} value={project.projectId}>{project.name}</option>)}</select></label>
           <div className="header-status"><span className={`readiness-dot readiness-${readiness}`} aria-hidden="true" /><span>{readinessLabel}</span><code>mm · Z up</code></div>

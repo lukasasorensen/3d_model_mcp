@@ -69,7 +69,7 @@ flowchart TB
     Repo --> Pg
     Jobs --> Pg
 
-    Contracts["@rjls/contracts<br/>browser-safe schemas and limits"]
+    Contracts["@theoryfoundry/contracts<br/>browser-safe schemas and limits"]
     Contracts -.-> Routes
     Contracts -.-> Gateway
     Contracts -.-> MCPServer
@@ -77,7 +77,7 @@ flowchart TB
 
 The browser imports only the contracts package. Server-only model, repository, gateway, runtime, MCP, and renderer modules remain behind Next.js route handlers. Within the server, the combined runtime still performs official MCP initialization and tool-schema discovery over an in-memory SDK transport; it does not bypass the MCP boundary.
 
-The production website provider is constrained by the deployment validator to `RJLS_CHAT_PROVIDER=mock`. It is deterministic and credential-free; no OpenAI or Anthropic API key is required or supported by the selected production profile.
+The production website provider is constrained by the deployment validator to `THEORYFOUNDRY_CHAT_PROVIDER=mock`. It is deterministic and credential-free; no OpenAI or Anthropic API key is required or supported by the selected production profile.
 
 ## Website chat and revision flow
 
@@ -112,7 +112,7 @@ Browser rendering uses a fresh Web Worker per job, a 60-second render limit, the
 
 ## Optional remote Codex MCP flow
 
-Remote MCP reuses the same Next.js container and PostgreSQL database. It exists only when `RJLS_REMOTE_MCP_ENABLED=1`; otherwise `/mcp` and the project render-claim route return 404. The deployment template defaults the flag to `0`, and its live value is not available in this checkout.
+Remote MCP reuses the same Next.js container and PostgreSQL database. It exists only when `THEORYFOUNDRY_REMOTE_MCP_ENABLED=1`; otherwise `/mcp` and the project render-claim route return 404. The deployment template defaults the flag to `0`, and its live value is not available in this checkout.
 
 ```mermaid
 sequenceDiagram
@@ -143,7 +143,7 @@ sequenceDiagram
     A-->>C: MCP tool result
 ```
 
-The native OAuth client is public (`rjls-codex`) and uses exact loopback redirects, authorization code flow, and no client secret. Public dynamic registration is disabled. Access tokens last five minutes; refresh tokens last thirty days and are stored as one-way verifiers. Revoking a grant invalidates subsequent access and refresh attempts. Remote MCP has a 90-second server deadline; a browser has 15 seconds to claim a job and 60 seconds to render it. An absent browser fails closed and leaves the current revision unchanged.
+The native OAuth client is public (`theoryfoundry-codex`) and uses exact loopback redirects, authorization code flow, and no client secret. Public dynamic registration is disabled. Access tokens last five minutes; refresh tokens last thirty days and are stored as one-way verifiers. Revoking a grant invalidates subsequent access and refresh attempts. Remote MCP has a 90-second server deadline; a browser has 15 seconds to claim a job and 60 seconds to render it. An absent browser fails closed and leaves the current revision unchanged.
 
 Remote `export_model` returns source/export metadata. The actual 3MF file is still produced and downloaded from the website, never transferred through MCP to Codex.
 
@@ -155,7 +155,7 @@ flowchart TB
     CFEdge <-->|outbound named tunnel| CFD[cloudflared container]
 
     subgraph Host["One Proxmox Linux VM"]
-      subgraph Compose["Docker Compose project: rjls-cad"]
+      subgraph Compose["Docker Compose deployment"]
         CFD
         App["app container<br/>Node 22, non-root UID 1001<br/>port 3000 not published"]
         Tool["tooling container<br/>profile: tools; one-shot"]
@@ -166,7 +166,7 @@ flowchart TB
         Tool -->|internal data network| PG
         PG --- Vol
       end
-      Backup["/srv/rjls-cad-backups<br/>mode-600 logical dumps"]
+      Backup["Configured backup directory<br/>mode-600 logical dumps"]
       Timer["systemd daily backup timer"] --> Backup
       PG -. pg_dump .-> Backup
     end
@@ -217,7 +217,7 @@ These cannot be established from the checked-out repositories:
 
 1. Public hostname and Cloudflare tunnel health.
 2. Exact application and deployment commits running on the VM.
-3. Current values of `RJLS_REMOTE_MCP_ENABLED`, database pool size, and image digests.
+3. Current values of `THEORYFOUNDRY_REMOTE_MCP_ENABLED`, database pool size, and image digests.
 4. Compose container health/restart counts and current database/volume utilization.
 5. Whether exactly one backup timer is active, when the last verified dump completed, and whether an off-VM restore drill has succeeded.
 6. Whether OAuth client callbacks and user grants match current Codex installations.

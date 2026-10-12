@@ -1,7 +1,7 @@
-import { projectIdSchema } from "@rjls/contracts";
+import { projectIdSchema } from "@theoryfoundry/contracts";
 import { ModelWorkspace } from "@/components/ModelWorkspace";
 import { notFound, redirect } from "next/navigation";
-import { getAuthenticatedUser, remoteMcpEnabled, withConfiguredCadRuntime } from "@rjls/runtime";
+import { getAuthenticatedUser, remoteMcpEnabled, remoteMcpIdentity, withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { headers } from "next/headers";
 import { isCadDomainError } from "@/lib/cad-errors";
 
@@ -13,6 +13,6 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
   try { await withConfiguredCadRuntime(user.id, (runtime) => runtime.repository.getProjectState(projectId.data)); }
   catch (error) { if (isCadDomainError(error, "PROJECT_NOT_FOUND")) notFound(); throw error; }
 
-  const localMcpBridge = process.env.NODE_ENV !== "production" && process.env.RJLS_LOCAL_MCP_BRIDGE === "1";
-  return <ModelWorkspace key={projectId.data} projectId={projectId.data} localMcpBridgeEnabled={localMcpBridge} remoteMcpEnabled={remoteMcpEnabled()} />;
+  const localMcpBridge = process.env.NODE_ENV !== "production" && process.env.THEORYFOUNDRY_LOCAL_MCP_BRIDGE === "1";
+  return <ModelWorkspace key={projectId.data} projectId={projectId.data} localMcpBridgeEnabled={localMcpBridge} remoteMcpEnabled={remoteMcpEnabled()} codexOrigin={remoteMcpEnabled() ? remoteMcpIdentity().origin : undefined} />;
 }

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { getModelPreviewInputSchema, type ModelPreviewInput, type ModelPreviewService, type PreviewMetadata, previewCompletionSchema } from "@rjls/contracts";
-import { BrowserPresenceRepository, BrowserPreviewJobsRepository, CadDomainError, sha256, type ModelProjectStore, type ProjectDatabase } from "@rjls/model-project";
+import { getModelPreviewInputSchema, type ModelPreviewInput, type ModelPreviewService, type PreviewMetadata, previewCompletionSchema } from "@theoryfoundry/contracts";
+import { BrowserPresenceRepository, BrowserPreviewJobsRepository, CadDomainError, sha256, type ModelProjectStore, type ProjectDatabase } from "@theoryfoundry/model-project";
 import { waitForRenderOutcome } from "./render-outcome-wait.js";
 import { remoteMcpIdentity } from "./remote-mcp-policy.js";
 import { expectedBrowserProvenance } from "./browser-renderer.js";

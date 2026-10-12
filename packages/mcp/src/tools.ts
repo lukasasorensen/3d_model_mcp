@@ -20,8 +20,8 @@ import {
   restoreRevisionOutputSchema,
   validateAndRenderInputSchema,
   validateAndRenderOutputSchema,
-} from "@rjls/contracts";
-import { CadDomainError, type ModelProjectStore } from "@rjls/model-project";
+} from "@theoryfoundry/contracts";
+import { CadDomainError, type ModelProjectStore } from "@theoryfoundry/model-project";
 import type * as z from "zod/v4";
 
 export type CadToolName =

@@ -78,7 +78,7 @@ const renderer = {
 };
 
 async function withWorkspace(run) {
-  const workspaceRoot = await mkdtemp(join(tmpdir(), "rjls-model-project-"));
+  const workspaceRoot = await mkdtemp(join(tmpdir(), "theoryfoundry-model-project-"));
   try {
     await run(workspaceRoot);
   } finally {
@@ -165,7 +165,7 @@ test("source tampering after proposal becomes terminal REJECTED and survives reo
     const countingRenderer = { async validateAndRender(request) { rendererCalls += 1; return renderer.validateAndRender(request); } };
     const repository = new ModelProjectRepository({ workspaceRoot, renderer: countingRenderer, acceptRendererProvenance });
     const candidate = await repository.proposeModelSource({ projectId: "demo", parentRevision: null, source: "cube(1);", requestId: "request-tamper", toolCallId: "tool-tamper" });
-    const candidateRoot = join(workspaceRoot, "demo", ".rjls", "candidates", candidate.candidateId);
+    const candidateRoot = join(workspaceRoot, "demo", ".theoryfoundry", "candidates", candidate.candidateId);
     await writeFile(join(candidateRoot, "model.scad"), "sphere(9);");
     const rejected = await repository.validateAndRender({ projectId: "demo", candidateId: candidate.candidateId, previewProfile: "standard" });
     assert.equal(rejected.state, "REJECTED");
@@ -256,7 +256,7 @@ test("concurrent validation serializes CREATED to one terminal transition withou
     const conflict = outcomes.find((outcome) => outcome.status === "rejected");
     assert.ok(conflict);
     assert.equal(conflict.reason.code, "VALIDATION_RUNNING");
-    const persisted = JSON.parse(await readFile(join(workspaceRoot, "demo", ".rjls", "candidates", candidate.candidateId, "candidate.json"), "utf8"));
+    const persisted = JSON.parse(await readFile(join(workspaceRoot, "demo", ".theoryfoundry", "candidates", candidate.candidateId, "candidate.json"), "utf8"));
     assert.equal(persisted.state, "VALID");
   });
 });
@@ -265,7 +265,7 @@ test("promotion rechecks artifact bytes, limits, policy, and approved provenance
   await withWorkspace(async (workspaceRoot) => {
     const repository = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance });
     const candidate = await validCandidate(repository, "demo", null, "cube(1);");
-    await writeFile(join(workspaceRoot, "demo", ".rjls", "candidates", candidate.candidateId, "artifacts", "preview.stl"), "substituted");
+    await writeFile(join(workspaceRoot, "demo", ".theoryfoundry", "candidates", candidate.candidateId, "artifacts", "preview.stl"), "substituted");
     await assert.rejects(
       repository.promoteCandidate({ projectId: "demo", candidateId: candidate.candidateId, expectedParentRevision: null }),
       (error) => error instanceof CadDomainError && error.code === "ARTIFACT_HASH_MISMATCH",
@@ -325,7 +325,7 @@ test("promotion rejects a corrupt pre-existing immutable artifact without advanc
     const nextCandidate = await validCandidate(repository, "demo", first.revisionId, "cube(2);");
     const stl = nextCandidate.artifacts.find((artifact) => artifact.format === "stl");
     assert.ok(stl);
-    const target = join(workspaceRoot, "demo", ".rjls", "artifacts", stl.hash);
+    const target = join(workspaceRoot, "demo", ".theoryfoundry", "artifacts", stl.hash);
     await mkdir(target, { recursive: true });
     await writeFile(join(target, "preview.stl"), "corrupt");
     await assert.rejects(
@@ -410,7 +410,7 @@ test("fault injection never exposes an incomplete current revision and reopen re
         assert.ok(state.currentRevision);
         assert.equal((await reopened.readModelSource("demo")).source, "cube(1);");
         assert.equal(await readFile(join(workspaceRoot, "demo", "model.scad"), "utf8"), "cube(1);");
-        const persistedCandidate = JSON.parse(await readFile(join(workspaceRoot, "demo", ".rjls", "candidates", candidate.candidateId, "candidate.json"), "utf8"));
+        const persistedCandidate = JSON.parse(await readFile(join(workspaceRoot, "demo", ".theoryfoundry", "candidates", candidate.candidateId, "candidate.json"), "utf8"));
         assert.equal(persistedCandidate.state, "PROMOTED");
       } else {
         assert.equal(state.currentRevision, null);
@@ -493,7 +493,7 @@ test("recovers an abandoned cross-process promotion lock", async () => {
   await withWorkspace(async (workspaceRoot) => {
     const repository = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance, lockStaleMs: 0 });
     const candidate = await validCandidate(repository, "demo", null, "cube(1);");
-    const lock = join(workspaceRoot, "demo", ".rjls", "locks", "promotion.lock");
+    const lock = join(workspaceRoot, "demo", ".theoryfoundry", "locks", "promotion.lock");
     await mkdir(lock);
     await writeFile(join(lock, "owner.json"), JSON.stringify({ pid: 999_999_999, token: "00000000-0000-4000-8000-000000000000", acquiredAt: new Date(0).toISOString() }));
     const revision = await repository.promoteCandidate({ projectId: "demo", candidateId: candidate.candidateId, expectedParentRevision: null });
@@ -510,7 +510,7 @@ test("lock contention polling releases abort listeners after normal delay settle
       lockTimeoutMs: 60,
     });
     const candidate = await validCandidate(repository, "demo", null, "cube(1);");
-    const lock = join(workspaceRoot, "demo", ".rjls", "locks", "promotion.lock");
+    const lock = join(workspaceRoot, "demo", ".theoryfoundry", "locks", "promotion.lock");
     await mkdir(lock);
     await writeFile(join(lock, "owner.json"), "{malformed");
     const controller = new AbortController();
@@ -530,7 +530,7 @@ test("malformed owner metadata cannot steal a live cross-process promotion lock"
     const child = promotePausedInChild(workspaceRoot, left.candidateId);
     const [locked] = await once(child, "message");
     assert.equal(locked.stage, "locked");
-    await writeFile(join(workspaceRoot, "demo", ".rjls", "locks", "promotion.lock", "owner.json"), "{malformed");
+    await writeFile(join(workspaceRoot, "demo", ".theoryfoundry", "locks", "promotion.lock", "owner.json"), "{malformed");
     const contender = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance, lockTimeoutMs: 100, lockStaleMs: 0 });
     await assert.rejects(
       contender.promoteCandidate({ projectId: "demo", candidateId: right.candidateId, expectedParentRevision: null }),
@@ -554,7 +554,7 @@ test("process death after CURRENT rename reopens authoritatively and reconciles 
     const reopened = new ModelProjectRepository({ workspaceRoot, renderer, acceptRendererProvenance, lockStaleMs: 0 });
     const recovered = await reopened.getProjectState("demo");
     assert.ok(recovered.currentRevision);
-    const persisted = JSON.parse(await readFile(join(workspaceRoot, "demo", ".rjls", "candidates", candidate.candidateId, "candidate.json"), "utf8"));
+    const persisted = JSON.parse(await readFile(join(workspaceRoot, "demo", ".theoryfoundry", "candidates", candidate.candidateId, "candidate.json"), "utf8"));
     assert.equal(persisted.state, "PROMOTED");
     const nextCandidate = await validCandidate(reopened, "demo", recovered.currentRevision, "cube(2);");
     const nextRevision = await reopened.promoteCandidate({ projectId: "demo", candidateId: nextCandidate.candidateId, expectedParentRevision: recovered.currentRevision });

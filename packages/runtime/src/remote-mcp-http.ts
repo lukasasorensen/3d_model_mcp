@@ -1,7 +1,7 @@
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
-import { CAD_TOOL_NAMES } from "@rjls/gateway";
+import { CAD_TOOL_NAMES } from "@theoryfoundry/gateway";
 import { awaitMcpOperation } from "./abortable-mcp-request.js";
-import { CAD_LIMITS } from "@rjls/contracts";
+import { CAD_LIMITS } from "@theoryfoundry/contracts";
 import { authenticateRemoteMcp, McpAuthenticationError, mcpAuthChallenge } from "./remote-mcp-auth.js";
 import { remoteMcpEnabled, remoteMcpIdentity, REMOTE_MCP_TIMEOUT_MS } from "./remote-mcp-policy.js";
 import { createRemoteCadMcpServer } from "./remote-mcp-runtime.js";

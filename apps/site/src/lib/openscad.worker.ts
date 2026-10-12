@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { BROWSER_RENDERER } from "@rjls/contracts";
+import { BROWSER_RENDERER } from "@theoryfoundry/contracts";
 import { unzipSync } from "fflate";
 
 type RenderMessage = { source: string; format: "stl" | "3mf"; origin: string };

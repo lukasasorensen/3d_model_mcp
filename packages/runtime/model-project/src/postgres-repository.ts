@@ -11,7 +11,7 @@ import {
   type Diagnostic,
   type RendererProvenance,
   type RevisionManifest,
-} from "@rjls/contracts";
+} from "@theoryfoundry/contracts";
 import { randomUUID } from "node:crypto";
 import type { Pool } from "pg";
 
@@ -170,7 +170,7 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
 
     if (claimed.candidate.state === "VALID") return claimed.candidate;
     let operationalError: CadDomainError | undefined;
-    let geometry: import("@rjls/contracts").GeometrySummary | undefined;
+    let geometry: import("@theoryfoundry/contracts").GeometrySummary | undefined;
     let state: "VALID" | "REJECTED" | "CREATED" = "REJECTED";
     let diagnostics: Diagnostic[] = claimed.candidate.diagnostics;
     let renderer: RendererProvenance | undefined;

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { PostgresModelProjectRepository, RemoteRenderJobsRepository, VALIDATION_POLICY_VERSION } from "@rjls/model-project";
+import { PostgresModelProjectRepository, RemoteRenderJobsRepository, VALIDATION_POLICY_VERSION } from "@theoryfoundry/model-project";
 import { createPostgresFixture } from "./test-support/postgres-fixture.mjs";
 import { RemoteBrowserRenderer } from "../dist/remote-browser-renderer.js";
 import { LocalBrowserRenderer } from "../dist/local-browser-renderer.js";

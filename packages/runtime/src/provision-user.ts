@@ -1,9 +1,9 @@
 import { provisionAuthenticatedUser } from "./auth.js";
 
-const [email, name = "RJLS User"] = process.argv.slice(2).filter((argument) => argument !== "--");
-const password = process.env.RJLS_INITIAL_PASSWORD;
+const [email, name = "TheoryFoundry User"] = process.argv.slice(2).filter((argument) => argument !== "--");
+const password = process.env.THEORYFOUNDRY_INITIAL_PASSWORD;
 if (!email || !password) {
-  process.stderr.write("Usage: RJLS_AUTH_ALLOW_SIGNUP=1 RJLS_INITIAL_PASSWORD=... pnpm auth:provision -- email@example.com [name]\n");
+  process.stderr.write("Usage: THEORYFOUNDRY_AUTH_ALLOW_SIGNUP=1 THEORYFOUNDRY_INITIAL_PASSWORD=... pnpm auth:provision -- email@example.com [name]\n");
   process.exitCode = 1;
 } else {
   try {

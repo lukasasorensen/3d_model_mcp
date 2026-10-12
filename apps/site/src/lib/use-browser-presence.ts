@@ -16,7 +16,7 @@ export function useBrowserPresence(options: { projectId: string; sessionId: stri
         while (pending && !controller.signal.aborted) {
           pending = false;
           const { projectId, sessionId, ready, busy, localEnabled, remoteEnabled } = latest.current;
-          const response = await fetch(`/v1/projects/${encodeURIComponent(projectId)}/preview-presence`, { method: "POST", signal: controller.signal, headers: { "content-type": "application/json", "x-rjls-session-id": sessionId }, body: JSON.stringify({ sessionId, tabId: tabId.current, visible: document.visibilityState === "visible", ready, busy, localEnabled, remoteEnabled }) });
+          const response = await fetch(`/v1/projects/${encodeURIComponent(projectId)}/preview-presence`, { method: "POST", signal: controller.signal, headers: { "content-type": "application/json", "x-theoryfoundry-session-id": sessionId }, body: JSON.stringify({ sessionId, tabId: tabId.current, visible: document.visibilityState === "visible", ready, busy, localEnabled, remoteEnabled }) });
           if (!response.ok) break;
         }
       } catch { /* The next SSE heartbeat retries; stale presence expires server-side. */ }

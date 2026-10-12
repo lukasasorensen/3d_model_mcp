@@ -1,5 +1,5 @@
-import { type BrowserRenderCompletion, type LocalMcpBrowserRenderJob, localMcpBrowserRenderJobSchema } from "@rjls/contracts";
-import { RemoteRenderJobsRepository, type ProjectDatabase } from "@rjls/model-project";
+import { type BrowserRenderCompletion, type LocalMcpBrowserRenderJob, localMcpBrowserRenderJobSchema } from "@theoryfoundry/contracts";
+import { RemoteRenderJobsRepository, type ProjectDatabase } from "@theoryfoundry/model-project";
 import { PostgresBrowserRenderCoordinator } from "./browser-renderer.js";
 import { claimMcpBrowserRender } from "./remote-browser-renderer.js";
 

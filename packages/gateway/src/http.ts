@@ -1,4 +1,4 @@
-import { CHAT_LIMITS, chatRequestSchema, type ChatRequest } from "@rjls/contracts";
+import { CHAT_LIMITS, chatRequestSchema, type ChatRequest } from "@theoryfoundry/contracts";
 
 import type { ChatOrchestratorOptions } from "./orchestrator.js";
 import { streamCadChat } from "./orchestrator.js";
@@ -45,7 +45,7 @@ export function createChatRouteHandler(options: ChatRouteOptions): (request: Req
     catch (error) { return jsonError(error instanceof Error && error.message === "REQUEST_TOO_LARGE" ? 413 : 400, "INVALID_REQUEST", "The chat request is invalid."); }
     const parsed = chatRequestSchema.safeParse(raw);
     if (!parsed.success) return jsonError(400, "INVALID_REQUEST", "The chat request is invalid.");
-    if (request.headers.get("x-rjls-session-id") !== parsed.data.sessionId) return jsonError(409, "SESSION_MISMATCH", "The chat session does not match.");
+    if (request.headers.get("x-theoryfoundry-session-id") !== parsed.data.sessionId) return jsonError(409, "SESSION_MISMATCH", "The chat session does not match.");
     const orchestrator = await options.getOrchestrator(parsed.data).catch(() => undefined);
     if (!orchestrator) return jsonError(503, "INTERNAL_ERROR", "The local CAD runtime is unavailable.");
     const encoder = new TextEncoder();

@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { Pool } from "pg";
-import { previewJobSchema, previewCompletionSchema, type PreviewMetadata, type PreviewJob } from "@rjls/contracts";
+import { previewJobSchema, previewCompletionSchema, type PreviewMetadata, type PreviewJob } from "@theoryfoundry/contracts";
 import { CadDomainError } from "./cad-domain-error.js";
 import { sha256 } from "./hash.js";
 

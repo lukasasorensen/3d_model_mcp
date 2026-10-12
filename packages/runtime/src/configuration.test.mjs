@@ -8,22 +8,22 @@ import test from "node:test";
 
 test("root provisioning forwards exactly the caller arguments", async () => {
   const manifest = JSON.parse(await readFile(new URL("../../../package.json", import.meta.url), "utf8"));
-  assert.equal(manifest.scripts["auth:provision"], "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @rjls/runtime auth:provision");
+  assert.equal(manifest.scripts["auth:provision"], "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @theoryfoundry/runtime auth:provision");
 });
 
 test("local CLI environment loading preserves overrides, literal secrets, and caller arguments", async () => {
   const manifest = JSON.parse(await readFile(new URL("../../../package.json", import.meta.url), "utf8"));
-  const fixtureRoot = await mkdtemp(join(tmpdir(), "rjls-cli-env-"));
+  const fixtureRoot = await mkdtemp(join(tmpdir(), "theoryfoundry-cli-env-"));
   const dotenv = fileURLToPath(new URL("../../../node_modules/.bin/dotenv", import.meta.url));
   try {
     await mkdir(join(fixtureRoot, "apps/site"), { recursive: true });
-    await writeFile(join(fixtureRoot, "apps/site/.env.local"), 'RJLS_TEST_FILE_VALUE="local value"\nRJLS_TEST_OVERRIDE=file\nRJLS_TEST_SECRET="literal$VALUE"\n');
+    await writeFile(join(fixtureRoot, "apps/site/.env.local"), 'THEORYFOUNDRY_TEST_FILE_VALUE="local value"\nTHEORYFOUNDRY_TEST_OVERRIDE=file\nTHEORYFOUNDRY_TEST_SECRET="literal$VALUE"\n');
     const probe = `
       const assert = require("node:assert/strict");
-      assert.equal(process.env.RJLS_TEST_FILE_VALUE, "local value");
-      assert.equal(process.env.RJLS_TEST_OVERRIDE, "caller");
-      assert.equal(process.env.RJLS_TEST_SECRET, "literal$VALUE");
-      assert.equal(process.env.RJLS_TEST_CALLER_SECRET, "caller$VALUE");
+      assert.equal(process.env.THEORYFOUNDRY_TEST_FILE_VALUE, "local value");
+      assert.equal(process.env.THEORYFOUNDRY_TEST_OVERRIDE, "caller");
+      assert.equal(process.env.THEORYFOUNDRY_TEST_SECRET, "literal$VALUE");
+      assert.equal(process.env.THEORYFOUNDRY_TEST_CALLER_SECRET, "caller$VALUE");
       assert.deepEqual(process.argv.slice(1), ["user@example.com", "Demo User", "--replace"]);
     `;
     for (const command of ["db:migrate", "auth:provision", "oauth:provision", "mcp:serve"]) {
@@ -31,16 +31,16 @@ test("local CLI environment loading preserves overrides, literal secrets, and ca
       assert.equal(loader.shift(), "dotenv");
       const result = spawnSync(dotenv, [...loader, "--", process.execPath, "-e", probe, "--", "user@example.com", "Demo User", "--replace"], {
         cwd: fixtureRoot,
-        env: { PATH: process.env.PATH, RJLS_TEST_OVERRIDE: "caller", RJLS_TEST_CALLER_SECRET: "caller$VALUE" },
+        env: { PATH: process.env.PATH, THEORYFOUNDRY_TEST_OVERRIDE: "caller", THEORYFOUNDRY_TEST_CALLER_SECRET: "caller$VALUE" },
         encoding: "utf8",
       });
       assert.equal(result.status, 0, `${command}: ${result.stderr}`);
       assert.equal(result.stdout, "", "environment loading must not write to MCP stdout");
     }
     await rm(join(fixtureRoot, "apps/site/.env.local"));
-    const result = spawnSync(dotenv, ["--no-expand", "-e", "apps/site/.env.local", "--", process.execPath, "-e", 'require("node:assert/strict").equal(process.env.RJLS_TEST_OVERRIDE, "caller"); process.exitCode = 7;'], {
+    const result = spawnSync(dotenv, ["--no-expand", "-e", "apps/site/.env.local", "--", process.execPath, "-e", 'require("node:assert/strict").equal(process.env.THEORYFOUNDRY_TEST_OVERRIDE, "caller"); process.exitCode = 7;'], {
       cwd: fixtureRoot,
-      env: { PATH: process.env.PATH, RJLS_TEST_OVERRIDE: "caller" },
+      env: { PATH: process.env.PATH, THEORYFOUNDRY_TEST_OVERRIDE: "caller" },
       encoding: "utf8",
     });
     assert.equal(result.status, 7, result.stderr);

@@ -19,4 +19,4 @@ export { updateBrowserPreviewPresence, claimBrowserPreview, completeBrowserPrevi
 
 export * from "./cad-workflow-service.js";
 
-export { ModelExportsRepository } from "@rjls/model-project";
+export { ModelExportsRepository } from "@theoryfoundry/model-project";

@@ -6,8 +6,8 @@ import {
   type CadRenderer,
   type CandidateRenderRequest,
   type RenderValidationResult,
-} from "@rjls/contracts";
-import { PostgresProjectNotifications, type ProjectChangeSource, CadDomainError, sha256 } from "@rjls/model-project";
+} from "@theoryfoundry/contracts";
+import { PostgresProjectNotifications, type ProjectChangeSource, CadDomainError, sha256 } from "@theoryfoundry/model-project";
 import { waitForRenderOutcome } from "./render-outcome-wait.js";
 import { randomBytes } from "node:crypto";
 import type { Pool } from "pg";

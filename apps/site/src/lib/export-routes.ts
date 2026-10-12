@@ -1,6 +1,6 @@
-import { CAD_LIMITS, projectIdSchema, sessionIdSchema, opaqueIdSchema } from "@rjls/contracts";
-import { ModelExportsRepository } from "@rjls/runtime";
-import { getProjectDatabase, createModelExportService, CadDomainError, remoteMcpEnabled } from "@rjls/runtime";
+import { CAD_LIMITS, projectIdSchema, sessionIdSchema, opaqueIdSchema } from "@theoryfoundry/contracts";
+import { ModelExportsRepository } from "@theoryfoundry/runtime";
+import { getProjectDatabase, createModelExportService, CadDomainError, remoteMcpEnabled } from "@theoryfoundry/runtime";
 import { authenticateRequest, isPolicyResponse, jsonError, NO_STORE_HEADERS, requireSameOrigin } from "./route-policy";
 import { localMcpBridgeEnabled } from "./local-mcp-browser-routes";
 export function exportRoute(action: "claim" | "complete") {
@@ -15,7 +15,7 @@ export function exportRoute(action: "claim" | "complete") {
         const user = await authenticateRequest(request);
         if (isPolicyResponse(user))
             return user;
-        const project = projectIdSchema.safeParse((await context.params).projectId), session = sessionIdSchema.safeParse(request.headers.get("x-rjls-session-id"));
+        const project = projectIdSchema.safeParse((await context.params).projectId), session = sessionIdSchema.safeParse(request.headers.get("x-theoryfoundry-session-id"));
         if (!project.success || !session.success)
             return jsonError("INVALID_REQUEST", 400);
         try {

@@ -1,4 +1,4 @@
-import { handleRemoteMcpRequest } from "@rjls/runtime";
+import { handleRemoteMcpRequest } from "@theoryfoundry/runtime";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const POST = handleRemoteMcpRequest;

@@ -1,5 +1,5 @@
-import { getProjectDatabase, remoteMcpEnabled, revokeOAuthGrant } from "@rjls/runtime";
-import { opaqueIdSchema } from "@rjls/contracts";
+import { getProjectDatabase, remoteMcpEnabled, revokeOAuthGrant } from "@theoryfoundry/runtime";
+import { opaqueIdSchema } from "@theoryfoundry/contracts";
 import { authenticateRequest, isPolicyResponse, jsonError, requireSameOrigin } from "@/lib/route-policy";
 export const runtime = "nodejs";
 export async function DELETE(request: Request, context: { params: Promise<{ grantId: string }> }) {

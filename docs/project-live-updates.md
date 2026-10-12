@@ -4,7 +4,7 @@ Project viewers subscribe to `GET /v1/projects/:projectId/events` using authenti
 
 ## Commit to viewer
 
-1. Migration-managed triggers on `projects.current_revision_id` and `browser_render_jobs` call `pg_notify('rjls_changes', ...)`. Payloads contain only owner, project, and optional job identifiers.
+1. Migration-managed triggers on `projects.current_revision_id` and `browser_render_jobs` call `pg_notify('theoryfoundry_changes', ...)`. Payloads contain only owner, project, and optional job identifiers.
 2. PostgreSQL delivers notifications after commit. Each application process uses a dedicated listener connection, separate from its query pool.
 3. The SSE route checks the cookie session and project ownership before delivery and on heartbeats. It sends `ready`, `project-updated`, or `render-jobs-available` invalidations, never source or completion credentials.
 4. Viewers read authoritative current revision and immutable history through the existing project GET. The repository holds the project lock while reading both, so promotion cannot split the snapshot. Concurrent refresh requests coalesce and trigger a trailing read.
@@ -21,7 +21,7 @@ Browser claims run on stream readiness, render notifications, tab visibility, re
 ## Deploy and operate
 
 - Apply migration `0004_milky_slapstick` before updating the application. Readiness requires the notification function. Existing SQL names and HTTP command endpoints remain unchanged.
-- Finish in-flight local MCP jobs, then restart both the app and stdio MCP processes. Existing filesystem jobs are not migrated. `RJLS_LOCAL_BRIDGE_ROOT` is retired; both processes must use the same database and actor ownership.
+- Finish in-flight local MCP jobs, then restart both the app and stdio MCP processes. Existing filesystem jobs are not migrated. `THEORYFOUNDRY_LOCAL_BRIDGE_ROOT` is retired; both processes must use the same database and actor ownership.
 - Each process reserves up to one additional PostgreSQL connection for notifications. Keep it outside long transactions. Reconnect failures are logged without payloads or credentials.
 - Monitor `pg_notification_queue_usage()`. A full notification queue or trigger error can fail the writing transaction; notifications are part of that transaction.
 - Verify streaming through the production tunnel using two signed-in tabs: promote and restore in one, observe history/current updates in the other, then repeat after disconnecting/reconnecting a tab. Check that idle tabs do not issue project GET or render-claim polling.
@@ -45,7 +45,7 @@ and remote MCP use the same preview endpoints, respecting their existing gates:
 - `POST /v1/projects/:projectId/preview-jobs/complete`
 
 Preview triggers publish only owner/project/job identifiers with `kind: preview`
-on `rjls_changes`. SSE maps these to `preview-jobs-available` invalidations.
+on `theoryfoundry_changes`. SSE maps these to `preview-jobs-available` invalidations.
 Browsers check pending jobs on stream readiness, invalidations, visibility,
 availability, and lease release, giving existing validation and foreground work
 priority. MCP waiters subscribe before reading and recover missed notifications

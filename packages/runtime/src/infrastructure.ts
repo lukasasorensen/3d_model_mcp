@@ -1,5 +1,5 @@
 import { createModelExportService } from "./cad-workflow-service.js";
-import { createProjectDatabase, type ProjectDatabase } from "@rjls/model-project";
+import { createProjectDatabase, type ProjectDatabase } from "@theoryfoundry/model-project";
 
 let database: ProjectDatabase | undefined;
 
@@ -7,7 +7,7 @@ export function getProjectDatabase(): ProjectDatabase {
   if (database) return database;
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required for project persistence.");
-  const configuredMax = Number.parseInt(process.env.RJLS_DATABASE_POOL_MAX ?? "5", 10);
+  const configuredMax = Number.parseInt(process.env.THEORYFOUNDRY_DATABASE_POOL_MAX ?? "5", 10);
   database = createProjectDatabase(connectionString, { max: Number.isSafeInteger(configuredMax) && configuredMax > 0 ? configuredMax : 5 });
   const current = database;
   const exports = createModelExportService(current);

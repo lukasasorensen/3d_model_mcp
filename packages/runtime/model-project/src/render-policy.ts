@@ -9,7 +9,7 @@ import {
   type CandidateRecord,
   type Diagnostic,
   type RendererProvenance,
-} from "@rjls/contracts";
+} from "@theoryfoundry/contracts";
 import * as z from "zod/v4";
 
 import { CadDomainError } from "./cad-domain-error.js";

@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import type { Pool } from "pg";
-import { CAD_LIMITS, exportMetadataSchema, type ExportReceipt } from "@rjls/contracts";
+import { CAD_LIMITS, exportMetadataSchema, type ExportReceipt } from "@theoryfoundry/contracts";
 import { CadDomainError } from "./cad-domain-error.js";
 import { sha256 } from "./hash.js";
 export interface ExportRow {
@@ -42,7 +42,7 @@ export class ModelExportsRepository {
             if (Number(usage.rows[0].total) + limit > 2 * 1024 ** 3 || Number(usage.rows[0].owned) + limit > 250 * 1024 ** 2)
                 throw new CadDomainError("EXPORT_CAPACITY", "Temporary export capacity is full; retry after expiry.", { retryable: true });
             const result = await client.query<ExportRow>("INSERT INTO model_exports (id,owner_id,project_id,revision_id,source_hash,format,mode,state,reserved_bytes,deadline,expires_at) VALUES ($1,$2,$3,$4,$5,$6,$7,'PENDING',$8,now()+interval '90 seconds',now()+interval '1 hour') RETURNING *", [randomUUID(), this.ownerId, projectId, revision, target.rows[0].source_hash, format, mode, limit]);
-            await client.query("SELECT pg_notify('rjls_changes',$1)", [JSON.stringify({ kind: "render", ownerId: this.ownerId, projectId, jobId: result.rows[0]!.id })]);
+            await client.query("SELECT pg_notify('theoryfoundry_changes',$1)", [JSON.stringify({ kind: "render", ownerId: this.ownerId, projectId, jobId: result.rows[0]!.id })]);
             await client.query("COMMIT");
             return result.rows[0]!;
         }

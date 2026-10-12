@@ -1,4 +1,4 @@
-import { chatEventSchema, type ChatEvent, type ChatRequest } from "@rjls/contracts";
+import { chatEventSchema, type ChatEvent, type ChatRequest } from "@theoryfoundry/contracts";
 
 export class StreamProtocolError extends Error {
   constructor(message: string) {
@@ -53,7 +53,7 @@ export async function streamChat(
 ): Promise<void> {
   const response = await fetch("/v1/chat", {
     method: "POST",
-    headers: { "content-type": "application/json", "x-rjls-session-id": request.sessionId },
+    headers: { "content-type": "application/json", "x-theoryfoundry-session-id": request.sessionId },
     body: JSON.stringify(request),
     signal,
   });

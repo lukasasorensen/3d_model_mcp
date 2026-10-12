@@ -1,5 +1,5 @@
 {
-  "name": "@rjls/site",
+  "name": "@theoryfoundry/site",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,9 +13,9 @@
   },
   "dependencies": {
     "@react-three/fiber": "9.6.1",
-    "@rjls/contracts": "workspace:*",
-    "@rjls/gateway": "workspace:*",
-    "@rjls/runtime": "workspace:*",
+    "@theoryfoundry/contracts": "workspace:*",
+    "@theoryfoundry/gateway": "workspace:*",
+    "@theoryfoundry/runtime": "workspace:*",
     "better-auth": "^1.7.2",
     "fflate": "0.8.2",
     "next": "15.5.22",

@@ -4,7 +4,7 @@ import {
   observabilityEnvelopeSchema,
   type MetricSample,
   type ObservabilityEnvelope,
-} from "@rjls/contracts";
+} from "@theoryfoundry/contracts";
 
 const sensitivePattern = /(?:Bearer\s+\S+|(?:api|access|auth|secret|token|password)[_-]?[A-Za-z0-9]*\s*[:=]\s*\S+|(?:\/Users|\/home|\/private|\/tmp|\/var)\/[\w./-]+)/gi;
 

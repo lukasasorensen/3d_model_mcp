@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { createCadMcpServer } from "@rjls/mcp";
-import { CadDomainError } from "@rjls/model-project";
+import { createCadMcpServer } from "@theoryfoundry/mcp";
+import { CadDomainError } from "@theoryfoundry/model-project";
 import { createRemoteMcpHandler } from "../dist/remote-mcp-http.js";
 import { pngFixture } from "./test-support/preview-png.mjs";
 const png = pngFixture();
@@ -32,7 +32,7 @@ test("native PNG content crosses stdio with no image duplication in structured m
 });
 
 test("native PNG content and guided browser errors cross HTTP MCP", async () => {
-  const previous = process.env.RJLS_REMOTE_MCP_ENABLED; process.env.RJLS_REMOTE_MCP_ENABLED = "1";
+  const previous = process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED; process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED = "1";
   let fail = false;
   const handler = createRemoteMcpHandler({ authenticate: async () => "owner", createServer: async (_owner, signal) => createCadMcpServer({}, { signal, previewService: { async getPreview(input) {
     if (fail) throw new CadDomainError("BROWSER_REQUIRED", "Open the project and retry.", { projectUrl: "https://cad.example.com/projects/project" });
@@ -45,5 +45,5 @@ test("native PNG content and guided browser errors cross HTTP MCP", async () => 
     const response = await client.callTool({ name: "get_model_preview", arguments: { projectId: "project" } });
     assert.equal(response.isError, true);
     assert.equal(JSON.parse(response.content[0].text).error.details.projectUrl, "https://cad.example.com/projects/project");
-  } finally { await client.close(); if (previous === undefined) delete process.env.RJLS_REMOTE_MCP_ENABLED; else process.env.RJLS_REMOTE_MCP_ENABLED = previous; }
+  } finally { await client.close(); if (previous === undefined) delete process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED; else process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED = previous; }
 });

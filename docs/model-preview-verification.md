@@ -34,16 +34,16 @@ fully framed, and free of UI overlays. The interactive viewer remained unchanged
 Observed PNG sizes were 14,766–27,230 bytes. After the initial 1.36-second request
 (including development route compilation), subsequent preview requests took
 132–173 ms on this development machine. These are local observations, not Proxmox
-performance measurements. Images are saved under `/tmp/rjls-preview-evidence`.
+performance measurements. Images are saved under `/tmp/theoryfoundry-preview-evidence`.
 
 To repeat against a disposable development project, sign in and open it visibly:
 
 ```sh
-RJLS_PREVIEW_TEST_PROJECT=PROJECT_ID pnpm exec dotenv --no-expand -e apps/site/.env.local -- node packages/runtime/src/fixtures/browser-preview-smoke.mjs
+THEORYFOUNDRY_PREVIEW_TEST_PROJECT=PROJECT_ID pnpm exec dotenv --no-expand -e apps/site/.env.local -- node packages/runtime/src/fixtures/browser-preview-smoke.mjs
 ```
 
 The runner creates and validates a candidate, requests all seven views, and never
-promotes it. Set `RJLS_PREVIEW_TEST_CANDIDATE` to an existing VALID candidate to
+promotes it. Set `THEORYFOUNDRY_PREVIEW_TEST_CANDIDATE` to an existing VALID candidate to
 request one image without creating another candidate; this also prints structured
 browser-required errors for absence/recovery testing.
 

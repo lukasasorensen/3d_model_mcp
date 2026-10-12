@@ -1,4 +1,4 @@
-import { exportReceiptSchema } from "@rjls/contracts";
+import { exportReceiptSchema } from "@theoryfoundry/contracts";
 import { randomUUID } from "node:crypto";
 import {
   CHAT_LIMITS,
@@ -17,8 +17,8 @@ import {
   type ChatRequest,
   type MetricSample,
   type ObservabilityEnvelope,
-} from "@rjls/contracts";
-import type { CadToolName } from "@rjls/mcp";
+} from "@theoryfoundry/contracts";
+import type { CadToolName } from "@theoryfoundry/mcp";
 import { ToolCallLimitExceededError, createAgent, tool, toolCallLimitMiddleware } from "langchain";
 import type * as z from "zod/v4";
 
