@@ -354,7 +354,8 @@ test("frozen blank to R3 to 3MF journey crosses LangChain, official MCP, reposit
     const r2=(await repository.listRevisions(projectId))[0], r2Stl=await repository.readArtifact(projectId,r2.revisionId,r2.artifacts.find(a=>a.format==="stl").artifactId);
     assert.equal(r2.parentRevision,r1.revisionId); assert.equal(meshConnectedComponents(r2Stl.bytes),1); assertThroughHoles(r2Stl.bytes,[-35,35]); assert.deepEqual(parseBinaryStl(r2Stl.bytes).boundingBox,canonical.r2.bounds); assert.equal((await repository.readModelSource(projectId,r1.revisionId)).sourceHash,r1.sourceHash); assert.ok(r2Events.some(e=>e.type==="artifact"&&e.revisionId===r2.revisionId));
 
-    await chat(client,projectId,sessionId,"Add two symmetric 6 mm gussets with 20 mm forward and upward legs.",["request-r3"],evidence);
+    const r3Events=await chat(client,projectId,sessionId,"Add two symmetric 6 mm gussets with 20 mm forward and upward legs.",["request-r3"],evidence);
+    assert.ok(r3Events.some(event=>event.type==="revision"&&event.status==="candidate_promoted"),JSON.stringify(r3Events.filter(event=>event.type==="error")));
     const r3=(await repository.listRevisions(projectId))[0], r3Stl=await repository.readArtifact(projectId,r3.revisionId,r3.artifacts.find(a=>a.format==="stl").artifactId);
     assert.equal(r3.parentRevision,r2.revisionId);
     assert.equal(meshConnectedComponents(r3Stl.bytes),1);
