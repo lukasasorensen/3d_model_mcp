@@ -1,4 +1,4 @@
-import { projectEventSchema, type ProjectEvent } from "@rjls/contracts";
+import { projectEventSchema, type ProjectEvent } from "@theoryfoundry/contracts";
 
 /** One connection attempt; callers own retry policy and lifecycle. */
 export async function receiveProjectEvents(projectId: string, signal: AbortSignal, receive: (event: ProjectEvent) => void, heartbeat: () => void = () => undefined): Promise<boolean> {

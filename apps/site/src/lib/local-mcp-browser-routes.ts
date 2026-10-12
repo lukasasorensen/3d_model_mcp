@@ -6,7 +6,7 @@ import {
   projectIdSchema,
   sessionIdSchema,
   type LocalMcpBrowserRenderJob,
-} from "@rjls/contracts";
+} from "@theoryfoundry/contracts";
 import { NO_STORE_HEADERS, configuredOrigin, jsonError } from "./route-policy";
 
 interface LocalBrowserRenderer {
@@ -19,11 +19,11 @@ interface LocalBridgeRuntime {
 }
 
 export function localMcpBridgeEnabled(environment: NodeJS.ProcessEnv = process.env): boolean {
-  return environment.NODE_ENV !== "production" && environment.RJLS_LOCAL_MCP_BRIDGE === "1";
+  return environment.NODE_ENV !== "production" && environment.THEORYFOUNDRY_LOCAL_MCP_BRIDGE === "1";
 }
 
 function sessionFrom(request: Request): string | undefined {
-  const parsed = sessionIdSchema.safeParse(request.headers.get("x-rjls-session-id"));
+  const parsed = sessionIdSchema.safeParse(request.headers.get("x-theoryfoundry-session-id"));
   return parsed.success ? parsed.data : undefined;
 }
 

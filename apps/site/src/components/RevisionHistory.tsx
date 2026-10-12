@@ -1,6 +1,6 @@
 "use client";
 
-import type { RevisionManifest } from "@rjls/contracts";
+import type { RevisionManifest } from "@theoryfoundry/contracts";
 import { revisionLabel } from "@/lib/workspace-state";
 
 export function RevisionHistory({ revisions, currentRevision, selectedRevision, disabled, onSelect, onRestore }: {

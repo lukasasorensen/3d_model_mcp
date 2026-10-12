@@ -1,5 +1,5 @@
-import { BrowserPresenceRepository, BrowserPreviewJobsRepository } from "@rjls/model-project";
-import type { BrowserPresence } from "@rjls/contracts";
+import { BrowserPresenceRepository, BrowserPreviewJobsRepository } from "@theoryfoundry/model-project";
+import type { BrowserPresence } from "@theoryfoundry/contracts";
 import { getProjectDatabase } from "./infrastructure.js";
 import { validatePreviewCompletion } from "./model-preview-service.js";
 

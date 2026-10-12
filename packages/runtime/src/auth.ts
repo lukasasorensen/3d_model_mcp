@@ -1,4 +1,4 @@
-import { schema, type ProjectDatabase } from "@rjls/model-project";
+import { schema, type ProjectDatabase } from "@theoryfoundry/model-project";
 import { betterAuth } from "better-auth/minimal";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
@@ -16,9 +16,9 @@ export function createConfiguredAuth(database: Pick<ProjectDatabase, "pool" | "d
     secret,
     plugins: remoteMcpEnabled() ? createOAuthPlugins(database.pool) : [],
     disabledPaths: ["/token"],
-    baseURL: process.env.BETTER_AUTH_URL ?? process.env.RJLS_ALLOWED_ORIGIN ?? "http://localhost:3000",
-    trustedOrigins: [process.env.RJLS_ALLOWED_ORIGIN ?? "http://localhost:3000"],
-    emailAndPassword: { enabled: true, disableSignUp: process.env.RJLS_AUTH_ALLOW_SIGNUP !== "1" },
+    baseURL: process.env.BETTER_AUTH_URL ?? process.env.THEORYFOUNDRY_ALLOWED_ORIGIN ?? "http://localhost:3000",
+    trustedOrigins: [process.env.THEORYFOUNDRY_ALLOWED_ORIGIN ?? "http://localhost:3000"],
+    emailAndPassword: { enabled: true, disableSignUp: process.env.THEORYFOUNDRY_AUTH_ALLOW_SIGNUP !== "1" },
     session: { cookieCache: { enabled: false } },
     advanced: { useSecureCookies: process.env.NODE_ENV === "production" },
   });

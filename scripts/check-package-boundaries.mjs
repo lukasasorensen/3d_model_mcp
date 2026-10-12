@@ -68,8 +68,8 @@ export async function checkWorkspaceBoundaries(workspaceRoot = process.cwd()) {
       ? "model-project"
       : file.match(/^packages\/([^/]+)\//)?.[1];
     for (const specifier of importsFrom(source)) {
-      if (/^@rjls\/[^/]+\/(?:src|dist)(?:\/|$)/.test(specifier)) findings.push(`${file}: deep-imports another workspace package`);
-      const workspaceImport = specifier.match(/^@rjls\/([^/]+)$/)?.[1];
+      if (/^@theoryfoundry\/[^/]+\/(?:src|dist)(?:\/|$)/.test(specifier)) findings.push(`${file}: deep-imports another workspace package`);
+      const workspaceImport = specifier.match(/^@theoryfoundry\/([^/]+)$/)?.[1];
       if (packageName && workspaceImport && !allowedDependencies.get(packageName)?.has(workspaceImport)) {
         findings.push(`${file}: ${packageName} cannot depend on ${workspaceImport}`);
       }
@@ -77,7 +77,7 @@ export async function checkWorkspaceBoundaries(workspaceRoot = process.cwd()) {
         findings.push(`${file}: browser-safe contracts import a server-only module`);
       }
     }
-    if (packageName === "gateway" && /@rjls\/(?:model-project|renderer)|createCadToolRegistry|invokeCadTool/.test(source)) {
+    if (packageName === "gateway" && /@theoryfoundry\/(?:model-project|renderer)|createCadToolRegistry|invokeCadTool/.test(source)) {
       findings.push(`${file}: gateway bypasses the MCP client boundary`);
     }
   }
@@ -94,7 +94,7 @@ export async function checkWorkspaceBoundaries(workspaceRoot = process.cwd()) {
       if (!current || visited.has(current)) continue;
       visited.add(current);
       for (const specifier of importsFrom(sources.get(current) ?? "")) {
-        if (nodeBuiltins.has(specifier) || isProvider(specifier) || /^@rjls\/(?:model-project|renderer|mcp|gateway|runtime)$/.test(specifier)) {
+        if (nodeBuiltins.has(specifier) || isProvider(specifier) || /^@theoryfoundry\/(?:model-project|renderer|mcp|gateway|runtime)$/.test(specifier)) {
           findings.push(`${relative(absoluteRoot, entry)}: client dependency ${relative(absoluteRoot, current)} imports server-only ${specifier}`);
         }
         const localFile = resolveLocalImport(current, specifier, sourceFiles);
@@ -108,16 +108,16 @@ export async function checkWorkspaceBoundaries(workspaceRoot = process.cwd()) {
     const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
     const dependencies = Object.keys(manifest.dependencies ?? {});
     for (const dependency of dependencies) {
-      const workspaceDependency = dependency.match(/^@rjls\/([^/]+)$/)?.[1];
+      const workspaceDependency = dependency.match(/^@theoryfoundry\/([^/]+)$/)?.[1];
       if (workspaceDependency && !allowedDependencies.get(packageName)?.has(workspaceDependency)) findings.push(`${relative(absoluteRoot, manifestPath)}: disallowed dependency ${dependency}`);
-      if (packageName === "contracts" && (isProvider(dependency) || serverOnlyPackages.has(dependency.replace("@rjls/", "")))) {
+      if (packageName === "contracts" && (isProvider(dependency) || serverOnlyPackages.has(dependency.replace("@theoryfoundry/", "")))) {
         findings.push(`${relative(absoluteRoot, manifestPath)}: contracts dependency ${dependency} is not browser-safe`);
       }
     }
   }
 
   const clientChunks = await collectIfPresent(join(absoluteRoot, "apps", "site", ".next", "static", "chunks"));
-  const forbiddenClientCanaries = ["@rjls/runtime", "@rjls/model-project", "@rjls/renderer", "node:fs", "node:path", ".rjls-projects", "OPENAI_API_KEY", "ANTHROPIC_API_KEY"];
+  const forbiddenClientCanaries = ["@theoryfoundry/runtime", "@theoryfoundry/model-project", "@theoryfoundry/renderer", "node:fs", "node:path", ".theoryfoundry-projects", "OPENAI_API_KEY", "ANTHROPIC_API_KEY"];
   for (const chunk of clientChunks) {
     const source = await readFile(chunk, "utf8");
     for (const canary of forbiddenClientCanaries) if (source.includes(canary)) findings.push(`${relative(absoluteRoot, chunk)}: client build contains server-only canary ${canary}`);

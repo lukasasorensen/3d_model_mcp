@@ -18,7 +18,7 @@ import {
   type Diagnostic,
   type RendererProvenance,
   type RevisionManifest,
-} from "@rjls/contracts";
+} from "@theoryfoundry/contracts";
 import { randomUUID } from "node:crypto";
 import {
   copyFile,
@@ -45,7 +45,7 @@ export { sha256 } from "./hash.js";
 export type { ProjectState, ProjectSummary } from "./project-types.js";
 export { renderValidationResultSchema } from "./render-policy.js";
 
-export type { CadRenderer, CandidateRenderRequest, RenderedArtifact, RenderValidationResult } from "@rjls/contracts";
+export type { CadRenderer, CandidateRenderRequest, RenderedArtifact, RenderValidationResult } from "@theoryfoundry/contracts";
 
 export interface ModelProjectRepositoryOptions {
   workspaceRoot: string;
@@ -216,7 +216,7 @@ export class ModelProjectRepository {
   }
 
   private controlRoot(projectId: string): string {
-    return join(this.projectRoot(projectId), ".rjls");
+    return join(this.projectRoot(projectId), ".theoryfoundry");
   }
 
   private candidateRoot(projectId: string, candidateId: string): string {
@@ -529,7 +529,7 @@ export class ModelProjectRepository {
     requestId: string;
     toolCallId: string;
     diagnostics: Diagnostic[];
-    geometry?: import("@rjls/contracts").GeometrySummary;
+    geometry?: import("@theoryfoundry/contracts").GeometrySummary;
     renderer: RendererProvenance;
     artifacts: CandidateRecord["artifacts"];
   }): Promise<RevisionManifest> {

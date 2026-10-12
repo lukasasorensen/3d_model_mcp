@@ -1,5 +1,5 @@
 {
-  "name": "@rjls/model-project",
+  "name": "@theoryfoundry/model-project",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -23,7 +23,7 @@
     "test": "node --test src/*.test.mjs"
   },
   "dependencies": {
-    "@rjls/contracts": "workspace:*",
+    "@theoryfoundry/contracts": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "pg": "^8.23.0",
     "zod": "^4.4.3"

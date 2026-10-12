@@ -1,1 +1,1 @@
-export { isCadDomainError } from "@rjls/runtime";
+export { isCadDomainError } from "@theoryfoundry/runtime";

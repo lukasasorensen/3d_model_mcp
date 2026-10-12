@@ -2,7 +2,7 @@ import { BaseChatModel, type BaseChatModelParams, type BindToolsInput } from "@l
 import { AIMessage, ToolMessage, type BaseMessage } from "@langchain/core/messages";
 import type { ChatResult } from "@langchain/core/outputs";
 import type { Runnable } from "@langchain/core/runnables";
-import type { ChatRequest } from "@rjls/contracts";
+import type { ChatRequest } from "@theoryfoundry/contracts";
 
 export interface CadChatProvider {
   readonly id: string;
@@ -96,7 +96,7 @@ class DeterministicCadChatModel extends BaseChatModel {
     super(fields);
   }
 
-  _llmType(): string { return "rjls-deterministic-cad"; }
+  _llmType(): string { return "theoryfoundry-deterministic-cad"; }
 
   bindTools(tools: BindToolsInput[]): Runnable {
     const bound = new DeterministicCadChatModel(this.request, this.requestId);
@@ -160,7 +160,7 @@ export class DeterministicMockCadProvider implements CadChatProvider {
   }
 }
 
-export function createCadProvider(name = process.env.RJLS_CHAT_PROVIDER ?? "mock"): CadChatProvider {
+export function createCadProvider(name = process.env.THEORYFOUNDRY_CHAT_PROVIDER ?? "mock"): CadChatProvider {
   if (name === "mock") return new DeterministicMockCadProvider();
   throw new Error("Configured chat provider is unavailable; install and register an explicit adapter.");
 }

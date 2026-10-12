@@ -1,5 +1,5 @@
 import type { Pool } from "pg";
-import type { BrowserRenderCompletion, CandidateRenderRequest } from "@rjls/contracts";
+import type { BrowserRenderCompletion, CandidateRenderRequest } from "@theoryfoundry/contracts";
 
 export interface RemoteRenderJob {
   createdAt: string; jobId: string; candidateId: string; source: string; sourceHash: string; deadline: string;

@@ -1,4 +1,4 @@
-import { getAuthenticatedUser, getProjectDatabase, listOAuthGrants, remoteMcpEnabled, remoteMcpIdentity } from "@rjls/runtime";
+import { getAuthenticatedUser, getProjectDatabase, listOAuthGrants, remoteMcpEnabled, remoteMcpIdentity } from "@theoryfoundry/runtime";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { ConnectedApps } from "@/components/connected-apps";

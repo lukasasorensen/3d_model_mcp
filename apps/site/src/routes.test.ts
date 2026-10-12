@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { POST as restoreRevision } from "./app/v1/projects/[projectId]/revisions/[revisionId]/restore/route";
-import { BROWSER_RENDERER } from "@rjls/contracts";
-import { CadDomainError } from "@rjls/runtime";
+import { BROWSER_RENDERER } from "@theoryfoundry/contracts";
+import { CadDomainError } from "@theoryfoundry/runtime";
 import { createClaimLocalMcpRenderHandler, createCompleteLocalMcpRenderHandler, localMcpBridgeEnabled } from "./lib/local-mcp-browser-routes";
 import { createReadinessHandler } from "./lib/readiness-route";
 import { isCadDomainError } from "./lib/cad-errors";
@@ -44,9 +44,9 @@ test("authentication distinguishes anonymous sessions from infrastructure failur
 });
 
 test("local MCP bridge is opt-in and disabled in production", () => {
-  assert.equal(localMcpBridgeEnabled({ NODE_ENV: "development", RJLS_LOCAL_MCP_BRIDGE: "1" }), true);
+  assert.equal(localMcpBridgeEnabled({ NODE_ENV: "development", THEORYFOUNDRY_LOCAL_MCP_BRIDGE: "1" }), true);
   assert.equal(localMcpBridgeEnabled({ NODE_ENV: "development" }), false);
-  assert.equal(localMcpBridgeEnabled({ NODE_ENV: "production", RJLS_LOCAL_MCP_BRIDGE: "1" }), false);
+  assert.equal(localMcpBridgeEnabled({ NODE_ENV: "production", THEORYFOUNDRY_LOCAL_MCP_BRIDGE: "1" }), false);
 });
 
 test("local MCP bridge claims bounded jobs for one browser session", async () => {
@@ -59,15 +59,15 @@ test("local MCP bridge claims bounded jobs for one browser session", async () =>
   const handler = createClaimLocalMcpRenderHandler(async () => ({ localBrowserRenderer: {
     async claimNext(projectId, sessionId) { claims.push([projectId, sessionId]); return job; },
     async complete() {},
-  } }), { NODE_ENV: "development", RJLS_LOCAL_MCP_BRIDGE: "1", RJLS_ALLOWED_ORIGIN: "http://localhost:3000" });
+  } }), { NODE_ENV: "development", THEORYFOUNDRY_LOCAL_MCP_BRIDGE: "1", THEORYFOUNDRY_ALLOWED_ORIGIN: "http://localhost:3000" });
   const response = await handler(new Request("http://localhost:3000/v1/local-mcp/browser-renders/next?projectId=demo-project", {
-    headers: { "x-rjls-session-id": "session-1" },
+    headers: { "x-theoryfoundry-session-id": "session-1" },
   }));
   assert.equal(response.status, 200);
   assert.deepEqual(claims, [["demo-project", "session-1"]]);
   assert.deepEqual(await response.json(), { job });
   const denied = await handler(new Request("http://localhost:3000/v1/local-mcp/browser-renders/next?projectId=demo-project", {
-    headers: { origin: "https://attacker.invalid", "x-rjls-session-id": "session-1" },
+    headers: { origin: "https://attacker.invalid", "x-theoryfoundry-session-id": "session-1" },
   }));
   assert.equal(denied.status, 403);
 });
@@ -77,7 +77,7 @@ test("local MCP bridge completion requires exact origin and bound session", asyn
   const handler = createCompleteLocalMcpRenderHandler(async () => ({ localBrowserRenderer: {
     async claimNext() { return null; },
     async complete(_jobId, completion) { completed.push(completion); },
-  } }), { NODE_ENV: "development", RJLS_LOCAL_MCP_BRIDGE: "1", RJLS_ALLOWED_ORIGIN: "http://localhost:3000" });
+  } }), { NODE_ENV: "development", THEORYFOUNDRY_LOCAL_MCP_BRIDGE: "1", THEORYFOUNDRY_ALLOWED_ORIGIN: "http://localhost:3000" });
   const completion = {
     token: "a".repeat(64), sessionId: "session-1", sourceHash: "b".repeat(64), outcome: "VALID", diagnostics: [],
     provenance: {
@@ -92,13 +92,13 @@ test("local MCP bridge completion requires exact origin and bound session", asyn
     },
   };
   const response = await handler(new Request("http://localhost:3000/v1/local-mcp/browser-renders/local-render-1", {
-    method: "POST", headers: { origin: "http://localhost:3000", "content-type": "application/json", "x-rjls-session-id": "session-1" },
+    method: "POST", headers: { origin: "http://localhost:3000", "content-type": "application/json", "x-theoryfoundry-session-id": "session-1" },
     body: JSON.stringify(completion),
   }), { params: Promise.resolve({ jobId: "local-render-1" }) });
   assert.equal(response.status, 200);
   assert.equal(completed.length, 1);
   const denied = await handler(new Request("http://localhost:3000/v1/local-mcp/browser-renders/local-render-1", {
-    method: "POST", headers: { origin: "https://attacker.invalid", "content-type": "application/json", "x-rjls-session-id": "session-1" },
+    method: "POST", headers: { origin: "https://attacker.invalid", "content-type": "application/json", "x-theoryfoundry-session-id": "session-1" },
     body: JSON.stringify(completion),
   }), { params: Promise.resolve({ jobId: "local-render-1" }) });
   assert.equal(denied.status, 403);

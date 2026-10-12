@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { localMcpBrowserRenderJobSchema, remoteMcpBrowserRenderJobSchema, previewJobSchema, previewStatusSchema, exportJobSchema } from "@rjls/contracts";
+import { localMcpBrowserRenderJobSchema, remoteMcpBrowserRenderJobSchema, previewJobSchema, previewStatusSchema, exportJobSchema } from "@theoryfoundry/contracts";
 import { ActivePreview } from "./active-preview";
 import { completeModelPreview } from "./model-preview-renderer";
 import { BrowserRenderLease } from "./browser-render-lease";
@@ -33,7 +33,7 @@ export function useMcpBrowserRenderer(options: {
       if (stopped || document.visibilityState !== "visible" || !tryBackground()) return;
       running = true; pending = false;
       try {
-        const headers = { "x-rjls-session-id": sessionId };
+        const headers = { "x-theoryfoundry-session-id": sessionId };
         if (remoteEnabled) {
           const response = await fetch(`/v1/projects/${encodeURIComponent(projectId)}/mcp-render-jobs/claim`, { method: "POST", headers, signal: controller.signal, cache: "no-store" });
           if (response.status === 200) {

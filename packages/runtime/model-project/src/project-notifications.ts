@@ -49,7 +49,7 @@ export class PostgresProjectNotifications implements ProjectChangeSource {
     client.on("error", lost);
     client.on("end", lost);
     client.on("notification", (notification: Notification) => {
-      if (notification.channel !== "rjls_changes" || !notification.payload) return;
+      if (notification.channel !== "theoryfoundry_changes" || !notification.payload) return;
       try {
         const event = JSON.parse(notification.payload) as ProjectNotification;
         if ((event.kind !== "project" && event.kind !== "render" && event.kind !== "preview") || typeof event.ownerId !== "string" || typeof event.projectId !== "string") return;
@@ -57,7 +57,7 @@ export class PostgresProjectNotifications implements ProjectChangeSource {
       } catch { /* Ignore malformed external notification payloads. */ }
     });
     try {
-      await client.query("LISTEN rjls_changes");
+      await client.query("LISTEN theoryfoundry_changes");
       if (this.closed || !this.listeners.size) { client.release(true); return; }
       this.client = client;
       for (const listener of this.listeners) listener(null);

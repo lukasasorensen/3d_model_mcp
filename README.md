@@ -40,13 +40,13 @@ In `apps/site/.env.local`, replace `BETTER_AUTH_SECRET` with the generated value
 Keep that value across restarts. The local database configuration is:
 
 ```dotenv
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/rjls
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/theoryfoundry
 BETTER_AUTH_URL=http://localhost:3000
-RJLS_ALLOWED_ORIGIN=http://localhost:3000
+THEORYFOUNDRY_ALLOWED_ORIGIN=http://localhost:3000
 ```
 
 Local MCP and the website coordinate rendering through the same PostgreSQL database.
-Enable `RJLS_LOCAL_MCP_BRIDGE=1` for the local browser claim endpoints.
+Enable `THEORYFOUNDRY_LOCAL_MCP_BRIDGE=1` for the local browser claim endpoints.
 
 Next.js loads this file automatically. The root `pnpm db:start`, `pnpm db:stop`,
 `pnpm db:logs`, `pnpm db:shell`, `pnpm db:migrate`,
@@ -68,23 +68,23 @@ pnpm db:migrate
 `db:start` starts PostgreSQL 17 in the background and waits for its health check
 before returning. It is safe to run again. The database listens only on
 `127.0.0.1:5432` by default and stores its contents in the persistent Docker volume
-`rjls-postgres-data`. These credentials are for local development.
+`theoryfoundry-postgres-data`. These credentials are for local development.
 
-If you already started the `rjls-postgres` container using the earlier manual
-`docker run` command, stop it with `docker stop rjls-postgres` first. This setup
+If you already started the `theoryfoundry-postgres` container using the earlier manual
+`docker run` command, stop it with `docker stop theoryfoundry-postgres` first. This setup
 reuses its named volume. If another server uses port 5432, set a different host
 port in `apps/site/.env.local` and update the connection URL to match:
 
 ```dotenv
-RJLS_POSTGRES_PORT=5433
-DATABASE_URL=postgres://postgres:postgres@localhost:5433/rjls
+THEORYFOUNDRY_POSTGRES_PORT=5433
+DATABASE_URL=postgres://postgres:postgres@localhost:5433/theoryfoundry
 ```
 
 Run `pnpm db:start` again to apply the port mapping; the existing database volume
 is preserved. Then run `pnpm db:migrate` and restart the site and any standalone
 MCP process so they use the updated URL. Update any explicit `DATABASE_URL` in
 your local stdio MCP configuration too. PostgreSQL still uses port 5432 inside
-the container, so `pnpm db:shell` requires no port changes. Use a literal port in
+the container, so `pnpm db:shell` requires no port changes. `pnpm db:shell` selects the database and user from `DATABASE_URL`. Use a literal port in
 `DATABASE_URL`; these CLI commands do not expand references to other variables.
 
 ### 3. Create your local account
@@ -92,11 +92,11 @@ the container, so `pnpm db:shell` requires no port changes. Use a literal port i
 Replace the example email, name, and password, then run once per account:
 
 ```bash
-RJLS_AUTH_ALLOW_SIGNUP=1 RJLS_INITIAL_PASSWORD='a-long-initial-password' pnpm auth:provision -- user@example.com "Demo User"
+THEORYFOUNDRY_AUTH_ALLOW_SIGNUP=1 THEORYFOUNDRY_INITIAL_PASSWORD='a-long-initial-password' pnpm auth:provision -- user@example.com "Demo User"
 ```
 
 The command prints `Provisioned account ... with user ID ...`. Copy that ID into
-`RJLS_ACTOR_USER_ID` in `apps/site/.env.local` and, when registering the local MCP
+`THEORYFOUNDRY_ACTOR_USER_ID` in `apps/site/.env.local` and, when registering the local MCP
 server below, into its environment configuration. Use the same database and
 account for the site and MCP server. The site itself gets your identity from
 your signed-in session.
@@ -143,6 +143,25 @@ For the full development checks, run:
 pnpm verify
 ```
 
+## Upgrading an existing installation after the rename
+
+Rename application environment variable prefixes to `THEORYFOUNDRY_` in local
+configuration, and update MCP registrations to the identifiers shown below. The
+sibling deployment repository maps its existing deployment settings to the new
+application variable names; update both repositories together.
+Reinstall workspace dependencies with `pnpm install --frozen-lockfile`, then run
+`pnpm db:migrate` against the existing database before restarting the application.
+The notification migration updates the existing trigger functions without changing
+stored projects, revisions, or SQL table names. Reprovision the public OAuth client
+with `pnpm oauth:provision` and reconnect Codex using `theoryfoundry-codex`.
+
+The Compose project, default database, and volume names now use `theoryfoundry`.
+For existing data, retain the original `DATABASE_URL` and explicitly configure
+Compose to use the existing volume and database, or back up and restore into the
+new database before switching. The new volume name does not automatically move
+existing data. Filesystem repositories now store metadata under `.theoryfoundry`;
+rename the previous metadata directory in each existing workspace before use.
+
 ## Database development workflow
 
 Drizzle ORM provides the typed PostgreSQL query layer, while Drizzle Kit turns
@@ -156,7 +175,7 @@ For an intentional schema change:
 2. Generate and review the migration:
 
    ```bash
-   pnpm --filter @rjls/model-project db:generate
+   pnpm --filter @theoryfoundry/model-project db:generate
    ```
 
 3. Update the PostgreSQL persistence and repository layers. HTTP routes should
@@ -199,13 +218,13 @@ your existing `BETTER_AUTH_SECRET`. The site and MCP server use the same databas
 the stdio server is explicitly bound to your provisioned account ID:
 
 ```dotenv
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/rjls
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/theoryfoundry
 BETTER_AUTH_URL=http://localhost:3000
 BETTER_AUTH_SECRET=replace-with-at-least-32-random-characters
-RJLS_ALLOWED_ORIGIN=http://localhost:3000
-RJLS_CHAT_PROVIDER=mock
-RJLS_LOCAL_MCP_BRIDGE=1
-RJLS_ACTOR_USER_ID=the-provisioned-better-auth-user-id
+THEORYFOUNDRY_ALLOWED_ORIGIN=http://localhost:3000
+THEORYFOUNDRY_CHAT_PROVIDER=mock
+THEORYFOUNDRY_LOCAL_MCP_BRIDGE=1
+THEORYFOUNDRY_ACTOR_USER_ID=the-provisioned-better-auth-user-id
 ```
 
 Install dependencies, prepare the pinned browser renderer, and build the MCP
@@ -232,14 +251,14 @@ If the file already exists, add these tables to it. Replace the example path
 and the account ID with your local values:
 
 ```toml
-[mcp_servers.rjls-cad]
+[mcp_servers.theoryfoundry-cad]
 command = "pnpm"
 args = ["--dir", "/absolute/path/to/3d_model_mcp", "mcp:serve"]
 tool_timeout_sec = 120
 
-[mcp_servers.rjls-cad.env]
-DATABASE_URL = "postgres://postgres:postgres@localhost:5432/rjls"
-RJLS_ACTOR_USER_ID = "the-provisioned-better-auth-user-id"
+[mcp_servers.theoryfoundry-cad.env]
+DATABASE_URL = "postgres://postgres:postgres@localhost:5432/theoryfoundry"
+THEORYFOUNDRY_ACTOR_USER_ID = "the-provisioned-better-auth-user-id"
 ```
 
 Project-scoped configuration is loaded only for trusted repositories.
@@ -247,7 +266,7 @@ Project-scoped configuration is loaded only for trusted repositories.
 From the repository root, confirm that Codex sees the server:
 
 ```bash
-codex mcp get rjls-cad
+codex mcp get theoryfoundry-cad
 ```
 
 Browser rendering has a 60-second safety limit, so the MCP tool needs enough
@@ -264,7 +283,7 @@ pnpm dev
 Open [http://localhost:3000](http://localhost:3000), sign in, create a project, then start a new local Codex
 task in this repository and ask:
 
-> Using the `rjls-cad` MCP tools and the project ID shown in the workspace, inspect the current
+> Using the `theoryfoundry-cad` MCP tools and the project ID shown in the workspace, inspect the current
 > state, create or edit the requested OpenSCAD model, validate it in the open
 > browser, and promote the valid candidate.
 
@@ -276,7 +295,7 @@ current revision does not change.
 
 After changing MCP/runtime source, run `pnpm mcp:build` again and restart the
 Codex client or task so it launches the rebuilt process. To remove a
-project-level registration, delete the `mcp_servers.rjls-cad` tables from
+project-level registration, delete the `mcp_servers.theoryfoundry-cad` tables from
 this repository's `.codex/config.toml`.
 
 Official references: [Codex MCP configuration](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
@@ -292,11 +311,11 @@ documented in [`docs/architecture.md`](docs/architecture.md) and
 
 `POST /v1/chat` accepts the strict browser-safe v3 request contract and returns
 newline-delimited v3 events. The route requires an exact `Origin` match and a
-matching `x-rjls-session-id`, caps the streamed request body at 32 KiB, and
+matching `x-theoryfoundry-session-id`, caps the streamed request body at 32 KiB, and
 propagates disconnect cancellation through LangChain, the official MCP client,
 and the renderer.
 
-The credential-free default is `RJLS_CHAT_PROVIDER=mock`. It is deterministic
+The credential-free default is `THEORYFOUNDRY_CHAT_PROVIDER=mock`. It is deterministic
 and supports the canonical blank bracket, 100 mm width edit, gusset edit, and
 3MF export prompts for local demos and tests. No live-provider adapter or
 default model is selected; that remains behind the provider evaluation gate.
@@ -338,7 +357,7 @@ The installer is built from `scripts/codex-connect/` using
 the installer. Provision the OAuth client below before offering the connection.
 No database credentials, secrets, or tokens are included in the copied command.
 
-Remote MCP is opt-in: set `RJLS_REMOTE_MCP_ENABLED=1` only after applying the
+Remote MCP is opt-in: set `THEORYFOUNDRY_REMOTE_MCP_ENABLED=1` only after applying the
 committed migrations and provisioning a public OAuth client. The existing stdio
 configuration above remains separate and unchanged.
 
@@ -348,19 +367,19 @@ pnpm oauth:provision -- http://127.0.0.1/callback
 ```
 
 Use the same database and public-origin environment as the deployed application.
-Provisioning prints the public client ID `rjls-codex`; it creates no client secret.
+Provisioning prints the public client ID `theoryfoundry-codex`; it creates no client secret.
 The callback must be an exact HTTP loopback URL. Repeating provisioning is safe;
 additional exact callbacks are added without wildcard matching.
 
 On your Codex computer:
 
 ```bash
-codex mcp add rjls-cad-remote --url https://YOUR-CAD-DOMAIN/mcp --oauth-client-id rjls-codex
-codex mcp login rjls-cad-remote --scopes cad:tools,offline_access
+codex mcp add theoryfoundry-cad-remote --url https://YOUR-CAD-DOMAIN/mcp --oauth-client-id theoryfoundry-codex
+codex mcp login theoryfoundry-cad-remote --scopes cad:tools,offline_access
 ```
 
 If Codex reports a different callback URL, provision that exact URL and retry.
-Set `tool_timeout_sec = 120` in `[mcp_servers.rjls-cad-remote]` in your Codex
+Set `tool_timeout_sec = 120` in `[mcp_servers.theoryfoundry-cad-remote]` in your Codex
 configuration and restart Codex. Sign in through the browser and approve access
 to your own projects. Public registration and client-secret authentication are
 not used. See [Codex MCP configuration](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
@@ -386,7 +405,7 @@ an authenticated same-origin POST scoped to the owner and project. The existing
 production completion endpoint verifies the single-use token, tab session,
 source hash, deadline, and pinned renderer provenance.
 
-Set `RJLS_REMOTE_MCP_ENABLED=0` and restart the application to disable remote MCP
+Set `THEORYFOUNDRY_REMOTE_MCP_ENABLED=0` and restart the application to disable remote MCP
 without disabling website chat. Retain the additive schema on rollback. The
 sibling deployment repository’s Proxmox runbook covers Compose, provisioning,
 tunnel acceptance tests, and rollback. No additional network ports or renderer
@@ -456,7 +475,7 @@ Clients must retrieve that URL and compare the downloaded bytes with the receipt
 MCP success does not mean a file was saved locally. Website downloads say
 “Download started” for the same reason. Existing GLB website downloads remain local.
 
-Set `RJLS_EXPORT_DIRECTORY` to an absolute, private, writable directory on the app
+Set `THEORYFOUNDRY_EXPORT_DIRECTORY` to an absolute, private, writable directory on the app
 host. Do not place it under `public/`. Without configuration, local development
 uses an OS temporary directory namespaced by the database connection; the site and
 stdio process therefore resolve the same location regardless of working directory.
@@ -475,15 +494,15 @@ One app instance is the v1 default; multiple replicas need a shared export volum
 Rollout: apply committed migrations (including `0009_clever_spot.sql`), configure
 the export directory/volume, rebuild packages and site, then restart the app and
 MCP clients together to refresh tool schemas. The sibling deployment repository
-mounts `/var/lib/rjls/exports` as a writable named volume. This change does not
+mounts a private export directory as a writable named volume. This change does not
 perform a deployment. Rollback must retain the additive database schema; temporary
 exports can expire normally.
 
 For a reproducible browser acceptance journey, provision an isolated database and
 test account, configure the app and stdio process identically, and run
 `node packages/runtime/src/fixtures/workflow-acceptance.mjs create` with
-`RJLS_ACTOR_USER_ID` set. It verifies the closed-browser response and prints the
+`THEORYFOUNDRY_ACTOR_USER_ID` set. It verifies the closed-browser response and prints the
 trusted project URL. Open that URL in a signed-in visible browser, then run the
 same script with `finish`. It validates the original candidate, saves a PNG before
 promotion, downloads both formats, and verifies hashes/byte counts. Evidence goes
-to `RJLS_ACCEPTANCE_DIRECTORY` (default `/tmp/cad-workflow-evidence`), without tokens.
+to `THEORYFOUNDRY_ACCEPTANCE_DIRECTORY` (default `/tmp/cad-workflow-evidence`), without tokens.

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import "./styles.css";
 
 export const metadata: Metadata = {
-  title: "RJLS Conversational CAD",
+  title: "TheoryFoundry Conversational CAD",
   description: "Reliable authenticated conversational CAD workspace",
 };
 

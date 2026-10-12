@@ -1,4 +1,4 @@
-import type { GeometrySummary } from "@rjls/contracts";
+import type { GeometrySummary } from "@theoryfoundry/contracts";
 export function summarizeStl(bytes: Uint8Array): GeometrySummary {
     const invalid = () => Object.assign(new Error("Invalid binary STL geometry."), { failureKind: "model" });
     if (bytes.byteLength < 84)

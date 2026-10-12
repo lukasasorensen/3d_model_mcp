@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createHash } from "node:crypto";
 import { drizzle } from "drizzle-orm/pglite";
-import { schema } from "@rjls/model-project";
+import { schema } from "@theoryfoundry/model-project";
 import { createConfiguredAuth } from "../dist/auth.js";
 import { provisionCodexClient } from "../dist/oauth-provisioning.js";
 import { revokeOAuthGrant } from "../dist/oauth-authorization.js";
@@ -17,7 +17,7 @@ const challenge = createHash("sha256").update(verifier).digest("base64url");
 test("real OAuth login, PKCE, consent, refresh, token binding, storage, and revocation", async () => {
   const fixture = await createPostgresFixture();
   const previous = { ...process.env };
-  Object.assign(process.env, { NODE_ENV: "test", BETTER_AUTH_URL: origin, RJLS_ALLOWED_ORIGIN: origin, BETTER_AUTH_SECRET: "test-only-secret-not-for-production-123456789", RJLS_REMOTE_MCP_ENABLED: "1", RJLS_AUTH_ALLOW_SIGNUP: "1" });
+  Object.assign(process.env, { NODE_ENV: "test", BETTER_AUTH_URL: origin, THEORYFOUNDRY_ALLOWED_ORIGIN: origin, BETTER_AUTH_SECRET: "test-only-secret-not-for-production-123456789", THEORYFOUNDRY_REMOTE_MCP_ENABLED: "1", THEORYFOUNDRY_AUTH_ALLOW_SIGNUP: "1" });
   try {
     const auth = createConfiguredAuth({ pool: fixture.pool, db: drizzle(fixture.database, { schema }) });
     await auth.$context;

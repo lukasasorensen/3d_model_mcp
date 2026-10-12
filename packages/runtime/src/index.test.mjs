@@ -3,10 +3,10 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { ModelProjectRepository, PostgresModelProjectRepository, createProjectDatabase } from "@rjls/model-project";
-import { isBrowserRendererProvenance } from "@rjls/contracts";
-import { CAD_TOOL_NAMES } from "@rjls/gateway";
-import { streamCadChat } from "@rjls/gateway";
+import { ModelProjectRepository, PostgresModelProjectRepository, createProjectDatabase } from "@theoryfoundry/model-project";
+import { isBrowserRendererProvenance } from "@theoryfoundry/contracts";
+import { CAD_TOOL_NAMES } from "@theoryfoundry/gateway";
+import { streamCadChat } from "@theoryfoundry/gateway";
 import { BrowserRenderCoordinator, ConfiguredCadRuntimeManager, LocalBrowserRenderer, PostgresBrowserRenderCoordinator, RUNTIME_BOUNDARY, RuntimeObservabilityStore, createInMemoryCadMcpClient, createObservedReadinessProbe, createStdioCadMcpClient, expectedBrowserProvenance, probeConfiguredReadiness, sanitizeBrowserRenderCompletion } from "../dist/index.js";
 
 test("exposes the local runtime package boundary", () => {
@@ -112,7 +112,7 @@ test("production configured readiness retains and exports fail then two-success 
 });
 
 test("connects the exact CAD surface through the official in-memory MCP client", async () => {
-  const workspaceRoot = await mkdtemp(join(tmpdir(), "rjls-runtime-mcp-"));
+  const workspaceRoot = await mkdtemp(join(tmpdir(), "theoryfoundry-runtime-mcp-"));
   const repository = new ModelProjectRepository({
     workspaceRoot,
     renderer: { async validateAndRender() { throw new Error("unused"); } },
@@ -127,7 +127,7 @@ test("connects the exact CAD surface through the official in-memory MCP client",
 });
 
 test("configured runtime observability retains and exports real request records and bounded metrics", async () => {
-  const workspaceRoot = await mkdtemp(join(tmpdir(), "rjls-runtime-observability-"));
+  const workspaceRoot = await mkdtemp(join(tmpdir(), "theoryfoundry-runtime-observability-"));
   const repository = new ModelProjectRepository({ workspaceRoot, renderer: { async validateAndRender() { throw new Error("unused"); } }, acceptRendererProvenance: () => false });
   const client = await createInMemoryCadMcpClient(repository);
   const exportedRecords = [], exportedMetrics = [];
@@ -153,7 +153,7 @@ test("configured runtime observability retains and exports real request records 
 });
 
 test("default stdio adapter negotiates cleanly, propagates cancel, observes child death, and restarts", async () => {
-  const workspaceRoot = await mkdtemp(join(tmpdir(), "rjls-runtime-stdio-"));
+  const workspaceRoot = await mkdtemp(join(tmpdir(), "theoryfoundry-runtime-stdio-"));
   const fixture = new URL("./fixtures/stdio-cad-server.mjs", import.meta.url);
   const start = () => createStdioCadMcpClient({ command: process.execPath, args: [fixture.pathname, workspaceRoot], cwd: process.cwd(), stderr: "pipe" });
   const first = await start();
@@ -186,11 +186,11 @@ test("default stdio adapter negotiates cleanly, propagates cancel, observes chil
   }
 });
 
-test("standalone PostgreSQL stdio server validates in an open-browser peer and promotes", { skip: !process.env.RJLS_TEST_DATABASE_URL || !process.env.RJLS_TEST_ACTOR_USER_ID }, async () => {
+test("standalone PostgreSQL stdio server validates in an open-browser peer and promotes", { skip: !process.env.THEORYFOUNDRY_TEST_DATABASE_URL || !process.env.THEORYFOUNDRY_TEST_ACTOR_USER_ID }, async () => {
   const projectId = `stdio-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const database = createProjectDatabase(process.env.RJLS_TEST_DATABASE_URL);
+  const database = createProjectDatabase(process.env.THEORYFOUNDRY_TEST_DATABASE_URL);
   const repository = new PostgresModelProjectRepository({
-    pool: database.pool, ownerId: process.env.RJLS_TEST_ACTOR_USER_ID,
+    pool: database.pool, ownerId: process.env.THEORYFOUNDRY_TEST_ACTOR_USER_ID,
     renderer: { async validateAndRender() { throw new Error("unused"); } },
     acceptRendererProvenance: isBrowserRendererProvenance, createId: () => projectId,
   });
@@ -200,10 +200,10 @@ test("standalone PostgreSQL stdio server validates in an open-browser peer and p
     command: process.execPath,
     args: [executable.pathname],
     cwd: process.cwd(),
-    env: { ...process.env, DATABASE_URL: process.env.RJLS_TEST_DATABASE_URL, RJLS_ACTOR_USER_ID: process.env.RJLS_TEST_ACTOR_USER_ID },
+    env: { ...process.env, DATABASE_URL: process.env.THEORYFOUNDRY_TEST_DATABASE_URL, THEORYFOUNDRY_ACTOR_USER_ID: process.env.THEORYFOUNDRY_TEST_ACTOR_USER_ID },
     stderr: "pipe",
   });
-  const browser = new LocalBrowserRenderer(database, process.env.RJLS_TEST_ACTOR_USER_ID, "cad-validation-v1");
+  const browser = new LocalBrowserRenderer(database, process.env.THEORYFOUNDRY_TEST_ACTOR_USER_ID, "cad-validation-v1");
   try {
     const proposed = await client.callTool("propose_model_source", {
       projectId, parentRevision: null, source: "cube([10,10,10]);",

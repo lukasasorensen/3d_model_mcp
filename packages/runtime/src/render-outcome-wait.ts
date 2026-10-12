@@ -1,4 +1,4 @@
-import type { ProjectChangeSource } from "@rjls/model-project";
+import type { ProjectChangeSource } from "@theoryfoundry/model-project";
 
 /** Subscribe before reading, retain wakeups during reads, and recheck at persisted deadlines. */
 export async function waitForRenderOutcome<T>(options: {

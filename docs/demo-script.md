@@ -12,7 +12,7 @@ To run the same CAD tools from a ChatGPT-authenticated local Codex client while
 the browser performs validation, follow “Test the MCP tools with Codex” in the
 root README. This requires the opt-in local MCP bridge and a visible browser tab.
 
-The UI uses the credential-free `RJLS_CHAT_PROVIDER=mock`. Enter these requests in
+The UI uses the credential-free `THEORYFOUNDRY_CHAT_PROVIDER=mock`. Enter these requests in
 one project:
 
 1. “Create an 80 × 40 mm mounting bracket with a 6 mm base and two 5 mm mounting holes.”
@@ -28,8 +28,8 @@ hole centers ±35,-10; R3 gussets centered at X=±35 spanning Y=-6..14 and Z=6..
 ## Commands
 
 ```bash
-pnpm --filter @rjls/runtime test
-pnpm --filter @rjls/site test
+pnpm --filter @theoryfoundry/runtime test
+pnpm --filter @theoryfoundry/site test
 pnpm verify
 ```
 

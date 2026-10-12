@@ -10,9 +10,9 @@ export function connectionSettings(origin) {
       (url.protocol !== "https:" && !(url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname)))) {
     throw new Error("Use a canonical HTTPS application origin (HTTP is allowed only on loopback).");
   }
-  const name = `rjls-cad-${createHash("sha256").update(origin).digest("hex").slice(0, 12)}`;
+  const name = `theoryfoundry-cad-${createHash("sha256").update(origin).digest("hex").slice(0, 12)}`;
   const server = { url: `${origin}/mcp`, tool_timeout_sec: 120,
-    oauth: { client_id: "rjls-codex", callback_url: "http://127.0.0.1/callback", scopes: ["cad:tools", "offline_access"] } };
+    oauth: { client_id: "theoryfoundry-codex", callback_url: "http://127.0.0.1/callback", scopes: ["cad:tools", "offline_access"] } };
   return { name, server };
 }
 

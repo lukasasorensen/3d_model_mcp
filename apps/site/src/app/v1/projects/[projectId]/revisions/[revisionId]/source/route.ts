@@ -1,5 +1,5 @@
-import { projectIdSchema, revisionIdSchema } from "@rjls/contracts";
-import { withConfiguredCadRuntime } from "@rjls/runtime";
+import { projectIdSchema, revisionIdSchema } from "@theoryfoundry/contracts";
+import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { isCadDomainError } from "@/lib/cad-errors";
 import { NO_STORE_HEADERS, authenticateRequest, isPolicyResponse, jsonError } from "@/lib/route-policy";
 
@@ -18,8 +18,8 @@ export async function GET(request: Request, context: { params: Promise<{ project
     return new Response(model.source, { headers: {
       ...NO_STORE_HEADERS,
       "content-type": "text/plain; charset=utf-8",
-      "x-rjls-source-hash": model.sourceHash,
-      "x-rjls-source-revision": model.revision,
+      "x-theoryfoundry-source-hash": model.sourceHash,
+      "x-theoryfoundry-source-revision": model.revision,
     } });
   } catch (error) {
     if (isCadDomainError(error, "PROJECT_NOT_FOUND") || isCadDomainError(error, "REVISION_NOT_FOUND")) {

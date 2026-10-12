@@ -41,13 +41,13 @@ importers:
       '@react-three/fiber':
         specifier: 9.6.1
         version: 9.6.1(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(three@0.179.1)
-      '@rjls/contracts':
+      '@theoryfoundry/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@rjls/gateway':
+      '@theoryfoundry/gateway':
         specifier: workspace:*
         version: link:../../packages/gateway
-      '@rjls/runtime':
+      '@theoryfoundry/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
       better-auth:
@@ -100,10 +100,10 @@ importers:
       '@langchain/core':
         specifier: 1.2.4
         version: 1.2.4
-      '@rjls/contracts':
+      '@theoryfoundry/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@rjls/mcp':
+      '@theoryfoundry/mcp':
         specifier: workspace:*
         version: link:../mcp
       langchain:
@@ -125,10 +125,10 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: 1.30.0
         version: 1.30.0(@cfworker/json-schema@4.1.1)(supports-color@7.2.0)(zod@4.4.3)
-      '@rjls/contracts':
+      '@theoryfoundry/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@rjls/model-project':
+      '@theoryfoundry/model-project':
         specifier: workspace:*
         version: link:../runtime/model-project
       zod:
@@ -144,7 +144,7 @@ importers:
 
   packages/renderer:
     dependencies:
-      '@rjls/contracts':
+      '@theoryfoundry/contracts':
         specifier: workspace:*
         version: link:../contracts
     devDependencies:
@@ -163,19 +163,19 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: 1.30.0
         version: 1.30.0(@cfworker/json-schema@4.1.1)(supports-color@7.2.0)(zod@4.4.3)
-      '@rjls/contracts':
+      '@theoryfoundry/contracts':
         specifier: workspace:*
         version: link:../contracts
-      '@rjls/gateway':
+      '@theoryfoundry/gateway':
         specifier: workspace:*
         version: link:../gateway
-      '@rjls/mcp':
+      '@theoryfoundry/mcp':
         specifier: workspace:*
         version: link:../mcp
-      '@rjls/model-project':
+      '@theoryfoundry/model-project':
         specifier: workspace:*
         version: link:model-project
-      '@rjls/renderer':
+      '@theoryfoundry/renderer':
         specifier: workspace:*
         version: link:../renderer
       better-auth:
@@ -206,7 +206,7 @@ importers:
 
   packages/runtime/model-project:
     dependencies:
-      '@rjls/contracts':
+      '@theoryfoundry/contracts':
         specifier: workspace:*
         version: link:../../contracts
       drizzle-orm:

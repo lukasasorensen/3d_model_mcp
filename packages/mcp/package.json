@@ -1,5 +1,5 @@
 {
-  "name": "@rjls/mcp",
+  "name": "@theoryfoundry/mcp",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,8 +15,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.30.0",
-    "@rjls/contracts": "workspace:*",
-    "@rjls/model-project": "workspace:*",
+    "@theoryfoundry/contracts": "workspace:*",
+    "@theoryfoundry/model-project": "workspace:*",
     "zod": "^4.4.3"
   },
   "devDependencies": { "@types/node": "^22.10.2", "rimraf": "^6.0.1" }

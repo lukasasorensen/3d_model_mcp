@@ -1,5 +1,5 @@
 {
-  "name": "@rjls/runtime",
+  "name": "@theoryfoundry/runtime",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -25,15 +25,15 @@
   "dependencies": {
     "@better-auth/oauth-provider": "1.7.2",
     "@modelcontextprotocol/sdk": "1.30.0",
-    "@rjls/contracts": "workspace:*",
-    "@rjls/gateway": "workspace:*",
-    "@rjls/mcp": "workspace:*",
-    "@rjls/model-project": "workspace:*",
+    "@theoryfoundry/contracts": "workspace:*",
+    "@theoryfoundry/gateway": "workspace:*",
+    "@theoryfoundry/mcp": "workspace:*",
+    "@theoryfoundry/model-project": "workspace:*",
     "better-auth": "^1.7.2",
     "drizzle-orm": "^0.45.2",
     "jose": "6.2.8",
     "pg": "^8.23.0",
-    "@rjls/renderer": "workspace:*"
+    "@theoryfoundry/renderer": "workspace:*"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

@@ -13,7 +13,7 @@ import {
   type Diagnostic,
   type RendererProvenance,
   type RevisionManifest,
-} from "@rjls/contracts";
+} from "@theoryfoundry/contracts";
 import type { Pool, PoolClient, QueryResultRow } from "pg";
 
 import { CadDomainError } from "./cad-domain-error.js";

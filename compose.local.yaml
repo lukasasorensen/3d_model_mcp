@@ -1,4 +1,4 @@
-name: rjls-local
+name: theoryfoundry-local
 
 services:
   postgres:
@@ -6,17 +6,17 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: rjls
+      POSTGRES_DB: theoryfoundry
     ports:
-      - "127.0.0.1:${RJLS_POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${THEORYFOUNDRY_POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d rjls"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d theoryfoundry"]
       interval: 2s
       timeout: 5s
       retries: 30
 
 volumes:
   postgres-data:
-    name: rjls-postgres-data
+    name: theoryfoundry-postgres-data

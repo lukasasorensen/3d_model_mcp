@@ -1,4 +1,4 @@
-import type { ArtifactManifest, ChatEvent, RevisionManifest } from "@rjls/contracts";
+import type { ArtifactManifest, ChatEvent, RevisionManifest } from "@theoryfoundry/contracts";
 
 export type ToolActivityState = "running" | "success" | "error";
 export interface ToolActivityItem {

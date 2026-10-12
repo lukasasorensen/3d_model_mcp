@@ -1,7 +1,7 @@
 "use client";
-import { exportFilename } from "@rjls/contracts";
+import { exportFilename } from "@theoryfoundry/contracts";
 
-import { BROWSER_RENDERER, projectListSchema, revisionManifestSchema, type ChatEvent, type ProjectSummary } from "@rjls/contracts";
+import { BROWSER_RENDERER, projectListSchema, revisionManifestSchema, type ChatEvent, type ProjectSummary } from "@theoryfoundry/contracts";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
@@ -19,7 +19,7 @@ import { streamChat } from "@/lib/stream-client";
 import { completeBrowserRender, downloadGeneratedBytes, fetchRevisionSource, generateDownload, type DownloadFormat } from "@/lib/browser-renderer";
 
 const ModelViewer = dynamic(() => import("./ModelViewer").then((module) => module.ModelViewer), { ssr: false, loading: () => <div className="viewer-loading">Preparing 3D viewer…</div> });
-const SESSION_KEY_PREFIX = "rjls-cad-session:";
+const SESSION_KEY_PREFIX = "theoryfoundry-cad-session:";
 const activeObjectUrls = new Set<string>();
 
 function newOpaqueId(prefix: string): string { return `${prefix}-${crypto.randomUUID()}`; }
@@ -209,7 +209,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
     <main className="app-shell" data-testid="cad-workspace">
       <a className="skip-link" href="#conversation-heading">Skip to conversation</a>
       <header className="app-header">
-        <div className="brand-mark"><span aria-hidden="true">R</span><div><strong>RJLS Conversational CAD</strong><small>Precision workshop</small></div></div>
+        <div className="brand-mark"><span aria-hidden="true">T</span><div><strong>TheoryFoundry Conversational CAD</strong><small>Precision workshop</small></div></div>
         <div className="header-controls">
           {remoteMcpEnabled && codexOrigin && <ConnectToCodex origin={codexOrigin} projectId={projectId} />}
           <button type="button" onClick={() => router.push("/projects")} disabled={isMcpRendering || state.active || restorePending || exportState === "preparing"}>All projects</button>

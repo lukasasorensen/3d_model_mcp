@@ -1,9 +1,9 @@
 import { RuntimeCadWorkflowService } from "./cad-workflow-service.js";
 import { PostgresModelPreviewService } from "./model-preview-service.js";
-import { BrowserPreviewJobsRepository } from "@rjls/model-project";
-import { isBrowserRendererProvenance } from "@rjls/contracts";
-import { PostgresModelProjectRepository, RemoteRenderJobsRepository, VALIDATION_POLICY_VERSION } from "@rjls/model-project";
-import { createCadMcpServer } from "@rjls/mcp";
+import { BrowserPreviewJobsRepository } from "@theoryfoundry/model-project";
+import { isBrowserRendererProvenance } from "@theoryfoundry/contracts";
+import { PostgresModelProjectRepository, RemoteRenderJobsRepository, VALIDATION_POLICY_VERSION } from "@theoryfoundry/model-project";
+import { createCadMcpServer } from "@theoryfoundry/mcp";
 import { getProjectDatabase } from "./infrastructure.js";
 import { claimRemoteBrowserRender, RemoteBrowserRenderer } from "./remote-browser-renderer.js";
 

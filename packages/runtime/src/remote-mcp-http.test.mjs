@@ -5,8 +5,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import { ModelProjectRepository } from "@rjls/model-project";
-import { createCadMcpServer } from "@rjls/mcp";
+import { ModelProjectRepository } from "@theoryfoundry/model-project";
+import { createCadMcpServer } from "@theoryfoundry/mcp";
 import { createRemoteMcpHandler } from "../dist/remote-mcp-http.js";
 import { McpAuthenticationError } from "../dist/remote-mcp-auth.js";
 import { validateOAuthCallback, remoteMcpIdentity } from "../dist/remote-mcp-policy.js";
@@ -20,8 +20,8 @@ test("native OAuth callbacks and deployment identity reject unsafe input", () =>
 
 test("official MCP client negotiates remote transport, preserves tools, and closes each request", async () => {
   const workspaceRoot = await mkdtemp(join(tmpdir(), "cad-remote-http-"));
-  const previous = process.env.RJLS_REMOTE_MCP_ENABLED;
-  process.env.RJLS_REMOTE_MCP_ENABLED = "1";
+  const previous = process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED;
+  process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED = "1";
   const repository = new ModelProjectRepository({ workspaceRoot, renderer: { async validateAndRender() { throw new Error("unused"); } } });
   const project = await repository.createProject({ name: "Test project", description: "Test model" });
   let created = 0, closed = 0;
@@ -57,18 +57,18 @@ test("official MCP client negotiates remote transport, preserves tools, and clos
     assert.match(denied.headers.get("www-authenticate"), /resource_metadata/);
     const broken = createRemoteMcpHandler({ authenticate: async () => { throw new Error("database offline"); }, createServer: async () => { assert.fail("broken auth executed"); } });
     assert.equal((await broken(new Request("http://localhost:3000/mcp", { method: "POST" }))).status, 503);
-    process.env.RJLS_REMOTE_MCP_ENABLED = "0";
+    process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED = "0";
     assert.equal((await handler(new Request("http://localhost:3000/mcp", { method: "POST" }))).status, 404);
   } finally {
     await client.close();
-    if (previous === undefined) delete process.env.RJLS_REMOTE_MCP_ENABLED; else process.env.RJLS_REMOTE_MCP_ENABLED = previous;
+    if (previous === undefined) delete process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED; else process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED = previous;
     await rm(workspaceRoot, { recursive: true, force: true });
   }
 });
 
 test("slow uploads and disconnected clients are cancelled before a tool can execute", async () => {
-  const previous = process.env.RJLS_REMOTE_MCP_ENABLED;
-  process.env.RJLS_REMOTE_MCP_ENABLED = "1";
+  const previous = process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED;
+  process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED = "1";
   let cancelled = false;
   try {
     const handler = createRemoteMcpHandler({ authenticate: async () => "owner", createServer: async () => assert.fail("incomplete upload executed") }, 10);
@@ -77,6 +77,6 @@ test("slow uploads and disconnected clients are cancelled before a tool can exec
     assert.equal(response.status, 504);
     assert.equal(cancelled, true);
   } finally {
-    if (previous === undefined) delete process.env.RJLS_REMOTE_MCP_ENABLED; else process.env.RJLS_REMOTE_MCP_ENABLED = previous;
+    if (previous === undefined) delete process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED; else process.env.THEORYFOUNDRY_REMOTE_MCP_ENABLED = previous;
   }
 });

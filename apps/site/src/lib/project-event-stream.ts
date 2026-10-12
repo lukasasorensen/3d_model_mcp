@@ -1,5 +1,5 @@
-import type { ProjectEvent } from "@rjls/contracts";
-import type { getProjectDatabase } from "@rjls/runtime";
+import type { ProjectEvent } from "@theoryfoundry/contracts";
+import type { getProjectDatabase } from "@theoryfoundry/runtime";
 
 type ChangeSource = ReturnType<typeof getProjectDatabase>["notifications"];
 

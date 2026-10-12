@@ -2,7 +2,7 @@ ALTER TYPE "public"."render_delivery_mode" ADD VALUE 'local-mcp';
 --> statement-breakpoint
 CREATE FUNCTION notify_project_change() RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
-  PERFORM pg_notify('rjls_changes', json_build_object('kind', 'project', 'ownerId', NEW.owner_id, 'projectId', NEW.id)::text);
+  PERFORM pg_notify('theoryfoundry_changes', json_build_object('kind', 'project', 'ownerId', NEW.owner_id, 'projectId', NEW.id)::text);
   RETURN NEW;
 END;
 $$;
@@ -15,7 +15,7 @@ CREATE FUNCTION notify_render_change() RETURNS trigger LANGUAGE plpgsql AS $$
 DECLARE changed browser_render_jobs;
 BEGIN
   IF TG_OP = 'DELETE' THEN changed := OLD; ELSE changed := NEW; END IF;
-  PERFORM pg_notify('rjls_changes', json_build_object('kind', 'render', 'ownerId', changed.owner_id, 'projectId', changed.project_id, 'jobId', changed.id)::text);
+  PERFORM pg_notify('theoryfoundry_changes', json_build_object('kind', 'render', 'ownerId', changed.owner_id, 'projectId', changed.project_id, 'jobId', changed.id)::text);
   RETURN NULL;
 END;
 $$;

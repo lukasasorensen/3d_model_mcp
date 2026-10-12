@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { FakeToolCallingModel, createAgent, tool, toolCallLimitMiddleware } from "langchain";
 import { z } from "zod";
-import { CAD_LIMITS, CHAT_LIMITS, chatEventSchema } from "@rjls/contracts";
+import { CAD_LIMITS, CHAT_LIMITS, chatEventSchema } from "@theoryfoundry/contracts";
 import { CAD_TOOL_NAMES, DeterministicMockCadProvider, GATEWAY_BOUNDARY, createChatRouteHandler, streamCadChat } from "../dist/index.js";
 
 test("exposes the gateway package boundary", () => {
@@ -270,11 +270,11 @@ test("chat HTTP admission enforces exact origin, session, and streamed byte limi
     allowedOrigin: "http://localhost:3000",
     getOrchestrator: async () => { admitted += 1; return { client: exactClient(async () => ({ isError: false, structuredContent: { state: { projectId: "project-1", currentRevision: null, source: null, artifacts: [], diagnostics: [] } } })), createId: () => "request-http" }; },
   });
-  const headers = { origin: "http://localhost:3000", "content-type": "application/json", "x-rjls-session-id": "session-1" };
+  const headers = { origin: "http://localhost:3000", "content-type": "application/json", "x-theoryfoundry-session-id": "session-1" };
   const denied = await handler(new Request("http://localhost/v1/chat", { method: "POST", headers: { ...headers, origin: "http://evil.invalid" }, body: JSON.stringify(request) }));
   assert.equal(denied.status, 403);
   assert.equal(admitted, 0);
-  const mismatch = await handler(new Request("http://localhost/v1/chat", { method: "POST", headers: { ...headers, "x-rjls-session-id": "other" }, body: JSON.stringify(request) }));
+  const mismatch = await handler(new Request("http://localhost/v1/chat", { method: "POST", headers: { ...headers, "x-theoryfoundry-session-id": "other" }, body: JSON.stringify(request) }));
   assert.equal(mismatch.status, 409);
   const oversized = await handler(new Request("http://localhost/v1/chat", { method: "POST", headers, body: new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode(`{"version":"3","projectId":"project-1","sessionId":"session-1","message":"${"x".repeat(33 * 1024)}`)); controller.close(); } }), duplex: "half" }));
   assert.equal(oversized.status, 413);
@@ -306,7 +306,7 @@ test("response consumer cancellation aborts MCP work and prevents later mutation
       }),
     }),
   });
-  const response = await handler(new Request("http://localhost/v1/chat", { method: "POST", headers: { origin: "http://localhost:3000", "content-type": "application/json", "x-rjls-session-id": "session-1" }, body: JSON.stringify(request) }));
+  const response = await handler(new Request("http://localhost/v1/chat", { method: "POST", headers: { origin: "http://localhost:3000", "content-type": "application/json", "x-theoryfoundry-session-id": "session-1" }, body: JSON.stringify(request) }));
   const reader = response.body.getReader();
   const first = await reader.read();
   assert.equal(first.done, false);

@@ -1,8 +1,8 @@
-import type { CadWorkflowService, ModelPreviewService } from "@rjls/contracts";
+import type { CadWorkflowService, ModelPreviewService } from "@theoryfoundry/contracts";
 import { registerModelPreviewTool } from "./model-preview-tool.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import type { ModelProjectStore } from "@rjls/model-project";
+import type { ModelProjectStore } from "@theoryfoundry/model-project";
 
 import { createCadToolRegistry, invokeCadTool, type CadToolName } from "./tools.js";
 
@@ -24,7 +24,7 @@ function mcpResult(result: Awaited<ReturnType<typeof invokeCadTool>>) {
 export function createCadMcpServer(repository: ModelProjectStore, options: { signal?: AbortSignal; workflowService?: CadWorkflowService; previewService?: ModelPreviewService } = {}): McpServer {
   const registry = createCadToolRegistry(repository, options.workflowService);
   const server = new McpServer(
-    { name: "rjls-cad", version: "0.1.0" },
+    { name: "theoryfoundry-cad", version: "0.1.0" },
     { instructions: "Use only these project-scoped CAD tools. Inspect project state before editing, propose source against the exact current parent, validate_and_render before promotion, and promote only a VALID candidate. Browser validation requires the matching CAD project to be open in a visible browser tab. Never infer revision or artifact success from prose." },
   );
 

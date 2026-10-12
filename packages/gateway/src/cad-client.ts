@@ -1,4 +1,4 @@
-import type { CadToolName } from "@rjls/mcp";
+import type { CadToolName } from "@theoryfoundry/mcp";
 
 export interface CadMcpToolResult {
   isError: boolean;

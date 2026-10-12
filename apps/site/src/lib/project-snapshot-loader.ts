@@ -1,4 +1,4 @@
-import { projectStateSchema, revisionManifestSchema, type RevisionManifest } from "@rjls/contracts";
+import { projectStateSchema, revisionManifestSchema, type RevisionManifest } from "@theoryfoundry/contracts";
 
 export interface ProjectSnapshot {
   currentRevision: string | null;

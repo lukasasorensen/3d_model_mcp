@@ -1,5 +1,5 @@
-import { projectIdSchema, revisionIdSchema } from "@rjls/contracts";
-import { withConfiguredCadRuntime } from "@rjls/runtime";
+import { projectIdSchema, revisionIdSchema } from "@theoryfoundry/contracts";
+import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { randomUUID } from "node:crypto";
 import { NO_STORE_HEADERS, authenticateRequest, isPolicyResponse, jsonError, requireSameOrigin } from "@/lib/route-policy";
 

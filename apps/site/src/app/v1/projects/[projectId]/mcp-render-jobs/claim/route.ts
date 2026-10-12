@@ -1,5 +1,5 @@
-import { projectIdSchema, sessionIdSchema } from "@rjls/contracts";
-import { claimConfiguredRemoteRender, remoteMcpEnabled, withConfiguredCadRuntime } from "@rjls/runtime";
+import { projectIdSchema, sessionIdSchema } from "@theoryfoundry/contracts";
+import { claimConfiguredRemoteRender, remoteMcpEnabled, withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { authenticateRequest, isPolicyResponse, jsonError, requireSameOrigin, NO_STORE_HEADERS } from "@/lib/route-policy";
 import { isCadDomainError } from "@/lib/cad-errors";
 export const runtime = "nodejs";
@@ -11,7 +11,7 @@ export async function POST(request: Request, context: { params: Promise<{ projec
   const user = await authenticateRequest(request);
   if (isPolicyResponse(user)) return user;
   const projectId = projectIdSchema.safeParse((await context.params).projectId);
-  const sessionId = sessionIdSchema.safeParse(request.headers.get("x-rjls-session-id"));
+  const sessionId = sessionIdSchema.safeParse(request.headers.get("x-theoryfoundry-session-id"));
   if (!projectId.success || !sessionId.success) return jsonError("INVALID_REQUEST", 400);
   try {
     await withConfiguredCadRuntime(user.id, (runtime) => runtime.repository.getProjectState(projectId.data));

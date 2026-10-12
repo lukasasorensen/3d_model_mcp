@@ -1,5 +1,5 @@
-import type { CadWorkflowService } from "@rjls/contracts";
-import { RemoteRenderJobsRepository, BrowserPresenceRepository, CadDomainError, ModelExportsRepository, type ModelProjectStore, type ProjectDatabase } from "@rjls/model-project";
+import type { CadWorkflowService } from "@theoryfoundry/contracts";
+import { RemoteRenderJobsRepository, BrowserPresenceRepository, CadDomainError, ModelExportsRepository, type ModelProjectStore, type ProjectDatabase } from "@theoryfoundry/model-project";
 import { remoteMcpIdentity } from "./remote-mcp-policy.js";
 import { ModelExportService } from "./model-export-service.js";
 import { DirectoryExportFileStore } from "./export-file-store.js";
@@ -7,7 +7,7 @@ import { resolve, join } from "node:path";
 import { tmpdir } from "node:os";
 import { createHash } from "node:crypto";
 export function createModelExportService(database: ProjectDatabase) {
-    return new ModelExportService(database, new DirectoryExportFileStore(process.env.RJLS_EXPORT_DIRECTORY ? resolve(process.env.RJLS_EXPORT_DIRECTORY) : join(tmpdir(), "rjls-cad-exports", createHash("sha256").update(process.env.DATABASE_URL ?? "local").digest("hex").slice(0, 16))));
+    return new ModelExportService(database, new DirectoryExportFileStore(process.env.THEORYFOUNDRY_EXPORT_DIRECTORY ? resolve(process.env.THEORYFOUNDRY_EXPORT_DIRECTORY) : join(tmpdir(), "theoryfoundry-cad-exports", createHash("sha256").update(process.env.DATABASE_URL ?? "local").digest("hex").slice(0, 16))));
 }
 export class RuntimeCadWorkflowService implements CadWorkflowService {
     constructor(private readonly database: ProjectDatabase, private readonly repository: ModelProjectStore, private readonly ownerId: string, private readonly mode: "local-mcp" | "remote-mcp" | "chat", private readonly origin = remoteMcpIdentity().origin, private readonly exports = createModelExportService(database)) { }

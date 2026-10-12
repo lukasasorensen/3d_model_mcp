@@ -1,6 +1,6 @@
 import { zipDirectory, zipEntrySizes } from "./zip64.js";
 import { inflateRawSync } from "node:zlib";
-import { CAD_LIMITS } from "@rjls/contracts";
+import { CAD_LIMITS } from "@theoryfoundry/contracts";
 import { RendererError } from "./diagnostics.js";
 
 export interface ParsedMesh {
@@ -218,8 +218,8 @@ export function bindThreeMfSource(bytes: Uint8Array, sourceHash: string): Uint8A
   const model = entries.find((entry) => entry.name.toLowerCase().endsWith(".model"));
   if (!model) throw new RendererError("INVALID_ARTIFACT", "3MF package has no model part.");
   const xml = new TextDecoder("utf-8", { fatal: true }).decode(model.bytes);
-  if (/<metadata\s+name=["']rjls:sourceHash["']/i.test(xml)) throw new RendererError("INTEGRITY_FAILURE", "Renderer output attempted to supply trusted source linkage.");
-  const linked = xml.replace(/(<model\b[^>]*>)/i, `$1<metadata name="rjls:sourceHash">${sourceHash}</metadata>`);
+  if (/<metadata\s+name=["']theoryfoundry:sourceHash["']/i.test(xml)) throw new RendererError("INTEGRITY_FAILURE", "Renderer output attempted to supply trusted source linkage.");
+  const linked = xml.replace(/(<model\b[^>]*>)/i, `$1<metadata name="theoryfoundry:sourceHash">${sourceHash}</metadata>`);
   if (linked === xml) throw new RendererError("INVALID_ARTIFACT", "3MF model root is malformed.");
   model.bytes = new TextEncoder().encode(linked);
   return writeZip(entries);
@@ -252,7 +252,7 @@ export function parseThreeMf(bytes: Uint8Array, expectedSourceHash?: string): Pa
   }
   if (expectedSourceHash) {
     const escaped = expectedSourceHash.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    if (!new RegExp(`<metadata\\s+name=["']rjls:sourceHash["']\\s*>\\s*${escaped}\\s*</metadata>`, "i").test(xml)) {
+    if (!new RegExp(`<metadata\\s+name=["']theoryfoundry:sourceHash["']\\s*>\\s*${escaped}\\s*</metadata>`, "i").test(xml)) {
       throw new RendererError("INTEGRITY_FAILURE", "3MF source linkage is missing or mismatched.");
     }
   }

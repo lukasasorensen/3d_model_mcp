@@ -1,5 +1,5 @@
-import { createProjectInputSchema, projectListSchema, projectSummarySchema } from "@rjls/contracts";
-import { withConfiguredCadRuntime } from "@rjls/runtime";
+import { createProjectInputSchema, projectListSchema, projectSummarySchema } from "@theoryfoundry/contracts";
+import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { ProjectCreateBodyTooLargeError, readProjectCreateBody } from "@/lib/project-create-request";
 import { NO_STORE_HEADERS, authenticateRequest, isPolicyResponse, jsonError, requireSameOrigin } from "@/lib/route-policy";
 
