@@ -5,6 +5,7 @@ import { BROWSER_RENDERER, projectListSchema, revisionManifestSchema, type ChatE
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
+import { useSidebarChat } from "@/lib/use-sidebar-chat";
 import { ChatPane } from "./ChatPane";
 import { ConnectToCodex } from "./connect-to-codex";
 import { ModelSourcePanel } from "./ModelSourcePanel";
@@ -57,6 +58,7 @@ export function promotionStatusLabel(selectedLabel: string, hasSelectedRevision:
 
 export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remoteMcpEnabled = false, codexOrigin }: { projectId: string; localMcpBridgeEnabled?: boolean; remoteMcpEnabled?: boolean; codexOrigin?: string }) {
   const router = useRouter();
+  const isSidebarChatEnabled = useSidebarChat();
   const [state, dispatch] = useReducer(workspaceReducer, initialWorkspaceState);
   const [readiness, setReadiness] = useState<"checking" | "ready" | "unavailable">("checking");
   const [downloadReceipt, setDownloadReceipt] = useState<{filename:string;hash:string} | undefined>();
@@ -124,7 +126,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
   useBrowserPresence({ projectId, sessionId, ready: readiness === "ready", busy: isMcpRendering || restorePending || exportState === "preparing", localEnabled: localMcpBridgeEnabled, remoteEnabled: remoteMcpEnabled, presenceWake });
 
   const submit = useCallback(async (message: string) => {
-    if (!sessionId || !(await acquireRenderer())) return;
+    if (!isSidebarChatEnabled || !sessionId || !(await acquireRenderer())) return;
     releaseRenderer();
     lastMessage.current = message;
     const requestId = newOpaqueId("turn");
@@ -151,7 +153,9 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
     } finally {
       abortRef.current = undefined;
     }
-  }, [projectId, refreshProject, sessionId, state.revisions, acquireRenderer, releaseRenderer]);
+  }, [isSidebarChatEnabled, projectId, refreshProject, sessionId, state.revisions, acquireRenderer, releaseRenderer]);
+
+  useEffect(() => { if (!isSidebarChatEnabled) abortRef.current?.abort(); }, [isSidebarChatEnabled]);
 
   useLayoutEffect(() => {
     const available = readiness === "ready" && Boolean(sessionId);
@@ -207,7 +211,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
 
   return (
     <main className="app-shell" data-testid="cad-workspace">
-      <a className="skip-link" href="#conversation-heading">Skip to conversation</a>
+      <a className="skip-link" href={isSidebarChatEnabled ? "#conversation-heading" : "#model-heading"}>{isSidebarChatEnabled ? "Skip to conversation" : "Skip to model"}</a>
       <header className="app-header">
         <div className="brand-mark"><span aria-hidden="true">T</span><div><strong>TheoryFoundry Conversational CAD</strong><small>Precision workshop</small></div></div>
         <div className="header-controls">
@@ -218,7 +222,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
         </div>
       </header>
 
-      <div className={`workspace-grid ${chatCollapsed ? "chat-collapsed" : ""}`}>
+      <div className={`workspace-grid ${!isSidebarChatEnabled ? "chat-hidden" : chatCollapsed ? "chat-collapsed" : ""}`}>
         <section className="model-pane" aria-labelledby="model-heading">
           <div className="pane-heading">
             <div><p className="eyebrow">Model inspection</p><h1 id="model-heading">{state.selectedRevision ? `Inspecting ${selectedLabel}` : "No model yet"}</h1></div>
@@ -249,7 +253,7 @@ export function ModelWorkspace({ projectId, localMcpBridgeEnabled = false, remot
           {exportState === "complete" && <p role="status" className="notice notice-success">Download started · {downloadReceipt?.filename} · SHA-256 {downloadReceipt?.hash}</p>}
         </section>
 
-        <ChatPane turns={state.turns} hasCurrentRevision={Boolean(state.currentRevision)} active={state.active} available={!isMcpRendering && !restorePending && exportState !== "preparing" && readiness === "ready" && Boolean(sessionId)} collapsed={chatCollapsed} onToggleCollapsed={() => setChatCollapsed((value) => !value)} onSubmit={(message) => void submit(message)} onCancel={() => abortRef.current?.abort()} onRetry={() => void submit(lastMessage.current)} composerRef={composerRef} />
+        {isSidebarChatEnabled && <ChatPane turns={state.turns} hasCurrentRevision={Boolean(state.currentRevision)} active={state.active} available={!isMcpRendering && !restorePending && exportState !== "preparing" && readiness === "ready" && Boolean(sessionId)} collapsed={chatCollapsed} onToggleCollapsed={() => setChatCollapsed((value) => !value)} onSubmit={(message) => void submit(message)} onCancel={() => abortRef.current?.abort()} onRetry={() => void submit(lastMessage.current)} composerRef={composerRef} />}
       </div>
       {state.notice && <div className="global-notice" role="alert">{state.notice}</div>}
       <div className="sr-only" aria-live="polite" aria-atomic="true">{state.announcement && <span key={state.announcement.key}>{state.announcement.text}</span>}</div>
