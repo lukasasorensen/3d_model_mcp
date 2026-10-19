@@ -1,0 +1,85 @@
+# Git-based Coolify deployment. Coolify supplies the project name and proxy labels.
+x-app-environment: &app-environment
+  DATABASE_URL: postgresql://${POSTGRES_USER:-theoryfoundry}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-theoryfoundry}
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set a stable secret of at least 32 characters}
+  BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the public HTTPS origin}
+  THEORYFOUNDRY_ALLOWED_ORIGIN: ${THEORYFOUNDRY_ALLOWED_ORIGIN:?Set the same public HTTPS origin}
+  THEORYFOUNDRY_CHAT_PROVIDER: mock
+  THEORYFOUNDRY_REMOTE_MCP_ENABLED: ${THEORYFOUNDRY_REMOTE_MCP_ENABLED:-0}
+  THEORYFOUNDRY_AUTH_ALLOW_SIGNUP: "0"
+  THEORYFOUNDRY_DATABASE_POOL_MAX: ${THEORYFOUNDRY_DATABASE_POOL_MAX:-5}
+
+services:
+  postgres:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-theoryfoundry}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-theoryfoundry}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - data
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: tooling
+    restart: "no"
+    environment: *app-environment
+    command: ["pnpm", "db:migrate"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    restart: unless-stopped
+    environment:
+      <<: *app-environment
+      THEORYFOUNDRY_EXPORT_DIRECTORY: /var/lib/theoryfoundry/exports
+    expose:
+      - "3000"
+    volumes:
+      - export-data:/var/lib/theoryfoundry/exports
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/v1/readiness').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    networks:
+      - edge
+      - data
+
+
+volumes:
+  postgres-data:
+  export-data:
+
+networks:
+  edge:
+  data:
+    internal: true

@@ -143,6 +143,14 @@ For the full development checks, run:
 pnpm verify
 ```
 
+## Deploy with Coolify
+
+Use the repository-owned `Dockerfile` and `compose.coolify.yaml` for a Git-based
+Coolify deployment. The stack includes private persistent PostgreSQL, a migration
+startup gate, and the Next.js app. Follow [the Coolify runbook](docs/coolify-deployment.md)
+for environment settings, domains, account/OAuth provisioning, and acceptance.
+Existing VM deployments require a separate data and traffic migration plan.
+
 ## Upgrading an existing installation after the rename
 
 Rename application environment variable prefixes to `THEORYFOUNDRY_` in local
