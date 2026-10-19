@@ -506,3 +506,29 @@ trusted project URL. Open that URL in a signed-in visible browser, then run the
 same script with `finish`. It validates the original candidate, saves a PNG before
 promotion, downloads both formats, and verifies hashes/byte counts. Evidence goes
 to `THEORYFOUNDRY_ACCEPTANCE_DIRECTORY` (default `/tmp/cad-workflow-evidence`), without tokens.
+
+### Sidebar chat feature flags
+
+The Unleash project `default` owns two independent operational flags for TheoryFoundry CAD:
+
+| Flag | Off | On |
+| --- | --- | --- |
+| `sidebar-chat-enabled` | Entire conversation sidebar hidden; `/v1/chat` returns 404 | Sidebar shown; chat requests admitted |
+| `sidebar-chat-real-ai` | Deterministic mock provider | Real AI requested; currently returns 503 because no real provider adapter exists |
+
+Set `UNLEASH_FRONTEND_API_URL` to the Unleash `/api/frontend` endpoint and
+`UNLEASH_FRONTEND_API_TOKEN` to a **frontend** token scoped to this project and the
+intended environment in `apps/site/.env.local` (or the deployment's server environment).
+The token stays on the server; do not use an admin token or `NEXT_PUBLIC_` variables.
+The server uses the authenticated user ID for consistent targeting and evaluates
+flags on every new chat request. The open workspace refreshes visibility every
+15 seconds; hiding the chat also cancels its active browser request. Requests
+already executing on the server are not retroactively revoked by a flag change.
+
+With both settings absent, chat defaults to hidden/mock. Partial configuration,
+Unleash failures, and invalid responses produce a 503 and hide the sidebar rather
+than allowing chat. Real mode never falls back silently to mock. The real-AI
+adapter remains a separate integration; leave that flag off until it exists.
+The existing `THEORYFOUNDRY_CHAT_PROVIDER=mock` setting remains valid for runtime
+initialization; provider mode for website chat is selected per request by the flag.
+MCP connections, model inspection, source, history, and exports stay available.

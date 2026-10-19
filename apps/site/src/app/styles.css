@@ -243,3 +243,6 @@ code, .eyebrow, .turn-label, .model-facts span, .status-chip { font-family: "SFM
 .codex-connect-dialog textarea { display: block; box-sizing: border-box; width: 100%; margin: 8px 0 12px; padding: 12px; font: 12px/1.6 monospace; }
 .codex-connect-dialog pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 .codex-connect-dialog button, .codex-connect-dialog select { min-height: 44px; }
+
+.workspace-grid.chat-hidden { grid-template-columns: minmax(0, 1fr); }
+.workspace-grid.chat-hidden .model-pane { border-right: 0; }
