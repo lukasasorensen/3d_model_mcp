@@ -78,6 +78,13 @@
       "when": 1791820831792,
       "tag": "0010_theoryfoundry-notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792532839227,
+      "tag": "0011_worker-validation-jobs",
+      "breakpoints": true
     }
   ]
 }
