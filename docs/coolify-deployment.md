@@ -4,7 +4,7 @@ This repository can build the application, database migrations, and operator too
 without the sibling deployment repository. Use `Dockerfile` and
 `compose.coolify.yaml`; `compose.local.yaml` is only for local development.
 
-The stack has PostgreSQL 17, a one-shot `migrate` service, and the `app` service.
+The stack has PostgreSQL 18.6, a one-shot `migrate` service, and the `app` service.
 The app starts only after PostgreSQL is healthy and migrations exit successfully.
 `migrate` uses the Dockerfile's `tooling` image, which also supports account and
 OAuth provisioning. Only `app` receives a public domain. OpenSCAD/BOSL2 render in
@@ -15,10 +15,18 @@ the browser; no separate renderer service or stdio MCP container is required.
 For an existing installation, back up its database and record its PostgreSQL
 major version, application revision, and stable `BETTER_AUTH_SECRET` before
 changing anything. Existing volume names are not adopted automatically. The
-sibling deployment uses PostgreSQL 18; never attach its data directory to this
-PostgreSQL 17 service. Either match the existing major version and mount layout
-in a reviewed migration configuration, or plan and test a supported logical
-migration separately. Do not assume a PostgreSQL 18 dump can restore into 17.
+sibling deployment and this stack both use PostgreSQL 18.6. This stack mounts
+`postgres18-data` at `/var/lib/postgresql`, allowing the image to use its default
+versioned PGDATA directory. The volume name deliberately differs from the earlier
+Coolify PostgreSQL 17 volume (`postgres-data`); this is not an in-place major
+upgrade. An earlier Coolify installation must be backed up and restored into the
+new volume before traffic is switched. Keep the old volume until acceptance.
+
+Preserve accounts/projects by logically restoring into a separate fresh database,
+not by attaching the old production volume. Follow
+[the existing-installation restore plan](coolify-database-migration.md) before
+starting the new app or changing traffic. The old application's files, database
+and environment remain available for recovery.
 
 Leave the existing installation and traffic routing in place until the new stack
 has passed acceptance. This guide does not authorize a production cutover.
@@ -159,7 +167,7 @@ TLS, authenticated browser behavior, or remote MCP acceptance.
 
 ## Persistence, updates, and rollback
 
-PostgreSQL uses `postgres-data` at `/var/lib/postgresql/data`. Private temporary
+PostgreSQL uses `postgres18-data` at `/var/lib/postgresql`. Private temporary
 exports use `export-data` at `/var/lib/theoryfoundry/exports`. Keep one app replica;
 multiple replicas require shared export storage and separate validation. The
 runtime runs as UID/GID 1001; a newly created export volume inherits its directory
