@@ -14,7 +14,7 @@ module.exports = {
   extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   overrides: [
     {
-      files: ["apps/site/**/*.ts", "apps/site/**/*.tsx"],
+      files: ["apps/site/**/*.ts", "apps/site/**/*.tsx", "packages/browser-renderer/**/*.ts"],
       env: { browser: true, node: true },
       parserOptions: { ecmaFeatures: { jsx: true } },
     },

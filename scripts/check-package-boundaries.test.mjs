@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { checkWorkspaceBoundaries } from "./check-package-boundaries.mjs";
 
-const packageNames = ["contracts", "model-project", "renderer", "mcp", "gateway", "runtime"];
+const packageNames = ["contracts", "browser-renderer", "model-project", "renderer", "mcp", "gateway", "runtime"];
 
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), "theoryfoundry-boundaries-"));
@@ -68,4 +68,19 @@ test("rejects deep imports and server-only imports reachable from client code", 
 test("rejects gateway imports that bypass the MCP client boundary", async () => {
   const findings = await findingsFor("packages/gateway/src/index.ts", 'import { invokeCadTool } from "@theoryfoundry/mcp";\nvoid invokeCadTool;\n');
   assert.ok(findings.some((finding) => finding.includes("bypasses the MCP client boundary")));
+});
+
+test("shared browser renderer permits contracts and rejects Node, site, and server dependencies", async () => {
+  assert.deepEqual(await findingsFor("packages/browser-renderer/src/index.ts", 'import "@theoryfoundry/contracts";\n'), []);
+  for (const dependency of ["node:fs", "next/headers", "@theoryfoundry/runtime"]) {
+    const findings = await findingsFor("packages/browser-renderer/src/index.ts", `import "${dependency}";\n`);
+    assert.ok(findings.length > 0, dependency);
+  }
+});
+
+test("browser renderer cannot acquire a server dependency through its manifest", async () => {
+  const findings = await findingsFor("packages/browser-renderer/src/index.ts", "export {};\n", async root => {
+    await writeFile(join(root, "packages/browser-renderer/package.json"), JSON.stringify({ dependencies: { "@theoryfoundry/renderer": "workspace:*" } }));
+  });
+  assert.ok(findings.some(finding => finding.includes("not browser-safe")));
 });

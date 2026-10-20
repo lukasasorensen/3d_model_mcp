@@ -21,8 +21,8 @@ export function summarizeStl(bytes: Uint8Array): GeometrySummary {
                 const value = view.getFloat32(84 + i * 50 + 12 + v * 12 + axis * 4, true);
                 if (!Number.isFinite(value))
                     throw invalid();
-                min[axis] = Math.min(min[axis], value);
-                max[axis] = Math.max(max[axis], value);
+                min[axis] = Math.min(min[axis]!, value);
+                max[axis] = Math.max(max[axis]!, value);
             }
     return { units: "mm", triangleCount: count, bounds: { min, max }, dimensions: [max[0] - min[0], max[1] - min[1], max[2] - min[2]], checks: ["binary-stl-length", "finite-coordinates", "nonempty-mesh"], scope: "geometry-only" };
 }

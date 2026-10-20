@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 
 const allowedDependencies = new Map([
   ["contracts", new Set()],
+  ["browser-renderer", new Set(["contracts"])],
   ["model-project", new Set(["contracts"])],
   ["renderer", new Set(["contracts"])],
   ["mcp", new Set(["contracts", "model-project", "renderer"])],
@@ -12,6 +13,7 @@ const allowedDependencies = new Map([
   ["runtime", new Set(["contracts", "gateway", "mcp", "model-project", "renderer"])],
 ]);
 const serverOnlyPackages = new Set(["model-project", "renderer", "mcp", "gateway", "runtime"]);
+const browserSafePackages = new Set(["contracts", "browser-renderer"]);
 const nodeBuiltins = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]));
 const sourceExtensions = new Set([".js", ".mjs", ".ts", ".tsx"]);
 const providerPrefixes = ["@anthropic-ai/", "@google/generative-ai", "@langchain/", "langchain", "openai"];
@@ -73,8 +75,8 @@ export async function checkWorkspaceBoundaries(workspaceRoot = process.cwd()) {
       if (packageName && workspaceImport && !allowedDependencies.get(packageName)?.has(workspaceImport)) {
         findings.push(`${file}: ${packageName} cannot depend on ${workspaceImport}`);
       }
-      if (packageName === "contracts" && !isTestFile(file) && (nodeBuiltins.has(specifier) || isProvider(specifier) || specifier === "next" || specifier.startsWith("next/"))) {
-        findings.push(`${file}: browser-safe contracts import a server-only module`);
+      if (browserSafePackages.has(packageName) && !isTestFile(file) && (nodeBuiltins.has(specifier) || isProvider(specifier) || specifier === "next" || specifier.startsWith("next/"))) {
+        findings.push(`${file}: browser-safe ${packageName} imports a server-only module`);
       }
     }
     if (packageName === "gateway" && /@theoryfoundry\/(?:model-project|renderer)|createCadToolRegistry|invokeCadTool/.test(source)) {
@@ -110,8 +112,8 @@ export async function checkWorkspaceBoundaries(workspaceRoot = process.cwd()) {
     for (const dependency of dependencies) {
       const workspaceDependency = dependency.match(/^@theoryfoundry\/([^/]+)$/)?.[1];
       if (workspaceDependency && !allowedDependencies.get(packageName)?.has(workspaceDependency)) findings.push(`${relative(absoluteRoot, manifestPath)}: disallowed dependency ${dependency}`);
-      if (packageName === "contracts" && (isProvider(dependency) || serverOnlyPackages.has(dependency.replace("@theoryfoundry/", "")))) {
-        findings.push(`${relative(absoluteRoot, manifestPath)}: contracts dependency ${dependency} is not browser-safe`);
+      if (browserSafePackages.has(packageName) && (nodeBuiltins.has(dependency) || isProvider(dependency) || dependency === "next" || serverOnlyPackages.has(dependency.replace("@theoryfoundry/", "")))) {
+        findings.push(`${relative(absoluteRoot, manifestPath)}: ${packageName} dependency ${dependency} is not browser-safe`);
       }
     }
   }
