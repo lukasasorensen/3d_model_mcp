@@ -47,18 +47,18 @@ The package is not published; no database schema changes are involved.
 src/
 ├── index.ts
 ├── worker/
-│   ├── client.ts
-│   └── openscad.ts
+│   ├── openscad.client.ts
+│   └── openscad.worker.ts
 ├── renderer/
-│   ├── cad.ts
-│   ├── cad.test.mjs
-│   ├── png.ts
-│   └── provenance.ts
+│   ├── cad.renderer.ts
+│   ├── cad.renderer.test.mjs
+│   ├── png.renderer.ts
+│   └── provenance.metadata.ts
 ├── services/
-│   ├── preview.ts
-│   └── download.ts
+│   ├── preview.service.ts
+│   └── download.service.ts
 └── utils/
-    └── mesh-summary.ts
+    └── mesh-summary.util.ts
 ```
 
 `worker/` owns isolated compilation and its client lifecycle. `renderer/` owns

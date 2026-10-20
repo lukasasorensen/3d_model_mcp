@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import test from "node:test";
 import { request } from "node:http";
-import { startAssetServer } from "./asset-server.mjs";
+import { startAssetServer } from "./asset-server.service.mjs";
 
 test("proof server serves only fixed assets and rejects cross-origin or mutating requests", async () => {
   const directory = await mkdtemp(join(tmpdir(), "cad-proof-assets-"));

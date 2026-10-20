@@ -1,6 +1,6 @@
 import type { PreviewJob } from "@theoryfoundry/contracts";
 import { browserRendererProvenance } from "@theoryfoundry/browser-renderer";
-import { renderModelPng } from "./cad-renderer";
+import { renderModelPng } from "./cad-renderer.adapter";
 
 export async function completeModelPreview(job: PreviewJob, sessionId: string, signal: AbortSignal, onRendered: () => void = () => undefined): Promise<void> {
   const controller = new AbortController();

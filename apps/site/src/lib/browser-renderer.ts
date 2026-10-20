@@ -1,7 +1,7 @@
 import { CAD_LIMITS, type BrowserRenderCompletion, type Diagnostic, type GeometrySummary, type RemoteMcpBrowserRenderJob, type LocalMcpBrowserRenderJob } from "@theoryfoundry/contracts";
 import { summarizeStl, browserRendererProvenance } from "@theoryfoundry/browser-renderer";
-import { renderPreview } from "./cad-renderer";
-export { renderOpenScad, renderPreview, cachedPreview, generateDownload } from "./cad-renderer";
+import { renderPreview } from "./cad-renderer.adapter";
+export { renderOpenScad, renderPreview, cachedPreview, generateDownload } from "./cad-renderer.adapter";
 export { browserRendererProvenance, DOWNLOAD_MIME_TYPES, type DownloadFormat } from "@theoryfoundry/browser-renderer";
 
 async function renderCompletion(request: { source: string; sourceHash: string; token: string }, sessionId: string, signal?: AbortSignal): Promise<BrowserRenderCompletion> {

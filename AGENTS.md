@@ -25,7 +25,10 @@ These instructions apply to the entire repository.
 - Use names that describe domain intent. Avoid vague names such as `data`, `item`, `manager`, `helper`, or `process` when a precise name is available.
 - Name booleans as predicates (`isReady`, `hasAccess`, `canPromote`) and collections with plural nouns.
 - Keep terminology consistent across database, domain, API, and UI layers unless an adapter explicitly translates it.
-- Use kebab-case file names. Give role-specific files a consistent suffix such as `.schema.ts`, `.repository.ts`, or `.test.ts`.
+- Use kebab-case domain names and explicit role suffixes before the extension, such as `.renderer.ts`, `.service.ts`, `.worker.ts`, `.adapter.ts`, `.client.ts`, `.util.ts`, `.metadata.ts`, `.schema.ts`, or `.repository.ts`. Apply the same convention to `.mjs` files; executable scripts should identify their role with `.script.mjs` or `.cli.mjs`.
+- Folder hierarchy and file roles are complementary. A file must still name its role inside a matching folder: use `renderer/png.renderer.ts` and `services/download.service.ts`, not `renderer/png.ts` or `services/download.ts`. Do not remove role suffixes to avoid repetition.
+- Colocate tests and preserve the implementation's full filename stem, such as `download.service.test.ts`. Conventional public barrels such as `index.ts` may retain their standard names.
+- Group related files into meaningful domain or execution folders. Keep utilities narrowly named and cohesive; do not create catch-all utility files. When moving or renaming files, update imports, public exports, build inputs, commands, test discovery, and documentation together.
 - Keep one primary concept per file. Barrel files may assemble and re-export concepts but must not contain business logic.
 - Keep functions short enough that their control flow and side effects are evident. Extract policy decisions and validation from orchestration code.
 

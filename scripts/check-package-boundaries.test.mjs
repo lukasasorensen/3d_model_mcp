@@ -55,6 +55,14 @@ test("traverses local imports from client entries and rejects bare Node built-in
   assert.ok(findings.some((finding) => finding.includes("imports server-only fs")));
 });
 
+test("traverses extensionless imports whose filenames contain a role suffix", async () => {
+  const root = await fixture();
+  await writeFile(join(root, "apps/site/src/client.ts"), '"use client";\nimport "./renderer.adapter";\n');
+  await writeFile(join(root, "apps/site/src/renderer.adapter.ts"), 'import "node:fs";\n');
+  const findings = (await checkWorkspaceBoundaries(root)).findings;
+  assert.ok(findings.some(finding => finding.includes("renderer.adapter.ts imports server-only node:fs")));
+});
+
 test("rejects deep imports and server-only imports reachable from client code", async () => {
   const findings = await findingsFor(
     "packages/gateway/src/index.ts",

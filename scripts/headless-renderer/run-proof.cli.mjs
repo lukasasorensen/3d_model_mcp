@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { runProof } from "./acceptance/renderer.mjs";
+import { runProof } from "./acceptance/renderer.acceptance.mjs";
 
 // Bundled next to public/, so this works from any cwd without the checkout.
 const output = resolve(process.argv[2] ?? "renderer-proof-output");

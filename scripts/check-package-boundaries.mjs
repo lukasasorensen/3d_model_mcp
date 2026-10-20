@@ -50,7 +50,7 @@ async function collectIfPresent(directory) {
 function resolveLocalImport(fromFile, specifier, sourceFiles) {
   if (!specifier.startsWith(".")) return undefined;
   const candidate = resolve(dirname(fromFile), specifier);
-  const options = extname(candidate)
+  const options = sourceExtensions.has(extname(candidate))
     ? [candidate]
     : [candidate, ...[".ts", ".tsx", ".js", ".mjs"].map((extension) => `${candidate}${extension}`), ...[".ts", ".tsx", ".js", ".mjs"].map((extension) => join(candidate, `index${extension}`))];
   return options.find((option) => sourceFiles.has(option));

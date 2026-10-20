@@ -8,11 +8,11 @@ await rm(output, { recursive: true, force: true });
 await mkdir(new URL("public/vendor/openscad/", output), { recursive: true });
 const common = { bundle: true, format: "esm", target: "es2022", logLevel: "warning" };
 // Both hosts import the shared public API and supply their own worker entry.
-await build({ ...common, platform: "browser", entryPoints: [fileURLToPath(new URL("scripts/headless-renderer/browser/renderer/bridge.mjs", root))],
+await build({ ...common, platform: "browser", entryPoints: [fileURLToPath(new URL("scripts/headless-renderer/browser/renderer/bridge.adapter.mjs", root))],
   outfile: fileURLToPath(new URL("public/proof.js", output)) });
-await build({ ...common, platform: "browser", entryPoints: [fileURLToPath(new URL("scripts/headless-renderer/browser/worker/openscad.mjs", root))], outfile: fileURLToPath(new URL("public/openscad-worker.js", output)) });
+await build({ ...common, platform: "browser", entryPoints: [fileURLToPath(new URL("scripts/headless-renderer/browser/worker/openscad.worker.mjs", root))], outfile: fileURLToPath(new URL("public/openscad-worker.js", output)) });
 await build({ ...common, platform: "node", target: "node22",
-  entryPoints: [fileURLToPath(new URL("scripts/headless-renderer/run-proof.mjs", root))],
+  entryPoints: [fileURLToPath(new URL("scripts/headless-renderer/run-proof.cli.mjs", root))],
   // Internal codecs/contracts are bundled, only Playwright remains a dependency.
   external: ["playwright"],
   outfile: fileURLToPath(new URL("cli.mjs", output)) });

@@ -32,7 +32,7 @@
     "oauth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @theoryfoundry/runtime oauth:provision",
     "build:codex-installer": "node scripts/build-codex-installer.mjs",
     "test:codex-installer": "node scripts/build-codex-installer.mjs --check && node --test scripts/codex-connect/*.test.mjs",
-    "build:headless-renderer-proof": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && pnpm --filter @theoryfoundry/renderer build && node scripts/headless-renderer/build.mjs",
+    "build:headless-renderer-proof": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && pnpm --filter @theoryfoundry/renderer build && node scripts/headless-renderer/build.script.mjs",
     "proof:headless-renderer": "pnpm build:headless-renderer-proof && node dist/headless-renderer-proof/cli.mjs"
   },
   "devDependencies": {

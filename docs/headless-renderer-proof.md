@@ -9,33 +9,35 @@ MCP worker, OAuth flow, or hosted worker endpoints.
 
 ```text
 scripts/headless-renderer/
-├── build.mjs
-├── run-proof.mjs
+├── build.script.mjs
+├── run-proof.cli.mjs
 ├── node/
 │   ├── renderer/
-│   │   └── chromium.mjs
+│   │   └── chromium.renderer.mjs
 │   └── services/
-│       ├── asset-server.mjs
-│       └── asset-server.test.mjs
+│       ├── asset-server.service.mjs
+│       └── asset-server.service.test.mjs
 ├── browser/
 │   ├── renderer/
-│   │   └── bridge.mjs
+│   │   └── bridge.adapter.mjs
 │   └── worker/
-│       └── openscad.mjs
+│       └── openscad.worker.mjs
 └── acceptance/
-    ├── renderer.mjs
+    ├── renderer.acceptance.mjs
     └── utils/
-        └── png.mjs
+        └── png.util.mjs
 ```
 
 The root entry points build and run the proof. `node/renderer` owns Chromium
 lifecycle; `node/services` owns loopback asset serving with colocated tests.
 `browser/renderer` contains the invocation bridge, while `browser/worker` contains
-the worker bootstrap. `acceptance/renderer.mjs` owns fixtures and assertions and
-uses its named PNG utility for artifact inspection. Folder context supplies the
-namespace, so filenames such as `chromium.mjs`, `bridge.mjs`, and `openscad.mjs`
-do not repeat it. The build emits `run-proof.mjs` as the standalone artifact's
-`cli.mjs`, preserving its existing entry point.
+the worker bootstrap. `acceptance/renderer.acceptance.mjs` owns fixtures and
+assertions and uses its named PNG utility for artifact inspection. Folders
+identify the domain or execution context; filenames such as
+`chromium.renderer.mjs`, `bridge.adapter.mjs`, and `openscad.worker.mjs` keep
+the implementation role explicit even inside matching folders. The build emits
+`run-proof.cli.mjs` as the standalone artifact's `cli.mjs`, preserving its entry
+point.
 
 ## Run
 
@@ -92,13 +94,13 @@ hosted UI and proof now consume its public entry point.
 
 | Shared module | Reused behavior |
 | --- | --- |
-| `worker/openscad.ts` | Pinned WASM/BOSL2 verification, virtual filesystem, Manifold compilation, diagnostics |
-| `worker/client.ts` | Worker cancellation, timeouts, output limits |
-| `services/preview.ts` | Instance-owned STL cache |
-| `renderer/png.ts` | Seven camera views, framing, lighting, Three.js PNG generation |
-| `utils/mesh-summary.ts` | Browser geometry summaries |
-| `services/download.ts` | STL/3MF generation and STL-to-GLB conversion |
-| `renderer/provenance.ts` | Existing renderer identity and pins |
+| `worker/openscad.worker.ts` | Pinned WASM/BOSL2 verification, virtual filesystem, Manifold compilation, diagnostics |
+| `worker/openscad.client.ts` | Worker cancellation, timeouts, output limits |
+| `services/preview.service.ts` | Instance-owned STL cache |
+| `renderer/png.renderer.ts` | Seven camera views, framing, lighting, Three.js PNG generation |
+| `utils/mesh-summary.util.ts` | Browser geometry summaries |
+| `services/download.service.ts` | STL/3MF generation and STL-to-GLB conversion |
+| `renderer/provenance.metadata.ts` | Existing renderer identity and pins |
 
 The proof no longer imports site renderer files or rewrites a worker URL. Each
 host supplies worker construction and asset origin through `createBrowserCadRenderer`;
