@@ -55,7 +55,10 @@ test("Coolify stack keeps database, exports, and operator tooling private", opti
   assert.equal(services.app.build.context, workspace);
   assert.equal(services.app.build.target, "runtime");
   assert.equal(services.migrate.build.target, "tooling");
-  assert.equal(services.postgres.volumes[0].target, "/var/lib/postgresql/data");
+  assert.equal(services.postgres.image, "postgres:18.6-bookworm");
+  assert.equal(services.postgres.volumes[0].source, "postgres18-data");
+  assert.equal(services.postgres.volumes[0].target, "/var/lib/postgresql");
+  assert.equal(services.postgres.environment.PGDATA, undefined);
   assert.equal(services.app.volumes[0].target, services.app.environment.THEORYFOUNDRY_EXPORT_DIRECTORY);
   assert.equal(services.app.environment.THEORYFOUNDRY_ACTOR_USER_ID, undefined);
 });
