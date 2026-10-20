@@ -1,7 +1,7 @@
-import { createOpenScadRenderer, type BrowserCadRendererOptions } from "./open-scad-renderer.js";
-import { createPreviewRenderer } from "./preview-renderer.js";
-import { createPngRenderer } from "./png-renderer.js";
-import { createDownloadRenderer } from "./model-download.js";
+import { createOpenScadRenderer, type BrowserCadRendererOptions } from "../worker/client.js";
+import { createPreviewRenderer } from "../services/preview.js";
+import { createPngRenderer } from "./png.js";
+import { createDownloadRenderer } from "../services/download.js";
 
 /** Each host owns worker construction and one independent mesh cache. */
 export function createBrowserCadRenderer(options: BrowserCadRendererOptions) {

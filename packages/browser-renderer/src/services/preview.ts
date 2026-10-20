@@ -1,4 +1,4 @@
-import type { createOpenScadRenderer } from "./open-scad-renderer.js";
+import type { createOpenScadRenderer } from "../worker/client.js";
 import type { Diagnostic } from "@theoryfoundry/contracts";
 
 export function createPreviewRenderer(renderOpenScad: ReturnType<typeof createOpenScadRenderer>) {

@@ -1,6 +1,6 @@
 /* global document */
 import { chromium } from "playwright";
-import { startAssetServer } from "./asset-server.mjs";
+import { startAssetServer } from "../services/asset-server.mjs";
 
 export async function startChromiumRenderer(directory) {
   const server = await startAssetServer(directory);

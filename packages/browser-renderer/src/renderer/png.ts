@@ -1,7 +1,7 @@
 import { AmbientLight, Box3, Color, DirectionalLight, Mesh, MeshStandardMaterial, OrthographicCamera, Scene, Vector3, WebGLRenderer } from "three";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
 import { PREVIEW_LIMITS, type PreviewJob } from "@theoryfoundry/contracts";
-import type { createPreviewRenderer } from "./preview-renderer.js";
+import type { createPreviewRenderer } from "../services/preview.js";
 
 const directions = { isometric: [1,-1,1], front: [0,-1,0], back: [0,1,0], left: [-1,0,0], right: [1,0,0], top: [0,0,1], bottom: [0,0,-1] } as const;
 

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createBrowserCadRenderer, installOpenScadWorker, summarizeStl } from "../dist/index.js";
+import { createBrowserCadRenderer, installOpenScadWorker, summarizeStl } from "../../dist/index.js";
 
 function fixture() {
   const workers = [];

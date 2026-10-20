@@ -40,3 +40,30 @@ limits, and error classification are preserved by the extraction.
 The mesh cache retains the existing unbounded behavior. Bounding it and adding
 long-lived worker supervision remain part of the future public worker release.
 The package is not published; no database schema changes are involved.
+
+## Source hierarchy
+
+```text
+src/
+├── index.ts
+├── worker/
+│   ├── client.ts
+│   └── openscad.ts
+├── renderer/
+│   ├── cad.ts
+│   ├── cad.test.mjs
+│   ├── png.ts
+│   └── provenance.ts
+├── services/
+│   ├── preview.ts
+│   └── download.ts
+└── utils/
+    └── mesh-summary.ts
+```
+
+`worker/` owns isolated compilation and its client lifecycle. `renderer/` owns
+renderer composition, PNG presentation, and renderer identity. `services/` owns
+preview caching and downloadable artifact generation. `utils/` contains only the
+named mesh-summary operation; it is not a generic collection of unrelated code.
+The root index remains an exports-only public entry point. Tests live beside the
+renderer they exercise and are discovered by `node --test`.

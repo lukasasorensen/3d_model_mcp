@@ -23,7 +23,7 @@
     "build:packages": "pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && pnpm --filter @theoryfoundry/model-project build && pnpm --filter @theoryfoundry/renderer build && pnpm --filter @theoryfoundry/mcp build && pnpm --filter @theoryfoundry/gateway build && pnpm --filter @theoryfoundry/runtime build",
     "typecheck": "pnpm build:packages && pnpm --filter @theoryfoundry/site typecheck",
     "lint": "eslint . --ext .js,.mjs,.ts,.tsx --max-warnings=0",
-    "test": "node --test scripts/database-shell.test.mjs scripts/coolify-deployment.test.mjs scripts/headless-renderer/node/*.test.mjs && pnpm build:packages && pnpm --filter './packages/*' test && pnpm --filter @theoryfoundry/site test",
+    "test": "node --test scripts/database-shell.test.mjs scripts/coolify-deployment.test.mjs scripts/headless-renderer/node/services/*.test.mjs && pnpm build:packages && pnpm --filter './packages/*' test && pnpm --filter @theoryfoundry/site test",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
     "test:boundaries": "node --test scripts/check-package-boundaries.test.mjs",
     "check:leaks": "node scripts/check-template-leaks.mjs",

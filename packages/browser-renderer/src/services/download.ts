@@ -2,7 +2,7 @@ import { CAD_LIMITS } from "@theoryfoundry/contracts";
 import { GLTFExporter } from "three/addons/exporters/GLTFExporter.js";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
 import { Group, Mesh, MeshStandardMaterial } from "three";
-import type { createOpenScadRenderer } from "./open-scad-renderer.js";
+import type { createOpenScadRenderer } from "../worker/client.js";
 
 export type DownloadFormat = "stl" | "3mf" | "glb";
 
