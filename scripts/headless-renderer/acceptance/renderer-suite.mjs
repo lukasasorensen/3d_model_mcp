@@ -4,7 +4,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { inflateSync } from "node:zlib";
 import { parseBinaryStl, parseThreeMf } from "@theoryfoundry/renderer";
-import { startChromiumRenderer } from "./chromium-renderer.mjs";
+import { startChromiumRenderer } from "../node/chromium-renderer.mjs";
 
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
 const solid = "difference() { cube([30,20,10], center=true); translate([6,0,0]) cylinder(h=12,r=3,center=true,$fn=32); }";

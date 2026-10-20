@@ -5,6 +5,30 @@ package into a standalone artifact and runs it in sandboxed headless
 Chromium. It does not start Next.js, connect to PostgreSQL, or implement the future
 MCP worker, OAuth flow, or hosted worker endpoints.
 
+## Source layout
+
+```text
+scripts/headless-renderer/
+├── build.mjs
+├── run-proof.mjs
+├── node/
+│   ├── asset-server.mjs
+│   ├── asset-server.test.mjs
+│   └── chromium-renderer.mjs
+├── browser/
+│   ├── renderer-bridge.mjs
+│   └── openscad-worker.mjs
+└── acceptance/
+    └── renderer-suite.mjs
+```
+
+The root entry points build and run the proof. `node/` owns the loopback server
+and Chromium lifecycle; its tests stay beside the implementation. `browser/`
+contains code executed inside Chromium. `acceptance/` owns fixtures and artifact
+assertions. The runner calls the acceptance suite, which uses the Node host to
+invoke the browser bridge and shared renderer. The build emits `run-proof.mjs`
+as the standalone artifact's `cli.mjs`, preserving its existing entry point.
+
 ## Run
 
 From the repository root with dependencies installed:
