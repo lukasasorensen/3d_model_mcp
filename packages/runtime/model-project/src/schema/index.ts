@@ -1,3 +1,4 @@
+import { workerValidationJobs } from "./worker-validation-job.schema.js";
 import { validationAttempts } from "./validation-attempt.schema.js";
 import { modelExports } from "./model-export.schema.js";
 import { exportDownloadTokens } from "./export-download-token.schema.js";
@@ -67,9 +68,11 @@ export const schema = {
   candidateArtifacts,
   revisionArtifacts,
   browserRenderJobs,
+  workerValidationJobs,
 };
 export { renderDeliveryMode } from "./render-delivery-mode.enum.js";
 
 export * from "./validation-attempt.schema.js";
 export * from "./model-export.schema.js";
 export * from "./export-download-token.schema.js";
+export * from "./worker-validation-job.schema.js";

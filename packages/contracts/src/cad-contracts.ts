@@ -68,6 +68,7 @@ export const diagnosticSchema = z
 export type Diagnostic = z.infer<typeof diagnosticSchema>;
 
 export const cadErrorCodeSchema = z.enum([
+  "WORKER_CAPACITY",
   "BROWSER_REQUIRED", "BROWSER_BUSY", "VALIDATION_RUNNING", "EXPORT_CAPACITY", "EXPORT_UNAVAILABLE",
   "INVALID_TOOL_INPUT",
   "PROJECT_NOT_FOUND",

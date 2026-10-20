@@ -8,18 +8,17 @@ import {
   revisionManifestSchema,
   type CadRenderer,
   type CandidateRecord,
-  type Diagnostic,
   type RendererProvenance,
   type RevisionManifest,
 } from "@theoryfoundry/contracts";
 import { randomUUID } from "node:crypto";
 import type { Pool } from "pg";
 
+import { CandidateValidationService } from "./validation/candidate-validation.service.js";
 import { CadDomainError } from "./cad-domain-error.js";
-import { sha256 } from "./hash.js";
 import { PostgresProjectPersistence } from "./postgres-project-persistence.js";
 import type { ProjectState, ProjectSummary } from "./project-types.js";
-import { assertArtifactSet, evaluateRenderResult } from "./render-policy.js";
+import { assertArtifactSet } from "./render-policy.js";
 import {
   VALIDATION_POLICY_VERSION,
   assertSourcePolicy,
@@ -152,80 +151,23 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     signal?: AbortSignal;
   }): Promise<CandidateRecord> {
     if (input.signal?.aborted) throw new CadDomainError("CANCELLED", "Operation cancelled.");
-    const attemptId = `attempt-${randomUUID()}`;
-    const claimed = await this.persistence.transaction(async (transaction) => {
-      const persistedCandidate = await transaction.readCandidate(input.projectId, input.candidateId, true);
-      if (persistedCandidate.candidate.state === "VALID") return persistedCandidate;
-      if (persistedCandidate.candidate.state === "RUNNING") throw new CadDomainError("VALIDATION_RUNNING", "Candidate validation is already running.", { attemptId: persistedCandidate.candidate.activeAttemptId ?? "legacy", retryable: true });
-      if (persistedCandidate.candidate.state !== "CREATED") {
-        throw new CadDomainError("INVALID_CANDIDATE_STATE", "Only a created candidate can be rendered.");
-      }
-      const updatedAt = this.clock();
-      await transaction.markCandidateRunning(input.projectId, input.candidateId, attemptId, updatedAt);
-      return {
-        ...persistedCandidate,
-        candidate: { ...persistedCandidate.candidate, state: "RUNNING" as const, updatedAt: updatedAt.toISOString() },
-      };
-    });
-
-    if (claimed.candidate.state === "VALID") return claimed.candidate;
+    const validation = new CandidateValidationService({ clock: this.clock, validationPolicyVersion: this.validationPolicyVersion, acceptRendererProvenance: this.options.acceptRendererProvenance });
+    const claimed = await this.persistence.transaction(transaction => validation.begin(transaction, input));
+    if (!claimed.attemptId) return claimed.candidate;
+    let rawResult: unknown;
     let operationalError: CadDomainError | undefined;
-    let geometry: import("@theoryfoundry/contracts").GeometrySummary | undefined;
-    let state: "VALID" | "REJECTED" | "CREATED" = "REJECTED";
-    let diagnostics: Diagnostic[] = claimed.candidate.diagnostics;
-    let renderer: RendererProvenance | undefined;
-    let artifacts: CandidateRecord["artifacts"] = [];
-    let validationPolicyVersion: string | undefined;
     try {
-      const rawResult = await this.options.renderer.validateAndRender({
-        projectId: input.projectId,
-        candidateId: input.candidateId,
-        attemptId,
-        source: claimed.source,
-        sourceHash: claimed.candidate.sourceHash,
-        previewProfile: input.previewProfile,
-        signal: input.signal,
-      });
+      rawResult = await this.options.renderer.validateAndRender({ ...input, attemptId: claimed.attemptId, source: claimed.source, sourceHash: claimed.candidate.sourceHash });
       if (input.signal?.aborted) throw new CadDomainError("CANCELLED", "Rendering was cancelled.");
-      const decision = evaluateRenderResult({
-        rawResult,
-        sourceHash: claimed.candidate.sourceHash,
-        validationPolicyVersion: this.validationPolicyVersion,
-        acceptRendererProvenance: this.options.acceptRendererProvenance,
-        hashBytes: sha256,
-      });
-      diagnostics = decision.diagnostics;
-      if (decision.outcome === "VALID") {
-        state = "VALID";
-        geometry = decision.geometry;
-        renderer = decision.provenance;
-        validationPolicyVersion = decision.validationPolicyVersion;
-        artifacts = decision.artifacts.map((artifact) => artifact.manifest);
-        assertArtifactSet(artifacts, claimed.candidate.sourceHash, decision.provenance);
-      }
     } catch (error) {
-      state = "CREATED";
-      operationalError = error instanceof CadDomainError ? new CadDomainError(error.code,error.message,{retryable:true,...error.details}) : new CadDomainError(input.signal?.aborted ? "CANCELLED" : "RENDER_FAILED", "Validation could not complete; retry the same candidate.", { retryable: true });
-      diagnostics = [{
-        code: error instanceof CadDomainError ? error.code : "RENDER_FAILED",
-        severity: "error",
-        message: error instanceof CadDomainError ? error.message : "Renderer failed safely.",
-      }];
+      operationalError = error instanceof CadDomainError ? new CadDomainError(error.code, error.message, { retryable: true, ...error.details })
+        : new CadDomainError(input.signal?.aborted ? "CANCELLED" : "RENDER_FAILED", "Validation could not complete; retry the same candidate.", { retryable: true });
     }
-
-    await this.persistence.transaction((transaction) => transaction.completeCandidateValidation({
-      projectId: input.projectId,
-      candidateId: input.candidateId,
-      state,
-      attemptId, geometry, error: operationalError,
-      diagnostics,
-      renderer,
-      validationPolicyVersion,
-      artifacts,
-      updatedAt: this.clock(),
+    const result = await this.persistence.transaction(transaction => validation.complete(transaction, {
+      projectId: input.projectId, candidateId: input.candidateId, attemptId: claimed.attemptId!, sourceHash: claimed.candidate.sourceHash, rawResult, error: operationalError,
     }));
-    if (operationalError) throw operationalError;
-    return (await this.persistence.readCandidate(input.projectId, input.candidateId)).candidate;
+    if (result.error) throw result.error;
+    return result.candidate;
   }
 
   async promoteCandidate(input: {

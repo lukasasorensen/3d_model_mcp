@@ -344,6 +344,8 @@ is a future research item and is not implemented.
 For the standalone headless CAD/PNG feasibility experiment, see the
 [headless renderer proof](docs/headless-renderer-proof.md). It reuses the existing
 browser renderer locally; it is not yet the public MCP worker.
+The opt-in hosted validation lease API is described in
+[local worker validation](docs/local-worker-validation.md).
 
 When remote MCP is enabled, **Connect to Codex** appears in the project workspace
 and **Connected Apps**. Choose global or repository scope and copy the setup

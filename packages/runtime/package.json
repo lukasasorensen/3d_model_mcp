@@ -19,7 +19,7 @@
     "clean": "rimraf dist",
     "auth:provision": "node dist/provision-user.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test src/*.test.mjs",
+    "test": "node --test src/*.test.mjs src/worker/*.test.mjs",
     "oauth:provision": "node dist/provision-oauth-client.js"
   },
   "dependencies": {

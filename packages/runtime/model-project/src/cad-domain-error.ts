@@ -1,4 +1,5 @@
 export type CadDomainErrorCode =
+  | "WORKER_CAPACITY"
   | "VALIDATION_RUNNING"
   | "EXPORT_CAPACITY"
   | "EXPORT_UNAVAILABLE"
