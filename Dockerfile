@@ -8,6 +8,7 @@ RUN corepack enable && corepack install --global pnpm@11.17.0
 FROM workspace AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 COPY apps/site/package.json apps/site/package.json
+COPY packages/browser-renderer/package.json packages/browser-renderer/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
 COPY packages/gateway/package.json packages/gateway/package.json
 COPY packages/mcp/package.json packages/mcp/package.json
