@@ -85,6 +85,13 @@
       "when": 1792532839227,
       "tag": "0011_worker-validation-jobs",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793044712785,
+      "tag": "0012_worker-export-jobs",
+      "breakpoints": true
     }
   ]
 }
