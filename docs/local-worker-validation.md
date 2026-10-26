@@ -98,3 +98,6 @@ strict payloads, bounded streaming, and operational error status codes.
 
 Run `pnpm verify` for the complete existing browser/MCP regression suite. Public
 worker client and deployed end-to-end acceptance remain separate milestones.
+
+STL/3MF leases and binary completion are documented in
+[worker exports](local-worker-exports.md).

@@ -1,6 +1,6 @@
-import { CAD_LIMITS, exportFilename, exportMetadataSchema } from "@theoryfoundry/contracts";
-import { CadDomainError, ModelExportsRepository, sha256, type ProjectDatabase } from "@theoryfoundry/model-project";
-import { parseBinaryStl, parseThreeMf } from "@theoryfoundry/renderer";
+import { exportMetadataSchema } from "@theoryfoundry/contracts";
+import { CadDomainError, ModelExportsRepository, sha256, lockExportCapacity, recoverWorkerExports, type ProjectDatabase } from "@theoryfoundry/model-project";
+import { ExportArtifactFinalizationService } from "./exports/artifact-finalization.service.js";
 import type { ExportFileStore } from "./export-file-store.js";
 import { waitForRenderOutcome } from "./render-outcome-wait.js";
 export class ModelExportService {
@@ -33,22 +33,7 @@ export class ModelExportService {
             const row = result.rows[0];
             if (!row)
                 throw new CadDomainError("EXPORT_UNAVAILABLE", "Export completion binding failed.");
-            if (!bytes.byteLength || bytes.byteLength > (row.format === "stl" ? CAD_LIMITS.previewBytes : CAD_LIMITS.exportBytes))
-                throw new CadDomainError("ARTIFACT_LIMIT_EXCEEDED", "Export exceeds byte limit.");
-            try {
-                if (row.format === "stl")
-                    parseBinaryStl(bytes);
-                else
-                    parseThreeMf(bytes);
-            }
-            catch (error) {
-                throw new CadDomainError("EXPORT_UNAVAILABLE", error instanceof Error ? error.message : "Generated export has invalid geometry or format.");
-            }
-            const hash = sha256(bytes), expiresAt = new Date(Date.now() + 3600000);
-            const metadata = exportMetadataSchema.parse({ exportId: id, projectId, revision: row.revision_id, sourceHash, format: row.format, mimeType: row.format === "stl" ? "model/stl" : "model/3mf", filename: exportFilename(row.name, projectId, row.revision_id, hash, row.format), hash, byteSize: bytes.byteLength, expiresAt: expiresAt.toISOString() });
-            await this.files.put(id, bytes);
-            await client.query("UPDATE model_exports SET state='READY',metadata=$2,reserved_bytes=$3,expires_at=$4,token_hash=NULL,updated_at=now() WHERE id=$1 AND owner_id=$5", [id, JSON.stringify(metadata), bytes.byteLength, expiresAt, ownerId]);
-            await client.query("SELECT pg_notify('theoryfoundry_changes',$1)", [JSON.stringify({ kind: "render", ownerId, projectId, jobId: id })]);
+            await new ExportArtifactFinalizationService(this.files).finalize(client, row, bytes, new Date());
             await client.query("COMMIT");
         }
         catch (error) {
@@ -76,10 +61,18 @@ export class ModelExportService {
         return { metadata, bytes };
     }
     async cleanup() {
-        const expired = await this.database.pool.query("DELETE FROM model_exports WHERE expires_at<=now() OR (state='PENDING' AND deadline<=now()) RETURNING id");
-        for (const row of expired.rows)
-            await this.files.remove(row.id);
-        await this.database.pool.query("DELETE FROM export_download_tokens WHERE expires_at<=now()");
+        const client = await this.database.pool.connect();
+        let expired: { id: string }[];
+        try {
+            await client.query("BEGIN");
+            await lockExportCapacity(client);
+            await recoverWorkerExports(client, new Date());
+            expired = (await client.query("DELETE FROM model_exports WHERE expires_at<=now() OR (state='PENDING' AND deadline<=now()) RETURNING id")).rows;
+            await client.query("DELETE FROM export_download_tokens WHERE expires_at<=now()");
+            await client.query("COMMIT");
+        } catch (error) { await client.query("ROLLBACK").catch(() => undefined); throw error; }
+        finally { client.release(); }
+        for (const row of expired) await this.files.remove(row.id);
         const retained = await this.database.pool.query("SELECT id FROM model_exports");
         await this.files.reconcile(new Set(retained.rows.map(row => row.id)));
     }
