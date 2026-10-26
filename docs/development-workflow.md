@@ -43,6 +43,9 @@ secrets. It installs from the frozen lockfile, runs `pnpm verify`, and checks tr
 nonmutation. `ALIGNMENT_BASE_REF` is the PR base SHA or pre-push SHA; local checks use
 `origin/master` and require Git history. Docker intentionally excludes Git metadata:
 its existing build checks remain unchanged; run full verification in a Git checkout.
+The temporary-Git-repository tooling regression skips only when the Git executable is
+absent (such as a slim build image); it runs in checkout CI. The other tooling tests
+remain independent of Git. The convention commands themselves never skip missing history.
 
 Use short-lived `codex/<ISSUE-ID>-<slug>` branches. Read the issue first, verify saved
 Linear updates, open a focused PR with correct issue linkage, and distinguish code
