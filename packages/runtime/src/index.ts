@@ -21,3 +21,4 @@ export * from "./cad-workflow-service.js";
 
 export { ModelExportsRepository } from "@theoryfoundry/model-project";
 export { handleWorkerValidationRequest } from "./worker/validation.http.js";
+export { handleWorkerPreviewSourceRequest } from "./worker/preview-source.http.js";

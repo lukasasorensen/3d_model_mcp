@@ -2,8 +2,9 @@
 
 This is the first API slice of THE-15, tracked by THE-18. It supports validation
 leases only. Project CRUD and promotion remain existing hosted MCP tools. Export
-jobs, preview source delivery, client registration/login, and the distributed
-stdio worker are subsequent work.
+jobs, client registration/login, and the distributed stdio worker are subsequent
+work. [Preview source delivery](local-worker-preview-source.md) is implemented
+separately under THE-19.
 
 ## Enablement and authentication
 
