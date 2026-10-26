@@ -1,0 +1,60 @@
+# Workspace alignment plan
+
+Parent: [THE-23](https://linear.app/theoryfoundry/issue/THE-23).
+Baseline: `master` at `efd6b8f`; template reference `pnpm-ts-template` at `26d3789`.
+Keep `apps/site`, all package identities, and `packages/runtime/model-project` in place.
+Each stage is a separately verified PR. Do not rename the default branch or deploy as
+part of this refactor. Keep THE-15 worker delivery and live acceptance separate.
+
+| Stage | Issue                                                   | Scope and completion gate                                                                                                                                              |
+| ----- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1     | [THE-24](https://linear.app/theoryfoundry/issue/THE-24) | Guidance, migration inventory, complete test discovery, Node 22 CI, shrinking formatting/naming/size baseline; verify without application changes                      |
+| 2     | [THE-25](https://linear.app/theoryfoundry/issue/THE-25) | Move existing scripts into focused tooling folders; workspace-aware architecture enforcement and individually recorded legacy violations; preserve all existing checks |
+| 3     | [THE-26](https://linear.app/theoryfoundry/issue/THE-26) | Contracts and rendering modules, public barrels and mirrored tests; preserve asset pins, formats and cancellation behavior                                             |
+| 4     | [THE-27](https://linear.app/theoryfoundry/issue/THE-27) | Model-project domain/workflows and persistence adapters; preserve SQL names, transactions, locks, ownership, durability and leases; no new migration                   |
+| 5     | [THE-28](https://linear.app/theoryfoundry/issue/THE-28) | Runtime, gateway and MCP features; explicit injection, workflow orchestration and cleanup; preserve HTTP/MCP/stdio contracts                                           |
+| 6     | [THE-29](https://linear.app/theoryfoundry/issue/THE-29) | Next.js feature components/hooks, controller adapters and mirrored tests; preserve framework routes and client/server boundaries                                       |
+| 7     | [THE-30](https://linear.app/theoryfoundry/issue/THE-30) | Resolve every legacy exception; split oversized files after formatting, finish docs and README; verify without source mutation                                         |
+| 8     | [THE-31](https://linear.app/theoryfoundry/issue/THE-31) | Separate Node 24/toolchain PR, flat ESLint and stricter TypeScript, source-only build configs; verify CI and Docker; deployment remains separate                       |
+
+Stages depend on their predecessor. After each merge, rebase the next stage against
+current `master`, recheck inventories and reduce the baseline. Record changes to the
+plan with evidence rather than moving exceptions to different files.
+
+## Invariants
+
+Preserve package public exports, HTTP/MCP routes and schemas, database identifiers and
+migration history, authentication/ownership checks, hashed tokens, artifact formats,
+feature flags, renderer asset pins and operational pnpm commands. Generated Codex
+installer URL and build/check behavior stay stable when tooling moves. Keep `.mjs`
+artifact tests as `.mjs` where they intentionally exercise emitted JavaScript.
+
+## Verification gates
+
+Every stage runs focused regressions and the full `pnpm verify`, with exact PR-head CI
+recorded before handoff. Stage 2 tests valid public imports and rejected upward,
+service-to-service, forbidden-module, deep-import, alias/barrel bypass, unresolved and
+cyclic dependencies. Test type-only edges and re-export symbol resolution explicitly.
+Stages 3–6 move tests and adjust build/test inputs with their source; tests must not ship
+in library output. Stage 4 also verifies real PostgreSQL concurrency and no generated SQL
+changes. Stage 6 checks browser behavior where presentation or lifecycle wiring changes.
+Stage 8 verifies built execution and Docker images on Node 24 before any separate rollout.
+
+CI verifies code; branch protection is separately configured GitHub policy. Do not claim
+required checks are enforced unless repository settings have been read and confirmed.
+
+## Stage 1 decisions
+
+- Keep Node 22 and existing ESLint/TypeScript settings until stage 8. Pin only the new
+  formatter; do not bundle a runtime upgrade into baseline work.
+- Introduce new tooling in organized folders now; move pre-existing scripts in stage 2.
+- Discover tests recursively, group by closest pnpm workspace owner and preserve cwd.
+  This closes the omitted template-leak regression and avoids depth-dependent globs.
+- Retain original checks; baseline checks are additive and read-only. No application
+  source, SQL, protocol, feature flag, renderer pin or deployment configuration changes.
+- Use exact content hashes for formatting exceptions and decreasing line caps; exceptions
+  cannot be silently transferred, added or enlarged in later PRs.
+
+See [migration inventory](alignment-inventory.md), [workflow](development-workflow.md)
+and [Codex setup](codex-setup.md). Stage-specific verification is recorded in Linear/PRs;
+update durable guidance when a stage changes how contributors work.

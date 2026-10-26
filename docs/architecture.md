@@ -56,3 +56,9 @@ Mesh bytes are never uploaded or stored by the server.
 HTTP MCP, sharing/collaboration, arbitrary mesh upload/editing, generic
 shell/file tools, live-provider selection, and engineering/manufacturing approval
 are outside this MVP.
+
+## Engineering alignment
+
+The workspace is being aligned in staged PRs with the reusable TypeScript template.
+See [architecture conventions](architecture-conventions.md) for the target module/layer
+rules and [alignment plan](alignment-plan.md) for which checks and migrations are complete.

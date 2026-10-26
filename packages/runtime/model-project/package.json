@@ -20,7 +20,7 @@
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
     "db:migrate": "drizzle-kit migrate --config drizzle.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test src/*.test.mjs"
+    "test": "node ../../../tooling/testing/runTests.script.mjs --project"
   },
   "dependencies": {
     "@theoryfoundry/contracts": "workspace:*",

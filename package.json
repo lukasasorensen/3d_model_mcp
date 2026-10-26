@@ -23,17 +23,21 @@
     "build:packages": "pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && pnpm --filter @theoryfoundry/model-project build && pnpm --filter @theoryfoundry/renderer build && pnpm --filter @theoryfoundry/mcp build && pnpm --filter @theoryfoundry/gateway build && pnpm --filter @theoryfoundry/runtime build",
     "typecheck": "pnpm build:packages && pnpm --filter @theoryfoundry/site typecheck",
     "lint": "eslint . --ext .js,.mjs,.ts,.tsx --max-warnings=0",
-    "test": "node --test scripts/database-shell.test.mjs scripts/coolify-deployment.test.mjs scripts/headless-renderer/node/services/*.test.mjs && pnpm build:packages && pnpm --filter @theoryfoundry/model-project test && pnpm --filter './packages/*' test && pnpm --filter @theoryfoundry/site test",
+    "test": "pnpm build:packages && node tooling/testing/runTests.script.mjs",
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
     "test:boundaries": "node --test scripts/check-package-boundaries.test.mjs",
     "check:leaks": "node scripts/check-template-leaks.mjs",
     "clean": "pnpm --filter './packages/*' clean && pnpm --filter @theoryfoundry/site clean",
-    "verify": "pnpm test:codex-installer && pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:leaks && pnpm check:boundaries",
+    "verify": "pnpm format:check && pnpm check:conventions && pnpm test:codex-installer && pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:leaks && pnpm check:boundaries",
     "oauth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @theoryfoundry/runtime oauth:provision",
     "build:codex-installer": "node scripts/build-codex-installer.mjs",
     "test:codex-installer": "node scripts/build-codex-installer.mjs --check && node --test scripts/codex-connect/*.test.mjs",
     "build:headless-renderer-proof": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && pnpm --filter @theoryfoundry/renderer build && node scripts/headless-renderer/build.script.mjs",
-    "proof:headless-renderer": "pnpm build:headless-renderer-proof && node dist/headless-renderer-proof/cli.mjs"
+    "proof:headless-renderer": "pnpm build:headless-renderer-proof && node dist/headless-renderer-proof/cli.mjs",
+    "test:list": "node tooling/testing/runTests.script.mjs --list",
+    "test:tooling": "node --test tests/tooling/*/*.test.mjs",
+    "format:check": "node tooling/conventions/checkConventions.script.mjs format",
+    "check:conventions": "node tooling/conventions/checkConventions.script.mjs conventions"
   },
   "devDependencies": {
     "@theoryfoundry/browser-renderer": "workspace:*",
@@ -45,6 +49,7 @@
     "eslint": "^8.57.1",
     "fflate": "0.8.2",
     "playwright": "1.61.1",
+    "prettier": "3.9.10",
     "smol-toml": "^1.9.0",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2"
