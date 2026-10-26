@@ -24,6 +24,7 @@ import {
   assertSourcePolicy,
 } from "./repository.js";
 import type { ModelProjectStore } from "./store.js";
+import { ModelSourceRepository } from "./model-source.repository.js";
 
 export interface PostgresModelProjectRepositoryOptions {
   pool: Pool;
@@ -41,12 +42,14 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
   private readonly createId: () => string;
   private readonly persistence: PostgresProjectPersistence;
   private readonly validationPolicyVersion: string;
+  private readonly sources: ModelSourceRepository;
 
   constructor(private readonly options: PostgresModelProjectRepositoryOptions) {
     if (!options.ownerId) throw new Error("A repository owner is required.");
     this.clock = options.clock ?? (() => new Date());
     this.createId = options.createId ?? randomUUID;
     this.persistence = new PostgresProjectPersistence(options.pool, options.ownerId);
+    this.sources = new ModelSourceRepository(options.pool, options.ownerId);
     this.validationPolicyVersion = options.validationPolicyVersion ?? VALIDATION_POLICY_VERSION;
   }
 
@@ -95,18 +98,11 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
   async getCandidate(projectId: string, candidateId: string) { return (await this.persistence.readCandidate(projectId,candidateId)).candidate; }
 
   async readValidatedCandidateSource(projectId: string, candidateId: string) {
-    await this.persistence.requireProject(projectId);
-    const { candidate, source } = await this.persistence.readCandidate(projectId, candidateId);
-    if (candidate.state !== "VALID") throw new CadDomainError("INVALID_CANDIDATE_STATE", "Validate the candidate before requesting a preview.");
-    return { candidateId, source, sourceHash: candidate.sourceHash };
+    return this.sources.readValidatedCandidateSource(projectId, candidateId);
   }
 
   async readModelSource(projectId: string, revision?: string): Promise<{ revision: string; source: string; sourceHash: string }> {
-    const project = await this.persistence.requireProject(projectId);
-    const selectedRevision = revision ?? project.currentRevision;
-    if (!selectedRevision) throw new CadDomainError("PROJECT_NOT_FOUND", "Project has no current revision.");
-    const persistedRevision = await this.persistence.readRevision(projectId, selectedRevision);
-    return { revision: selectedRevision, source: persistedRevision.source, sourceHash: persistedRevision.manifest.sourceHash };
+    return this.sources.readModelSource(projectId, revision);
   }
 
   async listRevisions(projectId: string): Promise<RevisionManifest[]> {

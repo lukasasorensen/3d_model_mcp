@@ -12,3 +12,4 @@ export * from "./browser-preview-jobs.repository.js";
 
 export * from "./model-exports.repository.js";
 export { WorkerValidationService } from "./worker/validation.service.js";
+export { ModelSourceRepository } from "./model-source.repository.js";
