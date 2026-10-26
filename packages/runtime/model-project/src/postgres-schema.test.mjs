@@ -32,6 +32,7 @@ test("split schema modules assemble the complete database schema", () => {
       "user",
       "validation_attempts",
       "verification",
+      "worker_validation_jobs",
     ],
   );
 });
