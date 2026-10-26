@@ -1,50 +1,75 @@
-# Engineering Guidelines
+# Engineering guidelines
 
-These instructions apply to the entire repository.
+These instructions apply throughout the workspace. Preserve `apps/site`, every
+package identity, and the nested `packages/runtime/model-project` boundary.
+See [alignment plan](docs/alignment-plan.md) for the staged migration and
+[architecture conventions](docs/architecture-conventions.md) for dependency rules.
 
-## Linear work tracking
+## Tracking and delivery
 
-- Use the connected Linear MCP tools to track work. Before implementation, find and read the relevant issue; create one for substantial work when none exists, and avoid duplicates.
-- Confirm the appropriate team and project from current Linear context. Reuse existing workflows and labels; do not invent deadlines or estimates.
-- Keep issue statuses, dependencies, PR links, and verification evidence current. Verify saved updates.
-- Link PRs with issue identifiers. Use `Fixes` when merging completes the issue, `Contributes to` for partial work, and `Relates to` for context only.
-- Mark work Done only when its completion criteria are verified. Track implementation, deployment, and live acceptance separately when needed.
-- Keep secrets and sensitive logs out of Linear. If access is unavailable, report pending updates and continue authorized work where possible.
+- Use connected Linear tools before substantial implementation: find and read the
+  relevant issue, avoid duplicates, and confirm the team/project from current context.
+  Reuse existing statuses and labels; do not invent deadlines or estimates.
+- Keep statuses, dependencies, PR links, and verification evidence current. Fetch
+  saved updates to verify them. Keep secrets and sensitive logs out of Linear.
+  If tracking is unavailable, continue authorized local work and report pending updates.
+- Use the existing `master` branch and short-lived `codex/<ISSUE-ID>-<slug>` branches
+  (`codex/<slug>` if tracking is unavailable). Open focused PRs. Use `Fixes` only when
+  merging completes the issue, `Contributes to` for partial work, and `Relates to` for context.
+- Merge only when explicitly requested, after rechecking the PR head and required checks.
+  Mark Done only when completion criteria are verified. Track implementation,
+  deployment, and live acceptance separately; a passing build is not live acceptance.
 
-## Design principles
+## Architecture and TypeScript
 
-- Keep modules focused on one cohesive responsibility. Split a file before it becomes a catch-all for unrelated behavior.
-- Avoid god classes, god modules, and generic `utils` collections. Prefer small domain-named modules with explicit APIs.
-- Organize code from stable domain concepts toward infrastructure details. Dependencies should point inward; UI, transport, database, and provider adapters must not own domain rules.
-- Encapsulate repeated behavior behind a narrowly named function or type. Do not abstract merely because two lines look similar; abstract when the shared concept and invariants are the same.
-- Prefer composition and explicit dependency injection over global mutable state, hidden singletons, or inheritance hierarchies.
-- Preserve package boundaries. Use a package's public entry point instead of deep-importing its internals.
+- Group code by domain or feature inside each package. Within those modules use
+  controllers, optional workflows, services, and narrowly named utilities. Do not
+  create empty architectural scaffolding. Framework entry points stay conventional.
+- Controllers validate input and call one service or workflow per operation.
+  Workflows sequence services. Services never import other services, workflows, or
+  controllers, even across modules, through barrels, or via type-only imports.
+  Controllers never import controllers; workflows never import workflows.
+- Utilities depend only on acyclic utilities and contracts. Types and ports never
+  depend on implementations. Inject narrow infrastructure capabilities through
+  domain-owned ports; do not disguise peer business services as ports.
+- Features may use domain public APIs, subject to layering. Domains do not import
+  features or concrete infrastructure. Infrastructure may use domain contracts,
+  not domain services or orchestration. Shared foundations depend on none of these.
+- Cross-module imports use public re-export-only `index.ts` APIs and remain acyclic.
+  Internal files never import their own barrel. Explicit application composition
+  constructs dependencies and owns resource lifetime; package barrels contain no logic.
+- Prefer strict types, validated `unknown` input, explicit public contracts,
+  discriminated unions, narrow interfaces and substitutable implementations.
+  Choose cohesive functions or classes as appropriate. Use composition and explicit
+  injection, avoiding speculative abstractions, global mutable state and unnecessary inheritance.
+- Preserve operational errors and domain-specific failure modes. Close resources
+  after failed startup and normal shutdown. Keep authorization at every persistence boundary.
 
-## Naming and structure
+## Naming, size and documentation
 
-- Use names that describe domain intent. Avoid vague names such as `data`, `item`, `manager`, `helper`, or `process` when a precise name is available.
-- Name booleans as predicates (`isReady`, `hasAccess`, `canPromote`) and collections with plural nouns.
-- Keep terminology consistent across database, domain, API, and UI layers unless an adapter explicitly translates it.
-- Use kebab-case domain names and explicit role suffixes before the extension, such as `.renderer.ts`, `.service.ts`, `.worker.ts`, `.adapter.ts`, `.client.ts`, `.util.ts`, `.metadata.ts`, `.schema.ts`, or `.repository.ts`. Apply the same convention to `.mjs` files; executable scripts should identify their role with `.script.mjs` or `.cli.mjs`.
-- Folder hierarchy and file roles are complementary. A file must still name its role inside a matching folder: use `renderer/png.renderer.ts` and `services/download.service.ts`, not `renderer/png.ts` or `services/download.ts`. Do not remove role suffixes to avoid repetition.
-- Colocate tests and preserve the implementation's full filename stem, such as `download.service.test.ts`. Conventional public barrels such as `index.ts` may retain their standard names.
-- Group related files into meaningful domain or execution folders. Keep utilities narrowly named and cohesive; do not create catch-all utility files. When moving or renaming files, update imports, public exports, build inputs, commands, test discovery, and documentation together.
-- Keep one primary concept per file. Barrel files may assemble and re-export concepts but must not contain business logic.
-- Keep functions short enough that their control flow and side effects are evident. Extract policy decisions and validation from orchestration code.
+- Use kebab-case folders and camelCase stems with explicit roles, including inside
+  layer folders: `services/readModel.service.ts`, `utils/shape.util.ts`.
+  Preserve Next.js special filenames and route segments. See conventions for exemptions.
+- Put new tests in each project's `tests/` tree, mirroring source paths and keeping
+  the full implementation stem (`readModel.service.test.ts`). Root tooling tests
+  live in `tests/tooling/`. Move existing tests with their owning migration stage.
+- Keep one cohesive responsibility per file, at most 500 physical lines including
+  comments, tests and documentation. Split by responsibility, not arbitrary line ranges.
+  Lockfiles, generated output and immutable migration history are exempt.
+- Keep comments succinct and focused on intent. Put lengthy explanations, plans,
+  decisions, setup changes and verification evidence in focused files under `docs/`.
+- Existing naming, placement, size and formatting debt is recorded in the shrinking
+  legacy baseline. New files must comply. Never add or widen an exemption; remove
+  resolved entries. Formatting is checked without rewriting source.
 
-## Database schemas and persistence
+## Persistence and verification
 
-- Define one database table per `*.schema.ts` file. Put each enum in its own `*.enum.ts` file.
-- Put reusable column and constraint factories in the schema `shared/` directory. Factories must create fresh Drizzle column instances for every table.
-- Preserve SQL table, column, index, constraint, and enum names during structural refactors unless a migration is explicitly required.
-- Keep ownership checks and authorization boundaries in every persistence path; never rely on an opaque identifier alone.
-- Do not persist plaintext secrets or reusable tokens. Store a one-way hash when later verification is required.
-- Commit generated migrations for intentional schema changes and verify that refactors which should be structural-only produce no migration.
-
-## Quality bar
-
-- Validate untrusted input at system boundaries and use domain-specific errors for expected failure modes.
-- Preserve operational errors instead of disguising them as missing data or authorization failures.
-- Close external resources during both normal shutdown and failed startup.
-- Add regression coverage for fixes and tests for important invariants, including ownership isolation and secret handling.
-- Run the narrowest relevant checks while iterating, then run `pnpm verify` before handing off a completed change.
+- One table per `.schema.ts`, one enum per `.enum.ts`. Shared column/constraint
+  factories create fresh Drizzle column instances for each table.
+- Preserve SQL names, ownership isolation, transaction/lock semantics, token hashing,
+  leases and idempotency during structural changes. Never persist reusable plaintext secrets.
+  Commit migrations only for intentional schema changes; structural refactors produce none.
+- Update imports, exports, build inputs, commands, tests and documentation together.
+  Preserve public protocols, feature flags, artifact formats and renderer asset pins.
+- Run focused checks while iterating, then `pnpm verify` before handoff. Use Node 22
+  until the separately verified Node 24 stage. See [development workflow](docs/development-workflow.md).

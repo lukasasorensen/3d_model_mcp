@@ -18,7 +18,7 @@
     "build": "tsc -p tsconfig.json",
     "clean": "rimraf dist",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --test"
+    "test": "node ../../tooling/testing/runTests.script.mjs --project"
   },
   "dependencies": {
     "@theoryfoundry/contracts": "workspace:*",
