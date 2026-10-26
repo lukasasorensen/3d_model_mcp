@@ -11,6 +11,7 @@ export function isExcluded(file) {
   return (
     file === "pnpm-lock.yaml" ||
     file === baselinePath ||
+    file === "tooling/architecture/legacyArchitecture.generated.json" ||
     file === "apps/site/public/installers/connect-codex-v1.mjs" ||
     file === "apps/site/next-env.d.ts" ||
     file.startsWith("packages/runtime/model-project/drizzle/") ||

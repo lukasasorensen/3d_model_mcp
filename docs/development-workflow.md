@@ -4,18 +4,20 @@ Use Node 22 and the pinned `packageManager` version with `pnpm install --frozen-
 The separate Node 24 migration is THE-31. Existing development, database, authentication,
 OAuth provisioning and headless-renderer commands remain in `package.json`.
 
-| Command                                     | Purpose                                                           |
-| ------------------------------------------- | ----------------------------------------------------------------- |
-| `pnpm dev`                                  | Prepare browser assets and start the site                         |
-| `pnpm test:list`                            | List all discovered tests grouped by owning project               |
-| `pnpm test:tooling`                         | Run focused tooling regressions                                   |
-| `pnpm test`                                 | Build packages, then run every discovered test in its owner's cwd |
-| `pnpm --filter @theoryfoundry/runtime test` | Run only runtime-owned tests after building dependencies          |
-| `pnpm format:check`                         | Check Prettier against exact legacy content exceptions            |
-| `pnpm check:conventions`                    | Check naming, test placement and physical line caps               |
-| `pnpm lint` / `pnpm typecheck`              | Existing ESLint and workspace TypeScript checks                   |
-| `pnpm build`                                | Build libraries and the Next.js app                               |
-| `pnpm verify`                               | Run all checks, tests and builds without rewriting source         |
+| Command                                     | Purpose                                                                                 |
+| ------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `pnpm dev`                                  | Prepare browser assets and start the site                                               |
+| `pnpm test:list`                            | List all discovered tests grouped by owning project                                     |
+| `pnpm test:tooling`                         | Run focused tooling regressions                                                         |
+| `pnpm test`                                 | Build packages, then run every discovered test in its owner's cwd                       |
+| `pnpm --filter @theoryfoundry/runtime test` | Run only runtime-owned tests after building dependencies                                |
+| `pnpm format:check`                         | Check Prettier against exact legacy content exceptions                                  |
+| `pnpm check:architecture`                   | Check resolved workspace/layer/browser dependencies against shrinking legacy exceptions |
+| `pnpm test:architecture`                    | Run graph, barrel, alias and baseline regressions                                       |
+| `pnpm check:conventions`                    | Check naming, test placement and physical line caps                                     |
+| `pnpm lint` / `pnpm typecheck`              | Existing ESLint and workspace TypeScript checks                                         |
+| `pnpm build`                                | Build libraries and the Next.js app                                                     |
+| `pnpm verify`                               | Run all checks, tests and builds without rewriting source                               |
 
 New and touched files use Prettier. Format an explicit file with
 `pnpm exec prettier --write path/to/file`, then remove its resolved baseline fields.
@@ -43,8 +45,8 @@ secrets. It installs from the frozen lockfile, runs `pnpm verify`, and checks tr
 nonmutation. `ALIGNMENT_BASE_REF` is the PR base SHA or pre-push SHA; local checks use
 `origin/master` and require Git history. Docker intentionally excludes Git metadata:
 its existing build checks remain unchanged; run full verification in a Git checkout.
-The temporary-Git-repository tooling regression skips only when the Git executable is
-absent (such as a slim build image); it runs in checkout CI. The other tooling tests
+Temporary-Git-repository tooling regressions skip only when the Git executable is
+absent (such as a slim build image); they run in checkout CI. The other tooling tests
 remain independent of Git. The convention commands themselves never skip missing history.
 
 Use short-lived `codex/<ISSUE-ID>-<slug>` branches. Read the issue first, verify saved
@@ -54,3 +56,7 @@ rechecking head and required checks. Branch protection is separate from adding C
 
 As checked on 2026-10-26, `master` is unprotected (the protection API returns 404).
 This PR adds CI but does not configure a required-check or PR-only merge policy.
+
+Internal tooling paths and architecture checks are documented in
+[architecture enforcement](architecture-enforcement.md). The installed-Codex smoke test
+also skips when the Codex CLI is absent (including hosted CI); record that separately.

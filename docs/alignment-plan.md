@@ -58,3 +58,13 @@ required checks are enforced unless repository settings have been read and confi
 See [migration inventory](alignment-inventory.md), [workflow](development-workflow.md)
 and [Codex setup](codex-setup.md). Stage-specific verification is recorded in Linear/PRs;
 update durable guidance when a stage changes how contributors work.
+
+## Stage 2 implementation
+
+PR #12 completed stage 1 at `3f1df4f`. Stage 2 moves existing scripts into organized
+`tooling/` areas with mirrored tests, retaining the original package/client checks.
+Resolved workspace and symbol analysis now enforce module/layer rules through aliases,
+barrels, declarations and workers. The initial 523 architecture exceptions are verified
+against that merged base and assigned to stages 3–6; convention records shrink to 257.
+See [architecture enforcement](architecture-enforcement.md) for commands, classification,
+bootstrap/ratchet behavior and compatibility evidence. Node 24 remains stage 8.

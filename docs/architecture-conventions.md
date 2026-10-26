@@ -74,7 +74,7 @@ initial exception must match a violation in that commit. There is no regeneratio
 Do not reset or widen the baseline to make checks pass. Remove resolved fields and empty
 records, preserving `version` and `sourceCommit`. Stage 7 removes all legacy records.
 
-Existing package/browser boundary checks remain active. Stage 2 will add resolved,
+Existing package/browser boundary checks remain active. Stage 2 adds resolved,
 barrel-aware architecture enforcement, including workspace aliases, type-only imports,
-cycles, unresolved imports and module/layer restrictions. These target rules are guidance
-until that checker lands; stage 1 does not claim that architecture debt is resolved.
+cycles, unresolved imports and module/layer restrictions. The checker enforces new violations while individually recorded legacy violations
+remain for later stages. See [enforcement details](architecture-enforcement.md).

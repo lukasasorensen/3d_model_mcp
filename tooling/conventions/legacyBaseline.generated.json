@@ -9,7 +9,6 @@
       "formatHash": "eb4ae5dd25f8adb43fb578dd6ca671696353d00cb2cd337f5bb721938fedcbf4"
     },
     "README.md": {
-      "formatHash": "cb7733531c0a0b361c6807ec2733a47858930c7ae5898b8a6f6ffec22c4f9723",
       "maxLines": 548
     },
     "apps/site/src/accessibility-contract.test.ts": {
@@ -450,9 +449,6 @@
     },
     "docs/dependencies-and-licenses.md": {
       "formatHash": "e18f056ea5ca71108b1bf393623dbebd24a042e23c4684cfae004f8eb38ed96f"
-    },
-    "docs/headless-renderer-proof.md": {
-      "formatHash": "a4de543f719eca914aec085d1c4cbdc226e283de731a35b1a3ae83824f4e614c"
     },
     "docs/local-worker-exports.md": {
       "formatHash": "30a1fccac1a9d00d04c2aae49997dfbc765a050a3bc9ef50b6d1fb4b2e53b109"
@@ -1370,132 +1366,6 @@
       "rules": [
         "filename",
         "test-placement"
-      ]
-    },
-    "scripts/build-codex-installer.mjs": {
-      "formatHash": "a479a00ff5c1dbd29b36560837f11f7c589f06ea305748df615314a4b88d9cf5",
-      "rules": [
-        "filename"
-      ]
-    },
-    "scripts/check-package-boundaries.mjs": {
-      "formatHash": "cd4aa63e130e4e63a0797a5fc30bb9ec71979a978213f75bef8fedf47297562c",
-      "rules": [
-        "filename"
-      ]
-    },
-    "scripts/check-package-boundaries.test.mjs": {
-      "formatHash": "ecb534a5b7d9d92139dc1dd1cfb24b783b1203338e834abe6b2d0d91f7e4cd66",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "scripts/check-template-leaks.mjs": {
-      "formatHash": "55e167ab2a1c5eb51be2b7032bdc4bb0b9474f12d27c75cb884a7d703c70e6eb",
-      "rules": [
-        "filename"
-      ]
-    },
-    "scripts/check-template-leaks.test.mjs": {
-      "formatHash": "51aad5cb9a5278e61401f981965b6bf47c39a517db5486b0e1b8bcec131d6ccf",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "scripts/codex-connect/configuration.mjs": {
-      "formatHash": "92b55b48af52d73fdfa6c708e04bc84ee1cfb914225487932aac9d850f37b3d7",
-      "rules": [
-        "filename"
-      ]
-    },
-    "scripts/codex-connect/configuration.test.mjs": {
-      "formatHash": "ffe18ad7b3ce6ccb429403a42ed6d78f93cced7db04c8b528760c8b91d661416",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "scripts/codex-connect/entry.mjs": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "scripts/codex-connect/installer.mjs": {
-      "formatHash": "8ae8bd8bef1c3b044ebd7f9cddef01e35326de32153750e7449d8ce808eb1d2b",
-      "rules": [
-        "filename"
-      ]
-    },
-    "scripts/codex-connect/installer.test.mjs": {
-      "formatHash": "9f3e467e937547c9de81553f82d33be3e820913335ecd65586c8311792043444",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "scripts/coolify-deployment.test.mjs": {
-      "formatHash": "8c3387ab10889ff357762d199d03f08e3966047bde7aaccaa40a9e2d7b3bee3e",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "scripts/database-shell.mjs": {
-      "formatHash": "63db9b41085efec1489e356307cb07aab953efa6fc8111a92a91209dfc797c7c",
-      "rules": [
-        "filename"
-      ]
-    },
-    "scripts/database-shell.test.mjs": {
-      "formatHash": "efc7bbfb4b06404bcee541b262030cae6e8100c3a09f754931f1d62df314aa82",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "scripts/headless-renderer/acceptance/renderer.acceptance.mjs": {
-      "formatHash": "6c8631961d7d558ff90a5d0f097ddc61493ce01c3c596c14906daa39e8f511ca",
-      "rules": [
-        "filename"
-      ]
-    },
-    "scripts/headless-renderer/acceptance/utils/png.util.mjs": {
-      "formatHash": "b771f999f8194f3983183094e75b54feef8738023cf7965075a818e445834a8d"
-    },
-    "scripts/headless-renderer/browser/renderer/bridge.adapter.mjs": {
-      "formatHash": "c45444f37498f1a441334f9d6aba8f12b0969c255a7951db1bc9ac05365e8139"
-    },
-    "scripts/headless-renderer/build.script.mjs": {
-      "formatHash": "17efc1e0c890327110198bf59d3426451dcc2fab1c9efabaeb6bb29909c18dfb"
-    },
-    "scripts/headless-renderer/node/renderer/chromium.renderer.mjs": {
-      "formatHash": "b2ecc539afd4a3e584b6162ee925098829dec01afa4059ce1dc5e2d90a9140bb"
-    },
-    "scripts/headless-renderer/node/services/asset-server.service.mjs": {
-      "formatHash": "024b2bbb52f55a9f30bc4123a9f4721aa1e17cb2e7907a7cdf80324b559cbaea",
-      "rules": [
-        "filename"
-      ]
-    },
-    "scripts/headless-renderer/node/services/asset-server.service.test.mjs": {
-      "formatHash": "5a10e69c52aa2d0c74151d55fe7b6bd8eef622b57d55e50a56e176312d3c0e90",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "scripts/headless-renderer/run-proof.cli.mjs": {
-      "formatHash": "3b1690aaa14790609a53b288b6841764267de7a30669e3c53116adc9aa21cae5",
-      "rules": [
-        "filename"
-      ]
-    },
-    "scripts/prepare-browser-renderer.mjs": {
-      "formatHash": "cb83dd2b10f4abb82ad84518328aba9905ea1f27ece627715b802d84eaf2ff7c",
-      "rules": [
-        "filename"
       ]
     }
   }
