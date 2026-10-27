@@ -393,3 +393,41 @@ test("the declared runtime asset is resolved without enabling arbitrary dynamic 
     ),
   );
 });
+
+test("infrastructure and shared foundations consume runtime contracts but never contract-package services", async (context) => {
+  const fixture = await architectureFixture(context, {
+    "packages/domain/package.json": JSON.stringify({
+      name: "@theoryfoundry/contracts",
+      type: "module",
+      exports: {
+        ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+      },
+    }),
+    [`${feature}/services/preview.service.ts`]:
+      'import {normalizeShape} from "@theoryfoundry/contracts"; export const preview=normalizeShape;',
+    "packages/runtime/src/infrastructure/services/read.service.ts":
+      'import {normalizeShape} from "@theoryfoundry/contracts"; export const read=normalizeShape;',
+    "packages/runtime/src/shared/utils/check.util.ts":
+      'import {normalizeShape} from "@theoryfoundry/contracts"; export const check=normalizeShape;',
+    "packages/runtime/src/infrastructure/services/bad.service.ts":
+      'import {readModel} from "@theoryfoundry/contracts"; export const bad=readModel;',
+    "packages/runtime/src/shared/utils/bad.util.ts":
+      'import {readModel} from "@theoryfoundry/contracts"; export const bad=readModel;',
+  });
+  const findings = await verify(fixture);
+  for (const file of [
+    "packages/runtime/src/infrastructure/services/read.service.ts",
+    "packages/runtime/src/shared/utils/check.util.ts",
+  ])
+    assert.deepEqual(
+      findings.filter((f) => f.file === file),
+      [],
+    );
+  for (const file of [
+    "packages/runtime/src/infrastructure/services/bad.service.ts",
+    "packages/runtime/src/shared/utils/bad.util.ts",
+  ]) {
+    assert.ok(has(findings, file, "module-boundary"));
+    assert.ok(has(findings, file, "layer-boundary"));
+  }
+});

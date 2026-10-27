@@ -109,6 +109,12 @@ export function boundaryRules(
   typeOnly = false,
 ) {
   const findings = [];
+  // The contracts package owns shared runtime schemas and pure validation as well
+  // as erased types. Its implementation layers are never foundational imports.
+  const foundationContract =
+    from.project !== to.project &&
+    to.project.name === "@theoryfoundry/contracts" &&
+    lower.includes(to.layer);
   const add = (rule, message) =>
     findings.push({ file: from.file, rule, target: to.file, message });
   if (to.test) {
@@ -133,6 +139,7 @@ export function boundaryRules(
     );
   if (
     from.area === "shared" &&
+    !foundationContract &&
     to.area !== "shared" &&
     !(to.area === "legacy" && to.layer === "barrel")
   )
@@ -142,6 +149,7 @@ export function boundaryRules(
     );
   if (
     from.area === "infrastructure" &&
+    !foundationContract &&
     (to.area === "features" ||
       (to.area === "domains" &&
         !["types", "port", "barrel"].includes(to.layer)))

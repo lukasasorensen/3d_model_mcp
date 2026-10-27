@@ -15,15 +15,15 @@ import { randomUUID } from "node:crypto";
 import type { Pool } from "pg";
 
 import { CandidateValidationService } from "./validation/candidate-validation.service.js";
-import { CadDomainError } from "./cad-domain-error.js";
+import { CadDomainError } from "./shared/utils/cadDomainError.util.js";
 import { PostgresProjectPersistence } from "./postgres-project-persistence.js";
-import type { ProjectState, ProjectSummary } from "./project-types.js";
-import { assertArtifactSet } from "./render-policy.js";
+import type { ProjectState, ProjectSummary } from "./domains/project/index.js";
+import { assertArtifactSet } from "./shared/utils/renderPolicy.util.js";
 import {
   VALIDATION_POLICY_VERSION,
   assertSourcePolicy,
-} from "./repository.js";
-import type { ModelProjectStore } from "./store.js";
+} from "./domains/project/index.js";
+import type { ModelProjectStore } from "./domains/project/index.js";
 import { ModelSourceRepository } from "./model-source.repository.js";
 
 export interface PostgresModelProjectRepositoryOptions {
@@ -48,17 +48,26 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     if (!options.ownerId) throw new Error("A repository owner is required.");
     this.clock = options.clock ?? (() => new Date());
     this.createId = options.createId ?? randomUUID;
-    this.persistence = new PostgresProjectPersistence(options.pool, options.ownerId);
+    this.persistence = new PostgresProjectPersistence(
+      options.pool,
+      options.ownerId,
+    );
     this.sources = new ModelSourceRepository(options.pool, options.ownerId);
-    this.validationPolicyVersion = options.validationPolicyVersion ?? VALIDATION_POLICY_VERSION;
+    this.validationPolicyVersion =
+      options.validationPolicyVersion ?? VALIDATION_POLICY_VERSION;
   }
 
   async createProject(input: CreateProjectInput): Promise<ProjectSummary> {
-    return this.persistence.createProject(this.createProjectId(), createProjectInputSchema.parse(input));
+    return this.persistence.createProject(
+      this.createProjectId(),
+      createProjectInputSchema.parse(input),
+    );
   }
 
   async updateProject(input: UpdateProjectInput): Promise<ProjectSummary> {
-    return this.persistence.updateProject(updateProjectInputSchema.parse(input));
+    return this.persistence.updateProject(
+      updateProjectInputSchema.parse(input),
+    );
   }
 
   async listProjects(): Promise<ProjectSummary[]> {
@@ -67,8 +76,18 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
 
   async getProjectState(projectId: string): Promise<ProjectState> {
     const project = await this.persistence.requireProject(projectId);
-    if (!project.currentRevision) return { projectId, currentRevision: null, source: null, artifacts: [], diagnostics: [] };
-    const { manifest } = await this.persistence.readRevision(projectId, project.currentRevision);
+    if (!project.currentRevision)
+      return {
+        projectId,
+        currentRevision: null,
+        source: null,
+        artifacts: [],
+        diagnostics: [],
+      };
+    const { manifest } = await this.persistence.readRevision(
+      projectId,
+      project.currentRevision,
+    );
     return {
       projectId,
       currentRevision: manifest.revisionId,
@@ -82,32 +101,63 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     await this.persistence.requireProject(projectId);
   }
 
-  async getProjectSnapshot(projectId: string): Promise<{ state: ProjectState; revisions: RevisionManifest[] }> {
+  async getProjectSnapshot(
+    projectId: string,
+  ): Promise<{ state: ProjectState; revisions: RevisionManifest[] }> {
     return this.persistence.transaction(async (transaction) => {
       const project = await transaction.requireProject(projectId, true);
-      const revisions = project.currentRevision ? await transaction.listRevisionHistory(projectId, project.currentRevision) : [];
+      const revisions = project.currentRevision
+        ? await transaction.listRevisionHistory(
+            projectId,
+            project.currentRevision,
+          )
+        : [];
       const current = revisions[0];
-      return { state: current ? {
-        projectId, currentRevision: current.revisionId,
-        source: { hash: current.sourceHash, byteSize: current.sourceBytes },
-        artifacts: current.artifacts, diagnostics: current.diagnostics,
-      } : { projectId, currentRevision: null, source: null, artifacts: [], diagnostics: [] }, revisions };
+      return {
+        state: current
+          ? {
+              projectId,
+              currentRevision: current.revisionId,
+              source: {
+                hash: current.sourceHash,
+                byteSize: current.sourceBytes,
+              },
+              artifacts: current.artifacts,
+              diagnostics: current.diagnostics,
+            }
+          : {
+              projectId,
+              currentRevision: null,
+              source: null,
+              artifacts: [],
+              diagnostics: [],
+            },
+        revisions,
+      };
     });
   }
 
-  async getCandidate(projectId: string, candidateId: string) { return (await this.persistence.readCandidate(projectId,candidateId)).candidate; }
+  async getCandidate(projectId: string, candidateId: string) {
+    return (await this.persistence.readCandidate(projectId, candidateId))
+      .candidate;
+  }
 
   async readValidatedCandidateSource(projectId: string, candidateId: string) {
     return this.sources.readValidatedCandidateSource(projectId, candidateId);
   }
 
-  async readModelSource(projectId: string, revision?: string): Promise<{ revision: string; source: string; sourceHash: string }> {
+  async readModelSource(
+    projectId: string,
+    revision?: string,
+  ): Promise<{ revision: string; source: string; sourceHash: string }> {
     return this.sources.readModelSource(projectId, revision);
   }
 
   async listRevisions(projectId: string): Promise<RevisionManifest[]> {
     const project = await this.persistence.requireProject(projectId);
-    return project.currentRevision ? this.persistence.listRevisionHistory(projectId, project.currentRevision) : [];
+    return project.currentRevision
+      ? this.persistence.listRevisionHistory(projectId, project.currentRevision)
+      : [];
   }
 
   async proposeModelSource(input: {
@@ -122,10 +172,14 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     await this.persistence.transaction(async (transaction) => {
       const project = await transaction.requireProject(input.projectId, true);
       if (project.currentRevision !== input.parentRevision) {
-        throw new CadDomainError("STALE_REVISION", "Candidate parent is not the current revision.", {
-          expected: project.currentRevision,
-          received: input.parentRevision,
-        });
+        throw new CadDomainError(
+          "STALE_REVISION",
+          "Candidate parent is not the current revision.",
+          {
+            expected: project.currentRevision,
+            received: input.parentRevision,
+          },
+        );
       }
       await transaction.insertCandidate({
         id: candidateId,
@@ -137,7 +191,8 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
         createdAt: this.clock(),
       });
     });
-    return (await this.persistence.readCandidate(input.projectId, candidateId)).candidate;
+    return (await this.persistence.readCandidate(input.projectId, candidateId))
+      .candidate;
   }
 
   async validateAndRender(input: {
@@ -146,22 +201,51 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     previewProfile: "standard";
     signal?: AbortSignal;
   }): Promise<CandidateRecord> {
-    if (input.signal?.aborted) throw new CadDomainError("CANCELLED", "Operation cancelled.");
-    const validation = new CandidateValidationService({ clock: this.clock, validationPolicyVersion: this.validationPolicyVersion, acceptRendererProvenance: this.options.acceptRendererProvenance });
-    const claimed = await this.persistence.transaction(transaction => validation.begin(transaction, input));
+    if (input.signal?.aborted)
+      throw new CadDomainError("CANCELLED", "Operation cancelled.");
+    const validation = new CandidateValidationService({
+      clock: this.clock,
+      validationPolicyVersion: this.validationPolicyVersion,
+      acceptRendererProvenance: this.options.acceptRendererProvenance,
+    });
+    const claimed = await this.persistence.transaction((transaction) =>
+      validation.begin(transaction, input),
+    );
     if (!claimed.attemptId) return claimed.candidate;
     let rawResult: unknown;
     let operationalError: CadDomainError | undefined;
     try {
-      rawResult = await this.options.renderer.validateAndRender({ ...input, attemptId: claimed.attemptId, source: claimed.source, sourceHash: claimed.candidate.sourceHash });
-      if (input.signal?.aborted) throw new CadDomainError("CANCELLED", "Rendering was cancelled.");
+      rawResult = await this.options.renderer.validateAndRender({
+        ...input,
+        attemptId: claimed.attemptId,
+        source: claimed.source,
+        sourceHash: claimed.candidate.sourceHash,
+      });
+      if (input.signal?.aborted)
+        throw new CadDomainError("CANCELLED", "Rendering was cancelled.");
     } catch (error) {
-      operationalError = error instanceof CadDomainError ? new CadDomainError(error.code, error.message, { retryable: true, ...error.details })
-        : new CadDomainError(input.signal?.aborted ? "CANCELLED" : "RENDER_FAILED", "Validation could not complete; retry the same candidate.", { retryable: true });
+      operationalError =
+        error instanceof CadDomainError
+          ? new CadDomainError(error.code, error.message, {
+              retryable: true,
+              ...error.details,
+            })
+          : new CadDomainError(
+              input.signal?.aborted ? "CANCELLED" : "RENDER_FAILED",
+              "Validation could not complete; retry the same candidate.",
+              { retryable: true },
+            );
     }
-    const result = await this.persistence.transaction(transaction => validation.complete(transaction, {
-      projectId: input.projectId, candidateId: input.candidateId, attemptId: claimed.attemptId!, sourceHash: claimed.candidate.sourceHash, rawResult, error: operationalError,
-    }));
+    const result = await this.persistence.transaction((transaction) =>
+      validation.complete(transaction, {
+        projectId: input.projectId,
+        candidateId: input.candidateId,
+        attemptId: claimed.attemptId!,
+        sourceHash: claimed.candidate.sourceHash,
+        rawResult,
+        error: operationalError,
+      }),
+    );
     if (result.error) throw result.error;
     return result.candidate;
   }
@@ -172,20 +256,36 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     expectedParentRevision: string | null;
     signal?: AbortSignal;
   }): Promise<RevisionManifest> {
-    if (input.signal?.aborted) throw new CadDomainError("CANCELLED", "Operation cancelled.");
+    if (input.signal?.aborted)
+      throw new CadDomainError("CANCELLED", "Operation cancelled.");
     let staleCurrentRevision: string | null | undefined;
     const manifest = await this.persistence.transaction(async (transaction) => {
       const project = await transaction.requireProject(input.projectId, true);
-      const persistedCandidate = await transaction.readCandidate(input.projectId, input.candidateId, true);
+      const persistedCandidate = await transaction.readCandidate(
+        input.projectId,
+        input.candidateId,
+        true,
+      );
       const candidate = persistedCandidate.candidate;
-      if (candidate.state !== "VALID") throw new CadDomainError("INVALID_CANDIDATE_STATE", "Only a validated candidate can be promoted.");
-      if (project.currentRevision !== input.expectedParentRevision || candidate.parentRevision !== input.expectedParentRevision) {
+      if (candidate.state !== "VALID")
+        throw new CadDomainError(
+          "INVALID_CANDIDATE_STATE",
+          "Only a validated candidate can be promoted.",
+        );
+      if (
+        project.currentRevision !== input.expectedParentRevision ||
+        candidate.parentRevision !== input.expectedParentRevision
+      ) {
         await transaction.supersedeCandidate(input.candidateId, this.clock());
         staleCurrentRevision = project.currentRevision;
         return undefined;
       }
       this.assertApprovedProvenance(candidate);
-      assertArtifactSet(candidate.artifacts, candidate.sourceHash, candidate.renderer!);
+      assertArtifactSet(
+        candidate.artifacts,
+        candidate.sourceHash,
+        candidate.renderer!,
+      );
       const revisionId = this.createRevisionId();
       const createdAt = this.clock();
       await transaction.insertRevision({
@@ -204,25 +304,56 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
         geometry: candidate.geometry,
         createdAt,
       });
-      const revisionArtifacts = candidate.artifacts.map((artifact) => artifactManifestSchema.parse({ ...artifact, sourceRevision: revisionId }));
+      const revisionArtifacts = candidate.artifacts.map((artifact) =>
+        artifactManifestSchema.parse({
+          ...artifact,
+          sourceRevision: revisionId,
+        }),
+      );
       await transaction.insertRevisionArtifacts(revisionId, revisionArtifacts);
-      await transaction.advanceCurrentRevision(input.projectId, revisionId, createdAt);
+      await transaction.advanceCurrentRevision(
+        input.projectId,
+        revisionId,
+        createdAt,
+      );
       await transaction.markCandidatePromoted(input.candidateId, createdAt);
-      return (await transaction.readRevision(input.projectId, revisionId)).manifest;
+      return (await transaction.readRevision(input.projectId, revisionId))
+        .manifest;
     });
     if (!manifest) {
-      throw new CadDomainError("STALE_REVISION", "The current revision changed before promotion.", { current: staleCurrentRevision ?? null });
+      throw new CadDomainError(
+        "STALE_REVISION",
+        "The current revision changed before promotion.",
+        { current: staleCurrentRevision ?? null },
+      );
     }
     return manifest;
   }
 
-  async getExportMetadata(projectId: string, revision: string, format: "3mf"): Promise<{ revision: string; source: string; sourceHash: string; format: "3mf" }> {
+  async getExportMetadata(
+    projectId: string,
+    revision: string,
+    format: "3mf",
+  ): Promise<{
+    revision: string;
+    source: string;
+    sourceHash: string;
+    format: "3mf";
+  }> {
     const project = await this.persistence.requireProject(projectId);
-    if (!project.currentRevision) throw new CadDomainError("PROJECT_NOT_FOUND", "Project has no current revision.");
+    if (!project.currentRevision)
+      throw new CadDomainError(
+        "PROJECT_NOT_FOUND",
+        "Project has no current revision.",
+      );
     if (project.currentRevision !== revision) {
-      throw new CadDomainError("STALE_REVISION", "Exports are available only for the current revision.", { current: project.currentRevision });
+      throw new CadDomainError(
+        "STALE_REVISION",
+        "Exports are available only for the current revision.",
+        { current: project.currentRevision },
+      );
     }
-    return { ...await this.readModelSource(projectId, revision), format };
+    return { ...(await this.readModelSource(projectId, revision)), format };
   }
 
   async restoreRevision(input: {
@@ -232,11 +363,20 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
     toolCallId: string;
     signal?: AbortSignal;
   }): Promise<RevisionManifest> {
-    if (input.signal?.aborted) throw new CadDomainError("CANCELLED", "Operation cancelled.");
+    if (input.signal?.aborted)
+      throw new CadDomainError("CANCELLED", "Operation cancelled.");
     return this.persistence.transaction(async (transaction) => {
       const project = await transaction.requireProject(input.projectId, true);
-      if (!project.currentRevision) throw new CadDomainError("PROJECT_NOT_FOUND", "Project has no revision to restore from.");
-      const target = await transaction.readRevision(input.projectId, input.revision, true);
+      if (!project.currentRevision)
+        throw new CadDomainError(
+          "PROJECT_NOT_FOUND",
+          "Project has no revision to restore from.",
+        );
+      const target = await transaction.readRevision(
+        input.projectId,
+        input.revision,
+        true,
+      );
       this.assertApprovedProvenance(target.manifest);
       const revisionId = this.createRevisionId();
       const createdAt = this.clock();
@@ -257,21 +397,44 @@ export class PostgresModelProjectRepository implements ModelProjectStore {
         geometry: target.manifest.geometry,
         createdAt,
       });
-      const restoredArtifacts = target.manifest.artifacts.map((artifact) => artifactManifestSchema.parse({ ...artifact, sourceRevision: revisionId }));
-      await transaction.restoreRevisionArtifacts(revisionId, input.revision, restoredArtifacts);
-      await transaction.advanceCurrentRevision(input.projectId, revisionId, createdAt);
-      return (await transaction.readRevision(input.projectId, revisionId)).manifest;
+      const restoredArtifacts = target.manifest.artifacts.map((artifact) =>
+        artifactManifestSchema.parse({
+          ...artifact,
+          sourceRevision: revisionId,
+        }),
+      );
+      await transaction.restoreRevisionArtifacts(
+        revisionId,
+        input.revision,
+        restoredArtifacts,
+      );
+      await transaction.advanceCurrentRevision(
+        input.projectId,
+        revisionId,
+        createdAt,
+      );
+      return (await transaction.readRevision(input.projectId, revisionId))
+        .manifest;
     });
   }
 
-  private assertApprovedProvenance(record: Pick<CandidateRecord | RevisionManifest, "validationPolicyVersion" | "renderer">): void {
+  private assertApprovedProvenance(
+    record: Pick<
+      CandidateRecord | RevisionManifest,
+      "validationPolicyVersion" | "renderer"
+    >,
+  ): void {
     if (
-      !record.renderer
-      || record.validationPolicyVersion !== this.validationPolicyVersion
-      || record.renderer.validationPolicyVersion !== this.validationPolicyVersion
-      || !this.options.acceptRendererProvenance(record.renderer)
+      !record.renderer ||
+      record.validationPolicyVersion !== this.validationPolicyVersion ||
+      record.renderer.validationPolicyVersion !==
+        this.validationPolicyVersion ||
+      !this.options.acceptRendererProvenance(record.renderer)
     ) {
-      throw new CadDomainError("PROVENANCE_MISMATCH", "Renderer provenance is missing or mismatched.");
+      throw new CadDomainError(
+        "PROVENANCE_MISMATCH",
+        "Renderer provenance is missing or mismatched.",
+      );
     }
   }
 
