@@ -1,0 +1,3667 @@
+{
+  "version": 1,
+  "sourceCommit": "3f1df4f3e745e84e35f5b0198c7e53e5fc136fcb",
+  "violations": [
+    {
+      "file": "apps/site/src/components/ChatPane.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/workspace-state.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ChatPane.tsx",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/connect-to-codex.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/codex-connect-command.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/connect-to-codex.tsx",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/connected-apps.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/components/connect-to-codex.tsx",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/connected-apps.tsx",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelSourcePanel.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/browser-renderer.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelSourcePanel.tsx",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelViewer.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/browser-renderer.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelViewer.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/cad-renderer.adapter.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelViewer.tsx",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/components/ChatPane.tsx",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/components/connect-to-codex.tsx",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/components/ModelSourcePanel.tsx",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/components/ModelViewer.tsx",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/components/RevisionHistory.tsx",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/browser-renderer.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/cad-renderer.adapter.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/project-snapshot-loader.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/stream-client.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/use-browser-presence.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/use-mcp-browser-renderer.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/use-project-events.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/use-sidebar-chat.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/workspace-state.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/services/download.service.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ModelWorkspace.tsx",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/oauth-consent.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/oauth-navigation.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/oauth-consent.tsx",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ProjectLanding.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/auth-client.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ProjectLanding.tsx",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/ProjectLanding.tsx",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/RevisionHistory.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/workspace-state.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/RevisionHistory.tsx",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/RevisionHistory.tsx",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/SignInForm.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/auth-client.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/SignInForm.tsx",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/oauth-navigation.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/components/SignInForm.tsx",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/active-preview.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/auth-client.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/browser-render-lease.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/cad-renderer.adapter.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/renderer/provenance.metadata.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/services/download.service.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/utils/mesh-summary.util.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/browser-renderer.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/cad-errors.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/domain-errors.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/cad-errors.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/cad-renderer.adapter.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/openscad.worker.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/cad-renderer.adapter.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/renderer/cad.renderer.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/codex-connect-command.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/export-routes.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/local-mcp-browser-routes.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/export-routes.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/route-policy.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/export-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/export-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/export-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/export-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/cad-workflow-service.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/export-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/export-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/export-routes.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/local-mcp-browser-routes.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/route-policy.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/local-mcp-browser-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/local-mcp-browser-routes.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/model-preview-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/cad-renderer.adapter.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/model-preview-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/renderer/provenance.metadata.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/model-preview-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/model-preview-renderer.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/oauth-navigation.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/openscad.worker.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/worker/openscad.worker.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/preview-routes.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/local-mcp-browser-routes.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/preview-routes.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/route-policy.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/preview-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/preview-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/preview-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/preview-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/browser-preview-runtime.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/preview-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/configured-runtime.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/preview-routes.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/preview-routes.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/project-create-request.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/project-event-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/project-event.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/project-event-client.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/project-event-stream.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/project-event.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/project-event-stream.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/project-event-stream.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/project-snapshot-loader.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/project-snapshot-loader.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/readiness-route.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/route-policy.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/readiness-route.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/configured-runtime.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/readiness-route.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/route-policy.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/auth.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/route-policy.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/sidebar-chat-flags.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/sidebar-chat-route.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/route-policy.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/sidebar-chat-route.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/sidebar-chat-flags.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/sidebar-chat-route.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/auth.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/sidebar-chat-route.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/stream-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/stream-client.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-browser-presence.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-mcp-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/active-preview.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-mcp-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/browser-render-lease.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-mcp-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/browser-renderer.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-mcp-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/cad-renderer.adapter.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-mcp-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/model-preview-renderer.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-mcp-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-mcp-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-mcp-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-mcp-browser-renderer.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-project-events.ts",
+      "rule": "layer-boundary",
+      "target": "apps/site/src/lib/project-event-client.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-project-events.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/use-sidebar-chat.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/workspace-state.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "apps/site/src/lib/workspace-state.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-29",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/renderer/cad.renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/renderer/png.renderer.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/renderer/cad.renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/services/download.service.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/renderer/cad.renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/services/preview.service.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/renderer/cad.renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/worker/openscad.client.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/renderer/png.renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/services/preview.service.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/renderer/png.renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/renderer/provenance.metadata.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/services/download.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/worker/openscad.client.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/services/download.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/services/preview.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/browser-renderer/src/worker/openscad.client.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/services/preview.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/utils/mesh-summary.util.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/worker/openscad.client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/worker/openscad.worker.ts",
+      "rule": "dynamic-import",
+      "target": "moduleUrl",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve dynamic-import in the owning migration stage."
+    },
+    {
+      "file": "packages/browser-renderer/src/worker/openscad.worker.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/cad-contracts.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/project-event.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/cad-contracts.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/cad-contracts.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/model-preview.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/model-preview.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/project-event.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/worker/export.contract.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/worker/export.contract.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/worker/preview-source.contract.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/worker/renderer.policy.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/worker/validation.contract.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/contracts/src/workflow-contracts.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/cad-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/mcp/src/tools.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/cad-client.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/gateway/src/orchestrator.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/http.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/index.ts",
+      "rule": "barrel-logic",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve barrel-logic in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/orchestrator.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/orchestrator.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/orchestrator.ts",
+      "rule": "layer-boundary",
+      "target": "packages/gateway/src/cad-client.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/orchestrator.ts",
+      "rule": "layer-boundary",
+      "target": "packages/gateway/src/provider.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/orchestrator.ts",
+      "rule": "layer-boundary",
+      "target": "packages/mcp/src/tools.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/orchestrator.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/provider.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/gateway/src/provider.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/index.ts",
+      "rule": "barrel-logic",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve barrel-logic in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/mcp-adapter.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/mcp-adapter.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/mcp-adapter.ts",
+      "rule": "layer-boundary",
+      "target": "packages/mcp/src/model-preview-tool.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/mcp-adapter.ts",
+      "rule": "layer-boundary",
+      "target": "packages/mcp/src/tools.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/mcp-adapter.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/store.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/mcp-adapter.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/model-preview-tool.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/model-preview-tool.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/model-preview-tool.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/tools.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/tools.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/tools.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/tools.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/store.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/mcp/src/tools.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/renderer/src/artifacts.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/renderer/src/artifacts.ts",
+      "rule": "layer-boundary",
+      "target": "packages/renderer/src/diagnostics.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/renderer/src/artifacts.ts",
+      "rule": "layer-boundary",
+      "target": "packages/renderer/src/zip64.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/renderer/src/artifacts.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/renderer/src/diagnostics.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/renderer/src/index.ts",
+      "rule": "barrel-logic",
+      "target": "",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve barrel-logic in the owning migration stage."
+    },
+    {
+      "file": "packages/renderer/src/zip64.ts",
+      "rule": "layer-boundary",
+      "target": "packages/renderer/src/diagnostics.ts",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/renderer/src/zip64.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-26",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/browser-presence.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/browser-presence.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/browser-preview-jobs.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/browser-preview-jobs.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/browser-preview-jobs.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/database.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/project-notifications.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/database.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/database.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/index.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/database.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-receipt.repository.ts",
+      "rule": "file-cycle",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve file-cycle in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-receipt.repository.ts",
+      "rule": "graph-no-cycles",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve graph-no-cycles in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-receipt.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-receipt.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-receipt.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-receipt.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "rule": "file-cycle",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve file-cycle in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "rule": "graph-no-cycles",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve graph-no-cycles in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/hash.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/index.ts",
+      "rule": "barrel-logic",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve barrel-logic in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "rule": "file-cycle",
+      "target": "packages/runtime/model-project/src/exports/export-receipt.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve file-cycle in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "rule": "file-cycle",
+      "target": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve file-cycle in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/exports/export-receipt.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/model-source.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/model-source.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/project-types.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/render-policy.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/model-source.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/project-types.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/render-policy.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/store.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/validation/candidate-validation.service.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/postgres-repository.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/project-notifications.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/project-types.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/project-types.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/remote-render-jobs.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/render-policy.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/render-policy.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/render-policy.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/render-policy.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/project-types.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/render-policy.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/repository.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/account.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/browser-presence.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/browser-preview-job.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/browser-render-job.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/candidate-artifact.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/candidate-state.enum.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/candidate.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/export-download-token.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/index.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/jwks.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/model-export.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/oauth-access-token.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/oauth-client-assertion.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/oauth-client-resource.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/oauth-client.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/oauth-consent.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/oauth-refresh-token.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/oauth-resource.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/project.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/render-delivery-mode.enum.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/render-job-state.enum.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/revision-artifact.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/revision.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/session.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/user.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/validation-attempt.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/verification.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/worker-export-job.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/worker-export-state.enum.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/worker-validation-job.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "own-barrel",
+      "target": "packages/runtime/model-project/src/schema/index.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve own-barrel in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/account.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/browser-preview-job.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/browser-render-job.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/candidate-artifact.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/candidate.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/index.ts",
+      "rule": "barrel-logic",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve barrel-logic in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/model-export.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/project.schema.ts",
+      "rule": "file-cycle",
+      "target": "packages/runtime/model-project/src/schema/revision.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve file-cycle in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/project.schema.ts",
+      "rule": "graph-no-cycles",
+      "target": "packages/runtime/model-project/src/schema/revision.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve graph-no-cycles in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/project.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/revision-artifact.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/revision.schema.ts",
+      "rule": "file-cycle",
+      "target": "packages/runtime/model-project/src/schema/project.schema.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve file-cycle in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/revision.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/session.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/user.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/validation-attempt.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/verification.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/worker-export-job.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/schema/worker-validation-job.schema.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/shared/column-builders.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/store.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/store.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/project-types.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/store.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/validation/candidate-validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/validation/candidate-validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/validation/candidate-validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/validation/candidate-validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/validation/candidate-validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/validation/candidate-validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/render-policy.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export-job.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export-job.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export-job.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/exports/export-receipt.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/export.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/worker/export-job.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/validation-job.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/validation-job.repository.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/postgres-project-persistence.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/validation/candidate-validation.service.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/model-project/src/worker/validation.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/worker/validation-job.repository.ts",
+      "owner": "THE-27",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/abortable-mcp-request.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/auth.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/database.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/auth.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/schema/index.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/auth.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/auth.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/oauth-configuration.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/auth.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/oauth-redirect-diagnostics.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/auth.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/auth.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-preview-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-preview-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/browser-presence.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-preview-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/browser-preview-jobs.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-preview-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-preview-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/model-preview-service.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-preview-runtime.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/project-notifications.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/render-outcome-wait.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/browser-renderer.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/browser-presence.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/database.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/remote-render-jobs.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/store.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/exports/file-store.factory.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/model-export-service.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/cad-workflow-service.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime-manager.ts",
+      "rule": "file-cycle",
+      "target": "packages/runtime/src/configured-runtime.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve file-cycle in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime-manager.ts",
+      "rule": "graph-no-cycles",
+      "target": "packages/runtime/src/configured-runtime.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve graph-no-cycles in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime-manager.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/configured-runtime.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime-manager.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "file-cycle",
+      "target": "packages/runtime/src/configured-runtime-manager.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve file-cycle in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/gateway/src/orchestrator.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/gateway/src/provider.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/postgres-repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/browser-renderer.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/cad-workflow-service.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/configured-runtime-manager.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/local-browser-renderer.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/mcp-client.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/observability.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/configured-runtime.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/domain-errors.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/domain-errors.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/export-file-store.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/exports/artifact-finalization.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/exports/artifact-finalization.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/exports/artifact-finalization.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/renderer/src/artifacts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/exports/artifact-finalization.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/exports/artifact-finalization.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/exports/artifact-finalization.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/exports/artifact-finalization.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/export-file-store.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/exports/file-store.factory.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/export-file-store.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/exports/file-store.factory.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/index.ts",
+      "rule": "barrel-logic",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve barrel-logic in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/infrastructure.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/database.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/infrastructure.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/cad-workflow-service.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/infrastructure.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/local-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/local-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/database.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/local-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/remote-render-jobs.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/local-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/browser-renderer.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/local-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-browser-renderer.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/local-browser-renderer.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/mcp-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/mcp-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/gateway/src/cad-client.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/mcp-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/mcp/src/mcp-adapter.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/mcp-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/mcp/src/tools.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/mcp-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/store.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/mcp-client.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/workflow-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/database.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/exports/export-reservation.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/model-exports.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/worker/export-job.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/export-file-store.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/exports/artifact-finalization.service.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/render-outcome-wait.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-export-service.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/browser-presence.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/browser-preview-jobs.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/database.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/store.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/browser-renderer.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/preview-png.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/render-outcome-wait.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/model-preview-service.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-authorization.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-authorization.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-configuration.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/oauth-authorization.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-configuration.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-configuration.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/auth.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-http.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-provisioning.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-provisioning.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/oauth-redirect-diagnostics.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/observability.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/observability.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/preview-png.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/model-preview.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/preview-png.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/preview-png.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/provision-oauth-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/provision-oauth-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/oauth-provisioning.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/provision-oauth-client.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/provision-oauth-client.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/provision-user.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/auth.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/provision-user.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/project-notifications.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/remote-render-jobs.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-observability.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-browser-renderer.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/render-outcome-wait.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-browser-renderer.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-auth.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/auth.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-auth.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-auth.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/oauth-authorization.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-auth.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-auth.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/gateway/src/orchestrator.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/abortable-mcp-request.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-auth.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-observability.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-runtime.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-http.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-observability.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-policy.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/mcp/src/mcp-adapter.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/browser-preview-jobs.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/postgres-repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/remote-render-jobs.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/cad-workflow-service.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/model-preview-service.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-browser-renderer.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/remote-mcp-runtime.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/render-outcome-wait.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/project-notifications.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/render-outcome-wait.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "layer-boundary",
+      "target": "packages/mcp/src/mcp-adapter.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/browser-preview-jobs.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/postgres-repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/remote-render-jobs.repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/cad-workflow-service.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/model-preview-service.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-browser-renderer.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/stdio-server.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export-upload.reader.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export-upload.reader.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/worker/export.contract.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export-upload.reader.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/worker/request-body.util.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export-upload.reader.ts",
+      "rule": "unknown-layer",
+      "target": "",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/browser-renderer.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/exports/file-store.factory.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-auth.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/worker/export-upload.reader.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/export.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/worker/request.handler.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/preview-source.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/preview-source.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-auth.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/preview-source.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/preview-source.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/worker/request.handler.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/preview-source.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/contracts/src/cad-contracts.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/preview-source.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/preview-source.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/hash.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/preview-source.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/repository.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/preview-source.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/store.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/preview-source.service.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/browser-renderer.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/request.handler.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/model-project/src/cad-domain-error.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/request.handler.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-auth.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/validation.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/infrastructure.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/validation.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-auth.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/validation.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/remote-mcp-policy.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    },
+    {
+      "file": "packages/runtime/src/worker/validation.http.ts",
+      "rule": "layer-boundary",
+      "target": "packages/runtime/src/worker/request.handler.ts",
+      "owner": "THE-28",
+      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
+    }
+  ]
+}

@@ -365,7 +365,7 @@ installed and prints a login retry command. Restart Codex or begin a fresh sessi
 after setup, and keep the CAD project tab visible during rendering. The dialog
 also provides a starter prompt with the current CAD project ID.
 
-The installer is built from `scripts/codex-connect/` using
+The installer is built from `tooling/codex-connect/` using
 `pnpm build:codex-installer`. Commit the generated public bundle with source changes;
 `pnpm test:codex-installer` (included in `pnpm verify`) checks it is current and tests
 the installer. Provision the OAuth client below before offering the connection.
@@ -525,10 +525,10 @@ to `THEORYFOUNDRY_ACCEPTANCE_DIRECTORY` (default `/tmp/cad-workflow-evidence`), 
 
 The Unleash project `default` owns two independent operational flags for TheoryFoundry CAD:
 
-| Flag | Off | On |
-| --- | --- | --- |
-| `sidebar-chat-enabled` | Entire conversation sidebar hidden; `/v1/chat` returns 404 | Sidebar shown; chat requests admitted |
-| `sidebar-chat-real-ai` | Deterministic mock provider | Real AI requested; currently returns 503 because no real provider adapter exists |
+| Flag                   | Off                                                        | On                                                                               |
+| ---------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `sidebar-chat-enabled` | Entire conversation sidebar hidden; `/v1/chat` returns 404 | Sidebar shown; chat requests admitted                                            |
+| `sidebar-chat-real-ai` | Deterministic mock provider                                | Real AI requested; currently returns 503 because no real provider adapter exists |
 
 Set `UNLEASH_FRONTEND_API_URL` to the Unleash `/api/frontend` endpoint and
 `UNLEASH_FRONTEND_API_TOKEN` to a **frontend** token scoped to this project and the
