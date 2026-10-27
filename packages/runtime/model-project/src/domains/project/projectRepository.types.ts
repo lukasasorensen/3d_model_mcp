@@ -33,3 +33,11 @@ export type PromotionDurabilityStep =
   | "model-renamed"
   | "model-directory-durable"
   | "model-materialized";
+
+export interface ProjectWorkflowOptions {
+  renderer: CadRenderer;
+  acceptRendererProvenance: (value: RendererProvenance) => boolean;
+  clock?: () => Date;
+  createId?: () => string;
+  validationPolicyVersion?: string;
+}

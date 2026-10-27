@@ -55,6 +55,13 @@ React components may compose components/hooks; hooks may compose hooks and lower
 They are presentation adapters, not an exemption for importing server implementations.
 Next.js framework entries are composition boundaries. Other explicit `.composition` or
 `.factory` entries must be at the package source root; public indexes only re-export.
+The existing executable paths `packages/runtime/src/stdio-server.ts`,
+`provision-user.ts` and `provision-oauth-client.ts` are explicit composition entries: they
+own process startup and configured dependencies, and retain their operational filenames.
+Services and controllers still cannot import these entries or other composition modules.
+This narrow compatibility rule does not classify general legacy implementations as
+composition.
+
 Legacy flat files that lack a layer are individually recorded, not silently assigned a
 permissive layer. Folder-based module classification becomes more specific as stages
 3–6 introduce meaningful domain/feature/infrastructure/shared modules.

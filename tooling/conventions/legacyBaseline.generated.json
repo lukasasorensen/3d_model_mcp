@@ -54,42 +54,6 @@
     "apps/site/src/app/styles.css": {
       "formatHash": "5c47bfae9b95dd888469edc35ffe9ef510f305c936b5cb5547cde07bcc38eb97"
     },
-    "apps/site/src/app/v1/browser-renders/[jobId]/route.ts": {
-      "formatHash": "89f3c2e7a6b452fee90ebecadf50228365689c46acdd99533048d85b75a59670"
-    },
-    "apps/site/src/app/v1/chat/route.ts": {
-      "formatHash": "4dffd9377b78e79e0d36aa665c50dd2ae1c838b310f12bc5c250f6a938fe59fb"
-    },
-    "apps/site/src/app/v1/features/sidebar-chat/route.ts": {
-      "formatHash": "58b9e574bd2492b1381b56ce3d88b84c80c1df63050a2545d8d5cdc32e5ab60f"
-    },
-    "apps/site/src/app/v1/local-mcp/browser-renders/[jobId]/route.ts": {
-      "formatHash": "673089f132c8e8f13c50db38598b0d788d0b0f5697264c3fdc328a8951d4384b"
-    },
-    "apps/site/src/app/v1/local-mcp/browser-renders/next/route.ts": {
-      "formatHash": "65a325707458468be555c1ce9f6c3945229d03df86c3b2724f5fae28ef10e5d4"
-    },
-    "apps/site/src/app/v1/oauth/grants/[grantId]/route.ts": {
-      "formatHash": "7af3bc2813643d1a599e2471f4287490eebfd7858e90543af5429cd05f54b567"
-    },
-    "apps/site/src/app/v1/projects/[projectId]/events/route.ts": {
-      "formatHash": "56cbb6f557a77b53a770619aa33175f2a4ff2941c657cf6f2a29244b1bd678b1"
-    },
-    "apps/site/src/app/v1/projects/[projectId]/mcp-render-jobs/claim/route.ts": {
-      "formatHash": "43c09e72da1b6321a75cf0e2ecb34d0663deca66b6f5c6df1388180c38e559c5"
-    },
-    "apps/site/src/app/v1/projects/[projectId]/revisions/[revisionId]/restore/route.ts": {
-      "formatHash": "f479b61dd695b6eb2ab44f95e53aff661d1a0f0fbb28223a2b02e0537901ab64"
-    },
-    "apps/site/src/app/v1/projects/[projectId]/revisions/[revisionId]/source/route.ts": {
-      "formatHash": "11df9e388aaaff1e288f67fb6f50df497567e1b11f63ec94efc2516341643dd0"
-    },
-    "apps/site/src/app/v1/projects/[projectId]/route.ts": {
-      "formatHash": "3cf6f961a066ba279a9da1fb0d52f6a28568a963c252262dad3853cf99a891be"
-    },
-    "apps/site/src/app/v1/projects/route.ts": {
-      "formatHash": "6cc2d3fd5fba90e805d8f948e617400fbbc7937ce27d078e03641edab974471b"
-    },
     "apps/site/src/app/v1/worker/exports/begin/route.ts": {
       "formatHash": "337ded6fdaf2a7a8349558315b99ebcfb1f9b0194f4e3710ca8edb3f090b141e"
     },
@@ -252,7 +216,6 @@
       ]
     },
     "apps/site/src/lib/export-routes.ts": {
-      "formatHash": "4babe99d56b7f759c2681d66cd9eea0d22c6fc13e56c4ebd7bb92ce497427620",
       "rules": [
         "filename"
       ]
@@ -283,7 +246,6 @@
       ]
     },
     "apps/site/src/lib/preview-routes.ts": {
-      "formatHash": "fe2beb4e85ceef92bcc623800767991e16650a09bdf0d73c5cb28738d9014f8d",
       "rules": [
         "filename"
       ]
@@ -322,7 +284,6 @@
       ]
     },
     "apps/site/src/lib/project-event-stream.ts": {
-      "formatHash": "2308274a7efc31368bd3013ec30047c4d37f602cd2a3c020d344c5895dd084a1",
       "rules": [
         "filename"
       ]
@@ -347,7 +308,6 @@
       ]
     },
     "apps/site/src/lib/route-policy.ts": {
-      "formatHash": "5ac3b9096acf1eda6294308f887e2fb98082e121ff71bd8d7ce793fd21c09cc6",
       "rules": [
         "filename"
       ]
@@ -524,263 +484,6 @@
         "filename"
       ]
     },
-    "packages/runtime/model-project/drizzle.config.ts": {
-      "formatHash": "d74f5c1b3f3ae51e8b4e72d86d6a3d0910484a27193facab706da0c88191fa38"
-    },
-    "packages/runtime/model-project/src/browser-presence.repository.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/browser-preview-jobs.repository.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/database.ts": {
-      "formatHash": "83f31b35ef274bab5d1e99ab8d1331081c6fe021abb190268f6dadb1c3962e0d",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/exports/export-receipt.repository.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/exports/export-reservation.repository.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/model-exports.repository.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/model-source.repository.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/postgres-project-persistence.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/postgres-repository.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/postgres-schema.test.mjs": {
-      "formatHash": "2dcbc5fd4aebfc000b3ecf4c6e31d8a38a97bc16a6b62fe2229abf86a432d2e4",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "packages/runtime/model-project/src/project-notifications.test.mjs": {
-      "formatHash": "141c3620cfa72891347b322e181bc04cc9c7885df8a9483e19c37c76e7b4c374",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "packages/runtime/model-project/src/project-notifications.ts": {
-      "formatHash": "ed1053f6e622942527cca82776f48fa19cf931dbe3880b07709ce51010f67ef7",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/remote-render-jobs.repository.ts": {
-      "formatHash": "c3e4622ca73eb253c4659a241e8494b83fe84eb212627c7e7e565ba91c1403d9",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/repository-contract.test.mjs": {
-      "formatHash": "bce2377a61d01488c6fea0690c0c4789026f20486689f5e9532bc99d87c9fd19",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "packages/runtime/model-project/src/schema.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/account.schema.ts": {
-      "formatHash": "06552fa0ab6a2862447a3794d6b09e34e245596f4db6261dd7f2f9a50acf496a"
-    },
-    "packages/runtime/model-project/src/schema/browser-presence.schema.ts": {
-      "formatHash": "1d9a2479df2b6efc67c9c4db532e668b424e32adb1631c5dfc908c583a92fa1e",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/browser-preview-job.schema.ts": {
-      "formatHash": "41bf0f81b213ea8014e2d416804b6491f7fd91f32d69a23d417723519663f29e",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/browser-render-job.schema.ts": {
-      "formatHash": "46b2133e623b48c111baaa5219ec6a1c7d16ec1ff76372a77468373f62b8a3c0",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/candidate-artifact.schema.ts": {
-      "formatHash": "5b70230c52ea262f454873fcb80239caabb27f1694282b89803f24a096566125",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/candidate-state.enum.ts": {
-      "formatHash": "214a04f44105dfc03b5dc909dac14a07fe75c6c0b38004c0716f45938d4e5587",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/candidate.schema.ts": {
-      "formatHash": "24a498fc4108921356c88ba2f4d6c41df5802cffebd11cbbfb15e4a2d5df1cd5"
-    },
-    "packages/runtime/model-project/src/schema/export-download-token.schema.ts": {
-      "formatHash": "972e5111b896104058688df3fc56f8d754a31d6fc0362d2b2f44d34ed180d7fc",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/index.ts": {
-      "formatHash": "17cf7ee6a2220d8a951a97e43f50ac580d21562033ed7cc7ff6b66012e77ed22"
-    },
-    "packages/runtime/model-project/src/schema/model-export.schema.ts": {
-      "formatHash": "fbb9796390dad6c12ddb4d0c0025ddc2b1ea1f8951207f5980f388e3dda936b4",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/oauth-access-token.schema.ts": {
-      "formatHash": "a1cb486d5fdc877f304ec5823754c4d060f04c6ccc6618fd27fb5e0af6ac2eb5",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/oauth-client-assertion.schema.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/oauth-client-resource.schema.ts": {
-      "formatHash": "328b8d750d70afda19bd6661109937924bceed6f49b41c800e61a89be7549cea",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/oauth-client.schema.ts": {
-      "formatHash": "4bac9777a442fa0aee929507da5faa80a7c3e053fc604be873208452e656da65",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/oauth-consent.schema.ts": {
-      "formatHash": "1eb4f31d91747639448a2fb38412bbf70d203211ca8f90b1f9700eea5d6d5520",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/oauth-refresh-token.schema.ts": {
-      "formatHash": "16b26421077930c4794a259b089a4f41eec5a78bd37ac2770b9b792a316df0e1",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/oauth-resource.schema.ts": {
-      "formatHash": "499d6125190b2ed76d4e7e4c89a794ddc751de08c267ec55be3d43e0f5005f9d",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/project.schema.ts": {
-      "formatHash": "3513a5b80ef50d43876156358524dbcad3837a9de57c36b42c2578c4c82c3176"
-    },
-    "packages/runtime/model-project/src/schema/render-delivery-mode.enum.ts": {
-      "formatHash": "ee19f95d055e2f1183641542e2dce9450de90721edac46b0729554934f7ac89b",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/render-job-state.enum.ts": {
-      "formatHash": "794499f3b838cdac3620b2c0bd7284bb1131aea1c62ef261153653b428fe690d",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/revision-artifact.schema.ts": {
-      "formatHash": "964ce83a5a4548479710092286743dba10fac0b952f2f8078bd59e7e3920f585",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/revision.schema.ts": {
-      "formatHash": "85e232b69939d00c61c38062ee5d938f5daf69db8c8e2725a2480aafdcdd181c"
-    },
-    "packages/runtime/model-project/src/schema/session.schema.ts": {
-      "formatHash": "c250349e2fa6f777836a8d69e555b4836e02d5ba1f4c7bdc3e38a08b95800f12"
-    },
-    "packages/runtime/model-project/src/schema/shared/column-builders.ts": {
-      "formatHash": "5f05011792b3e3f993ec312564d58d2ee616497a4d5a04ac412b00591bb05785",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/user.schema.ts": {
-      "formatHash": "b545076e4949186184711a1472c940c321eb70ec4f799115da34e3756dc3353a"
-    },
-    "packages/runtime/model-project/src/schema/validation-attempt.schema.ts": {
-      "formatHash": "328ac55241ff605a4d084388eed30b3a308a78550667318f56b1fec25ffd3d45",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/verification.schema.ts": {
-      "formatHash": "dee70524f83fa60f15e745da179fc223242262e7962df976a08fbce9a92caa36"
-    },
-    "packages/runtime/model-project/src/schema/worker-export-job.schema.ts": {
-      "formatHash": "aa19a38c6c2a88ea30167880b21723114077b59ed5233a5f0dd339acb918c0e4",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/worker-export-state.enum.ts": {
-      "formatHash": "c2c7ffc61d53422fb5345058786acddeb15b4d0ebd3242e1539d7280b7c64cee",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/schema/worker-validation-job.schema.ts": {
-      "formatHash": "20963e7ba916979d7400c707a262d9503b40727b9b86c6c7877af028bb0d3a66",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/validation/candidate-validation.service.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/worker/export-job.repository.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/worker/validation-job.repository.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
     "packages/runtime/src/abortable-mcp-request.ts": {
       "formatHash": "1ad2024670d743a8e6e02b65a639f50b326685be5f912a40a2ae00b4e6b86585",
       "rules": [
@@ -788,25 +491,16 @@
       ]
     },
     "packages/runtime/src/auth.ts": {
-      "formatHash": "fb4bd8ea521cbf4ce1064eb38fb85ca9e947012e928dfaddbf8c5934bbbc809f",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/src/browser-preview-runtime.ts": {
-      "formatHash": "732a5da804e59ee3c2412b3fd149fc4a1e767b4f80684a543550fd28edb37fc3",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/src/browser-renderer.ts": {
-      "formatHash": "eda7140514a9afde3f91ff1e84b543ea2cb48aea12cd0dc974ce4e7fbac3061f",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/src/cad-workflow-service.ts": {
-      "formatHash": "8fbaaf49bfb4f6c3910e8880c2eff6b17c3c665d1bf9e3db51b26fd37d6f0591",
       "rules": [
         "filename"
       ]
@@ -832,7 +526,6 @@
       ]
     },
     "packages/runtime/src/configured-runtime.ts": {
-      "formatHash": "f318a87d1aa1aa77e89106f777131620e534a4630e056cbb41234fd734e0b845",
       "rules": [
         "filename"
       ]
@@ -867,12 +560,6 @@
         "filename"
       ]
     },
-    "packages/runtime/src/fixtures/stdio-cad-server.mjs": {
-      "formatHash": "36b6b9a58c3cb398823eeb73a21dcb3385afb7e7088ea2fd38770e04cbb3f4bf",
-      "rules": [
-        "filename"
-      ]
-    },
     "packages/runtime/src/fixtures/stdio-preview-server.mjs": {
       "formatHash": "1cbea003f2f4a8786080fa80812e2f283d3c7d17925c5a0ccda09137e3326113",
       "rules": [
@@ -885,23 +572,7 @@
         "filename"
       ]
     },
-    "packages/runtime/src/index.test.mjs": {
-      "formatHash": "2a79cccc3f23c521082f91e25139dc05714648d6da18c3429c59bbb818db159c",
-      "rules": [
-        "test-placement"
-      ]
-    },
-    "packages/runtime/src/index.ts": {
-      "formatHash": "ec33131c75c2d427eb11a96bf11fb365a946915fc94ee885f7e47a770fb43e37"
-    },
-    "packages/runtime/src/infrastructure.ts": {
-      "formatHash": "99437573745d38ec97bd2c67cdf0ea65df41e897f885bbec307fa70c83615fde",
-      "rules": [
-        "filename"
-      ]
-    },
     "packages/runtime/src/local-browser-renderer.ts": {
-      "formatHash": "c66236334892c36ac69ddce347eac0a141282ffd662f7a89f6d444eab9677f91",
       "rules": [
         "filename"
       ]
@@ -913,19 +584,16 @@
       ]
     },
     "packages/runtime/src/model-export-service.ts": {
-      "formatHash": "f4ca5c8b23dbf91965e6956df0a6b0931e2ea2c0ed028df7ee94f884a49eaa13",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/src/model-preview-service.ts": {
-      "formatHash": "f6999308157931e99ec88ef1d471296d49bbbfbabdcbe25dad1f0dce484ff86c",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/src/model-preview.test.mjs": {
-      "formatHash": "1336f50cb6f63f10483658391d13ca43dcd3f1072d044b6f70823a49583bf77e",
       "rules": [
         "filename",
         "test-placement"
@@ -951,7 +619,6 @@
       ]
     },
     "packages/runtime/src/oauth-http.ts": {
-      "formatHash": "e10b9cf182b200e8bb5d893cc3f89917f5d6d8526d0a3551fa0e61dea7ef9cab",
       "rules": [
         "filename"
       ]
@@ -988,26 +655,22 @@
       ]
     },
     "packages/runtime/src/project-notifications.test.mjs": {
-      "formatHash": "2f9ac5386edb15a87d5a0869516fb33bbe54ecefcf312ecd512d9a43dc4be356",
       "rules": [
         "filename",
         "test-placement"
       ]
     },
     "packages/runtime/src/provision-oauth-client.ts": {
-      "formatHash": "59163ab7567710ca586c82e1650c15cee359449419bbc92a851bac59093e05f1",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/src/provision-user.ts": {
-      "formatHash": "7481f90c005ad38c7ddb3e56976b4e161b4001c54c49484068d67791a56e8cb4",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/src/remote-browser-renderer.ts": {
-      "formatHash": "b3dfd1ce3ed567119afae35ea5e5f944faf262f8f593f8844be27fed4aa94429",
       "rules": [
         "filename"
       ]
@@ -1020,7 +683,6 @@
       ]
     },
     "packages/runtime/src/remote-mcp-auth.ts": {
-      "formatHash": "d3bb62b46ff82db4bb7f63f7087cb6be8174e94dc52c1867c56034d4f035f2af",
       "rules": [
         "filename"
       ]
@@ -1033,7 +695,6 @@
       ]
     },
     "packages/runtime/src/remote-mcp-http.ts": {
-      "formatHash": "82aa2a958b909c0ff82ce7dab237b6d7ae760e3ecd2fec66d995d8a028bb07c6",
       "rules": [
         "filename"
       ]
@@ -1050,14 +711,7 @@
         "filename"
       ]
     },
-    "packages/runtime/src/remote-mcp-runtime.ts": {
-      "formatHash": "fa747f572e514b7430ee752c7bbece36d28c4f34310dc792f06d47db0c3d4e4f",
-      "rules": [
-        "filename"
-      ]
-    },
     "packages/runtime/src/remote-render.test.mjs": {
-      "formatHash": "9d75144125ca846ada664185760a263e9e836c5871999d2ffc7b42de314d2e0b",
       "rules": [
         "filename",
         "test-placement"
@@ -1077,7 +731,6 @@
       ]
     },
     "packages/runtime/src/stdio-server.ts": {
-      "formatHash": "a6a4f23873c3c17150c70a9047565c0d7c8d4dc32d2648de1ed9936241adf039",
       "rules": [
         "filename"
       ]
@@ -1095,7 +748,6 @@
       ]
     },
     "packages/runtime/src/test-support/worker-export.fixture.mjs": {
-      "formatHash": "60a5f27489fb13f138326cdcd86cf7f9d872d3d9f7981fefe7f08c4fed9cd70b",
       "rules": [
         "filename"
       ]
@@ -1119,23 +771,18 @@
         "test-placement"
       ]
     },
-    "packages/runtime/src/worker/export.http.ts": {
-      "formatHash": "f6dcb6eb4fa9254e97432b27cef4478383d350114704595081fb1b263b6cae10"
-    },
     "packages/runtime/src/worker/export.service.test.mjs": {
       "rules": [
         "test-placement"
       ]
     },
     "packages/runtime/src/worker/preview-source.http.test.mjs": {
-      "formatHash": "746337fe89b8d8d948ecfb12eb0236b3ab493953c2852699cb79f7d314626fc0",
       "rules": [
         "filename",
         "test-placement"
       ]
     },
     "packages/runtime/src/worker/preview-source.http.ts": {
-      "formatHash": "8fabebf47efd2eb00c582e8f23404ac0e3f8ebf3d97518848561f4c2607cc85b",
       "rules": [
         "filename"
       ]
@@ -1166,24 +813,13 @@
       ]
     },
     "packages/runtime/src/worker/validation.http.test.mjs": {
-      "formatHash": "6c4f83c742cbc468b5ad11d3f0108bfcb365c89a64bf87cc19f9c13f61df88f5",
       "rules": [
         "test-placement"
       ]
-    },
-    "packages/runtime/src/worker/validation.http.ts": {
-      "formatHash": "75196255b7be9bf399acb9e98806e4a25879a729e47401c5965a0d7a7be98a6e"
     },
     "packages/runtime/src/worker/validation.service.test.mjs": {
       "formatHash": "f7766967af7f7acf1baee2c3f73599a5018f49ba1ea9d66af27155467fda0d9e",
       "rules": [
-        "test-placement"
-      ]
-    },
-    "packages/runtime/src/workflow-recovery.test.mjs": {
-      "formatHash": "dc7ecd26a180adeb73c31bd7735032c8e52fedb5bbfba4085ffe43f5579ae03e",
-      "rules": [
-        "filename",
         "test-placement"
       ]
     }

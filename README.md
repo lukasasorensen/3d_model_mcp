@@ -172,10 +172,10 @@ rename the previous metadata directory in each existing workspace before use.
 
 ## Database development workflow
 
-Drizzle ORM provides the typed PostgreSQL query layer, while Drizzle Kit turns
-the TypeScript schema into versioned SQL migrations. Schema definitions live in
-`packages/model-project/src/schema/`, with one table or enum per file and
-`schema.ts` acting only as the public barrel.
+Drizzle ORM provides the typed PostgreSQL layer. Schemas live in
+`packages/runtime/model-project/src/infrastructure/schema/`, one table or enum per
+file. `database.schema.ts` assembles tables and `index.ts` re-exports them.
+Drizzle Kit generates versioned SQL migrations from these definitions.
 
 For an intentional schema change:
 

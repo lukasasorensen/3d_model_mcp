@@ -1,11 +1,26 @@
-import { browserRenderCompletionSchema, opaqueIdSchema } from "@theoryfoundry/contracts";
-import { BrowserRenderCompletionError, withConfiguredCadRuntime } from "@theoryfoundry/runtime";
-import { NO_STORE_HEADERS, authenticateRequest, isPolicyResponse, jsonError, requireSameOrigin } from "@/lib/route-policy";
+import {
+  browserRenderCompletionSchema,
+  opaqueIdSchema,
+} from "@theoryfoundry/contracts";
+import {
+  BrowserRenderCompletionError,
+  withConfiguredCadRuntime,
+} from "@theoryfoundry/runtime";
+import {
+  NO_STORE_HEADERS,
+  isPolicyResponse,
+  jsonError,
+  requireSameOrigin,
+} from "@/lib/route-policy";
+import { authenticateRequest } from "@/authentication.composition";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request, context: { params: Promise<{ jobId: string }> }): Promise<Response> {
+export async function POST(
+  request: Request,
+  context: { params: Promise<{ jobId: string }> },
+): Promise<Response> {
   const originError = requireSameOrigin(request);
   if (originError) return originError;
   const user = await authenticateRequest(request);
@@ -15,14 +30,23 @@ export async function POST(request: Request, context: { params: Promise<{ jobId:
   const contentLength = Number(request.headers.get("content-length") ?? "0");
   if (contentLength > 128 * 1024) return jsonError("REQUEST_TOO_LARGE", 413);
   let raw: unknown;
-  try { raw = await request.json(); }
-  catch { return jsonError("INVALID_REQUEST", 400); }
+  try {
+    raw = await request.json();
+  } catch {
+    return jsonError("INVALID_REQUEST", 400);
+  }
   const completion = browserRenderCompletionSchema.safeParse(raw);
-  if (!completion.success || request.headers.get("x-theoryfoundry-session-id") !== completion.data.sessionId) {
+  if (
+    !completion.success ||
+    request.headers.get("x-theoryfoundry-session-id") !==
+      completion.data.sessionId
+  ) {
     return jsonError("SESSION_MISMATCH", 403);
   }
   try {
-    await withConfiguredCadRuntime(user.id, (runtime) => runtime.browserRenderer.complete(jobId.data, completion.data));
+    await withConfiguredCadRuntime(user.id, (runtime) =>
+      runtime.browserRenderer.complete(jobId.data, completion.data),
+    );
     return Response.json({ accepted: true }, { headers: NO_STORE_HEADERS });
   } catch (error) {
     return error instanceof BrowserRenderCompletionError

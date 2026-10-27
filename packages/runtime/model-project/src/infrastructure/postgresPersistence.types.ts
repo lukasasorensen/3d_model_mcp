@@ -1,5 +1,5 @@
-import type { QueryResultRow } from "pg";
 import type { CandidateRecord } from "@theoryfoundry/contracts";
+import type { QueryResultRow } from "pg";
 export interface CandidateRow extends QueryResultRow {
   id: string;
   project_id: string;
