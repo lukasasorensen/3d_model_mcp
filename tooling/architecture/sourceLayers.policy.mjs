@@ -77,20 +77,37 @@ export function describeSource(workspace, absolute) {
     /^(page|layout|route|loading|error|not-found|global-error|default|template)\.[jt]sx?$/.test(
       name,
     );
-  let layer = framework
-    ? "composition"
-    : /^index\.[cm]?[jt]s$/.test(name)
-      ? "barrel"
-      : (roles[role] ??
-        parts
-          .slice(0, -1)
-          .map((part) => layers[part])
-          .findLast(Boolean));
-  if (layer === "composition" && !framework && parts.length !== 1)
+  // Existing host composition entries retain their operational paths until THE-29.
+  const hostComposition = new Set([
+    "apps/site/src/lib/cad-renderer.adapter.ts",
+    "apps/site/src/lib/openscad.worker.ts",
+  ]).has(file);
+  let layer =
+    framework || hostComposition
+      ? "composition"
+      : /^index\.[cm]?[jt]s$/.test(name)
+        ? "barrel"
+        : (roles[role] ??
+          parts
+            .slice(0, -1)
+            .map((part) => layers[part])
+            .findLast(Boolean));
+  if (
+    layer === "composition" &&
+    !framework &&
+    !hostComposition &&
+    parts.length !== 1
+  )
     layer = undefined;
   return { project, file, local, area, module, layer, test: isTest(file) };
 }
-export function boundaryRules(from, to, semantic = false, specifier = "") {
+export function boundaryRules(
+  from,
+  to,
+  semantic = false,
+  specifier = "",
+  typeOnly = false,
+) {
   const findings = [];
   const add = (rule, message) =>
     findings.push({ file: from.file, rule, target: to.file, message });
@@ -162,7 +179,13 @@ export function boundaryRules(from, to, semantic = false, specifier = "") {
   if (
     !["barrel", "composition"].includes(from.layer) &&
     to.layer !== "barrel" &&
-    !allowed[from.layer]?.has(to.layer)
+    !allowed[from.layer]?.has(to.layer) &&
+    !(!from.layer && lower.includes(to.layer)) &&
+    !(
+      typeOnly &&
+      ["types", "port"].includes(from.layer) &&
+      /\.(schema|enum|constants)\.[cm]?[jt]s$/.test(to.local)
+    )
   )
     add(
       "layer-boundary",

@@ -305,3 +305,91 @@ test("shared contracts pass through a package barrel, while internal modules can
   );
   assert.ok(has(findings, file, "own-barrel", "packages/domain/src/index.ts"));
 });
+
+test("schema-inferred contracts use erased validation metadata, never service implementations", async (context) => {
+  const files = {
+    [`${domain}/shape.schema.ts`]:
+      "export const shapeSchema = { parse: (input: unknown) => input };",
+    [`${domain}/version.constants.ts`]: "export const VERSION = '1' as const;",
+    [`${domain}/shape.types.ts`]:
+      'import type { shapeSchema } from "./shape.schema.js"; import type { VERSION } from "./version.constants.js"; export interface Shape { id: string }; export type Output = ReturnType<typeof shapeSchema.parse>; export type Version = typeof VERSION;',
+    [`${domain}/forbidden.port.ts`]:
+      'import type { readModel } from "./services/readModel.service.js"; export type Read = typeof readModel;',
+  };
+  const findings = await verify(await architectureFixture(context, files));
+  assert.ok(!has(findings, `${domain}/shape.types.ts`, "layer-boundary"));
+  assert.ok(has(findings, `${domain}/forbidden.port.ts`, "layer-boundary"));
+});
+
+test("unclassified legacy callers still fail classification but can consume already valid foundations", async (context) => {
+  const file = `${feature}/legacy.ts`;
+  const findings = await verify(
+    await architectureFixture(context, {
+      [file]:
+        'import type { Shape } from "@fixture/domain"; export type Legacy = Shape;',
+    }),
+  );
+  assert.ok(has(findings, file, "unknown-layer"));
+  assert.ok(!has(findings, file, "layer-boundary"));
+});
+
+test("only the two declared legacy host bootstraps can construct public renderer factories", async (context) => {
+  const entry =
+    'import { createRenderer } from "@fixture/runtime"; export const renderer = createRenderer();';
+  const findings = await verify(
+    await architectureFixture(context, {
+      "packages/runtime/src/index.ts":
+        'export { createRenderer } from "./renderer.factory.js";',
+      "packages/runtime/src/renderer.factory.ts":
+        "export const createRenderer = () => ({ ready: true });",
+      "apps/site/src/lib/cad-renderer.adapter.ts": entry,
+      "apps/site/src/lib/openscad.worker.ts": entry,
+      "apps/site/src/lib/other.adapter.ts": entry,
+    }),
+  );
+  assert.ok(
+    !has(
+      findings,
+      "apps/site/src/lib/cad-renderer.adapter.ts",
+      "layer-boundary",
+    ),
+  );
+  assert.ok(
+    !has(findings, "apps/site/src/lib/openscad.worker.ts", "layer-boundary"),
+  );
+  assert.ok(
+    has(findings, "apps/site/src/lib/other.adapter.ts", "layer-boundary"),
+  );
+});
+
+test("the declared runtime asset is resolved without enabling arbitrary dynamic worker imports", async (context) => {
+  const findings = await verify(
+    await architectureFixture(context, {
+      "packages/runtime/package.json": JSON.stringify({
+        name: "@theoryfoundry/browser-renderer",
+        type: "module",
+        exports: {
+          ".": { types: "./dist/index.d.ts", import: "./dist/index.js" },
+        },
+      }),
+      "packages/runtime/src/services/asset.service.ts":
+        'export const load = (origin: string) => import(new URL("/vendor/openscad/openscad.js", origin).href);',
+      "packages/runtime/src/services/unknown.service.ts":
+        'export const load = (origin: string) => import(new URL("/vendor/unknown.js", origin).href);',
+    }),
+  );
+  assert.ok(
+    !has(
+      findings,
+      "packages/runtime/src/services/asset.service.ts",
+      "dynamic-import",
+    ),
+  );
+  assert.ok(
+    has(
+      findings,
+      "packages/runtime/src/services/unknown.service.ts",
+      "dynamic-import",
+    ),
+  );
+});
