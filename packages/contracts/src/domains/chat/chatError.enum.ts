@@ -1,0 +1,17 @@
+import * as z from "zod/v4";
+
+export const chatErrorCodeSchema = z.enum([
+  "INVALID_REQUEST",
+  "ORIGIN_DENIED",
+  "SESSION_MISMATCH",
+  "PROVIDER_FAILURE",
+  "MCP_FAILURE",
+  "CAD_TOOL_REJECTED",
+  "RENDERER_FAILURE",
+  "TOOL_LIMIT_EXCEEDED",
+  "REPAIR_LIMIT_EXCEEDED",
+  "TOOL_RESULT_TOO_LARGE",
+  "REQUEST_TIMEOUT",
+  "CANCELLED",
+  "INTERNAL_ERROR",
+]);

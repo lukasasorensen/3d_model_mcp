@@ -8,6 +8,7 @@ import {
 } from "./workspaceSource.repository.mjs";
 import { describeSource, boundaryRules } from "./sourceLayers.policy.mjs";
 import { exportedDeclarations } from "./exportOrigins.util.mjs";
+import { runtimeAssetReference } from "./runtimeAssets.policy.mjs";
 import { cycleEdges } from "./graphCycles.util.mjs";
 
 const serverPackages = new Set([
@@ -56,6 +57,7 @@ export function checkSourceGraph(workspace) {
     specifier,
     runtime,
     declaration,
+    typeOnly = false,
   ) {
     let to = describeSource(workspace, absolute);
     if (!to) return;
@@ -70,7 +72,13 @@ export function checkSourceGraph(workspace) {
             : "service",
       };
     }
-    for (const finding of boundaryRules(from, to, semantic, specifier))
+    for (const finding of boundaryRules(
+      from,
+      to,
+      semantic,
+      specifier,
+      typeOnly,
+    ))
       report(finding.file, finding.rule, finding.target, finding.message);
     if (!semantic) addEdge(fileEdges, from.file, to.file);
     if (from.module !== to.module) addEdge(moduleEdges, from.module, to.module);
@@ -144,6 +152,7 @@ export function checkSourceGraph(workspace) {
       namespace = false,
       runtime = true,
     ) => {
+      if (runtimeAssetReference(literal, from.project.name)) return;
       if (!literal || !ts.isStringLiteralLike(literal)) {
         report(
           from.file,
@@ -176,7 +185,15 @@ export function checkSourceGraph(workspace) {
       const absolute = path.resolve(resolved.resolvedFileName);
       const to = describeSource(workspace, absolute);
       if (to) {
-        targetCheck(from, absolute, false, specifier, runtime);
+        targetCheck(
+          from,
+          absolute,
+          false,
+          specifier,
+          runtime,
+          undefined,
+          !runtime,
+        );
         const selected = namespace
           ? [checker.getSymbolAtLocation(literal)]
           : symbols;
@@ -189,6 +206,7 @@ export function checkSourceGraph(workspace) {
               specifier,
               false,
               declaration,
+              !runtime,
             );
           }
         }

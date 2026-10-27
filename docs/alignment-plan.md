@@ -68,3 +68,13 @@ barrels, declarations and workers. The initial 523 architecture exceptions are v
 against that merged base and assigned to stages 3–6; convention records shrink to 257.
 See [architecture enforcement](architecture-enforcement.md) for commands, classification,
 bootstrap/ratchet behavior and compatibility evidence. Node 24 remains stage 8.
+
+## Stage 3 implementation
+
+Stage 2 merged in PR #13 at `9faca03`. Stage 3 groups contract schemas, enums, metadata,
+ports and inferred types by domain. It separates artifact codecs and browser rendering
+capabilities, coordinates rendering in one workflow, and mirrors foundation tests.
+Public package entry points, worker host paths and pinned assets remain stable.
+See [contracts/rendering alignment](contracts-rendering-alignment.md) for the movement map,
+policy refinements and verification gates. Architecture/convention baselines decrease to
+383/232; all THE-26 architecture records are removed without retargeting exceptions.

@@ -1,0 +1,108 @@
+import { BROWSER_RENDERER } from "@theoryfoundry/contracts";
+import { unzipSync } from "fflate";
+
+import type {
+  RenderMessage,
+  OpenScadModule,
+  OpenScadWorkerScope,
+} from "../worker.types.js";
+
+async function verifiedBytes(
+  path: string,
+  origin: string,
+  expectedHash: string,
+  label: string,
+): Promise<Uint8Array> {
+  const response = await fetch(new URL(path, origin), { cache: "force-cache" });
+  if (!response.ok) throw new Error(`Pinned ${label} is unavailable.`);
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  const actual = [...new Uint8Array(digest)]
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
+  if (actual !== expectedHash)
+    throw new Error(`Pinned ${label} failed integrity verification.`);
+  return bytes;
+}
+
+export function registerOpenScadWorker(scope: OpenScadWorkerScope): void {
+  scope.onmessage = async (event: MessageEvent<RenderMessage>) => {
+    const diagnostics: string[] = [];
+    let failureKind: "operational" | "model" = "operational";
+    try {
+      const [, wasmBytes, boslBytes] = await Promise.all([
+        verifiedBytes(
+          "/vendor/openscad/openscad.js",
+          event.data.origin,
+          BROWSER_RENDERER.openscadGlueSha256,
+          "OpenSCAD JavaScript",
+        ),
+        verifiedBytes(
+          "/vendor/openscad/openscad.wasm",
+          event.data.origin,
+          BROWSER_RENDERER.openscadWasmSha256,
+          "OpenSCAD WebAssembly",
+        ),
+        verifiedBytes(
+          "/vendor/openscad/bosl2.zip",
+          event.data.origin,
+          BROWSER_RENDERER.bosl2ArchiveSha256,
+          "BOSL2 bundle",
+        ),
+      ]);
+      const imported = (await import(
+        /* webpackIgnore: true */ new URL(
+          "/vendor/openscad/openscad.js",
+          event.data.origin,
+        ).href
+      )) as {
+        default: (options: Record<string, unknown>) => Promise<OpenScadModule>;
+      };
+      const instance = await imported.default({
+        noInitialRun: true,
+        wasmBinary: wasmBytes,
+        print: (line: unknown) => diagnostics.push(String(line)),
+        printErr: (line: unknown) => diagnostics.push(String(line)),
+      });
+      instance.FS.mkdirTree("/libraries/BOSL2");
+      const boslFiles = unzipSync(boslBytes);
+      const boslArchiveRoot = `BOSL2-${BROWSER_RENDERER.bosl2Version.replace(/^v/, "")}/`;
+      for (const [name, bytes] of Object.entries(boslFiles)) {
+        const relative = name.startsWith(boslArchiveRoot)
+          ? name.slice(boslArchiveRoot.length)
+          : name;
+        if (
+          !relative ||
+          name === relative ||
+          (!relative.endsWith(".scad") && relative !== "LICENSE")
+        )
+          continue;
+        const destination = `/libraries/BOSL2/${relative}`;
+        instance.FS.mkdirTree(
+          destination.slice(0, destination.lastIndexOf("/")),
+        );
+        instance.FS.writeFile(destination, bytes);
+      }
+      instance.ENV.OPENSCADPATH = "/libraries";
+      instance.FS.writeFile("/model.scad", event.data.source);
+      const output =
+        event.data.format === "stl" ? "/preview.stl" : "/export.3mf";
+      const args = ["--backend=manifold", "-o", output];
+      if (event.data.format === "stl") args.push("--export-format", "binstl");
+      args.push("/model.scad");
+      failureKind = "model";
+      const exitCode = instance.callMain(args);
+      if (exitCode !== 0)
+        throw new Error(`OpenSCAD exited with status ${exitCode}.`);
+      const bytes = instance.FS.readFile(output).slice();
+      scope.postMessage({ ok: true, bytes, diagnostics }, [bytes.buffer]);
+    } catch (error) {
+      if (error instanceof WebAssembly.RuntimeError)
+        failureKind = "operational";
+      const message =
+        error instanceof Error ? error.message : "OpenSCAD rendering failed.";
+      if (diagnostics.length === 0) diagnostics.push(message);
+      scope.postMessage({ ok: false, diagnostics, message, failureKind });
+    }
+  };
+}

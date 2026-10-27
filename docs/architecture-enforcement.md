@@ -83,9 +83,9 @@ The formatting/naming/size baseline shrank from 280 to **257** records during to
 Both baseline JSON files are generated migration metadata exempt from the 500-line cap;
 handwritten tooling and tests remain below it. Stage 7 must empty both baselines.
 
-The pinned OpenSCAD loader remains a single, explicitly recorded nonliteral-import debt
-item. This stage preserves its asset hashes and behavior; it does not create a general
-exemption for dynamic application imports. Persistence/runtime cycles and large mixed
+Stage 2 recorded the pinned OpenSCAD loader as one nonliteral-import debt item.
+Stage 3 replaces that entry with the explicitly modeled runtime asset described below;
+its asset hashes and behavior stay unchanged. Persistence/runtime cycles and large mixed
 modules belong to their existing stage issues, not unrelated cleanup in this PR.
 
 ## Tooling moves and compatibility
@@ -107,3 +107,34 @@ The headless proof build uses the moved browser/worker/CLI inputs and unchanged 
 The Dockerfile still invokes stable pnpm commands; its existing checks continue to work
 without Git checkout metadata. Full baseline ratchets run in checkout CI. Snapshot tests
 requiring a Git executable explicitly skip in images without it; ordinary graph tests run.
+
+## Stage 3 policy refinements
+
+The contracts/rendering migration removes all 35 THE-26 entries. The current architecture
+baseline has **383** entries, and the convention baseline has **232** records. Other
+legacy callers retain their own classification debt while their foundation dependencies
+become valid; counts are diagnostics, not a count of business behaviors changed.
+
+Types and ports may use **erased type-only imports** of `.schema`, `.enum` and `.constants`
+metadata to derive contracts with `z.infer`, `z.input` or `typeof`. Runtime imports still
+fail, as do type-only imports of services/controllers/workflows. Cycles and module/public
+API checks still include every type-only edge. This keeps runtime validation and public
+TypeScript types consistent without copying their shapes.
+
+An unclassified legacy caller can consume valid lower-level foundations. It still emits
+`unknown-layer`; only its existing file-specific classification exception permits that
+file during migration. Newly unclassified files still fail. This avoids generating a
+second dependency violation solely because an otherwise valid contract moved.
+
+The two existing host bootstrap files `apps/site/src/lib/cad-renderer.adapter.ts` and
+`apps/site/src/lib/openscad.worker.ts` are explicit composition entries. They construct
+host dependencies and register the worker handler. These exact compatibility paths are
+retained until THE-29; other adapters/workers receive no composition exemption.
+
+`runtimeAssets.policy.mjs` recognizes one non-module resource: the browser-renderer
+package's `import(new URL("/vendor/openscad/openscad.js", origin).href)`. Both hosts serve
+that pinned path. The worker verifies JavaScript/WASM/BOSL2 hashes before importing;
+the asset preparation command independently validates downloaded and cached assets.
+The rule requires the literal path, URL form and owning package. Computed paths, arbitrary
+module URLs and other packages still fail. This is a declared runtime resource, not a
+workspace module or a wildcard allowance for dynamic imports.

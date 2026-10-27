@@ -12,10 +12,11 @@ and CAD asset origin:
 import { createBrowserCadRenderer } from "@theoryfoundry/browser-renderer";
 
 const renderer = createBrowserCadRenderer({
-  createWorker: () => new Worker(new URL("./openscad.worker.ts", import.meta.url), {
-    type: "module",
-    name: "openscad-render",
-  }),
+  createWorker: () =>
+    new Worker(new URL("./openscad.worker.ts", import.meta.url), {
+      type: "module",
+      name: "openscad-render",
+    }),
   assetsOrigin: () => window.location.origin,
 });
 ```
@@ -43,27 +44,18 @@ The package is not published; no database schema changes are involved.
 
 ## Source hierarchy
 
-```text
-src/
-├── index.ts
-├── worker/
-│   ├── openscad.client.ts
-│   └── openscad.worker.ts
-├── renderer/
-│   ├── cad.renderer.ts
-│   ├── cad.renderer.test.mjs
-│   ├── png.renderer.ts
-│   └── provenance.metadata.ts
-├── services/
-│   ├── preview.service.ts
-│   └── download.service.ts
-└── utils/
-    └── mesh-summary.util.ts
-```
+`src/browserRenderer.factory.ts` constructs the compiler, mesh cache, PNG encoder,
+download encoder and rendering workflow. `src/openScadWorker.composition.ts`
+registers the worker handler on a supplied scope. Both are explicit composition roots.
 
-`worker/` owns isolated compilation and its client lifecycle. `renderer/` owns
-renderer composition, PNG presentation, and renderer identity. `services/` owns
-preview caching and downloadable artifact generation. `utils/` contains only the
-named mesh-summary operation; it is not a generic collection of unrelated code.
-The root index remains an exports-only public entry point. Tests live beside the
-renderer they exercise and are discovered by `node --test`.
+`src/features/rendering/` owns its public `index.ts`, data types, capability ports,
+renderer metadata and download constants. Its `services/` contains independent
+compilation, worker execution, cache, PNG and download capabilities. Its single
+`workflows/rendering.workflow.ts` coordinates those capabilities through explicit
+injection. Services do not import other services or workflows. The narrow
+`utils/meshSummary.util.ts` operation remains pure.
+
+The package root only re-exports the existing public API. Tests mirror source under
+`tests/` and are excluded from the library build. See
+[stage 3 alignment](../../docs/contracts-rendering-alignment.md) for compatibility,
+asset resolution and verification details.

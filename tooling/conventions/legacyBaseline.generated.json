@@ -468,90 +468,8 @@
     "fixtures/canonical-demo/edit-2.json": {
       "formatHash": "1c6dddd9acadf7d5086750a5ffc402b91115abd5da2b0f3fb414920e865a5233"
     },
-    "packages/browser-renderer/README.md": {
-      "formatHash": "892f9e0a9250028a5ac60421a7ae8e58a5327cec0bb7d377a793d8d69bee32db"
-    },
-    "packages/browser-renderer/src/index.ts": {
-      "formatHash": "dab64ef45e5907e7ebbeaebc9ddcf354960b283f97004c6bd79430b82d3fb5e3"
-    },
-    "packages/browser-renderer/src/renderer/cad.renderer.test.mjs": {
-      "formatHash": "382fffe01b3d0a2458d2f402d76394f0d557d4c8225be4eecd0b4ca9388d4a5f",
-      "rules": [
-        "test-placement"
-      ]
-    },
-    "packages/browser-renderer/src/renderer/cad.renderer.ts": {
-      "formatHash": "04c71277065ac2687e6a1f1c0e2400c6232ca0c86502e8ac0cc3ce277ac6bd37"
-    },
-    "packages/browser-renderer/src/renderer/png.renderer.ts": {
-      "formatHash": "07903e5e137e822a4089d4c1785febbe7a3d6086e3468120dc58dffd1233eace"
-    },
-    "packages/browser-renderer/src/services/download.service.ts": {
-      "formatHash": "ff9f0a33fa06c9191ea118aa04582e67223cfd346c135c76b10f7f5ad96a820d"
-    },
-    "packages/browser-renderer/src/services/preview.service.ts": {
-      "formatHash": "7325d6f9e0f94f150e65d84fa43ba43b6560af15e18df7149d89a0e8b2cd3edc"
-    },
-    "packages/browser-renderer/src/utils/mesh-summary.util.ts": {
-      "formatHash": "d647b3b6e102c47879825bac50c0943c2ccb2c5a1b51d2995c6e1f6f66234abf",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/browser-renderer/src/worker/openscad.client.ts": {
-      "formatHash": "52b083a744e16971866b82bdaf7033668d7d37325bde6843038ec33e81ab0b2b"
-    },
-    "packages/browser-renderer/src/worker/openscad.worker.ts": {
-      "formatHash": "ba6292ef712a028d0b59fdb38ec05d9d6abccbbcd03e235a3c3c71955df146e7"
-    },
     "packages/browser-renderer/tsconfig.json": {
       "formatHash": "0f85cc16e6b2439968de83ab7031c94c65199c63b75c23c926f4991626fb8a87"
-    },
-    "packages/contracts/src/cad-contracts.ts": {
-      "formatHash": "ec453dc2091c96faf782c46cafaf3d4b09aef27fb63c6077ec296b2c2e4c35e9",
-      "rules": [
-        "filename"
-      ],
-      "maxLines": 573
-    },
-    "packages/contracts/src/index.test.mjs": {
-      "formatHash": "8ce9f6eb049ccaa36e792381b83a7bac1cd940eeef94a5c9c98b65eacf24abc0",
-      "rules": [
-        "test-placement"
-      ]
-    },
-    "packages/contracts/src/model-preview.ts": {
-      "formatHash": "c9ee352a26955f6939d6daecc90744e118d71e425fe1e73aa7fa89a4582a36ca",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/contracts/src/project-event.ts": {
-      "formatHash": "6b5b833b9199aa2916814322b1b17d7a3f242c5458ea17efcfb08adf52770934",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/contracts/src/worker/export.contract.ts": {
-      "formatHash": "57709a5bf38770f9b8437f651ef03686bfdca4b27fca49a012c00b9afbcbb75e"
-    },
-    "packages/contracts/src/worker/preview-source.contract.ts": {
-      "formatHash": "d43a05984f5028a3014ff55ca79479eaf7413a6ffabe2b14a354dd82c1cd57d8",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/contracts/src/worker/renderer.policy.ts": {
-      "formatHash": "0bb951880f274ce3281894420bb2e9a7f435ce291124965d7d0da67635d5e45f"
-    },
-    "packages/contracts/src/worker/validation.contract.ts": {
-      "formatHash": "135e0f06aae639350bba11d119b215c7d8fcf1dd75e48af3eda7a61821378c17"
-    },
-    "packages/contracts/src/workflow-contracts.ts": {
-      "formatHash": "eb62c66bd89612256d6b3b2ee81b84f97acad0f75cd3f94d0ada23bc088330a6",
-      "rules": [
-        "filename"
-      ]
     },
     "packages/gateway/src/cad-client.ts": {
       "rules": [
@@ -602,45 +520,6 @@
     },
     "packages/mcp/src/tools.ts": {
       "formatHash": "236281814910b6ecf0c8edb01adf24420d7c74dc27f72c8e77af8ebbb0d1d776",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/renderer/src/artifacts.test.mjs": {
-      "formatHash": "b8b02d8bb59c28a0ca874a7bc2e2a105b30bb861580582cf3323f30b4b391ee6",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "packages/renderer/src/artifacts.ts": {
-      "formatHash": "7e0029f5e428df4a07a9f2f492cb14d7a105e3c766a0c088aa0fbf66b6da95c0",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/renderer/src/diagnostics.ts": {
-      "formatHash": "bac05f902dc6c35c4a40e7db4478c3a258e2fd59479c9337d0cf8daa6d0af054",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/renderer/src/large-vertex-table.test.mjs": {
-      "formatHash": "60da71f8ebafc7e32a17c132f7db64b5c487d398708f126fd98017c73b027fba",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "packages/renderer/src/zip64.test.mjs": {
-      "formatHash": "3bbe548c37758ee3bfd82e3f5dffa80d7c3572edb12bc67c63e125729f97799d",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "packages/renderer/src/zip64.ts": {
-      "formatHash": "76dd81b2dbd24691b259c8c66c421b2e23e0a2d532ceaefbfe6334cea171f010",
       "rules": [
         "filename"
       ]
@@ -1303,7 +1182,6 @@
       "formatHash": "f6dcb6eb4fa9254e97432b27cef4478383d350114704595081fb1b263b6cae10"
     },
     "packages/runtime/src/worker/export.service.test.mjs": {
-      "formatHash": "c76ceb1f5ce11ea08ce6fdbc07a8e6b5987ed2ad1fad006d37cb041bd96bda99",
       "rules": [
         "test-placement"
       ]
