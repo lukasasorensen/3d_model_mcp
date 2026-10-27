@@ -78,3 +78,17 @@ Public package entry points, worker host paths and pinned assets remain stable.
 See [contracts/rendering alignment](contracts-rendering-alignment.md) for the movement map,
 policy refinements and verification gates. Architecture/convention baselines decrease to
 383/232; all THE-26 architecture records are removed without retargeting exceptions.
+
+## Stage 4 first slice
+
+Stage 3 merged in PR #14 at `05e0e24`. The first THE-27 slice extracts filesystem
+storage capabilities, explicit composition and mirrored regression tests. Public APIs,
+durable write order, SQL and migrations remain stable. See
+[model-project alignment](model-project-alignment.md) for the movement map and invariants.
+
+Stage 4 remains open: PostgreSQL/worker orchestration and schema-cycle removal need a
+follow-on slice that also moves their runtime/HTTP construction sites. Those callers
+currently carry stage 5–6 debt; preserve their verified exceptions until the related
+wiring can migrate together. Do not widen or retarget baselines. This slice reduces
+architecture/convention records to 309/223, including 54 remaining THE-27 architecture
+records. The remaining stage order and deployment boundaries are unchanged.

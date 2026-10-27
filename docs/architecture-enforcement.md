@@ -138,3 +138,17 @@ the asset preparation command independently validates downloaded and cached asse
 The rule requires the literal path, URL form and owning package. Computed paths, arbitrary
 module URLs and other packages still fail. This is a declared runtime resource, not a
 workspace module or a wildcard allowance for dynamic imports.
+
+## Stage 4 runtime contract foundations
+
+The contracts package also exports runtime schemas, constants and pure validation.
+Infrastructure and shared foundations may consume its lower layers through declared
+public exports. This allowance is limited to `@theoryfoundry/contracts`; its services,
+workflows, controllers and composition are still forbidden. Deep imports, cycles and
+layer restrictions remain checked. A regression verifies both valid contract use and
+rejected service imports from the same package. Application-domain implementations do
+not receive this allowance.
+
+The first model-project slice reduces the architecture baseline to 309 records and
+convention baseline to 223. Every retained record is unchanged; no exceptions are
+added or retargeted. THE-27 remains open for its remaining 54 architecture records.

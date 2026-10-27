@@ -30,7 +30,9 @@ export class CadDomainError extends Error {
   constructor(
     public readonly code: CadDomainErrorCode,
     message: string,
-    public readonly details: Readonly<Record<string, string | number | boolean | null>> = {},
+    public readonly details: Readonly<
+      Record<string, string | number | boolean | null>
+    > = {},
   ) {
     super(message);
     this.name = "CadDomainError";

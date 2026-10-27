@@ -528,19 +528,11 @@
       "formatHash": "d74f5c1b3f3ae51e8b4e72d86d6a3d0910484a27193facab706da0c88191fa38"
     },
     "packages/runtime/model-project/src/browser-presence.repository.ts": {
-      "formatHash": "e335fc9f279cd82143a1736ccc916fb400eba6ef473360df9d97a168fec3dcef",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/model-project/src/browser-preview-jobs.repository.ts": {
-      "formatHash": "0225206f3417386f2c4fcbb7d5bb3824f759728aa89f73eedcfcf9df81df5272",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/cad-domain-error.ts": {
-      "formatHash": "e35fc5ce7203ea11443a1ca5fbaa7b517eb5a71cf4de32ab2a025b4550ec8bbe",
       "rules": [
         "filename"
       ]
@@ -552,49 +544,31 @@
       ]
     },
     "packages/runtime/model-project/src/exports/export-receipt.repository.ts": {
-      "formatHash": "ccf492973ffb9ab7435fe124174202d0424f8b6fdbc80e65eb39cd8fa53b1641",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/model-project/src/exports/export-reservation.repository.ts": {
-      "formatHash": "4d29144041d346fa1749473f0af64cdc2b93a6190b44dd6501e798bd63297b75",
       "rules": [
         "filename"
       ]
-    },
-    "packages/runtime/model-project/src/hash.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/index.test.mjs": {
-      "formatHash": "175fdc90de063b5bc8977c554e5510187e2d40bddf2448135971efa09469b77c",
-      "rules": [
-        "test-placement"
-      ],
-      "maxLines": 563
     },
     "packages/runtime/model-project/src/model-exports.repository.ts": {
-      "formatHash": "01ed7f8e22cda0d5c8bc6539a0ea8d5ba6cb1cad864e9faec317e0d6800dadf8",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/model-project/src/model-source.repository.ts": {
-      "formatHash": "c59575f1fab4eb3c1a0d96a76653b8c6e9551a7984bc415f7f742d7af7983555",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/model-project/src/postgres-project-persistence.ts": {
-      "formatHash": "a35fc71e0a4848821effc05be0ce1a13a8e0bbcb2dfac561201e4c5798294a3a",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/model-project/src/postgres-repository.ts": {
-      "formatHash": "3b77b6dd54280f201e87a7762886af57b04e7dab72ecb0d1987422dc93c3f984",
       "rules": [
         "filename"
       ]
@@ -619,19 +593,8 @@
         "filename"
       ]
     },
-    "packages/runtime/model-project/src/project-types.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
     "packages/runtime/model-project/src/remote-render-jobs.repository.ts": {
       "formatHash": "c3e4622ca73eb253c4659a241e8494b83fe84eb212627c7e7e565ba91c1403d9",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/model-project/src/render-policy.ts": {
-      "formatHash": "7a9e2c032ca761bb34ff35550f3ef2e6a80b8c1562f55200c504103d1cd6aeb1",
       "rules": [
         "filename"
       ]
@@ -642,13 +605,6 @@
         "filename",
         "test-placement"
       ]
-    },
-    "packages/runtime/model-project/src/repository.ts": {
-      "formatHash": "ab4fc05e736c241d2856616b42555882706432b26bc25b1c7856a57afde9c9d4",
-      "rules": [
-        "filename"
-      ],
-      "maxLines": 796
     },
     "packages/runtime/model-project/src/schema.ts": {
       "rules": [
@@ -810,35 +766,20 @@
         "filename"
       ]
     },
-    "packages/runtime/model-project/src/store.ts": {
-      "formatHash": "bc94b82a206c2f550a3c1a7b1e45494314a190116e533889f4b996ce730fdd3d",
-      "rules": [
-        "filename"
-      ]
-    },
     "packages/runtime/model-project/src/validation/candidate-validation.service.ts": {
-      "formatHash": "ca8bec73a6a7eb260a54e29e47fee6aee2c0992368c2390af8479cea6a584079",
       "rules": [
         "filename"
       ]
     },
     "packages/runtime/model-project/src/worker/export-job.repository.ts": {
-      "formatHash": "e74ac70531214c8cbe94164042f5913de94ca14cc06ac9c79efdb95d939959a0",
       "rules": [
         "filename"
       ]
-    },
-    "packages/runtime/model-project/src/worker/export.service.ts": {
-      "formatHash": "ad0f428683df3255cfc04aa8228a0cd7dfa2c31ce9936a95a97f67be8389bc58"
     },
     "packages/runtime/model-project/src/worker/validation-job.repository.ts": {
-      "formatHash": "18fab713676007abb2781b4255a6ca58502e3b2943254eee3c52a853e19dcdde",
       "rules": [
         "filename"
       ]
-    },
-    "packages/runtime/model-project/src/worker/validation.service.ts": {
-      "formatHash": "622455544c340b82d7c88bbdc8493407a04a4907fb14d4f4cc0b3d11d37ddbb5"
     },
     "packages/runtime/src/abortable-mcp-request.ts": {
       "formatHash": "1ad2024670d743a8e6e02b65a639f50b326685be5f912a40a2ae00b4e6b86585",
