@@ -4,25 +4,25 @@ Use Node 22 and the pinned `packageManager` version with `pnpm install --frozen-
 The separate Node 24 migration is THE-31. Existing development, database, authentication,
 OAuth provisioning and headless-renderer commands remain in `package.json`.
 
-| Command                                     | Purpose                                                                                 |
-| ------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `pnpm dev`                                  | Prepare browser assets and start the site                                               |
-| `pnpm test:list`                            | List all discovered tests grouped by owning project                                     |
-| `pnpm test:tooling`                         | Run focused tooling regressions                                                         |
-| `pnpm test`                                 | Build packages, then run every discovered test in its owner's cwd                       |
-| `pnpm --filter @theoryfoundry/runtime test` | Run only runtime-owned tests after building dependencies                                |
-| `pnpm format:check`                         | Check Prettier against exact legacy content exceptions                                  |
-| `pnpm check:architecture`                   | Check resolved workspace/layer/browser dependencies against shrinking legacy exceptions |
-| `pnpm test:architecture`                    | Run graph, barrel, alias and baseline regressions                                       |
-| `pnpm check:conventions`                    | Check naming, test placement and physical line caps                                     |
-| `pnpm lint` / `pnpm typecheck`              | Existing ESLint and workspace TypeScript checks                                         |
-| `pnpm build`                                | Build libraries and the Next.js app                                                     |
-| `pnpm verify`                               | Run all checks, tests and builds without rewriting source                               |
+| Command                                     | Purpose                                                                |
+| ------------------------------------------- | ---------------------------------------------------------------------- |
+| `pnpm dev`                                  | Prepare browser assets and start the site                              |
+| `pnpm test:list`                            | List all discovered tests grouped by owning project                    |
+| `pnpm test:tooling`                         | Run focused tooling regressions                                        |
+| `pnpm test`                                 | Build packages, then run every discovered test in its owner's cwd      |
+| `pnpm --filter @theoryfoundry/runtime test` | Run only runtime-owned tests after building dependencies               |
+| `pnpm format:check`                         | Check Prettier formatting with zero legacy exceptions                  |
+| `pnpm check:architecture`                   | Check workspace/layer/browser dependencies with zero legacy exceptions |
+| `pnpm test:architecture`                    | Run graph, barrel, alias and baseline regressions                      |
+| `pnpm check:conventions`                    | Check naming, test placement and physical line caps                    |
+| `pnpm lint` / `pnpm typecheck`              | Existing ESLint and workspace TypeScript checks                        |
+| `pnpm build`                                | Build libraries and the Next.js app                                    |
+| `pnpm verify`                               | Run all checks, tests and builds without rewriting source              |
 
-New and touched files use Prettier. Format an explicit file with
-`pnpm exec prettier --write path/to/file`, then remove its resolved baseline fields.
-Do not format the entire legacy tree outside its owning stage. The baseline policy is
-in [architecture conventions](architecture-conventions.md).
+All handwritten files use Prettier where a parser is available. Format explicit files
+with `pnpm exec prettier --write path/to/file`. Every handwritten text file is capped
+at 500 physical lines, including tests, configuration and docs. Both legacy baselines
+are empty and must stay empty; see [architecture conventions](architecture-conventions.md).
 
 Discovery includes `.test` and `.spec` files with mjs/cjs/js/ts/tsx extensions, regardless
 of depth, excluding known output/dependency directories and symlinks. Mixed TypeScript
@@ -33,7 +33,7 @@ arguments, so Node's own implicit discovery does not decide coverage.
 
 The ordinary suite uses local fixtures and PGlite, without production credentials.
 Three existing tests are skipped in the default suite. The 20-run p95 budget test
-in `canonical-journey.test.mjs` is explicitly disabled with `test.skip`; no timing
+in `packages/runtime/tests/canonicalPerformance.integration.test.mjs` is explicitly disabled with `test.skip`; no timing
 acceptance is claimed. Two opt-in runtime tests require provisioned test databases: the standalone stdio test
 uses `THEORYFOUNDRY_TEST_DATABASE_URL` and `THEORYFOUNDRY_TEST_ACTOR_USER_ID`; export
 concurrency uses `THEORYFOUNDRY_TEST_EXPORT_DATABASE_URL`. Report these skips separately.
@@ -55,7 +55,7 @@ completion from deployment/acceptance. Merge only when explicitly requested, aft
 rechecking head and required checks. Branch protection is separate from adding CI.
 
 As checked on 2026-10-26, `master` is unprotected (the protection API returns 404).
-This PR adds CI but does not configure a required-check or PR-only merge policy.
+CI does not itself configure a required-check or PR-only merge policy.
 
 Internal tooling paths and architecture checks are documented in
 [architecture enforcement](architecture-enforcement.md). The installed-Codex smoke test

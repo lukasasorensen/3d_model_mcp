@@ -1,6 +1,8 @@
 # Alignment inventory
 
-Snapshot of `efd6b8f`, before stage 1: 374 tracked files and 53 test files.
+Historical snapshot; use [current coverage](test-coverage.md) and
+[final alignment](final-alignment.md) for the completed structure. Paths and counts
+below intentionally describe `efd6b8f`, before stage 1: 374 tracked files and 53 test files.
 The template reference is `26d3789`. This map preserves package and deployment boundaries;
 final names within a split are reviewed with the owning stage rather than mechanically
 renaming a large file into a single service. `pnpm test:list` is the live test inventory.

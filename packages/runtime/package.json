@@ -17,10 +17,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rimraf dist",
-    "auth:provision": "node dist/provision-user.js",
+    "auth:provision": "node dist/provisionUser.composition.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "node ../../tooling/testing/runTests.script.mjs --project",
-    "oauth:provision": "node dist/provision-oauth-client.js"
+    "oauth:provision": "node dist/provisionOAuthClient.composition.js"
   },
   "dependencies": {
     "@better-auth/oauth-provider": "1.7.2",

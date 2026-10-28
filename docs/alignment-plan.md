@@ -160,3 +160,13 @@ architecture records are resolved: architecture/convention baselines are **0/27*
 with retained convention entries unchanged. Stage 7 follows authorized review and
 merge; it removes the remaining convention debt and finishes documentation. Keep
 Node 22 until the separately verified stage 8. No deployment is part of this work.
+
+## Stage 7 final enforcement
+
+Stage 6 merged in PR #20 at `8b99713`. THE-30 removes the final 27 convention
+records; architecture and convention baselines are both empty. Runtime executable
+composition now follows the same root naming rule as other hosts. Documentation
+and global styles are split by responsibility, with public commands, routes and
+stylesheet order preserved. See [final alignment evidence](final-alignment.md) and
+[current test coverage](test-coverage.md). Node 22, deployment topology and asset
+pins remain unchanged. THE-31 owns the separate Node 24/toolchain upgrade.

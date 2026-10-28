@@ -3,16 +3,18 @@ import test from "node:test";
 import { checkArchitecture } from "../../../tooling/architecture/architecture.policy.mjs";
 import { architectureFixture } from "./workspaceArchitecture.fixture.mjs";
 
-test("legacy executable paths own composition but do not expose it to services or handlers", async (context) => {
+test("root executable composition entries own composition but do not expose it to services or handlers", async (context) => {
   const root = "packages/runtime/src";
   const fixture = await architectureFixture(context, {
     [`${root}/database.composition.ts`]:
       'export const openDatabase = () => "database";',
+    [`${root}/stdioServer.composition.ts`]:
+      'import { openDatabase } from "./database.composition.js"; openDatabase();',
+    [`${root}/provisionUser.composition.ts`]:
+      'import { openDatabase } from "./database.composition.js"; openDatabase();',
+    [`${root}/provisionOAuthClient.composition.ts`]:
+      'import { openDatabase } from "./database.composition.js"; openDatabase();',
     [`${root}/stdio-server.ts`]:
-      'import { openDatabase } from "./database.composition.js"; openDatabase();',
-    [`${root}/provision-user.ts`]:
-      'import { openDatabase } from "./database.composition.js"; openDatabase();',
-    [`${root}/provision-oauth-client.ts`]:
       'import { openDatabase } from "./database.composition.js"; openDatabase();',
     [`${root}/request.controller.ts`]:
       'import { openDatabase } from "./database.composition.js"; export const handle = openDatabase;',
@@ -21,9 +23,9 @@ test("legacy executable paths own composition but do not expose it to services o
   });
   const findings = await checkArchitecture(fixture.root, fixture.projectPaths);
   for (const name of [
-    "stdio-server",
-    "provision-user",
-    "provision-oauth-client",
+    "stdioServer.composition",
+    "provisionUser.composition",
+    "provisionOAuthClient.composition",
   ]) {
     assert.deepEqual(
       findings.filter((f) => f.file === `${root}/${name}.ts`),
@@ -40,4 +42,11 @@ test("legacy executable paths own composition but do not expose it to services o
       ),
     );
   }
+  assert.ok(
+    findings.some(
+      (f) =>
+        f.file === `${root}/stdio-server.ts` && f.rule === "layer-boundary",
+    ),
+    "old executable paths no longer bypass layer classification",
+  );
 });

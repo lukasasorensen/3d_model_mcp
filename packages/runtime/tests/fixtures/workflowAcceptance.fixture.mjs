@@ -12,7 +12,11 @@ const directory =
 const client = new Client({ name: "workflow-acceptance", version: "1" });
 const transport = new StdioClientTransport({
   command: process.execPath,
-  args: [fileURLToPath(new URL("../../dist/stdio-server.js", import.meta.url))],
+  args: [
+    fileURLToPath(
+      new URL("../../dist/stdioServer.composition.js", import.meta.url),
+    ),
+  ],
   env: Object.fromEntries(
     Object.entries(process.env).filter(([, v]) => v !== undefined),
   ),

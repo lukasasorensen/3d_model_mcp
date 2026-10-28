@@ -19,6 +19,11 @@ const previous = await readPreviousArchitectureBaseline(
 );
 const findings = await checkArchitecture(root);
 const errors = [
+  ...(current.violations.length
+    ? [
+        "Legacy architecture exceptions are no longer permitted; keep the baseline empty.",
+      ]
+    : []),
   ...compareArchitectureBaselines(current, previous),
   ...evaluateArchitectureBaseline(findings, current),
 ];
@@ -27,5 +32,5 @@ if (errors.length) {
   process.exitCode = 1;
 } else
   console.log(
-    `Architecture passed: workspace source exports, aliases, module/layer/barrel boundaries and browser graphs; ${current.violations.length} shrinking legacy exceptions.`,
+    `Architecture passed: workspace source exports, aliases, module/layer/barrel boundaries and browser graphs; ${current.violations.length} legacy exceptions.`,
   );

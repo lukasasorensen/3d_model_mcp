@@ -73,6 +73,11 @@ for (const file of files) {
   }
 }
 const findings = [
+  ...(Object.keys(baseline.files).length
+    ? [
+        "Legacy convention exceptions are no longer permitted; keep the baseline empty.",
+      ]
+    : []),
   ...compareBaselines(baseline, previous),
   ...evaluateRecords(actual, baseline, mode),
 ];

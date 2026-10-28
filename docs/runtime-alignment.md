@@ -31,9 +31,10 @@ preserving when configuration is read.
 
 ## Compatibility boundaries
 
-- Keep `stdio-server.js`, `provision-user.js` and `provision-oauth-client.js` as
-  compiled operator entry paths. Their existing filename exceptions remain until
-  stage 7 formalizes the documented launcher convention; do not retarget them.
+- Stage 5 retained the old compiled operator filenames temporarily. Stage 7 replaces
+  them with `stdioServer.composition.js`, `provisionUser.composition.js` and
+  `provisionOAuthClient.composition.js`; public `pnpm mcp:serve`, `auth:provision`
+  and `oauth:provision` commands remain stable. No compatibility aliases remain.
 - Preserve all 64 public runtime exports (50 values and 14 types), including the
   forwarded domain error and error-code exports.
 - Preserve SQL text, transactions, ownership filters, token hashing, grant binding,

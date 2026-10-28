@@ -76,7 +76,11 @@ test(
       );
     {
       const result = run();
-      assert.equal(result.status, 0, result.stderr);
+      assert.notEqual(result.status, 0);
+      assert.match(
+        result.stderr,
+        /Legacy convention exceptions are no longer permitted/,
+      );
     }
     baseline.files["newExample.util.ts"] = record;
     await writeFile(join(root, "newExample.util.ts"), source);

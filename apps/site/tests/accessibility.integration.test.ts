@@ -3,6 +3,13 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("workspace preserves accessible landmarks, live region, restore copy, and inspection-only controls", async () => {
+  const stylesheet = new URL("../src/app/styles.css", import.meta.url);
+  const cssImports = [
+    ...(await readFile(stylesheet, "utf8")).matchAll(/@import "([^"]+)";/g),
+  ];
+  const styles = Promise.all(
+    cssImports.map(([, file]) => readFile(new URL(file, stylesheet), "utf8")),
+  ).then((parts) => parts.join("\n"));
   const [workspace, chat, history, viewer, sourcePanel, css] =
     await Promise.all([
       readFile(
@@ -40,7 +47,7 @@ test("workspace preserves accessible landmarks, live region, restore copy, and i
         ),
         "utf8",
       ),
-      readFile(new URL("../src/app/styles.css", import.meta.url), "utf8"),
+      styles,
     ]);
   assert.match(workspace, /<header className="app-header"/);
   assert.match(workspace, /aria-live="polite"/);

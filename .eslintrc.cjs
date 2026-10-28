@@ -4,7 +4,13 @@ module.exports = {
     es2022: true,
     node: true,
   },
-  ignorePatterns: ["**/dist/**", "**/.next/**", "**/node_modules/**", ".omx/**", "apps/site/next-env.d.ts"],
+  ignorePatterns: [
+    "**/dist/**",
+    "**/.next/**",
+    "**/node_modules/**",
+    ".omx/**",
+    "apps/site/next-env.d.ts",
+  ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaVersion: "latest",
@@ -14,7 +20,11 @@ module.exports = {
   extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   overrides: [
     {
-      files: ["apps/site/**/*.ts", "apps/site/**/*.tsx", "packages/browser-renderer/**/*.ts"],
+      files: [
+        "apps/site/**/*.ts",
+        "apps/site/**/*.tsx",
+        "packages/browser-renderer/**/*.ts",
+      ],
       env: { browser: true, node: true },
       parserOptions: { ecmaFeatures: { jsx: true } },
     },

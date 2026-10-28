@@ -1,0 +1,6 @@
+.workspace-grid.chat-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+.workspace-grid.chat-hidden .model-pane {
+  border-right: 0;
+}

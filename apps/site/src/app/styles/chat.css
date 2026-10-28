@@ -1,0 +1,137 @@
+.transcript {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 22px 20px;
+}
+.chat-empty {
+  max-width: 36rem;
+  margin: 10vh auto 0;
+}
+.chat-empty h3 {
+  margin-bottom: 8px;
+  font-size: 1.25rem;
+}
+.chat-empty p {
+  color: var(--text-muted);
+}
+.chat-turn {
+  margin-bottom: 24px;
+}
+.turn-user {
+  margin-left: clamp(12px, 10%, 56px);
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.turn-label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--mint);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.chat-turn p {
+  white-space: pre-wrap;
+  font-size: 1rem;
+}
+.tool-activity {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.tool-activity summary {
+  min-height: 44px;
+  padding: 11px 12px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+.tool-activity ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.tool-activity li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+}
+.tool-activity li strong {
+  color: var(--text-muted);
+  font-family: monospace;
+  font-weight: 400;
+}
+.turn-outcome {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--success);
+  font: 0.7rem monospace;
+  text-transform: uppercase;
+}
+.outcome-failed,
+.outcome-cancelled {
+  color: var(--danger);
+}
+.composer {
+  position: relative;
+  z-index: 3;
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--surface-1);
+}
+.composer label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+.composer textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 82px;
+  padding: 11px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  line-height: 1.45;
+}
+.composer-actions {
+  min-height: 48px;
+  justify-content: space-between;
+  gap: 12px;
+}
+.composer-actions span {
+  color: var(--text-muted);
+  font: 0.68rem monospace;
+}
+.starter-list {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.starter-list button {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  color: var(--text-muted);
+}
+.starter-list button:hover {
+  border-color: var(--mint);
+  color: var(--text);
+}
+.starter-list .starter-primary {
+  border-color: var(--mint);
+  color: var(--text);
+}
+.retry-button {
+  border: 0;
+  background: transparent;
+  color: var(--mint);
+  text-decoration: underline;
+}

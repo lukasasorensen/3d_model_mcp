@@ -38,7 +38,10 @@ test(
       name: "Test project",
       description: "Test model",
     });
-    const executable = new URL("../dist/stdio-server.js", import.meta.url);
+    const executable = new URL(
+      "../dist/stdioServer.composition.js",
+      import.meta.url,
+    );
     const client = await createStdioCadMcpClient({
       command: process.execPath,
       args: [executable.pathname],
