@@ -167,6 +167,34 @@ importers:
         specifier: ^6.0.1
         version: 6.1.3
 
+  packages/local-worker:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: 1.30.0
+        version: 1.30.0(@cfworker/json-schema@4.1.1)(supports-color@7.2.0)(zod@4.4.3)
+      '@theoryfoundry/browser-renderer':
+        specifier: workspace:*
+        version: link:../browser-renderer
+      '@theoryfoundry/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@theoryfoundry/renderer':
+        specifier: workspace:*
+        version: link:../renderer
+      '@theoryfoundry/worker-auth':
+        specifier: workspace:*
+        version: link:../worker-auth
+      playwright:
+        specifier: 1.61.1
+        version: 1.61.1
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@types/node':
+        specifier: 24.10.1
+        version: 24.10.1
+
   packages/mcp:
     dependencies:
       '@modelcontextprotocol/sdk':

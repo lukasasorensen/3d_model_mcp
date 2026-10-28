@@ -10,3 +10,4 @@ export type {
   DownloadFormat,
 } from "./features/rendering/index.js";
 export { installOpenScadWorker } from "./openScadWorker.composition.js";
+export { createHeadlessRendererBridge } from "./headlessBridge.composition.js";

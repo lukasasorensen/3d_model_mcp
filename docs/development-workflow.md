@@ -71,3 +71,8 @@ The private worker authentication harness uses `pnpm worker:auth login <origin>`
 and `pnpm worker:auth logout <origin> <account-id>` after building packages.
 See [worker authentication](local-worker-authentication.md) for secure storage,
 operator provisioning, lock recovery and the remaining release gates.
+
+The private local stdio worker uses `pnpm build:worker-assets` and `pnpm worker:serve`
+after building packages. Its Chromium integration is exercised separately with
+`pnpm acceptance:local-worker`. See [local stdio worker](local-stdio-worker.md)
+for prerequisites, commands, cancellation semantics and remaining release gates.

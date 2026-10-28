@@ -1,9 +1,10 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import type {
-  CadWorkflowService,
-  ModelPreviewService,
+import {
+  cadToolInstructions,
+  type CadWorkflowService,
+  type ModelPreviewService,
 } from "@theoryfoundry/contracts";
 import type { ModelProjectStore } from "@theoryfoundry/model-project";
 import { registerModelPreviewTool } from "./features/cad-tools/index.js";
@@ -48,8 +49,7 @@ export function createCadMcpServer(
   const server = new McpServer(
     { name: "theoryfoundry-cad", version: "0.1.0" },
     {
-      instructions:
-        "Use only these project-scoped CAD tools. Inspect project state before editing, propose source against the exact current parent, validate_and_render before promotion, and promote only a VALID candidate. Browser validation requires the matching CAD project to be open in a visible browser tab. Never infer revision or artifact success from prose.",
+      instructions: cadToolInstructions(),
     },
   );
 

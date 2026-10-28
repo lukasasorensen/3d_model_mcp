@@ -7,3 +7,4 @@ export * from "./domains/observability/index.js";
 export * from "./domains/preview/index.js";
 export * from "./domains/project-events/index.js";
 export * from "./domains/worker/index.js";
+export * from "./features/tool-catalog/index.js";

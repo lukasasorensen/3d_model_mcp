@@ -3,7 +3,8 @@
 THE-15's authentication slice adds the private `@theoryfoundry/worker-auth`
 workspace package. It has no database, MCP transport, renderer or published CLI.
 The existing runtime, MCP package identity and browser-backed mode remain intact.
-Local stdio integration and versioned distribution follow separately.
+Local stdio integration is described in [local stdio worker](local-stdio-worker.md);
+versioned distribution follows separately.
 
 ## Operator provisioning
 
@@ -23,8 +24,8 @@ not change the Codex client or require a schema migration. Provisioning has not
 been run against production as part of this implementation.
 
 The worker deliberately requests `cad:tools offline_access` for `<origin>/mcp`.
-Hosted worker APIs already authenticate that audience, and the future local worker
-will forward ordinary project tools to hosted MCP. Tokens for unrelated resources
+Hosted worker APIs already authenticate that audience, and the local stdio worker
+forwards ordinary project tools to hosted MCP. Tokens for unrelated resources
 are rejected. The issuer remains `<origin>/api/auth`. The provider ordinarily
 allows native loopback port variance; a worker-specific hook enforces the exact
 registered callback, including during consent and token exchange.
@@ -47,7 +48,7 @@ No token may be passed as a command-line argument. These repository commands are
 an authentication harness, not the installable `pnpm dlx` product.
 
 `createWorkerAuthentication(origin)` exposes login, access-token acquisition and
-logout for the future worker. It never prompts during access-token acquisition.
+logout for the local worker. It never prompts during access-token acquisition.
 PKCE verifiers, state, authorization codes and access tokens remain in memory.
 The callback listener binds only IPv4 loopback, validates state and issuer, rejects
 duplicate parameters and replay, and closes on success, denial, cancellation or
