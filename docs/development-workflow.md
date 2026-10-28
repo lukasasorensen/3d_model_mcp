@@ -66,3 +66,8 @@ uses `tsconfig.build.json` to emit declarations, source maps and JavaScript from
 only. Next.js keeps its bundler configuration. Strict optional properties, type-only
 imports, return types and promise handling are enforced; generated assets are excluded.
 See [Node 24 toolchain verification](node24-toolchain.md) for pins and compatibility patches.
+
+The private worker authentication harness uses `pnpm worker:auth login <origin>`
+and `pnpm worker:auth logout <origin> <account-id>` after building packages.
+See [worker authentication](local-worker-authentication.md) for secure storage,
+operator provisioning, lock recovery and the remaining release gates.

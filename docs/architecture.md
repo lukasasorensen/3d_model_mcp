@@ -66,3 +66,11 @@ are outside this MVP.
 The workspace is being aligned in staged PRs with the reusable TypeScript template.
 See [architecture conventions](architecture-conventions.md) for the target module/layer
 rules and [alignment plan](alignment-plan.md) for which checks and migrations are complete.
+
+## Local worker authentication
+
+`@theoryfoundry/worker-auth` is a private Node package depending only on shared
+contracts within this workspace. It owns browser OAuth login, OS refresh credentials,
+cross-process rotation and logout for the future hosted-project local worker. It has
+no database or renderer dependency and is forbidden in browser bundles. See
+[worker authentication](local-worker-authentication.md) for trust and release boundaries.

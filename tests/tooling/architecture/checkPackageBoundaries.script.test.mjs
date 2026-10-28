@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 import { checkWorkspaceBoundaries } from "../../../tooling/architecture/checkPackageBoundaries.script.mjs";
 
 const packageNames = [
+  "worker-auth",
   "contracts",
   "browser-renderer",
   "model-project",
@@ -177,4 +178,21 @@ test("browser renderer cannot acquire a server dependency through its manifest",
     },
   );
   assert.ok(findings.some((finding) => finding.includes("not browser-safe")));
+});
+
+test("worker credentials cannot enter browser code or depend on hosted persistence", async () => {
+  const browser = await findingsFor(
+    "apps/site/src/client.ts",
+    '"use client";\nimport "@theoryfoundry/worker-auth";\n',
+  );
+  assert.ok(browser.some((finding) => finding.includes("client dependency")));
+  const database = await findingsFor(
+    "packages/worker-auth/src/index.ts",
+    'import "@theoryfoundry/model-project";\n',
+  );
+  assert.ok(
+    database.some((finding) =>
+      finding.includes("worker-auth cannot depend on model-project"),
+    ),
+  );
 });
