@@ -145,3 +145,18 @@ for ownership, compatibility and verification gates. Architecture/convention
 records decrease to 60/72; remaining workspace/viewer/hooks and authentication UI
 migration follows separately. Stage 6 stays open until that work and browser
 acceptance are complete.
+
+## Stage 6 presentation completion
+
+PR #19 merged at `755b9a2`. The continuation moves all remaining site components,
+hooks and mixed library code into feature-owned browser APIs, separates workspace
+presentation from state and moves/splits every remaining source test. Browser
+worker/cache composition now lives at the source root with explicit capability
+injection; both legacy host-path declarations are removed.
+
+See [site presentation alignment](site-presentation-alignment.md) for the ownership
+map, preservation evidence and authenticated local browser acceptance. All THE-29
+architecture records are resolved: architecture/convention baselines are **0/27**,
+with retained convention entries unchanged. Stage 7 follows authorized review and
+merge; it removes the remaining convention debt and finishes documentation. Keep
+Node 22 until the separately verified stage 8. No deployment is part of this work.

@@ -1,12 +1,25 @@
-import { getAuthenticatedUser, getProjectDatabase, listOAuthGrants, remoteMcpEnabled, remoteMcpIdentity } from "@theoryfoundry/runtime";
+import {
+  getAuthenticatedUser,
+  getProjectDatabase,
+  listOAuthGrants,
+  remoteMcpEnabled,
+  remoteMcpIdentity,
+} from "@theoryfoundry/runtime";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { ConnectedApps } from "@/components/connected-apps";
+import { ConnectedApps } from "../../../features/authentication/browser/index";
 export const dynamic = "force-dynamic";
 
 export default async function ConnectedAppsPage() {
   if (!remoteMcpEnabled()) notFound();
   const user = await getAuthenticatedUser(await headers());
   if (!user) redirect("/sign-in");
-  return <main className="auth-shell"><ConnectedApps grants={await listOAuthGrants(getProjectDatabase().pool, user.id)} codexOrigin={remoteMcpIdentity().origin} /></main>;
+  return (
+    <main className="auth-shell">
+      <ConnectedApps
+        grants={await listOAuthGrants(getProjectDatabase().pool, user.id)}
+        codexOrigin={remoteMcpIdentity().origin}
+      />
+    </main>
+  );
 }

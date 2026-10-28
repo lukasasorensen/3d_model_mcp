@@ -133,10 +133,11 @@ An unclassified legacy caller can consume valid lower-level foundations. It stil
 file during migration. Newly unclassified files still fail. This avoids generating a
 second dependency violation solely because an otherwise valid contract moved.
 
-The two existing host bootstrap files `apps/site/src/lib/cad-renderer.adapter.ts` and
-`apps/site/src/lib/openscad.worker.ts` are explicit composition entries. They construct
-host dependencies and register the worker handler. These exact compatibility paths are
-retained until THE-29; other adapters/workers receive no composition exemption.
+Stage 3 temporarily recognized two browser host bootstrap paths in `apps/site/src/lib`.
+Stage 6 removes both paths and their exact compatibility declarations. Browser worker
+construction and installation now use root `browserRenderer.composition.ts` and
+`openScadWorker.composition.ts` entries under the ordinary composition rule. Other
+adapters/workers receive no composition exemption.
 
 `runtimeAssets.policy.mjs` recognizes one non-module resource: the browser-renderer
 package's `import(new URL("/vendor/openscad/openscad.js", origin).href)`. Both hosts serve
