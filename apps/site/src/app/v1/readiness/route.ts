@@ -1,5 +1,5 @@
 import { probeSystemReadiness } from "@theoryfoundry/runtime";
-import { createReadinessHandler } from "@/lib/readiness-route";
+import { createReadinessHandler } from "../../../features/readiness/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

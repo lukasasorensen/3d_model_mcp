@@ -1,3 +1,4 @@
+import { authenticateRequest } from "@/authentication.composition";
 import { projectIdSchema, revisionIdSchema } from "@theoryfoundry/contracts";
 import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { randomUUID } from "node:crypto";
@@ -6,8 +7,7 @@ import {
   isPolicyResponse,
   jsonError,
   requireSameOrigin,
-} from "@/lib/route-policy";
-import { authenticateRequest } from "@/authentication.composition";
+} from "../../../../../../../features/authentication/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

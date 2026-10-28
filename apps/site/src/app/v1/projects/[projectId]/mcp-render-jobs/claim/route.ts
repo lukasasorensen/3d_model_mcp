@@ -1,3 +1,5 @@
+import { authenticateRequest } from "@/authentication.composition";
+import { isCadDomainError } from "@/lib/cad-errors";
 import { projectIdSchema, sessionIdSchema } from "@theoryfoundry/contracts";
 import {
   claimConfiguredRemoteRender,
@@ -7,11 +9,9 @@ import {
 import {
   isPolicyResponse,
   jsonError,
-  requireSameOrigin,
   NO_STORE_HEADERS,
-} from "@/lib/route-policy";
-import { authenticateRequest } from "@/authentication.composition";
-import { isCadDomainError } from "@/lib/cad-errors";
+  requireSameOrigin,
+} from "../../../../../../features/authentication/index";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function POST(

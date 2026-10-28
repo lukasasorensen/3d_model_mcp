@@ -3,10 +3,12 @@ import {
   createChatRouteHandler,
 } from "@theoryfoundry/gateway";
 import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
-import {} from "@/lib/route-policy";
+
 import { authenticateRequest } from "@/authentication.composition";
-import { getSidebarChatFlags } from "@/lib/sidebar-chat-flags";
-import { createSidebarChatHandler } from "@/lib/sidebar-chat-route";
+import {
+  createSidebarChatHandler,
+  getSidebarChatFlags,
+} from "../../../features/chat/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

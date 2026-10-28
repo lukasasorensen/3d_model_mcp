@@ -1,15 +1,15 @@
+import { authenticateRequest } from "@/authentication.composition";
+import { opaqueIdSchema } from "@theoryfoundry/contracts";
 import {
   getProjectDatabase,
   remoteMcpEnabled,
   revokeOAuthGrant,
 } from "@theoryfoundry/runtime";
-import { opaqueIdSchema } from "@theoryfoundry/contracts";
 import {
   isPolicyResponse,
   jsonError,
   requireSameOrigin,
-} from "@/lib/route-policy";
-import { authenticateRequest } from "@/authentication.composition";
+} from "../../../../../features/authentication/index";
 export const runtime = "nodejs";
 export async function DELETE(
   request: Request,

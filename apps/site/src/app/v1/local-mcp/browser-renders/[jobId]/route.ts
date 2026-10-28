@@ -1,7 +1,7 @@
-import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
-import { createCompleteLocalMcpRenderHandler } from "@/lib/local-mcp-browser-routes";
-import { isPolicyResponse } from "@/lib/route-policy";
 import { authenticateRequest } from "@/authentication.composition";
+import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
+import { isPolicyResponse } from "../../../../../features/authentication/index";
+import { createCompleteLocalMcpRenderHandler } from "../../../../../features/browser-rendering/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

@@ -1,12 +1,12 @@
+import { authenticateRequest } from "@/authentication.composition";
+import { isCadDomainError } from "@/lib/cad-errors";
 import { projectIdSchema } from "@theoryfoundry/contracts";
 import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
-import { isCadDomainError } from "@/lib/cad-errors";
 import {
   NO_STORE_HEADERS,
   isPolicyResponse,
   jsonError,
-} from "@/lib/route-policy";
-import { authenticateRequest } from "@/authentication.composition";
+} from "../../../../features/authentication/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

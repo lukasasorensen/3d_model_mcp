@@ -134,3 +134,14 @@ paths and verification gates. All remaining THE-28 architecture records are
 resolved. Baselines decrease to 76 architecture records (all THE-29) and 85
 convention records; retained exceptions are unchanged. Stage 6 follows review and
 an authorized merge of the stage 5 completion PR.
+
+## Stage 6 HTTP slice
+
+PR #18 completed stage 5 at `6979174`. The first THE-29 slice organizes HTTP
+controllers, authentication admission, server feature flags and project-event
+streaming behind feature entry points. It moves and splits their tests while
+preserving framework routes and all client UI. See [site HTTP alignment](site-http-alignment.md)
+for ownership, compatibility and verification gates. Architecture/convention
+records decrease to 60/72; remaining workspace/viewer/hooks and authentication UI
+migration follows separately. Stage 6 stays open until that work and browser
+acceptance are complete.
