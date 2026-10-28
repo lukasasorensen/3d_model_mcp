@@ -106,3 +106,17 @@ features, finish injection and cleanup boundaries, and mirror their remaining te
 Some stage 5–6 construction edges are already resolved by this slice; re-read their
 remaining baseline records rather than recreating the original inventory. Node 24,
 deployment and live acceptance remain separate later work.
+
+## Stage 5 protocol slice
+
+PR #16 completed stage 4 at `d150d96`. The first THE-28 slice organizes gateway
+chat and MCP tool dispatch into feature modules, extracts request event telemetry,
+and makes runtime MCP connection ownership explicit. Failed startup cleans up
+allocated resources while preserving the original error. Existing protocol tests
+move to mirrored, focused suites and retain the public transport contracts.
+
+See [gateway/MCP alignment](protocol-alignment.md) for the movement map and
+verification gates. Baselines decrease to 144 architecture / 143 convention
+records, including 64 remaining THE-28 architecture records. This is a partial
+stage: runtime authentication, remote MCP, rendering, export and worker modules
+and their remaining test splits still need follow-on work before stage 6.

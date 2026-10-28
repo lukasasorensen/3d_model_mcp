@@ -431,59 +431,6 @@
     "packages/browser-renderer/tsconfig.json": {
       "formatHash": "0f85cc16e6b2439968de83ab7031c94c65199c63b75c23c926f4991626fb8a87"
     },
-    "packages/gateway/src/cad-client.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/gateway/src/http.ts": {
-      "formatHash": "f4d16c0804331fdd7aa8a0cb6750b1fbada19cdeab76b7516e6a67427b50c371",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/gateway/src/index.test.mjs": {
-      "formatHash": "6f233222d01c7c320298aed12d4f9562a5ce4c7e9cc9ad908149c55159de874b",
-      "rules": [
-        "test-placement"
-      ]
-    },
-    "packages/gateway/src/orchestrator.ts": {
-      "formatHash": "d1f571f54790eb37ce6dcf5866ce4e7acee1a51c69db28f841f8fb00c12fe28f",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/gateway/src/provider.ts": {
-      "formatHash": "c3495e1c9ba26757edea5ceea6098614fed666f059cd8d7c584d6ad75c77abe1",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/mcp/src/index.test.mjs": {
-      "formatHash": "bd0f73a11fdfcf5f63834297596cbc7565f36a64995b75e1af3414091146836e",
-      "rules": [
-        "test-placement"
-      ]
-    },
-    "packages/mcp/src/mcp-adapter.ts": {
-      "formatHash": "934f8f173874e349f485500ab4876a675f68dc9a0e73d318f3514035903c8fa5",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/mcp/src/model-preview-tool.ts": {
-      "formatHash": "42d9cac6c931defdc5a9b2898e951fa0758a605eed815ccca8d4ccedba1a81d3",
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/mcp/src/tools.ts": {
-      "formatHash": "236281814910b6ecf0c8edb01adf24420d7c74dc27f72c8e77af8ebbb0d1d776",
-      "rules": [
-        "filename"
-      ]
-    },
     "packages/runtime/src/abortable-mcp-request.ts": {
       "formatHash": "1ad2024670d743a8e6e02b65a639f50b326685be5f912a40a2ae00b4e6b86585",
       "rules": [
@@ -573,12 +520,6 @@
       ]
     },
     "packages/runtime/src/local-browser-renderer.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "packages/runtime/src/mcp-client.ts": {
-      "formatHash": "36d493a8654c7eb2a1f78c19d308cf40aed7a179a1adceb3e82fe54ea7c103e7",
       "rules": [
         "filename"
       ]

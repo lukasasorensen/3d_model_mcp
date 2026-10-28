@@ -19,7 +19,7 @@ export {
 export * from "./database.composition.js";
 export * from "./domain-errors.js";
 export * from "./localBrowserRenderer.composition.js";
-export * from "./mcp-client.js";
+export * from "./mcpClient.composition.js";
 export * from "./oauth-authorization.js";
 export * from "./oauth-http.js";
 export * from "./oauthHttp.composition.js";
@@ -50,3 +50,5 @@ export type {
 export type { ModelExportOperations } from "./modelExport.port.js";
 
 export type { AuthenticatedUser } from "./auth.types.js";
+
+export type { ConnectedCadMcpClient } from "./features/mcp/index.js";
