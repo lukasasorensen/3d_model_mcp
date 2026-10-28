@@ -11,12 +11,12 @@ import {
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { createCadMcpServer } from "@theoryfoundry/mcp";
-import { createRemoteMcpHandler } from "../dist/remote-mcp-http.js";
-import { createPostgresFixture } from "../src/test-support/postgres-fixture.mjs";
-import { expectedBrowserProvenance } from "../dist/browser-renderer.js";
+import { createRemoteMcpHandler } from "../dist/features/mcp/controllers/remoteMcp.controller.js";
+import { createPostgresFixture } from "./fixtures/postgres.fixture.mjs";
+import { expectedBrowserProvenance } from "../dist/features/browser-rendering/utils/browserProvenance.util.js";
 import { RuntimeCadWorkflowService } from "../dist/cadWorkflow.composition.js";
 import { ModelExportService } from "../dist/modelExport.composition.js";
-import { DirectoryExportFileStore } from "../dist/export-file-store.js";
+import { DirectoryExportFileStore } from "../dist/features/model-export/services/directoryExportFileStore.service.js";
 const provenance = expectedBrowserProvenance("cad-validation-v1");
 const valid = {
   outcome: "VALID",

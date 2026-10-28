@@ -2,13 +2,16 @@ import {
   VALIDATION_POLICY_VERSION,
   WorkerExportService,
 } from "@theoryfoundry/model-project";
-import { expectedBrowserProvenance } from "./browser-renderer.js";
 import { getProjectDatabase } from "./database.composition.js";
-import { ExportArtifactFinalizationService } from "./exports/artifact-finalization.service.js";
-import { createExportFileStore } from "./exports/file-store.factory.js";
-import { remoteMcpEnabled, remoteMcpIdentity } from "./remote-mcp-policy.js";
+import { createExportFileStore } from "./exportFileStore.composition.js";
+import { expectedBrowserProvenance } from "./features/browser-rendering/index.js";
+import { ExportArtifactFinalizationService } from "./features/model-export/index.js";
+import { createWorkerExportHandler } from "./features/worker/index.js";
 import { authenticateRemoteMcp } from "./remoteAuth.composition.js";
-import { createWorkerExportHandler } from "./worker/export.http.js";
+import {
+  remoteMcpEnabled,
+  remoteMcpIdentity,
+} from "./shared/utils/remoteMcpPolicy.util.js";
 export const handleWorkerExportRequest = createWorkerExportHandler({
   authenticate: authenticateRemoteMcp,
   enabled: () =>

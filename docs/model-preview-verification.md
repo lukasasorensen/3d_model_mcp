@@ -39,7 +39,7 @@ performance measurements. Images are saved under `/tmp/theoryfoundry-preview-evi
 To repeat against a disposable development project, sign in and open it visibly:
 
 ```sh
-THEORYFOUNDRY_PREVIEW_TEST_PROJECT=PROJECT_ID pnpm exec dotenv --no-expand -e apps/site/.env.local -- node packages/runtime/src/fixtures/browser-preview-smoke.mjs
+THEORYFOUNDRY_PREVIEW_TEST_PROJECT=PROJECT_ID pnpm exec dotenv --no-expand -e apps/site/.env.local -- node packages/runtime/tests/fixtures/browserPreviewSmoke.fixture.mjs
 ```
 
 The runner creates and validates a candidate, requests all seven views, and never

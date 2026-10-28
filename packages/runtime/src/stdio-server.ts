@@ -7,11 +7,9 @@ import {
   VALIDATION_POLICY_VERSION,
 } from "@theoryfoundry/model-project";
 import { RuntimeCadWorkflowService } from "./cadWorkflow.composition.js";
-import { PostgresModelPreviewService } from "./modelPreview.composition.js";
-
 import { getProjectDatabase } from "./database.composition.js";
-import { RemoteBrowserRenderer } from "./remote-browser-renderer.js";
-
+import { RemoteBrowserRenderer } from "./features/browser-rendering/index.js";
+import { PostgresModelPreviewService } from "./modelPreview.composition.js";
 const ownerId = process.env.THEORYFOUNDRY_ACTOR_USER_ID;
 if (!ownerId)
   throw new Error(

@@ -1,8 +1,8 @@
 import type { ProjectDatabase } from "@theoryfoundry/model-project";
-import { createConfiguredAuth as createAuth } from "./auth.js";
-import type { AuthenticatedUser } from "./auth.types.js";
+import { createConfiguredAuth as createAuth } from "./configuredAuth.composition.js";
 import { getProjectDatabase } from "./database.composition.js";
-import { recordRejectedOAuthRedirect } from "./oauth-redirect-diagnostics.js";
+import type { AuthenticatedUser } from "./features/authentication/index.js";
+import { recordRejectedOAuthRedirect } from "./features/authentication/index.js";
 export function createConfiguredAuth(
   database: Pick<ProjectDatabase, "pool" | "db"> = getProjectDatabase(),
 ) {

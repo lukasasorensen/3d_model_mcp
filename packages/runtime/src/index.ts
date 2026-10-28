@@ -1,5 +1,16 @@
-export const RUNTIME_BOUNDARY = "runtime" as const;
 export * from "./auth.composition.js";
+export { PostgresBrowserRenderCoordinator } from "./browserRenderer.composition.js";
+export {
+  probeSystemReadiness,
+  withConfiguredCadRuntime,
+} from "./configuredRuntime.composition.js";
+export * from "./database.composition.js";
+export {
+  currentOAuthGrant,
+  listOAuthGrants,
+  mcpResourceMetadata,
+  revokeOAuthGrant,
+} from "./features/authentication/index.js";
 export {
   BROWSER_COMMAND_POLICY_VERSION,
   BROWSER_RENDERER_VERSION,
@@ -7,26 +18,37 @@ export {
   BrowserRenderCoordinator,
   expectedBrowserProvenance,
   sanitizeBrowserRenderCompletion,
-} from "./browser-renderer.js";
-export type { BrowserRenderRequest } from "./browser-renderer.js";
-export { PostgresBrowserRenderCoordinator } from "./browserRenderer.composition.js";
-export * from "./configured-runtime-manager.js";
-export * from "./configured-runtime.js";
+} from "./features/browser-rendering/index.js";
+export type { BrowserRenderRequest } from "./features/browser-rendering/index.js";
 export {
-  probeSystemReadiness,
-  withConfiguredCadRuntime,
-} from "./configuredRuntime.composition.js";
-export * from "./database.composition.js";
-export * from "./domain-errors.js";
+  ConfiguredCadRuntime,
+  ConfiguredCadRuntimeManager,
+  ConfiguredCadRuntimeManagerOptions,
+  createObservedReadinessProbe,
+  probeConfiguredReadiness,
+} from "./features/cad-session/index.js";
+export {
+  ObservabilityEvidence,
+  ObservabilityExporter,
+  ReferenceEnvironmentEvidence,
+  RequestObservabilitySnapshot,
+  RuntimeObservabilityStore,
+  VerificationEvidenceBundle,
+} from "./features/observability/index.js";
 export * from "./localBrowserRenderer.composition.js";
 export * from "./mcpClient.composition.js";
-export * from "./oauth-authorization.js";
-export * from "./oauth-http.js";
 export * from "./oauthHttp.composition.js";
-export * from "./observability.js";
-export * from "./remote-mcp-policy.js";
 export * from "./remoteHttp.composition.js";
 export * from "./remoteMcp.composition.js";
+export { RUNTIME_BOUNDARY } from "./shared/runtime.constants.js";
+export * from "./shared/utils/domainErrors.util.js";
+export {
+  REMOTE_MCP_SCOPE,
+  REMOTE_MCP_TIMEOUT_MS,
+  remoteMcpEnabled,
+  remoteMcpIdentity,
+  validateOAuthCallback,
+} from "./shared/utils/remoteMcpPolicy.util.js";
 
 export {
   browserPreviewStatus,
@@ -47,8 +69,8 @@ export type {
   ModelExportsStore,
   ProjectChangeSource,
 } from "@theoryfoundry/model-project";
-export type { ModelExportOperations } from "./modelExport.port.js";
+export type { ModelExportOperations } from "./features/model-export/index.js";
 
-export type { AuthenticatedUser } from "./auth.types.js";
+export type { AuthenticatedUser } from "./features/authentication/index.js";
 
 export type { ConnectedCadMcpClient } from "./features/mcp/index.js";

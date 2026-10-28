@@ -4,7 +4,8 @@ import {
   type ModelProjectStore,
   type ProjectDatabase,
 } from "@theoryfoundry/model-project";
-import { ModelPreviewWorkflow } from "./model-preview-service.js";
+import { ModelPreviewWorkflow } from "./features/model-preview/index.js";
+import { remoteMcpIdentity } from "./shared/utils/remoteMcpPolicy.util.js";
 export class PostgresModelPreviewService {
   private readonly implementation: ModelPreviewWorkflow;
   constructor(
@@ -20,6 +21,7 @@ export class PostgresModelPreviewService {
       mode,
       new BrowserPreviewJobsRepository(database.pool, ownerId),
       new BrowserPresenceRepository(database.pool, ownerId),
+      () => remoteMcpIdentity().origin,
     );
   }
   getPreview: ModelPreviewWorkflow["getPreview"] = (...args) =>

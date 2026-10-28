@@ -5,10 +5,10 @@ import {
   type ModelProjectStore,
   type ProjectDatabase,
 } from "@theoryfoundry/model-project";
-import { RuntimeCadWorkflow } from "./cad-workflow-service.js";
-import { createExportFileStore } from "./exports/file-store.factory.js";
+import { createExportFileStore } from "./exportFileStore.composition.js";
+import { RuntimeCadWorkflow } from "./features/cad-session/index.js";
 import { ModelExportService } from "./modelExport.composition.js";
-import { remoteMcpIdentity } from "./remote-mcp-policy.js";
+import { remoteMcpIdentity } from "./shared/utils/remoteMcpPolicy.util.js";
 export function createModelExportService(database: ProjectDatabase) {
   return new ModelExportService(database, createExportFileStore());
 }

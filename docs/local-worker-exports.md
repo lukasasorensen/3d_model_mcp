@@ -22,7 +22,13 @@ All operations are POSTs under `/v1/worker/exports/`.
 `begin` accepts JSON:
 
 ```json
-{"version":"1","projectId":"project-id","revisionId":"revision-id","format":"stl","previewProfile":"standard"}
+{
+  "version": "1",
+  "projectId": "project-id",
+  "revisionId": "revision-id",
+  "format": "stl",
+  "previewProfile": "standard"
+}
 ```
 
 `format` is `stl` or `3mf`. Admission requires the current owned revision and
@@ -40,7 +46,16 @@ response must wait for lease expiry before retrying.
 `status` and `cancel` accept the exact capability binding as JSON:
 
 ```json
-{"version":"1","projectId":"project-id","revisionId":"revision-id","format":"stl","jobId":"job-id","exportId":"export-id","sourceHash":"64-lowercase-hex","token":"64-lowercase-hex"}
+{
+  "version": "1",
+  "projectId": "project-id",
+  "revisionId": "revision-id",
+  "format": "stl",
+  "jobId": "job-id",
+  "exportId": "export-id",
+  "sourceHash": "64-lowercase-hex",
+  "token": "64-lowercase-hex"
+}
 ```
 
 `complete` accepts multipart/form-data with exactly these fields:
@@ -97,7 +112,7 @@ browser export regressions. The real PostgreSQL concurrency test is opt-in:
 
 ```sh
 THEORYFOUNDRY_TEST_EXPORT_DATABASE_URL=postgresql://... \
-  node --test packages/runtime/src/worker/export-concurrency.integration.test.mjs
+  node --test packages/runtime/tests/features/worker/exportConcurrency.integration.test.mjs
 ```
 
 Use an **empty disposable database**: this test applies every committed migration.

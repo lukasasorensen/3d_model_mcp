@@ -4,8 +4,11 @@ import {
   recoverWorkerExports,
   type ProjectDatabase,
 } from "@theoryfoundry/model-project";
-import type { ExportFileStore } from "./export-file-store.js";
-import { ModelExportWorkflow } from "./model-export-service.js";
+import type { ExportFileStore } from "./features/model-export/index.js";
+import {
+  ExportArtifactFinalizationService,
+  ModelExportWorkflow,
+} from "./features/model-export/index.js";
 export class ModelExportService {
   private readonly implementation: ModelExportWorkflow;
   constructor(database: ProjectDatabase, files: ExportFileStore) {
@@ -15,6 +18,7 @@ export class ModelExportService {
       (ownerId) => new ModelExportsRepository(database.pool, ownerId),
       lockExportCapacity,
       recoverWorkerExports,
+      new ExportArtifactFinalizationService(files),
     );
   }
   generate: ModelExportWorkflow["generate"] = (...args) =>
