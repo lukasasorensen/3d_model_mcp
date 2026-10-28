@@ -63,3 +63,10 @@ export interface ModelProjectStore {
     signal?: AbortSignal;
   }): Promise<RevisionManifest>;
 }
+
+export interface ProjectRepository extends ModelProjectStore {
+  assertProjectAccess(projectId: string): Promise<void>;
+  getProjectSnapshot(
+    projectId: string,
+  ): Promise<{ state: ProjectState; revisions: RevisionManifest[] }>;
+}

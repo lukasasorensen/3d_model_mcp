@@ -2,8 +2,12 @@ import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
   dialect: "postgresql",
-  schema: "./src/schema.ts",
+  schema: "./src/infrastructure/schema/index.ts",
   out: "./drizzle",
-  dbCredentials: { url: process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5432/theoryfoundry" },
+  dbCredentials: {
+    url:
+      process.env.DATABASE_URL ??
+      "postgres://postgres:postgres@localhost:5432/theoryfoundry",
+  },
   strict: true,
 });

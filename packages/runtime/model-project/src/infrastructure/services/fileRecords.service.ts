@@ -7,8 +7,10 @@ import {
 } from "@theoryfoundry/contracts";
 import { mkdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { ModelProjectRepositoryOptions } from "../../domains/project/index.js";
-import type { ProjectSummary } from "../../domains/project/index.js";
+import type {
+  ModelProjectRepositoryOptions,
+  ProjectSummary,
+} from "../../domains/project/index.js";
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";

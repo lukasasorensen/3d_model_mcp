@@ -1,8 +1,20 @@
-import { getProjectDatabase, remoteMcpEnabled, revokeOAuthGrant } from "@theoryfoundry/runtime";
+import {
+  getProjectDatabase,
+  remoteMcpEnabled,
+  revokeOAuthGrant,
+} from "@theoryfoundry/runtime";
 import { opaqueIdSchema } from "@theoryfoundry/contracts";
-import { authenticateRequest, isPolicyResponse, jsonError, requireSameOrigin } from "@/lib/route-policy";
+import {
+  isPolicyResponse,
+  jsonError,
+  requireSameOrigin,
+} from "@/lib/route-policy";
+import { authenticateRequest } from "@/authentication.composition";
 export const runtime = "nodejs";
-export async function DELETE(request: Request, context: { params: Promise<{ grantId: string }> }) {
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<{ grantId: string }> },
+) {
   if (!remoteMcpEnabled()) return new Response(null, { status: 404 });
   const originError = requireSameOrigin(request);
   if (originError) return originError;
@@ -11,6 +23,16 @@ export async function DELETE(request: Request, context: { params: Promise<{ gran
   const id = opaqueIdSchema.safeParse((await context.params).grantId);
   if (!id.success) return jsonError("INVALID_REQUEST", 400);
   try {
-    return new Response(null, { status: await revokeOAuthGrant(getProjectDatabase().pool, user.id, id.data) ? 204 : 404 });
-  } catch { return jsonError("AUTHORIZATION_UNAVAILABLE", 503); }
+    return new Response(null, {
+      status: (await revokeOAuthGrant(
+        getProjectDatabase().pool,
+        user.id,
+        id.data,
+      ))
+        ? 204
+        : 404,
+    });
+  } catch {
+    return jsonError("AUTHORIZATION_UNAVAILABLE", 503);
+  }
 }

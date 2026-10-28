@@ -1,4 +1,3 @@
-import { VALIDATION_POLICY_VERSION } from "../../shared/validation.constants.js";
 import {
   candidateRecordSchema,
   type CandidateRecord,
@@ -10,6 +9,7 @@ import type { ModelProjectRepositoryOptions } from "../../domains/project/index.
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { evaluateRenderResult } from "../../shared/utils/renderPolicy.util.js";
+import { VALIDATION_POLICY_VERSION } from "../../shared/validation.constants.js";
 import type {
   DurableFiles,
   FileLocks,

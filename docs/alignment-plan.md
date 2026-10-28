@@ -92,3 +92,17 @@ currently carry stage 5–6 debt; preserve their verified exceptions until the r
 wiring can migrate together. Do not widen or retarget baselines. This slice reduces
 architecture/convention records to 309/223, including 54 remaining THE-27 architecture
 records. The remaining stage order and deployment boundaries are unchanged.
+
+## Stage 4 PostgreSQL/worker completion
+
+The follow-on THE-27 slice starts at merged PR #15 (`440e85f`). It separates project
+and worker workflows from injected persistence, removes schema import cycles with
+deferred foreign keys, and migrates dependent runtime/HTTP construction sites. All
+remaining THE-27 architecture records are resolved without adding or retargeting
+exceptions. Earlier filesystem durability guarantees remain covered.
+
+After review and merge, continue THE-28: organize remaining runtime/gateway/MCP
+features, finish injection and cleanup boundaries, and mirror their remaining tests.
+Some stage 5–6 construction edges are already resolved by this slice; re-read their
+remaining baseline records rather than recreating the original inventory. Node 24,
+deployment and live acceptance remain separate later work.

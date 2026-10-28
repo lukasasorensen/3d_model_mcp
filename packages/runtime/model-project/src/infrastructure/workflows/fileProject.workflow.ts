@@ -14,13 +14,15 @@ import {
 import { randomUUID } from "node:crypto";
 import { copyFile, mkdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import type { ModelProjectRepositoryOptions } from "../../domains/project/index.js";
-import { VALIDATION_POLICY_VERSION } from "../../shared/validation.constants.js";
-import { assertSourcePolicy } from "../../shared/utils/sourcePolicy.util.js";
-import type { ProjectSummary } from "../../domains/project/index.js";
+import type {
+  ModelProjectRepositoryOptions,
+  ProjectSummary,
+} from "../../domains/project/index.js";
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
+import { assertSourcePolicy } from "../../shared/utils/sourcePolicy.util.js";
+import { VALIDATION_POLICY_VERSION } from "../../shared/validation.constants.js";
 import type {
   DurableFiles,
   FileLocks,

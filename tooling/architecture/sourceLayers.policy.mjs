@@ -77,10 +77,13 @@ export function describeSource(workspace, absolute) {
     /^(page|layout|route|loading|error|not-found|global-error|default|template)\.[jt]sx?$/.test(
       name,
     );
-  // Existing host composition entries retain their operational paths until THE-29.
+  // Existing browser hosts and executable launchers retain their operational paths.
   const hostComposition = new Set([
     "apps/site/src/lib/cad-renderer.adapter.ts",
     "apps/site/src/lib/openscad.worker.ts",
+    "packages/runtime/src/stdio-server.ts",
+    "packages/runtime/src/provision-user.ts",
+    "packages/runtime/src/provision-oauth-client.ts",
   ]).has(file);
   let layer =
     framework || hostComposition

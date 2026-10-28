@@ -1,12 +1,18 @@
 import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import { createCompleteLocalMcpRenderHandler } from "@/lib/local-mcp-browser-routes";
-import { authenticateRequest, isPolicyResponse } from "@/lib/route-policy";
+import { isPolicyResponse } from "@/lib/route-policy";
+import { authenticateRequest } from "@/authentication.composition";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request, context: { params: Promise<{ jobId: string }> }): Promise<Response> {
+export async function POST(
+  request: Request,
+  context: { params: Promise<{ jobId: string }> },
+): Promise<Response> {
   const user = await authenticateRequest(request);
   if (isPolicyResponse(user)) return user;
-  return withConfiguredCadRuntime(user.id, async (runtime) => createCompleteLocalMcpRenderHandler(async () => runtime)(request, context));
+  return withConfiguredCadRuntime(user.id, async (runtime) =>
+    createCompleteLocalMcpRenderHandler(async () => runtime)(request, context),
+  );
 }

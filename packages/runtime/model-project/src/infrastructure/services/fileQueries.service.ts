@@ -5,8 +5,8 @@ import {
 } from "@theoryfoundry/contracts";
 import { readFile, readdir } from "node:fs/promises";
 import { join } from "node:path";
-import type { ModelProjectRepositoryOptions } from "../../domains/project/index.js";
 import type {
+  ModelProjectRepositoryOptions,
   ProjectState,
   ProjectSummary,
 } from "../../domains/project/index.js";

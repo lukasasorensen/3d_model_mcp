@@ -1,4 +1,3 @@
-import { VALIDATION_POLICY_VERSION } from "../../shared/validation.constants.js";
 import {
   CONTRACT_VERSION,
   artifactManifestSchema,
@@ -18,6 +17,7 @@ import type {
 } from "../../domains/project/index.js";
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
+import { VALIDATION_POLICY_VERSION } from "../../shared/validation.constants.js";
 import type { DurableFiles } from "../filesystem.port.js";
 import { FileProjectPaths, safeJson } from "../utils/fileLayout.util.js";
 export class FileProjectPublication {
