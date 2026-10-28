@@ -52,7 +52,7 @@ publication failpoints, tampering, concurrent validation and recovery. Check a c
 model-project build for stale implementation files and for tests in output. Compare
 package exports and preserved SQL against the merged base.
 
-Run the opt-in `packages/runtime/src/worker/export-concurrency.integration.test.mjs`
+Run the opt-in `packages/runtime/tests/features/worker/exportConcurrency.integration.test.mjs`
 against an empty disposable PostgreSQL database using
 `THEORYFOUNDRY_TEST_EXPORT_DATABASE_URL`; it applies committed migrations and tests
 admission, shared quota and completion/cancellation races. Never point it at an existing

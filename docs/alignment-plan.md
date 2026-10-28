@@ -120,3 +120,17 @@ verification gates. Baselines decrease to 144 architecture / 143 convention
 records, including 64 remaining THE-28 architecture records. This is a partial
 stage: runtime authentication, remote MCP, rendering, export and worker modules
 and their remaining test splits still need follow-on work before stage 6.
+
+## Stage 5 runtime completion
+
+PR #17 merged at `77ac9c0`. The continuation organizes authentication, remote MCP,
+browser rendering, previews, exports, workers, observability and runtime lifecycle
+into feature modules with public contracts and explicit composition. All remaining
+runtime tests and fixtures move under `tests/`; canonical journey/recovery evidence
+is split by behavior without dropping the opt-in performance case.
+
+See [runtime alignment](runtime-alignment.md) for ownership, preserved operator
+paths and verification gates. All remaining THE-28 architecture records are
+resolved. Baselines decrease to 76 architecture records (all THE-29) and 85
+convention records; retained exceptions are unchanged. Stage 6 follows review and
+an authorized merge of the stage 5 completion PR.

@@ -4,8 +4,7 @@ import {
   BrowserPreviewJobsRepository,
 } from "@theoryfoundry/model-project";
 import { getProjectDatabase } from "./database.composition.js";
-import { validatePreviewCompletion } from "./model-preview-service.js";
-
+import { validatePreviewCompletion } from "./features/model-preview/index.js";
 export async function updateBrowserPreviewPresence(
   ownerId: string,
   projectId: string,

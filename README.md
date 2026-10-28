@@ -514,7 +514,7 @@ exports can expire normally.
 
 For a reproducible browser acceptance journey, provision an isolated database and
 test account, configure the app and stdio process identically, and run
-`node packages/runtime/src/fixtures/workflow-acceptance.mjs create` with
+`node packages/runtime/tests/fixtures/workflowAcceptance.fixture.mjs create` with
 `THEORYFOUNDRY_ACTOR_USER_ID` set. It verifies the closed-browser response and prints the
 trusted project URL. Open that URL in a signed-in visible browser, then run the
 same script with `finish`. It validates the original candidate, saves a PNG before

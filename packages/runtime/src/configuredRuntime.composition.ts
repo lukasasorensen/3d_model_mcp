@@ -6,16 +6,16 @@ import {
 } from "@theoryfoundry/model-project";
 import { PostgresBrowserRenderCoordinator } from "./browserRenderer.composition.js";
 import { RuntimeCadWorkflowService } from "./cadWorkflow.composition.js";
-import { ConfiguredCadRuntimeManager } from "./configured-runtime-manager.js";
+import { getProjectDatabase } from "./database.composition.js";
 import {
+  ConfiguredCadRuntimeManager,
   createObservedReadinessProbe,
   probeConfiguredReadiness,
   type ConfiguredCadRuntime,
-} from "./configured-runtime.js";
-import { getProjectDatabase } from "./database.composition.js";
+} from "./features/cad-session/index.js";
+import { RuntimeObservabilityStore } from "./features/observability/index.js";
 import { LocalBrowserRenderer } from "./localBrowserRenderer.composition.js";
 import { createInMemoryCadMcpClient } from "./mcpClient.composition.js";
-import { RuntimeObservabilityStore } from "./observability.js";
 async function createConfiguredCadRuntime(
   ownerId: string,
 ): Promise<ConfiguredCadRuntime> {

@@ -3,7 +3,7 @@ import {
   type ProjectDatabase,
 } from "@theoryfoundry/model-project";
 import { PostgresBrowserRenderCoordinator } from "./browserRenderer.composition.js";
-import { LocalBrowserRendererAdapter } from "./local-browser-renderer.js";
+import { LocalBrowserRendererAdapter } from "./features/browser-rendering/index.js";
 export class LocalBrowserRenderer {
   private readonly implementation: LocalBrowserRendererAdapter;
   constructor(

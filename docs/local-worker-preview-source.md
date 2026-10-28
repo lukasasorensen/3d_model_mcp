@@ -61,7 +61,7 @@ Focused verification after building packages:
 
 ```bash
 pnpm build:packages
-node --test packages/runtime/src/worker/*.test.mjs
+pnpm --filter @theoryfoundry/runtime test
 pnpm --filter @theoryfoundry/model-project db:generate
 ```
 

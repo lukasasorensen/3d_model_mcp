@@ -32,12 +32,12 @@ errors rather than being reported as missing projects.
 
 ## Protocol version 1
 
-| Endpoint | Request | Result |
-| --- | --- | --- |
-| `begin` | `version: "1"`, projectId, candidateId, `previewProfile: "standard"` | Lease with immutable source/hash, attempt/job IDs, capability token, policy version, deadline |
-| `status` | projectId, candidateId, jobId, token | PENDING, COMPLETED, CANCELLED, or EXPIRED |
-| `complete` | Same binding plus sourceHash and result | Saved candidate snapshot and terminal status |
-| `cancel` | Same binding as status | Idempotent terminal status; pending candidate becomes retryable |
+| Endpoint   | Request                                                              | Result                                                                                        |
+| ---------- | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `begin`    | `version: "1"`, projectId, candidateId, `previewProfile: "standard"` | Lease with immutable source/hash, attempt/job IDs, capability token, policy version, deadline |
+| `status`   | projectId, candidateId, jobId, token                                 | PENDING, COMPLETED, CANCELLED, or EXPIRED                                                     |
+| `complete` | Same binding plus sourceHash and result                              | Saved candidate snapshot and terminal status                                                  |
+| `cancel`   | Same binding as status                                               | Idempotent terminal status; pending candidate becomes retryable                               |
 
 A completion result contains outcome (`VALID`, `REJECTED`, or `FAILED`), bounded
 diagnostics, renderer provenance, and geometry when VALID. It does not accept a
@@ -85,7 +85,7 @@ Focused checks:
 
 ```bash
 pnpm build:packages
-node --test packages/runtime/src/worker/*.test.mjs
+pnpm --filter @theoryfoundry/runtime test
 ```
 
 Integration fixtures use the real PostgreSQL engine through PGlite and apply all

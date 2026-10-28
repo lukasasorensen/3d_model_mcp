@@ -1,7 +1,6 @@
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import type { CadMcpToolResult } from "@theoryfoundry/gateway";
 import { type CadToolName } from "@theoryfoundry/mcp";
-
 import type { ConnectedCadMcpClient } from "../connectedClient.port.js";
 export function connectedClient(
   client: Client,

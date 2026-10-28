@@ -8,12 +8,12 @@ import {
 } from "@theoryfoundry/model-project";
 import { RuntimeCadWorkflowService } from "./cadWorkflow.composition.js";
 import { getProjectDatabase } from "./database.composition.js";
-import { PostgresModelPreviewService } from "./modelPreview.composition.js";
 import {
   claimRemoteBrowserRender,
   RemoteBrowserRenderer,
-} from "./remote-browser-renderer.js";
-
+} from "./features/browser-rendering/index.js";
+import { recordRemoteMcpEvent } from "./features/observability/index.js";
+import { PostgresModelPreviewService } from "./modelPreview.composition.js";
 export async function createRemoteCadMcpServer(
   ownerId: string,
   signal: AbortSignal,
@@ -58,5 +58,6 @@ export async function claimConfiguredRemoteRender(
     new RemoteRenderJobsRepository(getProjectDatabase().pool, ownerId),
     projectId,
     sessionId,
+    () => recordRemoteMcpEvent("render-claim", "claimed"),
   );
 }

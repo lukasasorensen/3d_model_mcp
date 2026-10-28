@@ -172,13 +172,13 @@ flowchart TB
     end
 ```
 
-| Component | Image/build | Persistence | Exposure |
-| --- | --- | --- | --- |
-| `app` | Multi-stage Node 22 standalone Next.js image; runs as non-root `nextjs` | Stateless | Only `cloudflared` on private `edge` network |
-| `postgres` | `postgres:18.6-bookworm` | `postgres-data` named volume | `app` and tooling on internal `data` network |
-| `cloudflared` | Configurable, default `cloudflare/cloudflared:latest` | Tunnel configuration lives at Cloudflare; token in mode-600 deployment env | Outbound tunnel connection |
-| `tooling` | Same verified source build, production tooling target | One-shot migration/user/OAuth operations | No public exposure |
-| browser renderer | Static OpenSCAD WASM/BOSL2 assets executed by visitor | Ephemeral mesh/output | Browser sandbox only |
+| Component        | Image/build                                                             | Persistence                                                                | Exposure                                     |
+| ---------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------- |
+| `app`            | Multi-stage Node 22 standalone Next.js image; runs as non-root `nextjs` | Stateless                                                                  | Only `cloudflared` on private `edge` network |
+| `postgres`       | `postgres:18.6-bookworm`                                                | `postgres-data` named volume                                               | `app` and tooling on internal `data` network |
+| `cloudflared`    | Configurable, default `cloudflare/cloudflared:latest`                   | Tunnel configuration lives at Cloudflare; token in mode-600 deployment env | Outbound tunnel connection                   |
+| `tooling`        | Same verified source build, production tooling target                   | One-shot migration/user/OAuth operations                                   | No public exposure                           |
+| browser renderer | Static OpenSCAD WASM/BOSL2 assets executed by visitor                   | Ephemeral mesh/output                                                      | Browser sandbox only                         |
 
 The VM sizing recommendation is 2 vCPU, 4 GB RAM, and 25 GB disk on Debian 12 or Ubuntu 24.04. That is a deployment baseline, not an autoscaling policy. This demo has one app replica and one database instance; there is no load balancer behind the tunnel and no automatic failover.
 
@@ -230,9 +230,9 @@ Application sources:
 
 - [`README.md`](../README.md) — runtime profiles, remote MCP behavior, deadlines, token lifetimes, and deployment boundary.
 - [`docs/architecture.md`](architecture.md) — trust path, revision invariant, renderer model, and persistence semantics.
-- [`packages/runtime/src/configured-runtime.ts`](../packages/runtime/src/configured-runtime.ts) — per-owner combined runtime, in-memory MCP client, repository, and readiness.
-- [`packages/runtime/src/remote-mcp-http.ts`](../packages/runtime/src/remote-mcp-http.ts) — authenticated Streamable HTTP MCP endpoint and 90-second deadline.
-- [`packages/runtime/src/remote-browser-renderer.ts`](../packages/runtime/src/remote-browser-renderer.ts) — database-backed remote render handoff.
+- [`packages/runtime/src/configuredRuntime.composition.ts`](../packages/runtime/src/configuredRuntime.composition.ts) — per-owner combined runtime, in-memory MCP client, repository, and readiness.
+- [`packages/runtime/src/features/mcp/controllers/remoteMcp.controller.ts`](../packages/runtime/src/features/mcp/controllers/remoteMcp.controller.ts) — authenticated Streamable HTTP MCP endpoint and 90-second deadline.
+- [`packages/runtime/src/features/browser-rendering/workflows/remoteBrowserRender.workflow.ts`](../packages/runtime/src/features/browser-rendering/workflows/remoteBrowserRender.workflow.ts) — database-backed remote render handoff.
 - [`apps/site/src/lib/openscad.worker.ts`](../apps/site/src/lib/openscad.worker.ts) — checksum-verified browser assets and Web Worker execution.
 - [`apps/site/src/app/v1/browser-renders/[jobId]/route.ts`](../apps/site/src/app/v1/browser-renders/%5BjobId%5D/route.ts) — authenticated, session-bound completion endpoint.
 

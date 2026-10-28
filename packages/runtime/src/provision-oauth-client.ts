@@ -1,7 +1,6 @@
 import { getProjectDatabase } from "./database.composition.js";
-import { provisionCodexClient } from "./oauth-provisioning.js";
-import { validateOAuthCallback } from "./remote-mcp-policy.js";
-
+import { provisionCodexClient } from "./features/authentication/index.js";
+import { validateOAuthCallback } from "./shared/utils/remoteMcpPolicy.util.js";
 const arguments_ = process.argv
   .slice(2)
   .filter((argument) => argument !== "--");

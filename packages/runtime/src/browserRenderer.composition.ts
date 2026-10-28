@@ -3,7 +3,7 @@ import {
   type ProjectChangeSource,
 } from "@theoryfoundry/model-project";
 import type { Pool } from "pg";
-import { PostgresBrowserRenderAdapter } from "./browser-renderer.js";
+import { PostgresBrowserRenderAdapter } from "./features/browser-rendering/index.js";
 export class PostgresBrowserRenderCoordinator {
   private readonly implementation: PostgresBrowserRenderAdapter;
   constructor(

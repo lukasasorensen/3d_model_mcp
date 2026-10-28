@@ -1,4 +1,4 @@
-import { createRemoteMcpHandler as createHandler } from "./remote-mcp-http.js";
+import { createRemoteMcpHandler as createHandler } from "./features/mcp/index.js";
 import { authenticateRemoteMcp } from "./remoteAuth.composition.js";
 import { createRemoteCadMcpServer } from "./remoteMcp.composition.js";
 export function createRemoteMcpHandler(

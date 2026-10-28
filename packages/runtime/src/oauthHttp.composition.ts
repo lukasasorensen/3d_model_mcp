@@ -1,6 +1,6 @@
 import { oauthProviderAuthServerMetadata } from "@better-auth/oauth-provider";
 import { getAuth } from "./auth.composition.js";
-import { remoteMcpEnabled } from "./remote-mcp-policy.js";
+import { remoteMcpEnabled } from "./shared/utils/remoteMcpPolicy.util.js";
 export function oauthServerMetadata(
   request: Request,
 ): Promise<Response> | Response {

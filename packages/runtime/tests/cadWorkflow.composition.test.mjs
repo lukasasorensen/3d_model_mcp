@@ -6,8 +6,8 @@ import {
   BrowserPresenceRepository,
   RemoteRenderJobsRepository,
 } from "@theoryfoundry/model-project";
-import { createPostgresFixture } from "../src/test-support/postgres-fixture.mjs";
-import { expectedBrowserProvenance } from "../dist/browser-renderer.js";
+import { createPostgresFixture } from "./fixtures/postgres.fixture.mjs";
+import { expectedBrowserProvenance } from "../dist/features/browser-rendering/utils/browserProvenance.util.js";
 import { RuntimeCadWorkflowService } from "../dist/cadWorkflow.composition.js";
 const provenance = expectedBrowserProvenance("cad-validation-v1");
 const valid = {

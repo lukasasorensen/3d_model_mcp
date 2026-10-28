@@ -1,9 +1,14 @@
 import { ModelSourceRepository } from "@theoryfoundry/model-project";
 import { getProjectDatabase } from "./database.composition.js";
-import { remoteMcpEnabled, remoteMcpIdentity } from "./remote-mcp-policy.js";
+import {
+  createWorkerPreviewSourceHandler,
+  WorkerPreviewSourceService,
+} from "./features/worker/index.js";
 import { authenticateRemoteMcp } from "./remoteAuth.composition.js";
-import { createWorkerPreviewSourceHandler } from "./worker/preview-source.http.js";
-import { WorkerPreviewSourceService } from "./worker/preview-source.service.js";
+import {
+  remoteMcpEnabled,
+  remoteMcpIdentity,
+} from "./shared/utils/remoteMcpPolicy.util.js";
 export const handleWorkerPreviewSourceRequest =
   createWorkerPreviewSourceHandler({
     authenticate: authenticateRemoteMcp,
