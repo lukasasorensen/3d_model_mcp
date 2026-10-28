@@ -1,5 +1,5 @@
-import { authenticateRequest } from "@/authentication.composition";
-import { isCadDomainError } from "@/lib/cad-errors";
+import { authenticateRequest } from "../../../../../../authentication.composition";
+import { isCadDomainError } from "../../../../../../shared/errors/cadErrors.util";
 import { projectIdSchema, sessionIdSchema } from "@theoryfoundry/contracts";
 import {
   claimConfiguredRemoteRender,

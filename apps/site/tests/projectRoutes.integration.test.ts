@@ -2,7 +2,7 @@ import { CadDomainError } from "@theoryfoundry/runtime";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { POST as restoreRevision } from "../src/app/v1/projects/[projectId]/revisions/[revisionId]/restore/route";
-import { isCadDomainError } from "../src/lib/cad-errors";
+import { isCadDomainError } from "../src/shared/errors/cadErrors.util";
 
 test("restore route enforces exact same-origin requests", async () => {
   const response = await restoreRevision(

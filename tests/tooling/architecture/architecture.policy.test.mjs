@@ -333,7 +333,7 @@ test("unclassified legacy callers still fail classification but can consume alre
   assert.ok(!has(findings, file, "layer-boundary"));
 });
 
-test("only the two declared legacy host bootstraps can construct public renderer factories", async (context) => {
+test("root browser compositions can construct factories and old adapter paths cannot", async (context) => {
   const entry =
     'import { createRenderer } from "@fixture/runtime"; export const renderer = createRenderer();';
   const findings = await verify(
@@ -342,23 +342,31 @@ test("only the two declared legacy host bootstraps can construct public renderer
         'export { createRenderer } from "./renderer.factory.js";',
       "packages/runtime/src/renderer.factory.ts":
         "export const createRenderer = () => ({ ready: true });",
+      "apps/site/src/browserRenderer.composition.ts": entry,
+      "apps/site/src/openScadWorker.composition.ts": entry,
       "apps/site/src/lib/cad-renderer.adapter.ts": entry,
-      "apps/site/src/lib/openscad.worker.ts": entry,
-      "apps/site/src/lib/other.adapter.ts": entry,
     }),
   );
   assert.ok(
     !has(
       findings,
-      "apps/site/src/lib/cad-renderer.adapter.ts",
+      "apps/site/src/browserRenderer.composition.ts",
       "layer-boundary",
     ),
   );
   assert.ok(
-    !has(findings, "apps/site/src/lib/openscad.worker.ts", "layer-boundary"),
+    !has(
+      findings,
+      "apps/site/src/openScadWorker.composition.ts",
+      "layer-boundary",
+    ),
   );
   assert.ok(
-    has(findings, "apps/site/src/lib/other.adapter.ts", "layer-boundary"),
+    has(
+      findings,
+      "apps/site/src/lib/cad-renderer.adapter.ts",
+      "layer-boundary",
+    ),
   );
 });
 

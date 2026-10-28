@@ -24,9 +24,10 @@ Cross-feature imports use public indexes; internal imports point directly to
 lower-level modules. Types and ports do not import implementations. Services do
 not consume other services.
 
-These feature indexes currently expose server capabilities. Do not import them
-from client components. The following UI slice must keep browser exports separate
-from server entry points and verify both resolved client graphs and built bundles.
+These feature-root indexes expose server capabilities. Do not import them from
+client components. The [presentation continuation](site-presentation-alignment.md)
+adds separate `browser/index.ts` APIs and verifies resolved client graphs and built
+bundles.
 
 ## Tests and compatibility
 

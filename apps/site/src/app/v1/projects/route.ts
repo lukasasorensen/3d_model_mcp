@@ -1,8 +1,8 @@
-import { authenticateRequest } from "@/authentication.composition";
+import { authenticateRequest } from "../../../authentication.composition";
 import {
   ProjectCreateBodyTooLargeError,
   readProjectCreateBody,
-} from "@/lib/project-create-request";
+} from "../../../features/workspace/index";
 import {
   createProjectInputSchema,
   projectListSchema,
