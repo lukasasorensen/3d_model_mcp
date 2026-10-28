@@ -1,4 +1,6 @@
 "use client";
+import type { JSX } from "react";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ConnectToCodex } from "../../../onboarding/browser/index";
@@ -9,11 +11,11 @@ export function ConnectedApps({
 }: {
   grants: { id: string; name: string }[];
   codexOrigin: string;
-}) {
+}): JSX.Element {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const revoke = async (id: string) => {
+  const revoke = async (id: string): Promise<void> => {
     setPending(true);
     setError("");
     try {

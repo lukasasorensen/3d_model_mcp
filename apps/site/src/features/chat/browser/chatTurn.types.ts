@@ -3,7 +3,7 @@ export interface ToolActivityItem {
   toolCallId: string;
   tool: string;
   state: ToolActivityState;
-  code?: string;
+  code?: string | undefined;
 }
 export interface ChatTurn {
   id: string;

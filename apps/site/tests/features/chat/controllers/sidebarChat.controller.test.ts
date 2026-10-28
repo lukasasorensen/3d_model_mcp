@@ -8,7 +8,7 @@ const request = new Request("http://localhost/v1/chat", { method: "POST" });
 
 for (const visible of [false, true])
   for (const real of [false, true]) {
-    test(`chat admission visible=${visible}, real=${real}`, async () => {
+    void test(`chat admission visible=${visible}, real=${real}`, async () => {
       let calls = 0;
       const handler = createSidebarChatHandler({
         authenticate: async () => user,
@@ -29,7 +29,7 @@ for (const visible of [false, true])
     });
   }
 
-test("authentication precedes flags and flag outages never reach the runtime", async () => {
+void test("authentication precedes flags and flag outages never reach the runtime", async () => {
   const handler = createSidebarChatHandler({
     authenticate: async () => new Response(null, { status: 401 }),
     getFlags: async () => {

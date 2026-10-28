@@ -9,9 +9,9 @@ export class PostgresProjectNotifications implements ProjectChangeSource {
   private readonly listeners = new Set<
     (event: ProjectNotification | null) => void
   >();
-  private client?: PoolClient;
-  private connecting?: Promise<void>;
-  private retry?: ReturnType<typeof setTimeout>;
+  private client: PoolClient | undefined;
+  private connecting: Promise<void> | undefined;
+  private retry: ReturnType<typeof setTimeout> | undefined;
   private closed = false;
   constructor(private readonly pool: Pool) {}
 
@@ -43,7 +43,7 @@ export class PostgresProjectNotifications implements ProjectChangeSource {
 
   private async open(): Promise<void> {
     const client = await this.pool.connect();
-    const lost = () => {
+    const lost = (): void => {
       if (this.client !== client) return;
       this.disconnect();
       process.stderr.write(

@@ -16,13 +16,13 @@ function releaseWithResponseBody(
   }
   const reader = response.body.getReader();
   let released = false;
-  const releaseOnce = async () => {
+  const releaseOnce = async (): Promise<void> => {
     if (released) return;
     released = true;
     await release();
   };
   const body = new ReadableStream<Uint8Array>({
-    async pull(controller) {
+    async pull(controller): Promise<void> {
       try {
         const result = await reader.read();
         if (result.done) {
@@ -36,7 +36,7 @@ function releaseWithResponseBody(
         await releaseOnce();
       }
     },
-    async cancel(reason) {
+    async cancel(reason): Promise<void> {
       try {
         await reader.cancel(reason);
       } finally {

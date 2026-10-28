@@ -1,4 +1,5 @@
 "use client";
+import type { JSX } from "react";
 
 import dynamic from "next/dynamic";
 import { ChatPane } from "../../../chat/browser/index";
@@ -32,8 +33,8 @@ export function ModelWorkspace({
   projectId: string;
   localMcpBridgeEnabled?: boolean;
   remoteMcpEnabled?: boolean;
-  codexOrigin?: string;
-}) {
+  codexOrigin?: string | undefined;
+}): JSX.Element {
   const {
     router,
     isSidebarChatEnabled,

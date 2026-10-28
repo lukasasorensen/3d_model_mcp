@@ -1,3 +1,4 @@
+import type { LocalMcpBrowserRenderJob } from "@theoryfoundry/contracts";
 import { BROWSER_RENDERER } from "@theoryfoundry/contracts";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -6,7 +7,7 @@ import {
   createCompleteLocalMcpRenderHandler,
 } from "../../../../src/features/browser-rendering/controllers/localMcpRoutes.controller";
 
-test("local MCP bridge claims bounded jobs for one browser session", async () => {
+void test("local MCP bridge claims bounded jobs for one browser session", async () => {
   const job = {
     version: "1" as const,
     jobId: "local-render-1",
@@ -23,11 +24,14 @@ test("local MCP bridge claims bounded jobs for one browser session", async () =>
   const handler = createClaimLocalMcpRenderHandler(
     async () => ({
       localBrowserRenderer: {
-        async claimNext(projectId, sessionId) {
+        async claimNext(
+          projectId,
+          sessionId,
+        ): Promise<LocalMcpBrowserRenderJob> {
           claims.push([projectId, sessionId]);
           return job;
         },
-        async complete() {},
+        async complete(): Promise<void> {},
       },
     }),
     {
@@ -61,15 +65,15 @@ test("local MCP bridge claims bounded jobs for one browser session", async () =>
   assert.equal(denied.status, 403);
 });
 
-test("local MCP bridge completion requires exact origin and bound session", async () => {
+void test("local MCP bridge completion requires exact origin and bound session", async () => {
   const completed: unknown[] = [];
   const handler = createCompleteLocalMcpRenderHandler(
     async () => ({
       localBrowserRenderer: {
-        async claimNext() {
+        async claimNext(): Promise<null> {
           return null;
         },
-        async complete(_jobId, completion) {
+        async complete(_jobId, completion): Promise<void> {
           completed.push(completion);
         },
       },

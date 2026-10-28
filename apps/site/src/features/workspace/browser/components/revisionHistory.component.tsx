@@ -1,4 +1,5 @@
 "use client";
+import type { JSX } from "react";
 
 import type { RevisionManifest } from "@theoryfoundry/contracts";
 import { revisionLabel } from "../utils/workspaceRevision.util";
@@ -17,7 +18,7 @@ export function RevisionHistory({
   disabled: boolean;
   onSelect: (revisionId: string) => void;
   onRestore: (revisionId: string) => void;
-}) {
+}): JSX.Element {
   return (
     <details className="revision-history" data-testid="revision-history">
       <summary>

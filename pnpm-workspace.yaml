@@ -6,3 +6,7 @@ packages:
 allowBuilds:
   esbuild: true
   sharp: true
+
+patchedDependencies:
+  "@langchain/core@1.2.4": patches/@langchain__core@1.2.4.patch
+  better-call@1.4.0: patches/better-call@1.4.0.patch

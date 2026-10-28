@@ -9,7 +9,7 @@ export function remoteMcpEnabled(
 
 export function remoteMcpIdentity(
   environment: NodeJS.ProcessEnv = process.env,
-) {
+): { origin: string; issuer: string; resource: string; metadata: string } {
   const origin =
     environment.BETTER_AUTH_URL ??
     environment.THEORYFOUNDRY_ALLOWED_ORIGIN ??

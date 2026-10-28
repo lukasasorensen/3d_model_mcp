@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createProjectSnapshotLoader } from "../../../../../src/features/workspace/browser/services/projectSnapshotLoader.service";
 
-const snapshot = () =>
+const snapshot = (): Response =>
   Response.json({
     state: {
       projectId: "project",
@@ -14,7 +14,7 @@ const snapshot = () =>
     revisions: [],
   });
 
-test("overlapping invalidations coalesce and suppress the superseded snapshot", async () => {
+void test("overlapping invalidations coalesce and suppress the superseded snapshot", async () => {
   const requests: Array<(response: Response) => void> = [];
   let hydrated = 0;
   const loader = createProjectSnapshotLoader(
@@ -23,8 +23,8 @@ test("overlapping invalidations coalesce and suppress the superseded snapshot", 
     () => new Promise((resolve) => requests.push(resolve)),
   );
   const initial = loader.refresh();
-  loader.refresh();
-  loader.refresh();
+  void loader.refresh();
+  void loader.refresh();
   assert.equal(requests.length, 1);
   requests[0]!(snapshot());
   await new Promise((resolve) => setImmediate(resolve));
@@ -36,7 +36,7 @@ test("overlapping invalidations coalesce and suppress the superseded snapshot", 
   loader.close();
 });
 
-test("unmounted project loaders abort requests and discard late responses", async () => {
+void test("unmounted project loaders abort requests and discard late responses", async () => {
   let resolve: (response: Response) => void = () => undefined;
   let signal: AbortSignal | null | undefined;
   const loader = createProjectSnapshotLoader(

@@ -9,9 +9,9 @@ export function connectedClient(
 ): ConnectedCadMcpClient {
   return {
     ...(processId ? { processId } : {}),
-    async listTools(options) {
+    async listTools(options): Promise<string[]> {
       const response = await client.listTools(undefined, {
-        signal: options.signal,
+        ...(options.signal ? { signal: options.signal } : {}),
       });
       return response.tools.map((definition) => definition.name);
     },
@@ -23,7 +23,7 @@ export function connectedClient(
       const response = await client.callTool(
         { name, arguments: input },
         undefined,
-        { signal: options.signal },
+        { ...(options.signal ? { signal: options.signal } : {}) },
       );
       const structured = response.structuredContent;
       if (
@@ -55,7 +55,7 @@ export function connectedClient(
         } catch {
           /* public gateway applies a fixed safe error */
         }
-        return { isError: true, error };
+        return { isError: true, ...(error ? { error } : {}) };
       }
       return {
         isError: false,

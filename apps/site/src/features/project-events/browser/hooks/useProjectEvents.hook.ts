@@ -5,7 +5,7 @@ import { receiveProjectEvents } from "../services/projectEvents.service";
 export function useProjectEvents(
   projectId: string,
   refreshProject: () => Promise<boolean>,
-) {
+): { renderWake: number; syncStatus: string; presenceWake: number } {
   const [presenceWake, setPresenceWake] = useState(0);
   const [renderWake, setRenderWake] = useState(0);
   const [syncStatus, setSyncStatus] = useState(
@@ -16,7 +16,7 @@ export function useProjectEvents(
     let connection: AbortController;
     let retry: ReturnType<typeof setTimeout> | undefined;
     let attempt = 0;
-    const refresh = async () => {
+    const refresh = async (): Promise<void> => {
       const active = connection;
       try {
         if (!(await refreshProject()))
@@ -29,11 +29,11 @@ export function useProjectEvents(
         active?.abort();
       }
     };
-    const resync = () => {
+    const resync = (): void => {
       void refresh();
       setRenderWake((value) => value + 1);
     };
-    const connect = async () => {
+    const connect = async (): Promise<void> => {
       connection = new AbortController();
       try {
         const shouldRetry = await receiveProjectEvents(
@@ -71,12 +71,12 @@ export function useProjectEvents(
           (0.8 + Math.random() * 0.2),
       );
     };
-    const visible = () => {
+    const visible = (): void => {
       if (document.visibilityState === "visible") resync();
     };
     document.addEventListener("visibilitychange", visible);
     void connect();
-    return () => {
+    return (): void => {
       stopped = true;
       connection?.abort();
       clearTimeout(retry);

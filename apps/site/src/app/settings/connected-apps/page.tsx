@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import {
   getAuthenticatedUser,
   getProjectDatabase,
@@ -10,7 +11,7 @@ import { notFound, redirect } from "next/navigation";
 import { ConnectedApps } from "../../../features/authentication/browser/index";
 export const dynamic = "force-dynamic";
 
-export default async function ConnectedAppsPage() {
+export default async function ConnectedAppsPage(): Promise<JSX.Element> {
   if (!remoteMcpEnabled()) notFound();
   const user = await getAuthenticatedUser(await headers());
   if (!user) redirect("/sign-in");

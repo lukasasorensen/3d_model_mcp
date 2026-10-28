@@ -1,0 +1,48 @@
+diff --git a/dist/utils/types/zod.d.cts b/dist/utils/types/zod.d.cts
+index e7cb1d5375ee93f683101594f05bd6343f43e952..4c9ffabd1e6fcc113319fa88e67f76013ca61f3d 100644
+--- a/dist/utils/types/zod.d.cts
++++ b/dist/utils/types/zod.d.cts
+@@ -2,8 +2,8 @@ import { SerializableSchema } from "../standard_schema.cjs";
+ 
+ //#region src/utils/types/zod.d.ts
+ interface ZodV3TypeDef {
+-  typeName?: string;
+-  description?: string;
++  typeName?: string | undefined;
++  description?: string | undefined;
+   [key: string]: any;
+ }
+ interface ZodV3Like<Output = any, Input = Output> {
+@@ -11,7 +11,7 @@ interface ZodV3Like<Output = any, Input = Output> {
+   readonly _output: Output;
+   readonly _input: Input;
+   readonly _def: ZodV3TypeDef;
+-  readonly description?: string;
++  readonly description?: string | undefined;
+   parse(data: unknown, params?: any): Output;
+   safeParse(data: unknown, params?: any): {
+     success: boolean;
+diff --git a/dist/utils/types/zod.d.ts b/dist/utils/types/zod.d.ts
+index 860b3d18a1bb0e1b58a1933f58d3462c3c57cab1..a598f5ab2c16e7418c10d74530206183b79ec61f 100644
+--- a/dist/utils/types/zod.d.ts
++++ b/dist/utils/types/zod.d.ts
+@@ -2,8 +2,8 @@ import { SerializableSchema } from "../standard_schema.js";
+ 
+ //#region src/utils/types/zod.d.ts
+ interface ZodV3TypeDef {
+-  typeName?: string;
+-  description?: string;
++  typeName?: string | undefined;
++  description?: string | undefined;
+   [key: string]: any;
+ }
+ interface ZodV3Like<Output = any, Input = Output> {
+@@ -11,7 +11,7 @@ interface ZodV3Like<Output = any, Input = Output> {
+   readonly _output: Output;
+   readonly _input: Input;
+   readonly _def: ZodV3TypeDef;
+-  readonly description?: string;
++  readonly description?: string | undefined;
+   parse(data: unknown, params?: any): Output;
+   safeParse(data: unknown, params?: any): {
+     success: boolean;

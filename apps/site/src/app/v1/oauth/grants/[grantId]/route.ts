@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 export async function DELETE(
   request: Request,
   context: { params: Promise<{ grantId: string }> },
-) {
+): Promise<Response> {
   if (!remoteMcpEnabled()) return new Response(null, { status: 404 });
   const originError = requireSameOrigin(request);
   if (originError) return originError;

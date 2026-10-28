@@ -9,7 +9,7 @@ export async function updateBrowserPreviewPresence(
   ownerId: string,
   projectId: string,
   presence: BrowserPresence,
-) {
+): Promise<void> {
   const pool = getProjectDatabase().pool;
   await new BrowserPresenceRepository(pool, ownerId).update(
     projectId,
@@ -22,13 +22,16 @@ export async function claimBrowserPreview(
   projectId: string,
   sessionId: string,
   modes: string[],
-) {
+): ReturnType<BrowserPreviewJobsRepository["claim"]> {
   return new BrowserPreviewJobsRepository(
     getProjectDatabase().pool,
     ownerId,
   ).claim(projectId, sessionId, modes);
 }
-export async function completeBrowserPreview(ownerId: string, raw: unknown) {
+export async function completeBrowserPreview(
+  ownerId: string,
+  raw: unknown,
+): Promise<void> {
   return new BrowserPreviewJobsRepository(
     getProjectDatabase().pool,
     ownerId,
@@ -41,7 +44,7 @@ export async function browserPreviewStatus(
   sessionId: string,
   jobId: string,
   token: string,
-) {
+): Promise<"pending" | "completed" | "cancelled"> {
   return new BrowserPreviewJobsRepository(
     getProjectDatabase().pool,
     ownerId,

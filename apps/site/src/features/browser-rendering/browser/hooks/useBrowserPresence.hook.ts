@@ -10,7 +10,7 @@ export function useBrowserPresence(options: {
   localEnabled: boolean;
   remoteEnabled: boolean;
   presenceWake: number;
-}) {
+}): void {
   const tabId = useRef<string | undefined>(undefined);
   const latest = useRef(options);
   latest.current = options;
@@ -21,7 +21,7 @@ export function useBrowserPresence(options: {
     const controller = new AbortController();
     let running = false;
     let pending = false;
-    const send = async () => {
+    const send = async (): Promise<void> => {
       pending = true;
       if (running) return;
       running = true;
@@ -64,14 +64,14 @@ export function useBrowserPresence(options: {
         running = false;
       }
     };
-    const notify = () => {
+    const notify = (): void => {
       void send();
     };
     wake.current = notify;
     document.addEventListener("visibilitychange", notify);
     notify();
-    return () => {
-      wake.current = () => undefined;
+    return (): void => {
+      wake.current = (): undefined => undefined;
       controller.abort();
       document.removeEventListener("visibilitychange", notify);
     };

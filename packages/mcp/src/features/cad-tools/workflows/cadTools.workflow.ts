@@ -53,7 +53,7 @@ export function createCadToolRegistry(
       inputSchema: createProjectInputSchema,
       outputSchema: createProjectOutputSchema,
       readOnly: false,
-      execute: async (raw) => {
+      execute: async (raw): Promise<Record<string, unknown>> => {
         const project = await repository.createProject(
           createProjectInputSchema.parse(raw),
         );
@@ -74,7 +74,7 @@ export function createCadToolRegistry(
       inputSchema: updateProjectInputSchema,
       outputSchema: updateProjectOutputSchema,
       readOnly: false,
-      execute: async (raw) =>
+      execute: async (raw): Promise<Record<string, unknown>> =>
         boundedResult({
           project: await repository.updateProject(
             updateProjectInputSchema.parse(raw),
@@ -88,7 +88,7 @@ export function createCadToolRegistry(
       inputSchema: getProjectStateInputSchema,
       outputSchema: getProjectStateOutputSchema,
       readOnly: true,
-      execute: async (raw) => {
+      execute: async (raw): Promise<Record<string, unknown>> => {
         const input = getProjectStateInputSchema.parse(raw);
         return boundedResult({
           state: {
@@ -110,7 +110,7 @@ export function createCadToolRegistry(
       inputSchema: readModelSourceInputSchema,
       outputSchema: readModelSourceOutputSchema,
       readOnly: true,
-      execute: async (raw) => {
+      execute: async (raw): Promise<Record<string, unknown>> => {
         const input = readModelSourceInputSchema.parse(raw);
         return boundedResult({
           model: await repository.readModelSource(
@@ -127,7 +127,7 @@ export function createCadToolRegistry(
       inputSchema: proposeModelSourceInputSchema,
       outputSchema: proposeModelSourceOutputSchema,
       readOnly: false,
-      execute: async (raw) =>
+      execute: async (raw): Promise<Record<string, unknown>> =>
         boundedResult({
           candidate: await repository.proposeModelSource(
             proposeModelSourceInputSchema.parse(raw),
@@ -141,7 +141,7 @@ export function createCadToolRegistry(
       inputSchema: validateAndRenderInputSchema,
       outputSchema: validateAndRenderOutputSchema,
       readOnly: false,
-      execute: async (raw, context) => {
+      execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = validateAndRenderInputSchema.parse(raw);
         if (
           workflow &&
@@ -173,7 +173,7 @@ export function createCadToolRegistry(
       inputSchema: promoteCandidateInputSchema,
       outputSchema: promoteCandidateOutputSchema,
       readOnly: false,
-      execute: async (raw, context) => {
+      execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = promoteCandidateInputSchema.parse(raw);
         return boundedResult({
           revision: await repository.promoteCandidate({
@@ -190,7 +190,7 @@ export function createCadToolRegistry(
       inputSchema: exportModelInputSchema,
       outputSchema: exportModelOutputSchema,
       readOnly: false,
-      execute: async (raw, context) => {
+      execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = exportModelInputSchema.parse(raw);
         if (!workflow)
           throw new CadDomainError(
@@ -212,7 +212,7 @@ export function createCadToolRegistry(
       inputSchema: listRevisionsInputSchema,
       outputSchema: listRevisionsOutputSchema,
       readOnly: true,
-      execute: async (raw) => {
+      execute: async (raw): Promise<Record<string, unknown>> => {
         const input = listRevisionsInputSchema.parse(raw);
         return boundedResult({
           revisions: await repository.listRevisions(input.projectId),
@@ -226,7 +226,7 @@ export function createCadToolRegistry(
       inputSchema: restoreRevisionInputSchema,
       outputSchema: restoreRevisionOutputSchema,
       readOnly: false,
-      execute: async (raw, context) => {
+      execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = restoreRevisionInputSchema.parse(raw);
         return boundedResult({
           revision: await repository.restoreRevision({

@@ -157,7 +157,7 @@ flowchart TB
     subgraph Host["One Proxmox Linux VM"]
       subgraph Compose["Docker Compose deployment"]
         CFD
-        App["app container<br/>Node 22, non-root UID 1001<br/>port 3000 not published"]
+        App["app container<br/>Node 24, non-root UID 1001<br/>port 3000 not published"]
         Tool["tooling container<br/>profile: tools; one-shot"]
         PG["postgres container<br/>18.6-bookworm<br/>5432 not published"]
         Vol[(postgres-data)]
@@ -174,7 +174,7 @@ flowchart TB
 
 | Component        | Image/build                                                             | Persistence                                                                | Exposure                                     |
 | ---------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------- |
-| `app`            | Multi-stage Node 22 standalone Next.js image; runs as non-root `nextjs` | Stateless                                                                  | Only `cloudflared` on private `edge` network |
+| `app`            | Multi-stage Node 24 standalone Next.js image; runs as non-root `nextjs` | Stateless                                                                  | Only `cloudflared` on private `edge` network |
 | `postgres`       | `postgres:18.6-bookworm`                                                | `postgres-data` named volume                                               | `app` and tooling on internal `data` network |
 | `cloudflared`    | Configurable, default `cloudflare/cloudflared:latest`                   | Tunnel configuration lives at Cloudflare; token in mode-600 deployment env | Outbound tunnel connection                   |
 | `tooling`        | Same verified source build, production tooling target                   | One-shot migration/user/OAuth operations                                   | No public exposure                           |

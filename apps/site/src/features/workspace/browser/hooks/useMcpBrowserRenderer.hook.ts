@@ -25,7 +25,12 @@ export function useMcpBrowserRenderer(options: {
   remoteEnabled: boolean;
   isAvailable: boolean;
   renderWake: number;
-}) {
+}): {
+  isRendering: boolean;
+  status: string;
+  acquire: () => Promise<boolean>;
+  release: () => void;
+} {
   const { renderPreview, renderModelPng, generateDownload } =
     useBrowserRenderer();
   const {
@@ -58,7 +63,7 @@ export function useMcpBrowserRenderer(options: {
     let pending = false;
     const controller = new AbortController();
 
-    const claim = async () => {
+    const claim = async (): Promise<void> => {
       if (running) {
         pending = true;
         activePreview?.invalidate();
@@ -245,16 +250,16 @@ export function useMcpBrowserRenderer(options: {
         if (pending && !stopped) void claim();
       }
     };
-    const wake = () => {
+    const wake = (): void => {
       void claim();
     };
     pumpRef.current = wake;
     document.addEventListener("visibilitychange", wake);
     wake();
-    return () => {
+    return (): void => {
       activePreview?.close();
       stopped = true;
-      pumpRef.current = () => undefined;
+      pumpRef.current = (): undefined => undefined;
       document.removeEventListener("visibilitychange", wake);
       controller.abort();
     };

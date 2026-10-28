@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { authenticateRequest } from "../../../../src/features/authentication/services/authenticateRequest.service";
 
-test("authentication distinguishes anonymous sessions from infrastructure failures", async () => {
+void test("authentication distinguishes anonymous sessions from infrastructure failures", async () => {
   const request = new Request("http://localhost/v1/projects");
   const anonymous = await authenticateRequest(request, async () => null);
   assert.ok(anonymous instanceof Response);

@@ -1,3 +1,4 @@
+import type { WorkerPreviewSource } from "@theoryfoundry/contracts";
 import {
   CAD_LIMITS,
   workerPreviewSourceInputSchema,
@@ -18,7 +19,7 @@ type PreviewSources = Pick<
 export class WorkerPreviewSourceService {
   constructor(private readonly sources: PreviewSources) {}
 
-  async resolve(raw: unknown) {
+  async resolve(raw: unknown): Promise<WorkerPreviewSource> {
     const input = workerPreviewSourceInputSchema.parse(raw);
     const target = input.candidateId
       ? await this.sources.readValidatedCandidateSource(

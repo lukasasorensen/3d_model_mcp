@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./styles.css";
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: ReactNode }>) {
+}: Readonly<{ children: ReactNode }>): JSX.Element {
   return (
     <html lang="en">
       <body>{children}</body>

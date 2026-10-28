@@ -52,7 +52,7 @@ try {
   });
   process.stderr.write(`theoryfoundry-cad MCP ready; actor: ${ownerId}\n`);
   let closing = false;
-  const close = async () => {
+  const close = async (): Promise<void> => {
     if (closing) return;
     closing = true;
     await server.close().catch(() => undefined);

@@ -5,7 +5,7 @@
   "description": "Local-first conversational CAD using MCP tools and OpenSCAD.",
   "packageManager": "pnpm@11.17.0",
   "engines": {
-    "node": ">=22.9.0"
+    "node": ">=24 <25"
   },
   "scripts": {
     "prepare:browser-renderer": "node tooling/browser-renderer/prepareAssets.script.mjs",
@@ -21,13 +21,13 @@
     "auth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @theoryfoundry/runtime auth:provision",
     "build": "pnpm prepare:browser-renderer && pnpm build:packages && pnpm --filter @theoryfoundry/site build",
     "build:packages": "pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && pnpm --filter @theoryfoundry/model-project build && pnpm --filter @theoryfoundry/renderer build && pnpm --filter @theoryfoundry/mcp build && pnpm --filter @theoryfoundry/gateway build && pnpm --filter @theoryfoundry/runtime build",
-    "typecheck": "pnpm build:packages && pnpm --filter @theoryfoundry/site typecheck",
-    "lint": "eslint . --ext .js,.mjs,.ts,.tsx --max-warnings=0",
+    "typecheck": "pnpm build:packages && pnpm --recursive --if-present run typecheck",
+    "lint": "eslint . --max-warnings=0",
     "test": "pnpm build:packages && node tooling/testing/runTests.script.mjs",
     "check:boundaries": "node tooling/architecture/checkPackageBoundaries.script.mjs",
     "test:boundaries": "node --test tests/tooling/architecture/checkPackageBoundaries.script.test.mjs",
     "check:leaks": "node tooling/conventions/checkTemplateLeaks.script.mjs",
-    "clean": "pnpm --filter './packages/*' clean && pnpm --filter @theoryfoundry/site clean",
+    "clean": "pnpm --recursive --if-present run clean",
     "verify": "pnpm format:check && pnpm check:conventions && pnpm check:architecture && pnpm test:codex-installer && pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm check:leaks && pnpm check:boundaries",
     "oauth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @theoryfoundry/runtime oauth:provision",
     "build:codex-installer": "node tooling/codex-connect/buildInstaller.script.mjs",
@@ -44,17 +44,19 @@
   "devDependencies": {
     "@theoryfoundry/browser-renderer": "workspace:*",
     "@theoryfoundry/renderer": "workspace:*",
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
     "dependency-cruiser": "18.7.0",
     "dotenv-cli": "^11.0.0",
     "esbuild": "^0.28.2",
-    "eslint": "^8.57.1",
+    "eslint": "10.13.0",
     "fflate": "0.8.2",
     "playwright": "1.61.1",
     "prettier": "3.9.10",
     "smol-toml": "^1.9.0",
-    "tsx": "^4.20.3",
-    "typescript": "^5.9.2"
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "@eslint/js": "10.0.1",
+    "typescript-eslint": "8.72.0",
+    "@types/node": "24.10.1",
+    "globals": "17.13.0"
   }
 }

@@ -20,7 +20,7 @@ async function readMcpBody(request: Request): Promise<unknown> {
     throw new RangeError("request too large");
   const reader = request.body?.getReader();
   if (!reader) throw new SyntaxError("empty request");
-  const cancel = () => {
+  const cancel = (): void => {
     void reader.cancel().catch(() => undefined);
   };
   request.signal.addEventListener("abort", cancel, { once: true });
@@ -114,7 +114,6 @@ export function createRemoteMcpHandler(
       );
       server = createdServer;
       transport = new WebStandardStreamableHTTPServerTransport({
-        sessionIdGenerator: undefined,
         enableJsonResponse: true,
       });
       await createdServer.connect(transport);

@@ -32,7 +32,7 @@ export class ChatEvents {
         >
       | undefined,
   ) {}
-  emit(draft: EventDraft) {
+  emit(draft: EventDraft): void {
     const event = chatEventSchema.parse({
       ...draft,
       version: "3",

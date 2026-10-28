@@ -16,7 +16,7 @@ import {
 import assert from "node:assert/strict";
 import test from "node:test";
 
-test("composer sends only with Ctrl/Command+Enter and selected history remains distinct from current", () => {
+void test("composer sends only with Ctrl/Command+Enter and selected history remains distinct from current", () => {
   assert.equal(
     isSubmitShortcut({ key: "Enter", ctrlKey: false, metaKey: false }),
     false,
@@ -51,7 +51,7 @@ test("composer sends only with Ctrl/Command+Enter and selected history remains d
   );
 });
 
-test("starter prompts are state-aware and match deterministic CAD actions", () => {
+void test("starter prompts are state-aware and match deterministic CAD actions", () => {
   assert.deepEqual(starterPrompts(false), [
     "Create an 80 × 40 mm mounting bracket with a 6 mm base and two 5 mm mounting holes.",
   ]);

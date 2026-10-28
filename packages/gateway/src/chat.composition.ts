@@ -1,3 +1,4 @@
+import type { ChatEvent } from "@theoryfoundry/contracts";
 import type { ChatRequest } from "@theoryfoundry/contracts";
 
 import {
@@ -12,7 +13,7 @@ export async function* streamCadChat(
   request: ChatRequest,
   options: ChatOrchestratorOptions,
   signal?: AbortSignal,
-) {
+): AsyncGenerator<ChatEvent> {
   yield* stream(
     request,
     {
@@ -22,7 +23,9 @@ export async function* streamCadChat(
     signal,
   );
 }
-export function createChatRouteHandler(options: ChatRouteOptions) {
+export function createChatRouteHandler(
+  options: ChatRouteOptions,
+): (request: Request) => Promise<Response> {
   return createRoute(options, streamCadChat);
 }
 

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { boundedJson } from "../../../../src/features/model-preview/utils/boundedJson.util";
 
-test("bounded JSON counts UTF-8 bytes and releases readers on success and rejection", async () => {
+void test("bounded JSON counts UTF-8 bytes and releases readers on success and rejection", async () => {
   const valid = new Request("http://localhost", {
     method: "POST",
     body: '"é"',

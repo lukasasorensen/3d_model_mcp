@@ -24,7 +24,7 @@ export function getProjectDatabase(): ProjectDatabase {
   const current = database;
   const exports = createModelExportService(current);
   let cleaning = false;
-  const cleanup = async () => {
+  const cleanup = async (): Promise<void> => {
     if (cleaning) return;
     cleaning = true;
     try {
@@ -41,11 +41,11 @@ export function getProjectDatabase(): ProjectDatabase {
   }, 60_000);
   cleanupTimer.unref();
   const closeDatabase = current.close;
-  current.close = () => {
+  current.close = (): Promise<void> => {
     clearInterval(cleanupTimer);
     return closeDatabase();
   };
-  const shutdown = () => {
+  const shutdown = (): void => {
     void current.close().catch(() => {
       process.stderr.write("Project database shutdown failed.\n");
     });

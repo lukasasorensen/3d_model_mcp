@@ -1,15 +1,15 @@
 # Dependency and release inventory
 
-The lockfile is authoritative for transitive versions. Direct runtime pins include:
+The lockfile is authoritative for transitive versions. Selected resolved runtime versions include:
 
 | Component            |          Version | Role                                                    | License/release note                               |
 | -------------------- | ---------------: | ------------------------------------------------------- | -------------------------------------------------- |
-| Node.js              |         >=22.9.0 | runtime                                                 | distribution terms must be retained                |
+| Node.js              |          24.21.0 | runtime                                                 | distribution terms must be retained                |
 | pnpm                 |          11.17.0 | workspace manager                                       | MIT                                                |
 | Next.js              |          15.5.22 | site                                                    | MIT                                                |
-| React / React DOM    |           18.3.1 | UI                                                      | MIT                                                |
+| React / React DOM    |           19.2.8 | UI                                                      | MIT                                                |
 | Three.js             |          0.179.1 | STL viewer                                              | MIT                                                |
-| React Three Fiber    |           8.18.0 | React/Three binding                                     | MIT                                                |
+| React Three Fiber    |            9.6.1 | React/Three binding                                     | MIT                                                |
 | fflate               |            0.8.2 | browser/build ZIP extraction                            | MIT                                                |
 | LangChain            |            1.5.2 | `createAgent` orchestration                             | MIT                                                |
 | LangChain Core       |            1.2.4 | provider/model contracts                                | MIT                                                |

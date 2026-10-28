@@ -13,7 +13,7 @@ const headers = {
   "x-content-type-options": "nosniff",
 };
 
-const jsonError = (code: string, status: number) =>
+const jsonError = (code: string, status: number): Response =>
   Response.json({ error: { code } }, { status, headers });
 
 export function handleWorkerJsonRequest<Input, Output>(

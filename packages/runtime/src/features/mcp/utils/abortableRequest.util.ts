@@ -5,7 +5,7 @@ export async function awaitMcpOperation<T>(
 ): Promise<T> {
   let onAbort: () => void = () => undefined;
   const interrupted = new Promise<never>((_resolve, reject) => {
-    onAbort = () =>
+    onAbort = (): void =>
       reject(new DOMException("MCP request cancelled", "AbortError"));
     if (signal.aborted) onAbort();
     else signal.addEventListener("abort", onAbort, { once: true });

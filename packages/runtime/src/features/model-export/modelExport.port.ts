@@ -5,7 +5,7 @@ export interface ModelExportOperations {
       projectId: string;
       revision: string;
       format: "stl" | "3mf";
-      signal?: AbortSignal;
+      signal?: AbortSignal | undefined;
     },
     mode: string,
     origin: string,

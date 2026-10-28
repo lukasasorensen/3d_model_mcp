@@ -9,7 +9,9 @@ import { createExportFileStore } from "./exportFileStore.composition.js";
 import { RuntimeCadWorkflow } from "./features/cad-session/index.js";
 import { ModelExportService } from "./modelExport.composition.js";
 import { remoteMcpIdentity } from "./shared/utils/remoteMcpPolicy.util.js";
-export function createModelExportService(database: ProjectDatabase) {
+export function createModelExportService(
+  database: ProjectDatabase,
+): ModelExportService {
   return new ModelExportService(database, createExportFileStore());
 }
 export class RuntimeCadWorkflowService {

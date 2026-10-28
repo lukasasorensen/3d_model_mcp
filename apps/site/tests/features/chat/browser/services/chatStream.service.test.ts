@@ -1,3 +1,4 @@
+import type { ChatEvent } from "@theoryfoundry/contracts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -15,7 +16,7 @@ const base = {
 
 function body(events: readonly unknown[]): ReadableStream<Uint8Array> {
   return new ReadableStream({
-    start(controller) {
+    start(controller): void {
       controller.enqueue(
         encoder.encode(
           events
@@ -30,14 +31,16 @@ function body(events: readonly unknown[]): ReadableStream<Uint8Array> {
   });
 }
 
-async function collect(stream: ReadableStream<Uint8Array>) {
+async function collect(
+  stream: ReadableStream<Uint8Array>,
+): Promise<ChatEvent[]> {
   const values = [];
   for await (const value of parseChatStream(stream, "session-1"))
     values.push(value);
   return values;
 }
 
-test("parser accepts a strictly monotonic terminal stream", async () => {
+void test("parser accepts a strictly monotonic terminal stream", async () => {
   const values = await collect(
     body([
       { ...base, sequence: 0, type: "assistant_delta", delta: "Ready" },
@@ -113,10 +116,10 @@ for (const [name, events] of [
     [{ ...base, sequence: 0, type: "assistant_delta", delta: "a" }],
   ],
 ] as const)
-  test(`parser rejects ${name}`, async () => {
+  void test(`parser rejects ${name}`, async () => {
     await assert.rejects(() => collect(body(events)), StreamProtocolError);
   });
 
-test("parser rejects malformed NDJSON", async () => {
+void test("parser rejects malformed NDJSON", async () => {
   await assert.rejects(() => collect(body(["{not-json"])), StreamProtocolError);
 });

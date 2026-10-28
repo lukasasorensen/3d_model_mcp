@@ -16,7 +16,7 @@ const presence = {
   localEnabled: false,
   remoteEnabled: false,
 };
-const request = (body: unknown = presence) =>
+const request = (body: unknown = presence): Request =>
   new Request(`${origin}/v1/projects/project-1/preview-presence`, {
     method: "POST",
     headers: { origin, "x-theoryfoundry-session-id": "session-1" },
@@ -29,7 +29,7 @@ const dependencies = (): PreviewRouteDependencies => ({
     email: "owner@example.invalid",
     name: "Owner",
   }),
-  authorize: async (ownerId, projectId) => {
+  authorize: async (ownerId, projectId): Promise<void> => {
     assert.equal(ownerId, "owner-1");
     assert.equal(projectId, "project-1");
   },
@@ -39,10 +39,10 @@ const dependencies = (): PreviewRouteDependencies => ({
   complete: unused,
 });
 
-test("preview presence binds owner and session and rejects mismatched completion context", async () => {
+void test("preview presence binds owner and session and rejects mismatched completion context", async () => {
   const deps = dependencies();
   let updates = 0;
-  deps.presence = async (ownerId, projectId, body) => {
+  deps.presence = async (ownerId, projectId, body): Promise<void> => {
     assert.equal(ownerId, "owner-1");
     assert.equal(projectId, "project-1");
     assert.deepEqual(body, presence);
@@ -63,14 +63,14 @@ test("preview presence binds owner and session and rejects mismatched completion
   assert.equal(updates, 1);
 });
 
-test("preview authorization distinguishes hidden projects from infrastructure failures", async () => {
+void test("preview authorization distinguishes hidden projects from infrastructure failures", async () => {
   const deps = dependencies();
-  deps.authorize = async () => {
+  deps.authorize = async (): Promise<never> => {
     throw new CadDomainError("PROJECT_NOT_FOUND", "Project unavailable.");
   };
   const missing = await previewRoute("presence", deps)(request(), context);
   assert.equal(missing.status, 404);
-  deps.authorize = async () => {
+  deps.authorize = async (): Promise<never> => {
     throw new Error("private database details");
   };
   const failed = await previewRoute("presence", deps)(request(), context);

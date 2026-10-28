@@ -7,7 +7,7 @@ import {
   readProjectCreateBody,
 } from "../../../../src/features/workspace/utils/projectCreateRequest.util";
 
-test("project creation JSON is bounded with and without Content-Length", async () => {
+void test("project creation JSON is bounded with and without Content-Length", async () => {
   const valid = new Request("http://localhost/v1/projects", {
     method: "POST",
     body: JSON.stringify({ name: "Bracket", description: "Mounting bracket" }),

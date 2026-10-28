@@ -2,7 +2,7 @@
 
 ## Local setup
 
-1. Install Node `>=22.9.0` and pnpm `11.17.0`.
+1. Install Node `24.21.0` and pnpm `11.17.0`.
 2. Run `pnpm install --frozen-lockfile`.
 3. Run `pnpm prepare:browser-renderer`; this downloads and verifies the pinned
    OpenSCAD WASM and BOSL2 archives.

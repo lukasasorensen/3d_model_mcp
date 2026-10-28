@@ -40,18 +40,18 @@ export function createOpenScadRenderer(
         () => finish(() => reject(new Error("Browser rendering timed out."))),
         BROWSER_RENDERER.timeoutMs,
       );
-      const abort = () =>
+      const abort = (): void =>
         finish(() =>
           reject(new DOMException("Rendering was cancelled.", "AbortError")),
         );
-      const finish = (complete: () => void) => {
+      const finish = (complete: () => void): void => {
         globalThis.clearTimeout(timeout);
         signal?.removeEventListener("abort", abort);
         worker.terminate();
         complete();
       };
       signal?.addEventListener("abort", abort, { once: true });
-      worker.onerror = () =>
+      worker.onerror = (): void =>
         finish(() => reject(new Error("The browser OpenSCAD worker failed.")));
       worker.onmessage = (
         event: MessageEvent<{
@@ -61,7 +61,7 @@ export function createOpenScadRenderer(
           message?: string;
           failureKind?: "operational" | "model";
         }>,
-      ) => {
+      ): void => {
         const diagnostics = diagnosticsFrom(
           event.data.diagnostics ?? [],
           !event.data.ok,

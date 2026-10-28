@@ -4,12 +4,12 @@ export async function waitForRenderOutcome<T>(options: {
   changes: ProjectChangeSource;
   ownerId: string;
   jobId: string;
-  signal?: AbortSignal;
-  read: () => Promise<{ result?: T; deadline: number }>;
+  signal?: AbortSignal | undefined;
+  read: () => Promise<{ result?: T | undefined; deadline: number }>;
 }): Promise<T> {
   let dirty = true;
   let wake: (() => void) | undefined;
-  const notify = () => {
+  const notify = (): void => {
     dirty = true;
     wake?.();
   };

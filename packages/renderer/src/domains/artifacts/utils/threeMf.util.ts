@@ -169,7 +169,7 @@ export function parseThreeMf(
     const vertices: Array<[number, number, number]> = [];
     for (const match of body.matchAll(/<vertex\b([^>]*)\/?\s*>/gi)) {
       const vertexAttributes = match[1] ?? "";
-      const coordinate = (name: string) =>
+      const coordinate = (name: string): number =>
         Number(
           vertexAttributes.match(
             new RegExp(`\\b${name}\\s*=\\s*["']([^"']+)["']`, "i"),

@@ -12,7 +12,7 @@ import {
 import { randomUUID } from "node:crypto";
 import { assertSourcePolicy } from "../../../shared/utils/sourcePolicy.util.js";
 import type { ProjectWorkflowOptions } from "../projectRepository.types.js";
-import { ModelSourceService } from "../services/modelSource.service.js";
+import type { ModelSourceService } from "../services/modelSource.service.js";
 
 import { CadDomainError } from "../../../shared/utils/cadDomainError.util.js";
 import { assertArtifactSet } from "../../../shared/utils/renderPolicy.util.js";
@@ -20,7 +20,7 @@ import { VALIDATION_POLICY_VERSION } from "../../../shared/validation.constants.
 import type { ProjectState, ProjectSummary } from "../project.types.js";
 import type { ProjectPersistence } from "../projectPersistence.port.js";
 import type { ModelProjectStore } from "../projectStore.port.js";
-import { CandidateValidationService } from "../services/candidateValidation.service.js";
+import type { CandidateValidationService } from "../services/candidateValidation.service.js";
 
 /** Coordinates domain workflows while delegating all SQL and row hydration to PostgreSQL persistence. */
 export class PostgresProjectWorkflow implements ModelProjectStore {
@@ -35,7 +35,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
     private readonly validation: CandidateValidationService,
     private readonly sources: ModelSourceService,
   ) {
-    this.clock = options.clock ?? (() => new Date());
+    this.clock = options.clock ?? ((): Date => new Date());
     this.createId = options.createId ?? randomUUID;
     this.persistence = persistence;
     this.validationPolicyVersion =
@@ -122,15 +122,24 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
     });
   }
 
-  async getCandidate(projectId: string, candidateId: string) {
+  async getCandidate(
+    projectId: string,
+    candidateId: string,
+  ): Promise<CandidateRecord> {
     return (await this.persistence.readCandidate(projectId, candidateId))
       .candidate;
   }
 
-  async readValidatedCandidateSource(projectId: string, candidateId: string) {
+  async readValidatedCandidateSource(
+    projectId: string,
+    candidateId: string,
+  ): Promise<{ candidateId: string; source: string; sourceHash: string }> {
     return this.sources.readValidatedCandidateSource(projectId, candidateId);
   }
-  async readModelSource(projectId: string, revision?: string) {
+  async readModelSource(
+    projectId: string,
+    revision?: string,
+  ): Promise<{ revision: string; source: string; sourceHash: string }> {
     return this.sources.readModelSource(projectId, revision);
   }
 

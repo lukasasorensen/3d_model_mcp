@@ -38,7 +38,9 @@ export function opaqueRandomId(prefix: string): string {
   return `${prefix}-${randomBytes(18).toString("hex")}`;
 }
 
-export function expectedBrowserProvenance(validationPolicyVersion: string) {
+export function expectedBrowserProvenance(
+  validationPolicyVersion: string,
+): ReturnType<typeof rendererProvenanceSchema.parse> {
   return rendererProvenanceSchema.parse({
     profile: "browser-wasm",
     renderer: "openscad-wasm",

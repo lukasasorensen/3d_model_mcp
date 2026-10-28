@@ -57,7 +57,7 @@ export type RenderPolicyDecision =
       provenance: RendererProvenance;
       validationPolicyVersion: string;
       artifacts: PreparedRenderArtifact[];
-      geometry?: GeometrySummary;
+      geometry?: GeometrySummary | undefined;
     };
 
 function rejection(code: string, message: string): RenderPolicyDecision {

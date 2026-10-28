@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { submitOAuthAction } from "../../../../../src/features/authentication/browser/services/oauthNavigation.service";
 
-test("OAuth navigation carries the signed query and follows only the provider response", async () => {
+void test("OAuth navigation carries the signed query and follows only the provider response", async () => {
   const previousWindow = globalThis.window;
   const previousFetch = globalThis.fetch;
   let assigned = "";
@@ -19,7 +19,7 @@ test("OAuth navigation carries the signed query and follows only the provider re
     },
   });
   try {
-    globalThis.fetch = async (_input, init) => {
+    globalThis.fetch = async (_input, init): Promise<Response> => {
       assert.equal(
         JSON.parse(String(init?.body)).oauth_query,
         "sig=signature&redirect_uri=https://evil.example",
@@ -28,10 +28,10 @@ test("OAuth navigation carries the signed query and follows only the provider re
     };
     await submitOAuthAction("oauth2/consent", { accept: true });
     assert.equal(assigned, "http://127.0.0.1:4321/callback?code=test");
-    globalThis.fetch = async () =>
+    globalThis.fetch = async (): Promise<Response> =>
       Response.json({ url: "https://evil.example/callback" });
     await assert.rejects(submitOAuthAction("oauth2/consent", { accept: true }));
-    globalThis.fetch = async () =>
+    globalThis.fetch = async (): Promise<Response> =>
       Response.json({ error: "invalid_signature" }, { status: 400 });
     await assert.rejects(submitOAuthAction("oauth2/consent", { accept: true }));
   } finally {

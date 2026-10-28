@@ -25,7 +25,7 @@ export function createProjectDatabase(
     pool,
     db: drizzle(pool, { schema }),
     notifications,
-    close: () => {
+    close: (): Promise<void> => {
       notifications.close();
       return (closing ??= Promise.all([
         notificationPool.end(),

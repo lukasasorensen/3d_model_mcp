@@ -21,19 +21,19 @@ export {
 } from "./features/browser-rendering/index.js";
 export type { BrowserRenderRequest } from "./features/browser-rendering/index.js";
 export {
-  ConfiguredCadRuntime,
+  type ConfiguredCadRuntime,
   ConfiguredCadRuntimeManager,
-  ConfiguredCadRuntimeManagerOptions,
+  type ConfiguredCadRuntimeManagerOptions,
   createObservedReadinessProbe,
   probeConfiguredReadiness,
 } from "./features/cad-session/index.js";
 export {
   ObservabilityEvidence,
-  ObservabilityExporter,
-  ReferenceEnvironmentEvidence,
-  RequestObservabilitySnapshot,
+  type ObservabilityExporter,
+  type ReferenceEnvironmentEvidence,
+  type RequestObservabilitySnapshot,
   RuntimeObservabilityStore,
-  VerificationEvidenceBundle,
+  type VerificationEvidenceBundle,
 } from "./features/observability/index.js";
 export * from "./localBrowserRenderer.composition.js";
 export * from "./mcpClient.composition.js";

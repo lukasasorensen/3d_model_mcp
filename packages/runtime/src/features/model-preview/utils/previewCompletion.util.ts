@@ -2,7 +2,9 @@ import { previewCompletionSchema } from "@theoryfoundry/contracts";
 import { CadDomainError } from "@theoryfoundry/model-project";
 import { expectedBrowserProvenance } from "../../browser-rendering/index.js";
 import { validatePreviewPng } from "./previewPng.util.js";
-export function validatePreviewCompletion(raw: unknown) {
+export function validatePreviewCompletion(
+  raw: unknown,
+): ReturnType<typeof previewCompletionSchema.parse> {
   const completion = previewCompletionSchema.parse(raw);
   if (
     JSON.stringify(completion.provenance) !==

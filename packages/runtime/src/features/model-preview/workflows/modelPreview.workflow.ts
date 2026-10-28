@@ -27,7 +27,10 @@ export class ModelPreviewWorkflow implements ModelPreviewService {
     private readonly presence: BrowserPresenceStore,
     private readonly origin: () => string,
   ) {}
-  async getPreview(raw: ModelPreviewInput, signal?: AbortSignal) {
+  async getPreview(
+    raw: ModelPreviewInput,
+    signal?: AbortSignal,
+  ): Promise<{ metadata: PreviewMetadata; png: string }> {
     const input = getModelPreviewInputSchema.parse(raw);
     signal?.throwIfAborted();
     const target = input.candidateId

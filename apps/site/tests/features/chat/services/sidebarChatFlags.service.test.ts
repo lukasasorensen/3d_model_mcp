@@ -8,7 +8,7 @@ const environment = {
   UNLEASH_FRONTEND_API_TOKEN: "test-token",
 };
 
-test("unconfigured chat defaults hidden and mock without network access", async () => {
+void test("unconfigured chat defaults hidden and mock without network access", async () => {
   assert.deepEqual(
     await getSidebarChatFlags("user", {}, async () => {
       throw new Error("unexpected network");
@@ -19,7 +19,7 @@ test("unconfigured chat defaults hidden and mock without network access", async 
 
 for (const visible of [false, true])
   for (const real of [false, true]) {
-    test(`independent chat decisions: visible=${visible}, real=${real}`, async () => {
+    void test(`independent chat decisions: visible=${visible}, real=${real}`, async () => {
       const flags = await getSidebarChatFlags(
         "owner-1",
         environment,
@@ -47,7 +47,7 @@ for (const visible of [false, true])
     });
   }
 
-test("omitted flags evaluate to false", async () => {
+void test("omitted flags evaluate to false", async () => {
   assert.deepEqual(
     await getSidebarChatFlags("user", environment, async () =>
       Response.json({ toggles: [] }),
@@ -56,7 +56,7 @@ test("omitted flags evaluate to false", async () => {
   );
 });
 
-test("incomplete configuration and operational failures are preserved", async () => {
+void test("incomplete configuration and operational failures are preserved", async () => {
   await assert.rejects(
     getSidebarChatFlags("user", {
       UNLEASH_FRONTEND_API_URL: environment.UNLEASH_FRONTEND_API_URL,

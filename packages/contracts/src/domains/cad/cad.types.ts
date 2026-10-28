@@ -38,7 +38,7 @@ export interface RenderedArtifact {
 
 export interface RenderValidationResult {
   outcome: "VALID" | "REJECTED";
-  geometry?: GeometrySummary;
+  geometry?: GeometrySummary | undefined;
   diagnostics: Diagnostic[];
   provenance: RendererProvenance;
   validationPolicyVersion: string;
@@ -52,7 +52,7 @@ export interface CandidateRenderRequest {
   source: string;
   sourceHash: string;
   previewProfile: "standard";
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
 }
 
 export type ArtifactManifest = z.infer<typeof artifactManifestSchema>;

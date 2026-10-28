@@ -14,7 +14,7 @@ export function createProjectSnapshotLoader(
   projectId: string,
   hydrate: (snapshot: ProjectSnapshot) => void,
   request: typeof fetch = fetch,
-) {
+): { refresh(): Promise<boolean>; close(): void } {
   const controller = new AbortController();
   let pending = false;
   let running: Promise<boolean> | undefined;
@@ -63,7 +63,7 @@ export function createProjectSnapshotLoader(
       pending = true;
       return (running ??= readUntilCurrent());
     },
-    close() {
+    close(): void {
       controller.abort();
     },
   };

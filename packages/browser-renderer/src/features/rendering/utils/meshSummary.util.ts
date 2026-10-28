@@ -1,6 +1,6 @@
 import type { GeometrySummary } from "@theoryfoundry/contracts";
 export function summarizeStl(bytes: Uint8Array): GeometrySummary {
-  const invalid = () =>
+  const invalid = (): Error & { failureKind: string } =>
     Object.assign(new Error("Invalid binary STL geometry."), {
       failureKind: "model",
     });

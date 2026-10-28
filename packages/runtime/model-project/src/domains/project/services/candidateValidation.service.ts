@@ -1,3 +1,4 @@
+import type { GeometrySummary } from "@theoryfoundry/contracts";
 import type {
   CandidateRecord,
   Diagnostic,
@@ -25,7 +26,10 @@ export class CandidateValidationService {
   async begin(
     transaction: ProjectPersistence,
     input: { projectId: string; candidateId: string },
-  ) {
+  ): Promise<
+    | { attemptId: undefined; candidate: CandidateRecord; source: string }
+    | { attemptId: string; candidate: CandidateRecord; source: string }
+  > {
     const persisted = await transaction.readCandidate(
       input.projectId,
       input.candidateId,
@@ -65,9 +69,12 @@ export class CandidateValidationService {
       attemptId: string;
       sourceHash: string;
       rawResult?: unknown;
-      error?: CadDomainError;
+      error?: CadDomainError | undefined;
     },
-  ) {
+  ): Promise<{
+    candidate: CandidateRecord;
+    error: CadDomainError | undefined;
+  }> {
     const persisted = await transaction.readCandidate(
       input.projectId,
       input.candidateId,
@@ -85,10 +92,9 @@ export class CandidateValidationService {
         "Validation source changed.",
       );
     let state: "VALID" | "REJECTED" | "CREATED" = "REJECTED";
-    let diagnostics: Diagnostic[] = [];
+    let diagnostics: Diagnostic[];
     let renderer: RendererProvenance | undefined;
-    let geometry:
-      import("@theoryfoundry/contracts").GeometrySummary | undefined;
+    let geometry: GeometrySummary | undefined;
     let artifacts: CandidateRecord["artifacts"] = [];
     let validationPolicyVersion: string | undefined;
     let operationalError = input.error;

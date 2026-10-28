@@ -18,7 +18,7 @@ export async function createProjectEventStream(options: {
   let checkingHeartbeat = false;
   let unsubscribe: (() => void) | undefined;
   let heartbeat: ReturnType<typeof setInterval> | undefined;
-  const close = () => {
+  const close = (): void => {
     if (closed) return;
     closed = true;
     unsubscribe?.();
@@ -30,7 +30,7 @@ export async function createProjectEventStream(options: {
       /* The consumer may already have cancelled. */
     }
   };
-  const drain = async () => {
+  const drain = async (): Promise<void> => {
     if (closed || draining) return;
     draining = true;
     try {
@@ -58,10 +58,10 @@ export async function createProjectEventStream(options: {
     }
   };
   const stream = new ReadableStream<Uint8Array>({
-    start(value) {
+    start(value): void {
       controller = value;
     },
-    cancel() {
+    cancel(): void {
       close();
     },
   });

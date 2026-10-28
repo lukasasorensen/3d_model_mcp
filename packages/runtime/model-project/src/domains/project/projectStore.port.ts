@@ -37,13 +37,13 @@ export interface ModelProjectStore {
     projectId: string;
     candidateId: string;
     previewProfile: "standard";
-    signal?: AbortSignal;
+    signal?: AbortSignal | undefined;
   }): Promise<CandidateRecord>;
   promoteCandidate(input: {
     projectId: string;
     candidateId: string;
     expectedParentRevision: string | null;
-    signal?: AbortSignal;
+    signal?: AbortSignal | undefined;
   }): Promise<RevisionManifest>;
   getExportMetadata(
     projectId: string,
@@ -60,7 +60,7 @@ export interface ModelProjectStore {
     revision: string;
     requestId: string;
     toolCallId: string;
-    signal?: AbortSignal;
+    signal?: AbortSignal | undefined;
   }): Promise<RevisionManifest>;
 }
 

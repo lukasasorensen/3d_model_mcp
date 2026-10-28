@@ -1,14 +1,14 @@
 # Test coverage inventory
 
-Stage 7 inventory, 2026-10-28: **92 files across 9 projects**. Generated for this
-review from `fnm exec --using 22 pnpm test:list`; run that command for the live
+Stage 8 inventory, 2026-10-28: **93 files across 9 projects**. Generated for this
+review from `fnm exec --using 24 pnpm test:list`; run that command for the live
 inventory. Every file below is discovered recursively and executed in its owning
 project. Tests live under mirrored `tests/` paths, with named integration scenarios
 for cross-feature behavior. No source test files or regression declarations were
-removed in stage 7. The original 53-file inventory remains historical in
+removed in stage 7 or 8. The original 53-file inventory remains historical in
 [alignment inventory](alignment-inventory.md).
 
-Built-output tests still consume package builds. TypeScript site tests run with
+Built-output tests still consume package builds. TypeScript tests run with
 `tsx` and are included in site typechecking. The tooling suite includes convention,
 architecture, package-boundary, installer, deployment and database regressions.
 
@@ -18,7 +18,7 @@ also skips the installed-Codex smoke when that CLI is unavailable. See
 [development workflow](development-workflow.md) for required environment variables.
 No timing, production-database or external OAuth acceptance follows from these skips.
 
-## 3d-model-mcp (16 files)
+## 3d-model-mcp (17 files)
 
 ```text
 tests/tooling/architecture/architecture.policy.test.mjs
@@ -37,6 +37,7 @@ tests/tooling/database/databaseShell.cli.test.mjs
 tests/tooling/deployment/coolifyDeployment.integration.test.mjs
 tests/tooling/headless-renderer/node/services/assetServer.service.test.mjs
 tests/tooling/testing/testDiscovery.service.test.mjs
+tests/tooling/toolchain/strictToolchain.config.test.mjs
 ```
 
 ## @theoryfoundry/site (26 files)
@@ -154,3 +155,6 @@ tests/infrastructure/services/workerExportJobs.service.test.mjs
 tests/infrastructure/services/workerValidationJobs.service.test.mjs
 tests/postgresRepository.composition.test.mjs
 ```
+
+The stage 8 tooling addition is `tests/tooling/toolchain/strictToolchain.config.test.mjs`
+(runtime pins, build isolation and strict compiler/lint rejection tests).

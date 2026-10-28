@@ -1,4 +1,5 @@
 "use client";
+import type { JSX } from "react";
 
 import { useEffect, useState } from "react";
 import { fetchRevisionSource } from "../services/revisionSource.service";
@@ -15,10 +16,10 @@ export function ModelSourcePanel({
   revisionLabel,
 }: {
   projectId: string;
-  revisionId?: string;
-  sourceHash?: string;
+  revisionId?: string | undefined;
+  sourceHash?: string | undefined;
   revisionLabel: string;
-}) {
+}): JSX.Element {
   const [open, setOpen] = useState(false);
   const [sourceState, setSourceState] = useState<SourceState>({
     status: "idle",
@@ -47,7 +48,7 @@ export function ModelSourcePanel({
           setSourceState({ status: "error" });
         void error;
       });
-    return () => {
+    return (): void => {
       active = false;
       controller.abort();
     };

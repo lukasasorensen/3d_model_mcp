@@ -1,3 +1,4 @@
+import type { WorkerExportOperations } from "../workerOperations.port.js";
 import {
   CAD_LIMITS,
   WORKER_EXPORT_LIMITS,
@@ -26,7 +27,7 @@ export class WorkerExportWorkflow {
     private readonly renderer: RendererProvenance,
     private readonly clock: () => Date = () => new Date(),
   ) {}
-  async begin(raw: unknown) {
+  async begin(raw: unknown): ReturnType<WorkerExportOperations["begin"]> {
     const input = beginWorkerExportSchema.parse(raw);
     return this.jobs.transaction(this.clock, async (transaction, now) => {
       const { row, created, source } = await transaction.reserve(
@@ -86,7 +87,7 @@ export class WorkerExportWorkflow {
     transaction: WorkerExportTransactionPort,
     job: WorkerExportJob,
     now: Date,
-  ) {
+  ): ReturnType<WorkerExportOperations["status"]> {
     const artifact =
       job.state === "COMPLETED" ? await transaction.artifact(job) : undefined;
     const available =
@@ -111,7 +112,7 @@ export class WorkerExportWorkflow {
     });
   }
 
-  async status(raw: unknown) {
+  async status(raw: unknown): ReturnType<WorkerExportOperations["status"]> {
     const input = workerExportCapabilitySchema.parse(raw);
     return this.jobs.transaction(this.clock, async (transaction, now) =>
       this.snapshot(
@@ -122,7 +123,10 @@ export class WorkerExportWorkflow {
     );
   }
 
-  async complete(raw: unknown, uploaded?: Uint8Array) {
+  async complete(
+    raw: unknown,
+    uploaded?: Uint8Array,
+  ): ReturnType<WorkerExportOperations["complete"]> {
     const input = completeWorkerExportSchema.parse(raw);
     const bytes = uploaded === undefined ? undefined : Buffer.from(uploaded);
     if (
@@ -199,7 +203,7 @@ export class WorkerExportWorkflow {
     });
   }
 
-  async cancel(raw: unknown) {
+  async cancel(raw: unknown): ReturnType<WorkerExportOperations["cancel"]> {
     const input = workerExportCapabilitySchema.parse(raw);
     return this.jobs.transaction(this.clock, async (transaction, now) => {
       const job = await transaction.find(input, sha256(input.token), now);

@@ -1,3 +1,4 @@
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { isBrowserRendererProvenance } from "@theoryfoundry/contracts";
 import { createCadMcpServer } from "@theoryfoundry/mcp";
 import {
@@ -17,7 +18,7 @@ import { PostgresModelPreviewService } from "./modelPreview.composition.js";
 export async function createRemoteCadMcpServer(
   ownerId: string,
   signal: AbortSignal,
-) {
+): Promise<McpServer> {
   const pool = getProjectDatabase().pool;
   const jobs = new RemoteRenderJobsRepository(pool, ownerId);
   await jobs.recover();
@@ -53,7 +54,7 @@ export async function claimConfiguredRemoteRender(
   ownerId: string,
   projectId: string,
   sessionId: string,
-) {
+): ReturnType<typeof claimRemoteBrowserRender> {
   return claimRemoteBrowserRender(
     new RemoteRenderJobsRepository(getProjectDatabase().pool, ownerId),
     projectId,

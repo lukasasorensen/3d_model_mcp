@@ -22,8 +22,9 @@ export function createObservedReadinessProbe(
   dependencies: { createId?: () => string; clock?: () => Date } = {},
 ): () => Promise<{ status: "ready"; profile: "browser-wasm" }> {
   const evidence = observability.createRequestSink();
-  const createId = dependencies.createId ?? (() => `readiness-${randomUUID()}`);
-  const clock = dependencies.clock ?? (() => new Date());
+  const createId =
+    dependencies.createId ?? ((): string => `readiness-${randomUUID()}`);
+  const clock = dependencies.clock ?? ((): Date => new Date());
   return async () => {
     const requestId = createId();
     const timestamp = clock().toISOString();

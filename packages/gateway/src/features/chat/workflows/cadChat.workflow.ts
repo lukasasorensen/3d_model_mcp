@@ -35,11 +35,12 @@ export async function* streamCadChat(
   signal?: AbortSignal,
 ): AsyncGenerator<ChatEvent> {
   const requestId = (options.createId ?? randomUUID)();
-  const clock = options.clock ?? (() => new Date());
+  const clock = options.clock ?? ((): Date => new Date());
   const observability = options.createObservabilitySink?.();
-  const observe = (event: ObservabilityEnvelope) =>
+  const observe = (event: ObservabilityEnvelope): void | undefined =>
     observability?.record(event);
-  const metric = (sample: MetricSample) => observability?.metric?.(sample);
+  const metric = (sample: MetricSample): void | undefined =>
+    observability?.metric?.(sample);
   observe({
     version: "1",
     timestamp: clock().toISOString(),
@@ -66,7 +67,7 @@ export async function* streamCadChat(
     clock,
     observability,
   );
-  const emit = (draft: EventDraft) => queue.emit(draft);
+  const emit = (draft: EventDraft): void => queue.emit(draft);
 
   const executionAbort = new AbortController();
   const timeout = AbortSignal.timeout(
@@ -81,7 +82,7 @@ export async function* streamCadChat(
       : [timeout, executionAbort.signal],
   );
 
-  const producer = (async () => {
+  const producer = (async (): Promise<void> => {
     try {
       let discovered: string[];
       try {
@@ -370,11 +371,11 @@ export async function* streamCadChat(
       );
       const outputPromise = Promise.resolve(run.output);
       void outputPromise.catch(() => undefined);
-      const protocolDrain = (async () => {
+      const protocolDrain = (async (): Promise<void> => {
         for await (const event of run) void event;
       })();
       void protocolDrain.catch(() => undefined);
-      const toolDrain = (async () => {
+      const toolDrain = (async (): Promise<void> => {
         for await (const call of run.toolCalls) {
           await Promise.allSettled([call.output, call.status, call.error]);
         }

@@ -13,7 +13,7 @@ export async function readWorkerBody(
   if (!request.body) throw new SyntaxError("Request body is required.");
   const signal = AbortSignal.any([request.signal, AbortSignal.timeout(readMs)]);
   const reader = request.body.getReader();
-  const abort = () => {
+  const abort = (): void => {
     void reader.cancel().catch(() => undefined);
   };
   signal.addEventListener("abort", abort, { once: true });

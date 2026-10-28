@@ -12,8 +12,9 @@ function delay(milliseconds: number, signal?: AbortSignal): Promise<void> {
       reject(new CadDomainError("CANCELLED", "Operation cancelled."));
       return;
     }
-    const cleanup = () => signal?.removeEventListener("abort", onAbort);
-    const onAbort = () => {
+    const cleanup = (): void | undefined =>
+      signal?.removeEventListener("abort", onAbort);
+    const onAbort = (): void => {
       clearTimeout(timer);
       cleanup();
       reject(new CadDomainError("CANCELLED", "Operation cancelled."));
@@ -35,7 +36,7 @@ export class FileProjectLocks {
     private readonly files: DurableFiles,
   ) {
     this.paths = new FileProjectPaths(options);
-    this.clock = options.clock ?? (() => new Date());
+    this.clock = options.clock ?? ((): Date => new Date());
     this.lockTimeoutMs = options.lockTimeoutMs ?? 5000;
     this.lockStaleMs = options.lockStaleMs ?? 120000;
   }

@@ -1,6 +1,6 @@
+import type { Box3 } from "three";
 import {
   AmbientLight,
-  Box3,
   Color,
   DirectionalLight,
   Mesh,
