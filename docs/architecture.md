@@ -11,8 +11,9 @@ Next.js/React UI -> v3 NDJSON gateway -> LangChain createAgent
 The default standalone MCP transport is stdio. `connectCadMcpStdio` keeps protocol
 frames on stdout, while operator diagnostics use stderr. The combined app may use
 the official SDK's linked in-memory transport without bypassing MCP negotiation or
-tool schemas. Browser code imports only `@theoryfoundry/contracts`; package-boundary checks
-reject Node, provider, MCP-server, repository, and renderer imports.
+tool schemas. Browser code imports browser-safe contracts and `@theoryfoundry/browser-renderer`.
+Package and client-graph checks reject Node, provider, MCP-server, persistence and
+server-only renderer implementations.
 
 For local Codex testing, the standalone MCP process and Next.js process share a
 `DATABASE_URL`; the trusted stdio process is explicitly bound with `THEORYFOUNDRY_ACTOR_USER_ID`.
@@ -27,7 +28,7 @@ No shared filesystem directory is required. See [Project live updates](project-l
 for notification delivery and reconnect behavior.
 
 `projects.current_revision_id` and its immutable revision row are authoritative. A candidate
-must move through `CREATED -> RUNNING -> VALID -> PROMOTED`. Promotion rechecks the
+uses separate validation attempts before becoming `VALID` and then `PROMOTED`. Promotion rechecks the
 parent while holding a PostgreSQL row lock and advances current in the same transaction
 that publishes source and manifest metadata. Rejected, cancelled, malformed,
 oversized, or stale candidates never replace the last-known-valid revision. Restore
@@ -41,7 +42,9 @@ accept a completion without weakening one-time validation.
 
 OpenSCAD source is the canonical model. The browser compiles the exact source hash to
 an ephemeral STL preview or 3MF download using pinned OpenSCAD WASM and BOSL2 assets.
-Mesh bytes are never uploaded or stored by the server.
+Normal viewer meshes remain local. Requested MCP exports upload bounded STL/3MF
+bytes to private temporary server storage; validated receipts and expiring download
+links are described in [CAD operations](cad-operations.md).
 
 ## Profiles
 
@@ -53,7 +56,8 @@ Mesh bytes are never uploaded or stored by the server.
   STL and 3MF for integration tests. Its name and tessellation metadata say
   `test-only`; it proves cross-layer contracts, not browser OpenSCAD execution.
 
-HTTP MCP, sharing/collaboration, arbitrary mesh upload/editing, generic
+Opt-in HTTP MCP uses OAuth and the same owner-scoped capabilities; see
+[MCP clients](mcp-clients.md). Sharing/collaboration, arbitrary mesh upload/editing, generic
 shell/file tools, live-provider selection, and engineering/manufacturing approval
 are outside this MVP.
 

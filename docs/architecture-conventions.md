@@ -4,7 +4,7 @@ This is the target adopted from `pnpm-ts-template` at commit `26d3789`.
 The [product architecture](architecture.md) describes current behavior;
 [the migration plan](alignment-plan.md) distinguishes implemented checks from future work.
 Preserve workspace and deployment boundaries. Add meaningful domain or feature modules
-inside each owning package as that package migrates, not an empty copy of the template.
+inside each owning package, without empty template scaffolding.
 
 ## Dependencies must satisfy both boundaries
 
@@ -44,7 +44,8 @@ inside a matching folder (`controllers/createCandidate.controller.ts`). Addition
 existing roles such as `.schema.ts`, `.repository.ts`, `.renderer.ts`, `.component.ts`,
 `.hook.ts`, `.adapter.ts`, `.worker.ts`, `.client.ts`, `.fixture.mjs` and `.script.mjs`
 remain useful when the responsibility is explicit. Preserve framework route filenames,
-root configuration conventions and public indexes. New tests mirror source paths under
+root configuration conventions and public indexes. Root Next.js `.well-known` route
+handlers preserve standardized discovery URLs; this is not a general dot-folder allowance. New tests mirror source paths under
 the owning project's `tests/`, omitting `src/`, keeping the full implementation stem.
 Tests of built TypeScript may remain `.test.mjs`. Root tooling tests mirror `tooling/`.
 Integration scenarios should use a descriptive `.integration.test.*` name.
@@ -56,25 +57,20 @@ immutable Drizzle migration history, dependencies and build artifacts are exempt
 The installer retains its own reproducibility check. Exemptions are exact paths or
 known artifact directories, not arbitrary `.generated.*` suffixes.
 
-## Enforcement rollout
+## Enforcement
 
-Stage 1 checks formatting, role/layer naming, folder case, test placement and file length.
-Legacy exceptions are per-file records in `tooling/conventions/legacyBaseline.generated.json`:
+Both legacy baseline files must stay empty. The checkers reject nonempty current
+baselines even if the same exceptions exist at the comparison commit. Provenance
+(`version` and `sourceCommit`) remains for audit history; there is no regeneration
+command or bypass for new naming, placement, formatting, size or dependency debt.
 
-- `formatHash`: only the exact unformatted legacy content is accepted. Editing it requires
-  formatting and removing that field; new unformatted content is rejected.
-- `rules`: explicitly listed naming/placement violations. Remove each when resolved.
-- `maxLines`: the current physical count of an oversized file. It cannot increase; reduce
-  or remove it when the file shrinks. Reformatting may require splitting a file first.
+CI compares against the event's base commit; local checks use `origin/master`.
+Fetch first, or set `ALIGNMENT_BASE_REF` to the actual integration base. Missing
+history fails closed. Historical baseline policies still reject widened or
+retargeted records and support inspection of the original migration snapshots.
 
-CI compares the baseline to the event's base commit; local checks default to `origin/master`.
-Fetch first, or set `ALIGNMENT_BASE_REF` to the actual integration base. Missing history
-fails closed. Bootstrap is limited to `efd6b8fcf5b8d6a9b048a5830c8c53cd1e14271b`, and each
-initial exception must match a violation in that commit. There is no regeneration command.
-Do not reset or widen the baseline to make checks pass. Remove resolved fields and empty
-records, preserving `version` and `sourceCommit`. Stage 7 removes all legacy records.
-
-Existing package/browser boundary checks remain active. Stage 2 adds resolved,
-barrel-aware architecture enforcement, including workspace aliases, type-only imports,
-cycles, unresolved imports and module/layer restrictions. The checker enforces new violations while individually recorded legacy violations
-remain for later stages. See [enforcement details](architecture-enforcement.md).
+`pnpm verify` checks formatting without rewriting, naming and file size, resolved
+module/layer/barrel dependencies, browser bundles, package boundaries, tests and
+production builds. Source checks cover workspace aliases, type-only imports,
+cycles and unresolved imports. See [enforcement details](architecture-enforcement.md)
+and the [coverage inventory](test-coverage.md).

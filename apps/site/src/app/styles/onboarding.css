@@ -1,0 +1,30 @@
+/* Native dialog supplies focus containment, Escape dismissal, and focus restoration. */
+.codex-connect-dialog {
+  width: min(640px, calc(100vw - 32px));
+  max-height: 85vh;
+  overflow: auto;
+  border: 1px solid #59616b;
+  border-radius: 12px;
+  padding: 24px;
+  background: #171c23;
+  color: #f1f4f8;
+}
+.codex-connect-dialog::backdrop {
+  background: rgb(0 0 0 / 65%);
+}
+.codex-connect-dialog textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 8px 0 12px;
+  padding: 12px;
+  font: 12px/1.6 monospace;
+}
+.codex-connect-dialog pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.codex-connect-dialog button,
+.codex-connect-dialog select {
+  min-height: 44px;
+}

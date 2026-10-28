@@ -1,13 +1,13 @@
 # Workspace architecture enforcement
 
-Stage 2 ([THE-25](https://linear.app/theoryfoundry/issue/THE-25)) builds on
-Stage 1 merged in PR #12 at `3f1df4f`. Application source, SQL and runtime versions
-remain unchanged. The [target architecture](architecture-conventions.md) and
-[remaining stages](alignment-plan.md) still govern the structural migration.
+Stage 7 requires zero legacy architecture and convention records. Checks retain
+provenance and base-history validation, but no current exceptions are permitted.
+See [stage 7 evidence](final-alignment.md), [architecture conventions](architecture-conventions.md)
+and the [stage plan](alignment-plan.md). Historical stage counts below record the migration.
 
 ## Commands and implementation
 
-- `pnpm check:architecture` checks the resolved application graph and the shrinking
+- `pnpm check:architecture` checks the resolved application graph and requires an empty
   per-violation baseline. It runs inside `pnpm verify`, before package builds.
 - `pnpm test:architecture` runs architecture/baseline fixtures and the retained package
   boundary regressions. `pnpm test:tooling` recursively runs all root tooling tests,
@@ -55,12 +55,10 @@ React components may compose components/hooks; hooks may compose hooks and lower
 They are presentation adapters, not an exemption for importing server implementations.
 Next.js framework entries are composition boundaries. Other explicit `.composition` or
 `.factory` entries must be at the package source root; public indexes only re-export.
-The existing executable paths `packages/runtime/src/stdio-server.ts`,
-`provision-user.ts` and `provision-oauth-client.ts` are explicit composition entries: they
-own process startup and configured dependencies, and retain their operational filenames.
-Services and controllers still cannot import these entries or other composition modules.
-This narrow compatibility rule does not classify general legacy implementations as
-composition.
+Runtime launchers use root `stdioServer.composition.ts`, `provisionUser.composition.ts`
+and `provisionOAuthClient.composition.ts` entries. Public pnpm commands invoke their
+compiled paths; the old internal filenames and special classifier rules are removed.
+Services and controllers cannot import these or any other composition modules.
 
 Legacy flat files that lack a layer are individually recorded, not silently assigned a
 permissive layer. Folder-based module classification becomes more specific as stages

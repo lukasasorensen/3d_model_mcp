@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   inspectSource,
+  isExcluded,
   namingViolations,
   physicalLines,
 } from "../../../tooling/conventions/sourceConventions.policy.mjs";
@@ -71,6 +72,23 @@ test("exempts exact generated artifacts, not similarly named handwritten files",
     {},
   );
   assert.deepEqual(await inspectSource("pnpm-lock.yaml", source), {});
+  assert.equal(
+    isExcluded("apps/site/public/vendor/openscad/openscad.js"),
+    true,
+  );
+  assert.equal(
+    isExcluded("packages/runtime/model-project/drizzle/0000_schema.sql"),
+    true,
+  );
+  assert.equal(
+    isExcluded("packages/runtime/model-project/drizzle/meta/_journal.json"),
+    true,
+  );
+  assert.equal(
+    isExcluded("packages/runtime/model-project/drizzle/readSchema.util.ts"),
+    false,
+  );
+  assert.equal(isExcluded("src/vendor/readModel.service.ts"), false);
   await assert.rejects(inspectSource("tooling/example.generated.mjs", source));
   assert.ok(
     (await inspectSource("src/example.util.ts", "export const x=1")).formatHash,
@@ -80,4 +98,26 @@ test("exempts exact generated artifacts, not similarly named handwritten files",
       .formatHash,
     undefined,
   );
+});
+
+test("preserves root well-known route URLs without exempting ordinary folders", () => {
+  for (const route of [
+    "oauth-protected-resource",
+    "oauth-protected-resource/mcp",
+    "oauth-authorization-server/api/auth",
+  ]) {
+    assert.deepEqual(
+      namingViolations(`apps/site/src/app/.well-known/${route}/route.ts`),
+      [],
+    );
+  }
+  for (const file of [
+    "apps/site/src/features/.well-known/discovery.util.ts",
+    "apps/site/src/app/nested/.well-known/route.ts",
+    "apps/site/src/app/.well-known/discovery.util.ts",
+    "apps/site/src/app/.private/route.ts",
+    "apps/site/src/app/.well-known/BadFolder/route.ts",
+  ]) {
+    assert.ok(namingViolations(file).includes("folder"), file);
+  }
 });

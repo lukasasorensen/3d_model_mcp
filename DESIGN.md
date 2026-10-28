@@ -18,7 +18,7 @@
   - `.omx/plans/test-spec-3d-model-ai-chat.md` — UI race, disposal, accessibility, responsive, artifact-validation, performance, and end-to-end expectations.
   - `.omx/ultragoal/goals.json` and `.omx/ultragoal/brief.md` — G005 objective and the later G006 canonical-journey verification boundary; reviewed read-only.
   - `README.md` — current local-first product and credential-free mock-provider framing.
-  - `package.json`, `apps/site/package.json`, `apps/site/src/app/layout.tsx`, `apps/site/src/app/page.tsx`, `apps/site/src/app/styles.css`, and `apps/site/src/foundation.test.mjs` — current Next.js 15/React 18 shell, global CSS approach, dark foundation, teal accent, and browser-safe contract use.
+  - `package.json`, `apps/site/package.json`, `apps/site/src/app/layout.tsx`, `apps/site/src/app/page.tsx`, `apps/site/src/app/styles.css`, and `apps/site/tests/foundation.integration.test.mjs` — current Next.js 15/React 18 shell, global CSS approach, dark foundation, teal accent, and browser-safe contract use.
   - `apps/site/src/app/v1/chat/route.ts`, `packages/contracts/src/index.ts`, and `packages/gateway/src/orchestrator.ts` — strict request shape and authoritative assistant, tool, candidate, revision, artifact, error, and done events.
   - Git history and asset scan — one initial commit; no existing logo, illustration, font, screenshot, Storybook story, or visual-regression baseline was found. The current application UI is a temporary centered placeholder.
 - **Observed facts vs design decisions:** File paths, contracts, limits, current dependencies, and acceptance criteria above are observed. The visual system, component composition, breakpoint behavior, keyboard model, and content rules below are design decisions for G005. Items explicitly labeled **Assumption** remain revisable without weakening the binding product contract.
@@ -112,24 +112,25 @@
 
 - **Color:** Extend the existing dark foundation and mint accent into a cohesive non-gradient system. Recommended semantic tokens:
 
-  | Token | Value | Use |
-  | --- | --- | --- |
-  | `--canvas` | `#0A0D0C` | Browser background and viewer void |
-  | `--surface-1` | `#111614` | Main panels |
-  | `--surface-2` | `#18201C` | Controls, composer, raised activity |
-  | `--surface-3` | `#202B25` | Hover/selected neutral surfaces |
-  | `--line` | `#34423A` | Boundaries and inactive grid |
+  | Token           | Value     | Use                                           |
+  | --------------- | --------- | --------------------------------------------- |
+  | `--canvas`      | `#0A0D0C` | Browser background and viewer void            |
+  | `--surface-1`   | `#111614` | Main panels                                   |
+  | `--surface-2`   | `#18201C` | Controls, composer, raised activity           |
+  | `--surface-3`   | `#202B25` | Hover/selected neutral surfaces               |
+  | `--line`        | `#34423A` | Boundaries and inactive grid                  |
   | `--line-strong` | `#52665A` | Focus-adjacent boundaries and active dividers |
-  | `--text` | `#F1EFE6` | Primary text |
-  | `--text-muted` | `#A8B3AB` | Secondary text; verify 4.5:1 on its surface |
-  | `--mint` | `#68D8C4` | Interactive/focus and verified-preview accent |
-  | `--amber` | `#F2B84B` | Current revision and active-work accent |
-  | `--success` | `#82D99B` | Completed/validated state |
-  | `--danger` | `#FF7669` | Rejected/error state |
-  | `--warning` | `#F5C66A` | Time/resource warning |
-  | `--model` | `#DDE5DD` | Primary model material |
+  | `--text`        | `#F1EFE6` | Primary text                                  |
+  | `--text-muted`  | `#A8B3AB` | Secondary text; verify 4.5:1 on its surface   |
+  | `--mint`        | `#68D8C4` | Interactive/focus and verified-preview accent |
+  | `--amber`       | `#F2B84B` | Current revision and active-work accent       |
+  | `--success`     | `#82D99B` | Completed/validated state                     |
+  | `--danger`      | `#FF7669` | Rejected/error state                          |
+  | `--warning`     | `#F5C66A` | Time/resource warning                         |
+  | `--model`       | `#DDE5DD` | Primary model material                        |
 
   Do not encode status by color alone. Use icon, label, and position. Avoid broad accent-filled backgrounds; accents work best as 1–2 px rails, focus rings, status dots, and small button fills.
+
 - **Typography:** Use **Barlow Semi Condensed** (500/600/700) for interface headings and concise labels, and **IBM Plex Mono** (400/500) for dimensions, revisions, hashes, timers, and tool details. Use a readable humanist fallback only until local WOFF2 assets are approved and vendored. Do not retain Inter as the intentional brand face. Subset and self-host fonts through `next/font/local` so offline/local builds do not fetch remote assets; include license notices before public distribution.
 - **Type scale:** `12/16` metadata, `14/20` interface copy, `16/24` chat/body, `20/24` section title, `28/32` empty-state title. Monospace identifiers should not exceed 13 px by default and must truncate in the middle with full value available to assistive tech/copy affordance.
 - **Spacing/layout rhythm:** 4 px base; primary spacing steps `4, 8, 12, 16, 24, 32, 48`. Panel padding is 16 px at narrow widths and 20–24 px on desktop. Viewer controls use 8 px gaps; chat turns use 20–24 px vertical separation. Avoid card nesting deeper than two visual surfaces.
@@ -143,21 +144,21 @@
 - **Existing components to reuse:** No reusable UI components currently exist. Reuse `RootLayout`, the global stylesheet entry, the browser-safe `@theoryfoundry/contracts` exports, and the existing secure `/v1/chat` route. Preserve the repository's small, package-native component style rather than importing an unrelated design-system layer.
 - **New/changed components:**
 
-  | Component | Responsibility | Key variants/states |
-  | --- | --- | --- |
-  | `ModelWorkspace` | Owns page composition and shared UI state derived from events | blank, ready, generating, recoverable error |
-  | `AppHeader` | TheoryFoundry identity, local/demo label, system readiness disclosure | ready, limited/mock, renderer unavailable |
-  | `ModelViewer` | Loads and validates the current STL, manages camera and GPU disposal | empty, loading-first, updating-with-current, ready, artifact error, WebGL unavailable |
-  | `ViewerToolbar` | Orbit help, fit, reset, zoom, and accessible keyboard entry/exit | default, keyboard-focused, disabled |
-  | `ModelFacts` | Current revision, bounds/dimensions, units, format, artifact size/hash disclosure | blank, current, stale-loading, unavailable |
-  | `RevisionRail` | Connects current viewer revision to history/activity | no revision, current, promoting, restored |
-  | `ChatPane` | Transcript, grouped activity, terminal state, composer | empty, streaming, failed, complete, cancelled |
-  | `ChatTurn` | User request and assistant response | user, assistant-streaming, assistant-complete |
-  | `ToolActivity` | Plain-language ordered summary of tool/revision events | running, success, rejected, cancelled, expandable details |
-  | `ChatComposer` | Request entry, starter prompts, send/cancel behavior | empty, ready, submitting, streaming, disabled |
-  | `RevisionHistory` | Lists immutable revisions and restores one as a new child | current, historical, restore-pending, restore-failed |
-  | `ExportAction` | Requests/downloads validated 3MF for the current revision | unavailable, ready, preparing, success, failed |
-  | `StatusNotice` | Inline recoverable error, warning, or system limitation | info, warning, error, success |
+  | Component         | Responsibility                                                                    | Key variants/states                                                                   |
+  | ----------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+  | `ModelWorkspace`  | Owns page composition and shared UI state derived from events                     | blank, ready, generating, recoverable error                                           |
+  | `AppHeader`       | TheoryFoundry identity, local/demo label, system readiness disclosure             | ready, limited/mock, renderer unavailable                                             |
+  | `ModelViewer`     | Loads and validates the current STL, manages camera and GPU disposal              | empty, loading-first, updating-with-current, ready, artifact error, WebGL unavailable |
+  | `ViewerToolbar`   | Orbit help, fit, reset, zoom, and accessible keyboard entry/exit                  | default, keyboard-focused, disabled                                                   |
+  | `ModelFacts`      | Current revision, bounds/dimensions, units, format, artifact size/hash disclosure | blank, current, stale-loading, unavailable                                            |
+  | `RevisionRail`    | Connects current viewer revision to history/activity                              | no revision, current, promoting, restored                                             |
+  | `ChatPane`        | Transcript, grouped activity, terminal state, composer                            | empty, streaming, failed, complete, cancelled                                         |
+  | `ChatTurn`        | User request and assistant response                                               | user, assistant-streaming, assistant-complete                                         |
+  | `ToolActivity`    | Plain-language ordered summary of tool/revision events                            | running, success, rejected, cancelled, expandable details                             |
+  | `ChatComposer`    | Request entry, starter prompts, send/cancel behavior                              | empty, ready, submitting, streaming, disabled                                         |
+  | `RevisionHistory` | Lists immutable revisions and restores one as a new child                         | current, historical, restore-pending, restore-failed                                  |
+  | `ExportAction`    | Requests/downloads validated 3MF for the current revision                         | unavailable, ready, preparing, success, failed                                        |
+  | `StatusNotice`    | Inline recoverable error, warning, or system limitation                           | info, warning, error, success                                                         |
 
 - **Variants and states:**
   - Tool names map to user language: `get_project_state` → “Checking project,” `read_model_source` → “Reading current model,” `propose_model_source` → “Drafting a revision,” `validate_and_render` → “Validating and rendering,” `promote_candidate` → “Making revision current,” `export_model` → “Preparing 3MF,” `list_revisions` → “Loading history,” `restore_revision` → “Restoring as a new revision.” Raw names remain available in details.
@@ -166,8 +167,8 @@
   - History labels revisions sequentially for scanning (`R1`, `R2`, `R3`) while retaining the opaque canonical ID in details. “Restore” creates and focuses a new revision; never label it “Revert to old current.”
   - Export is enabled only for a current revision with a validated 3MF artifact matching that revision. Preview STL is never labeled the fabrication export.
 - **Token/component ownership:**
-  - CSS custom properties and global resets belong in `apps/site/src/app/styles.css` until multiple themes or packages justify a separate token layer.
-  - Workspace components belong under `apps/site/src/components/`; browser-only stream/viewer utilities belong under `apps/site/src/lib/`.
+  - CSS custom properties and global resets belong in `apps/site/src/app/styles/foundation.css`; `styles.css` composes the ordered global stylesheets.
+  - Workspace presentation belongs under `apps/site/src/features/workspace/browser/`; chat, preview, authentication and onboarding own their browser components, hooks and utilities. Import browser public indexes separately from server feature indexes.
   - Event schemas, limits, event names, revision/artifact meanings, and public error codes remain owned by `packages/contracts`; do not duplicate them as UI-only enums.
   - Gateway/MCP/runtime packages own agent, tool, and renderer truth. UI components may format state but must not infer or fabricate domain transitions.
   - Three/R3F objects, abort controllers, geometry/material disposal, camera state, and WebGL fallback belong inside the viewer boundary rather than page composition.

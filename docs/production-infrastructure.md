@@ -228,12 +228,12 @@ A production audit should capture `docker compose ps`, sanitized resolved Compos
 
 Application sources:
 
-- [`README.md`](../README.md) — runtime profiles, remote MCP behavior, deadlines, token lifetimes, and deployment boundary.
+- [MCP client setup](mcp-clients.md) and [CAD operations](cad-operations.md) — remote MCP behavior, deadlines, token lifetimes, exports and deployment boundaries.
 - [`docs/architecture.md`](architecture.md) — trust path, revision invariant, renderer model, and persistence semantics.
 - [`packages/runtime/src/configuredRuntime.composition.ts`](../packages/runtime/src/configuredRuntime.composition.ts) — per-owner combined runtime, in-memory MCP client, repository, and readiness.
 - [`packages/runtime/src/features/mcp/controllers/remoteMcp.controller.ts`](../packages/runtime/src/features/mcp/controllers/remoteMcp.controller.ts) — authenticated Streamable HTTP MCP endpoint and 90-second deadline.
 - [`packages/runtime/src/features/browser-rendering/workflows/remoteBrowserRender.workflow.ts`](../packages/runtime/src/features/browser-rendering/workflows/remoteBrowserRender.workflow.ts) — database-backed remote render handoff.
-- [`apps/site/src/lib/openscad.worker.ts`](../apps/site/src/lib/openscad.worker.ts) — checksum-verified browser assets and Web Worker execution.
+- [`apps/site/src/openScadWorker.composition.ts`](../apps/site/src/openScadWorker.composition.ts) — checksum-verified browser assets and Web Worker execution.
 - [`apps/site/src/app/v1/browser-renders/[jobId]/route.ts`](../apps/site/src/app/v1/browser-renders/%5BjobId%5D/route.ts) — authenticated, session-bound completion endpoint.
 
 Deployment sources (sibling private bundle):

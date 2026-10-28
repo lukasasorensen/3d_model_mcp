@@ -1,0 +1,223 @@
+.model-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--line);
+}
+.model-facts > div {
+  min-width: 0;
+  padding: 10px 12px;
+  border-right: 1px solid var(--line);
+}
+.model-facts > div:last-child {
+  border-right: 0;
+}
+.model-facts span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+.model-facts strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+.model-source-panel {
+  color: var(--text-muted);
+}
+.model-source-panel summary {
+  width: fit-content;
+  min-height: 32px;
+  padding: 7px 2px;
+  cursor: pointer;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+.model-source-panel summary::marker {
+  color: var(--text-muted);
+}
+.model-source-panel[open] summary {
+  color: var(--text);
+}
+.model-source-content {
+  padding: 5px 0 2px 14px;
+  border-left: 1px solid var(--line);
+}
+.model-source-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+.model-source-heading h2 {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.model-source-heading small {
+  color: var(--text-muted);
+  font: 0.68rem monospace;
+}
+.model-source-content > p {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+.model-source-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  color: var(--text-muted);
+  font: 0.68rem monospace;
+  text-transform: uppercase;
+}
+.model-source-meta code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none;
+}
+.model-source-content pre {
+  max-height: min(38vh, 420px);
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: var(--canvas);
+  color: var(--model);
+  font:
+    0.78rem/1.55 "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+  tab-size: 2;
+  white-space: pre;
+}
+.model-actions {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.export-controls {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+.export-controls label {
+  width: 100%;
+  color: var(--text-muted);
+  text-align: right;
+  font-size: 0.72rem;
+}
+.revision-history {
+  flex: 1;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.revision-history summary {
+  min-height: 44px;
+  padding: 11px 12px;
+  cursor: pointer;
+}
+.revision-history summary span {
+  float: right;
+  color: var(--text-muted);
+}
+.revision-history > p {
+  padding: 12px;
+  color: var(--text-muted);
+}
+.revision-history ol {
+  max-height: 230px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.revision-history li {
+  padding: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.revision-history li:last-child {
+  border-bottom: 0;
+}
+.revision-selected {
+  border-left: 2px solid var(--mint);
+}
+.revision-select {
+  width: 100%;
+  min-height: 52px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 9px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+}
+.revision-select span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+.revision-select code {
+  grid-column: 1 / -1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+  font-size: 0.67rem;
+}
+.restore-button {
+  width: 100%;
+  margin-top: 5px;
+  border: 1px solid var(--line);
+  background: var(--surface-3);
+}
+.export-button,
+.button-primary {
+  padding: 10px 16px;
+  border: 1px solid var(--mint);
+  border-radius: 4px;
+  background: var(--mint);
+  color: #07110e;
+  font-weight: 700;
+}
+.export-button {
+  white-space: nowrap;
+}
+.button-danger {
+  padding: 10px 16px;
+  border: 1px solid var(--danger);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--danger);
+}
+.action-help {
+  color: var(--text-muted);
+  font: 0.72rem monospace;
+}
+.notice,
+.global-notice {
+  padding: 9px 11px;
+  border-left: 2px solid var(--mint);
+  background: var(--surface-2);
+  font-size: 0.82rem;
+}
+.notice-error,
+.global-notice {
+  border-color: var(--danger);
+}
+.notice-success {
+  border-color: var(--success);
+}
+.global-notice {
+  position: fixed;
+  z-index: 20;
+  right: 18px;
+  bottom: 18px;
+  max-width: min(420px, calc(100vw - 36px));
+  box-shadow: var(--shadow);
+}

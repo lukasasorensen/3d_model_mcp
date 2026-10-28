@@ -106,7 +106,7 @@ test("local CLI environment loading preserves overrides, literal secrets, and ca
 
 test("standalone MCP shutdown closes its PostgreSQL pool on normal and failed startup", async () => {
   const source = await readFile(
-    new URL("../src/stdio-server.ts", import.meta.url),
+    new URL("../src/stdioServer.composition.ts", import.meta.url),
     "utf8",
   );
   assert.equal(source.match(/database\.close\(\)/g)?.length, 2);

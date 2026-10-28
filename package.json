@@ -12,7 +12,7 @@
     "dev": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/site dev",
     "dev:site": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/site dev",
     "mcp:build": "pnpm build:packages",
-    "mcp:serve": "dotenv --no-expand -e apps/site/.env.local -- node packages/runtime/dist/stdio-server.js",
+    "mcp:serve": "dotenv --no-expand -e apps/site/.env.local -- node packages/runtime/dist/stdioServer.composition.js",
     "db:start": "dotenv --no-expand -e apps/site/.env.local -- docker compose -f compose.local.yaml up --wait --wait-timeout 60 postgres",
     "db:stop": "dotenv --no-expand -e apps/site/.env.local -- docker compose -f compose.local.yaml stop postgres",
     "db:logs": "dotenv --no-expand -e apps/site/.env.local -- docker compose -f compose.local.yaml logs --follow postgres",

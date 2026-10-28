@@ -70,16 +70,16 @@ Enter these in the Coolify resource. They are runtime values passed explicitly
 by Compose, not Docker build arguments. Do not upload `apps/site/.env.local` or
 commit a production environment file.
 
-| Variable | Value |
-| --- | --- |
-| `POSTGRES_USER` | `theoryfoundry` by default |
-| `POSTGRES_DB` | `theoryfoundry` by default |
-| `POSTGRES_PASSWORD` | Required; generate with `openssl rand -hex 32` |
-| `BETTER_AUTH_SECRET` | Required; generate with `openssl rand -hex 32` for a new installation; preserve the existing value when migrating |
-| `BETTER_AUTH_URL` | Exact public HTTPS origin, such as `https://cad.example.com` |
-| `THEORYFOUNDRY_ALLOWED_ORIGIN` | Same exact origin as `BETTER_AUTH_URL` |
-| `THEORYFOUNDRY_REMOTE_MCP_ENABLED` | `0` initially; enable after OAuth client provisioning |
-| `THEORYFOUNDRY_DATABASE_POOL_MAX` | `5` by default |
+| Variable                           | Value                                                                                                             |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `POSTGRES_USER`                    | `theoryfoundry` by default                                                                                        |
+| `POSTGRES_DB`                      | `theoryfoundry` by default                                                                                        |
+| `POSTGRES_PASSWORD`                | Required; generate with `openssl rand -hex 32`                                                                    |
+| `BETTER_AUTH_SECRET`               | Required; generate with `openssl rand -hex 32` for a new installation; preserve the existing value when migrating |
+| `BETTER_AUTH_URL`                  | Exact public HTTPS origin, such as `https://cad.example.com`                                                      |
+| `THEORYFOUNDRY_ALLOWED_ORIGIN`     | Same exact origin as `BETTER_AUTH_URL`                                                                            |
+| `THEORYFOUNDRY_REMOTE_MCP_ENABLED` | `0` initially; enable after OAuth client provisioning                                                             |
+| `THEORYFOUNDRY_DATABASE_POOL_MAX`  | `5` by default                                                                                                    |
 
 Compose constructs `DATABASE_URL` with the internal hostname `postgres`. Use a
 hexadecimal database password so it is safe in a connection URL without escaping.

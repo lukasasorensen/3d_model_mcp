@@ -77,28 +77,16 @@ export function describeSource(workspace, absolute) {
     /^(page|layout|route|loading|error|not-found|global-error|default|template)\.[jt]sx?$/.test(
       name,
     );
-  // Existing executable launchers retain their operational paths.
-  const hostComposition = new Set([
-    "packages/runtime/src/stdio-server.ts",
-    "packages/runtime/src/provision-user.ts",
-    "packages/runtime/src/provision-oauth-client.ts",
-  ]).has(file);
-  let layer =
-    framework || hostComposition
-      ? "composition"
-      : /^index\.[cm]?[jt]s$/.test(name)
-        ? "barrel"
-        : (roles[role] ??
-          parts
-            .slice(0, -1)
-            .map((part) => layers[part])
-            .findLast(Boolean));
-  if (
-    layer === "composition" &&
-    !framework &&
-    !hostComposition &&
-    parts.length !== 1
-  )
+  let layer = framework
+    ? "composition"
+    : /^index\.[cm]?[jt]s$/.test(name)
+      ? "barrel"
+      : (roles[role] ??
+        parts
+          .slice(0, -1)
+          .map((part) => layers[part])
+          .findLast(Boolean));
+  if (layer === "composition" && !framework && parts.length !== 1)
     layer = undefined;
   return { project, file, local, area, module, layer, test: isTest(file) };
 }

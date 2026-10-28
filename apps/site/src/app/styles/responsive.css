@@ -1,0 +1,176 @@
+@media (max-width: 1279px) {
+  .workspace-grid {
+    grid-template-columns: minmax(520px, 1.38fr) minmax(380px, 1fr);
+  }
+  .model-facts {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .model-facts > div:nth-child(2) {
+    border-right: 0;
+  }
+  .model-facts > div:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 1023px) {
+  .app-shell {
+    overflow: visible;
+  }
+  .workspace-grid {
+    display: block;
+  }
+  .workspace-grid.chat-collapsed {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 68px;
+  }
+  .workspace-grid.chat-collapsed .model-pane {
+    border-right: 1px solid var(--line);
+    border-bottom: 0;
+  }
+  .model-pane {
+    min-height: 52svh;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .model-pane > .viewer-shell,
+  .model-pane > .viewer-loading {
+    flex-basis: auto;
+  }
+  .viewer-shell {
+    height: 42svh;
+    min-height: 320px;
+  }
+  .chat-pane {
+    min-height: 680px;
+  }
+  .chat-pane.is-collapsed {
+    min-height: 0;
+  }
+  .transcript {
+    max-height: 62svh;
+  }
+  .composer {
+    position: sticky;
+    bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-header {
+    align-items: flex-start;
+    padding: 10px 12px;
+  }
+  .header-controls {
+    display: grid;
+    gap: 6px;
+    justify-items: end;
+  }
+  .brand-mark small,
+  .header-status code {
+    display: none;
+  }
+  .header-status {
+    max-width: 130px;
+    justify-content: flex-end;
+    text-align: right;
+  }
+  .model-pane {
+    padding: 12px;
+  }
+  .pane-heading {
+    align-items: flex-start;
+  }
+  .revision-badges {
+    max-width: 150px;
+  }
+  .viewer-shell,
+  .viewer-loading {
+    height: 42svh;
+    min-height: 300px;
+  }
+  .viewer-toolbar {
+    left: 8px;
+    right: 8px;
+    overflow-x: auto;
+  }
+  .viewer-toolbar button {
+    flex: 0 0 auto;
+  }
+  .viewer-help {
+    max-width: calc(100% - 20px);
+  }
+  .model-actions {
+    display: grid;
+  }
+  .export-controls,
+  .export-button {
+    width: 100%;
+  }
+  .export-controls label {
+    text-align: left;
+  }
+  .export-controls select {
+    flex: 1;
+  }
+  .workspace-grid.chat-collapsed {
+    display: block;
+  }
+  .workspace-grid.chat-collapsed .model-pane {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .chat-pane.is-collapsed > .pane-heading {
+    height: auto;
+    justify-content: flex-end;
+  }
+  .chat-pane.is-collapsed .chat-toggle {
+    width: auto;
+    padding: 9px 12px;
+  }
+  .chat-pane > .pane-heading,
+  .transcript,
+  .composer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .revision-rail span,
+  button {
+    transition:
+      width 180ms ease,
+      border-color 120ms ease,
+      background-color 120ms ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .empty-model span {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  button,
+  textarea,
+  select,
+  .viewer-shell,
+  .model-facts,
+  .revision-history {
+    border: 1px solid CanvasText;
+  }
+  .readiness-dot,
+  .revision-rail span {
+    forced-color-adjust: none;
+  }
+}

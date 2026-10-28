@@ -14,14 +14,16 @@ export function isExcluded(file) {
     file === "tooling/architecture/legacyArchitecture.generated.json" ||
     file === "apps/site/public/installers/connect-codex-v1.mjs" ||
     file === "apps/site/next-env.d.ts" ||
-    file.startsWith("packages/runtime/model-project/drizzle/") ||
+    /^packages\/runtime\/model-project\/drizzle\/(?:[0-9]{4}_[^/]+\.sql|meta\/(?:[0-9]{4}_snapshot|_journal)\.json)$/.test(
+      file,
+    ) ||
+    file.startsWith("apps/site/public/vendor/") ||
     file
       .split("/")
       .some(
         (part) =>
-          ["node_modules", "dist", "coverage", "vendor", ".git"].includes(
-            part,
-          ) || part.startsWith(".next"),
+          ["node_modules", "dist", "coverage", ".git"].includes(part) ||
+          part.startsWith(".next"),
       )
   );
 }
@@ -59,11 +61,15 @@ export function namingViolations(file) {
       .split("/")
       .slice(0, -1)
       .some(
-        (part) =>
+        (part, index) =>
           !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(part) &&
           !(
             file.startsWith("apps/site/src/app/") &&
-            /^(?:\[.*\]|\(.*\)|@.*)$/.test(part)
+            (/^(?:\[.*\]|\(.*\)|@.*)$/.test(part) ||
+              (framework &&
+                name === "route.ts" &&
+                index === 4 &&
+                part === ".well-known"))
           ),
       )
   )
