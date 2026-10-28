@@ -14,7 +14,7 @@ import {
 } from "./configured-runtime.js";
 import { getProjectDatabase } from "./database.composition.js";
 import { LocalBrowserRenderer } from "./localBrowserRenderer.composition.js";
-import { createInMemoryCadMcpClient } from "./mcp-client.js";
+import { createInMemoryCadMcpClient } from "./mcpClient.composition.js";
 import { RuntimeObservabilityStore } from "./observability.js";
 async function createConfiguredCadRuntime(
   ownerId: string,

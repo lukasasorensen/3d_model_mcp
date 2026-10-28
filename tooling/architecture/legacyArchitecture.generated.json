@@ -563,118 +563,6 @@
       "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
     },
     {
-      "file": "packages/gateway/src/cad-client.ts",
-      "rule": "layer-boundary",
-      "target": "packages/mcp/src/tools.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/gateway/src/cad-client.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "packages/gateway/src/http.ts",
-      "rule": "layer-boundary",
-      "target": "packages/gateway/src/orchestrator.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/gateway/src/http.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "packages/gateway/src/index.ts",
-      "rule": "barrel-logic",
-      "target": "",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve barrel-logic in the owning migration stage."
-    },
-    {
-      "file": "packages/gateway/src/orchestrator.ts",
-      "rule": "layer-boundary",
-      "target": "packages/gateway/src/cad-client.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/gateway/src/orchestrator.ts",
-      "rule": "layer-boundary",
-      "target": "packages/gateway/src/provider.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/gateway/src/orchestrator.ts",
-      "rule": "layer-boundary",
-      "target": "packages/mcp/src/tools.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/gateway/src/orchestrator.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "packages/gateway/src/provider.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "packages/mcp/src/index.ts",
-      "rule": "barrel-logic",
-      "target": "",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve barrel-logic in the owning migration stage."
-    },
-    {
-      "file": "packages/mcp/src/mcp-adapter.ts",
-      "rule": "layer-boundary",
-      "target": "packages/mcp/src/model-preview-tool.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/mcp/src/mcp-adapter.ts",
-      "rule": "layer-boundary",
-      "target": "packages/mcp/src/tools.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/mcp/src/mcp-adapter.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "packages/mcp/src/model-preview-tool.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "packages/mcp/src/tools.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
       "file": "packages/runtime/src/abortable-mcp-request.ts",
       "rule": "unknown-layer",
       "target": "",
@@ -740,13 +628,6 @@
     {
       "file": "packages/runtime/src/configured-runtime.ts",
       "rule": "layer-boundary",
-      "target": "packages/gateway/src/orchestrator.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/runtime/src/configured-runtime.ts",
-      "rule": "layer-boundary",
       "target": "packages/runtime/src/browser-renderer.ts",
       "owner": "THE-28",
       "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
@@ -755,13 +636,6 @@
       "file": "packages/runtime/src/configured-runtime.ts",
       "rule": "layer-boundary",
       "target": "packages/runtime/src/local-browser-renderer.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/runtime/src/configured-runtime.ts",
-      "rule": "layer-boundary",
-      "target": "packages/runtime/src/mcp-client.ts",
       "owner": "THE-28",
       "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
     },
@@ -837,34 +711,6 @@
     },
     {
       "file": "packages/runtime/src/local-browser-renderer.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "packages/runtime/src/mcp-client.ts",
-      "rule": "layer-boundary",
-      "target": "packages/gateway/src/cad-client.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/runtime/src/mcp-client.ts",
-      "rule": "layer-boundary",
-      "target": "packages/mcp/src/mcp-adapter.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/runtime/src/mcp-client.ts",
-      "rule": "layer-boundary",
-      "target": "packages/mcp/src/tools.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "packages/runtime/src/mcp-client.ts",
       "rule": "unknown-layer",
       "target": "",
       "owner": "THE-28",
@@ -1058,13 +904,6 @@
       "target": "",
       "owner": "THE-28",
       "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "packages/runtime/src/remote-mcp-http.ts",
-      "rule": "layer-boundary",
-      "target": "packages/gateway/src/orchestrator.ts",
-      "owner": "THE-28",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
     },
     {
       "file": "packages/runtime/src/remote-mcp-http.ts",

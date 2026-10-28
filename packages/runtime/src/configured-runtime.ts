@@ -6,8 +6,8 @@ import type { ProjectRepository } from "@theoryfoundry/model-project";
 import { randomUUID } from "node:crypto";
 
 import { PostgresBrowserRenderCoordinator } from "./browser-renderer.js";
+import { type ConnectedCadMcpClient } from "./features/mcp/index.js";
 import { LocalBrowserRenderer } from "./local-browser-renderer.js";
-import { type ConnectedCadMcpClient } from "./mcp-client.js";
 import { RuntimeObservabilityStore } from "./observability.js";
 
 export interface ConfiguredCadRuntime extends ChatOrchestratorOptions {
