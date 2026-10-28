@@ -7,7 +7,7 @@ import { authenticateRequest } from "./authentication.composition";
 import {
   exportRoute as createRoute,
   downloadExport as download,
-} from "./lib/export-routes";
+} from "./features/exports/index";
 const dependencies = {
   authenticate: authenticateRequest,
   createStore: (ownerId: string) =>

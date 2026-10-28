@@ -215,17 +215,6 @@
         "filename"
       ]
     },
-    "apps/site/src/lib/export-routes.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "apps/site/src/lib/local-mcp-browser-routes.ts": {
-      "formatHash": "f420c03be4759bb3dcf0519318dd6f4c23043564adabec0d85d04dffc43790c3",
-      "rules": [
-        "filename"
-      ]
-    },
     "apps/site/src/lib/model-preview-renderer.ts": {
       "formatHash": "2fd1d63683486d40a6848160d3049ffce69b7ebbd5d0e5ee498e2174d04ca1ee",
       "rules": [
@@ -241,11 +230,6 @@
     },
     "apps/site/src/lib/oauth-navigation.ts": {
       "formatHash": "d44849a83b4c91d8c8c106c87298979d4917ba2c70b7120abd6a63aaa8220e80",
-      "rules": [
-        "filename"
-      ]
-    },
-    "apps/site/src/lib/preview-routes.ts": {
       "rules": [
         "filename"
       ]
@@ -276,18 +260,6 @@
         "filename"
       ]
     },
-    "apps/site/src/lib/project-event-stream.test.ts": {
-      "formatHash": "6807e476eae1f3421bdab6a057044630d76e546b8ecb1380be2e6aa4bc6db1bc",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "apps/site/src/lib/project-event-stream.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
     "apps/site/src/lib/project-snapshot-loader.test.ts": {
       "formatHash": "3ef661d88c74af85cc4b0a86f6dd9a17fd686fd81b0b80592e3a0d30c1589149",
       "rules": [
@@ -297,43 +269,6 @@
     },
     "apps/site/src/lib/project-snapshot-loader.ts": {
       "formatHash": "90c5b19523120b6e1bca48bcd13ad2d683f9afc43c9ea09bfba1640752b4c5a8",
-      "rules": [
-        "filename"
-      ]
-    },
-    "apps/site/src/lib/readiness-route.ts": {
-      "formatHash": "d8b0ce7a0fb3d7a157eecfe1e5a942124e1b329dfcf47b7e5fa80914beac0362",
-      "rules": [
-        "filename"
-      ]
-    },
-    "apps/site/src/lib/route-policy.ts": {
-      "rules": [
-        "filename"
-      ]
-    },
-    "apps/site/src/lib/sidebar-chat-flags.test.ts": {
-      "formatHash": "c910fe434f3745896312ae348513636821595768a3fc86bc878e284d6dded32f",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "apps/site/src/lib/sidebar-chat-flags.ts": {
-      "formatHash": "4422afa00f0ff16c346f82918b0a8ed1b27cb10cf5193db82040b82165c2000e",
-      "rules": [
-        "filename"
-      ]
-    },
-    "apps/site/src/lib/sidebar-chat-route.test.ts": {
-      "formatHash": "7d45c9ecd5c6716a2dd2d128ecadd8ed1411624df21ce1cde041b68b68ac53aa",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
-    "apps/site/src/lib/sidebar-chat-route.ts": {
-      "formatHash": "651726178ad32d6753d6179f9b138dc7275b594763a0e79f8dd6afef3c00572d",
       "rules": [
         "filename"
       ]
@@ -374,13 +309,6 @@
         "filename"
       ]
     },
-    "apps/site/src/routes.test.ts": {
-      "formatHash": "c3ddbbce1f55baf6daef95f322507afb4e54d11bdf7c8646c22ed7bd218f8ba7",
-      "rules": [
-        "filename",
-        "test-placement"
-      ]
-    },
     "apps/site/src/stream-client.test.ts": {
       "formatHash": "b006cb37e857b17fa6c61e038fa33a44289a7e28851cb6cd594326d8aaeefd67",
       "rules": [
@@ -394,9 +322,6 @@
         "filename",
         "test-placement"
       ]
-    },
-    "apps/site/tsconfig.json": {
-      "formatHash": "51c0928830df296f172566cdbca9f03e947e8cded0eb0c398284b651e8476509"
     },
     "compose.coolify.yaml": {
       "formatHash": "b182707b51d2b45f8330fe51110048140d3056e3f2b74162ee7edc716ffafec6"

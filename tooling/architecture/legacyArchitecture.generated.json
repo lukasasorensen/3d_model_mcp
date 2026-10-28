@@ -297,41 +297,6 @@
       "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
     },
     {
-      "file": "apps/site/src/lib/export-routes.ts",
-      "rule": "layer-boundary",
-      "target": "apps/site/src/lib/local-mcp-browser-routes.ts",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/export-routes.ts",
-      "rule": "layer-boundary",
-      "target": "apps/site/src/lib/route-policy.ts",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/export-routes.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/local-mcp-browser-routes.ts",
-      "rule": "layer-boundary",
-      "target": "apps/site/src/lib/route-policy.ts",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/local-mcp-browser-routes.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
       "file": "apps/site/src/lib/model-preview-renderer.ts",
       "rule": "layer-boundary",
       "target": "apps/site/src/lib/cad-renderer.adapter.ts",
@@ -353,27 +318,6 @@
       "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
     },
     {
-      "file": "apps/site/src/lib/preview-routes.ts",
-      "rule": "layer-boundary",
-      "target": "apps/site/src/lib/local-mcp-browser-routes.ts",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/preview-routes.ts",
-      "rule": "layer-boundary",
-      "target": "apps/site/src/lib/route-policy.ts",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/preview-routes.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
       "file": "apps/site/src/lib/project-create-request.ts",
       "rule": "unknown-layer",
       "target": "",
@@ -388,63 +332,7 @@
       "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
     },
     {
-      "file": "apps/site/src/lib/project-event-stream.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
       "file": "apps/site/src/lib/project-snapshot-loader.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/readiness-route.ts",
-      "rule": "layer-boundary",
-      "target": "apps/site/src/lib/route-policy.ts",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/readiness-route.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/route-policy.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/sidebar-chat-flags.ts",
-      "rule": "unknown-layer",
-      "target": "",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve unknown-layer in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/sidebar-chat-route.ts",
-      "rule": "layer-boundary",
-      "target": "apps/site/src/lib/route-policy.ts",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/sidebar-chat-route.ts",
-      "rule": "layer-boundary",
-      "target": "apps/site/src/lib/sidebar-chat-flags.ts",
-      "owner": "THE-29",
-      "reason": "Existing at 3f1df4f; resolve layer-boundary in the owning migration stage."
-    },
-    {
-      "file": "apps/site/src/lib/sidebar-chat-route.ts",
       "rule": "unknown-layer",
       "target": "",
       "owner": "THE-29",

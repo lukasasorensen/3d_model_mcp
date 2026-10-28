@@ -1,3 +1,4 @@
+import { authenticateRequest } from "@/authentication.composition";
 import {
   browserRenderCompletionSchema,
   opaqueIdSchema,
@@ -11,8 +12,7 @@ import {
   isPolicyResponse,
   jsonError,
   requireSameOrigin,
-} from "@/lib/route-policy";
-import { authenticateRequest } from "@/authentication.composition";
+} from "../../../../features/authentication/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

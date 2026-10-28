@@ -1,3 +1,5 @@
+import { authenticateRequest } from "@/authentication.composition";
+import { isCadDomainError } from "@/lib/cad-errors";
 import { projectIdSchema } from "@theoryfoundry/contracts";
 import {
   getProjectDatabase,
@@ -7,10 +9,8 @@ import {
   configuredOrigin,
   isPolicyResponse,
   jsonError,
-} from "@/lib/route-policy";
-import { authenticateRequest } from "@/authentication.composition";
-import { createProjectEventStream } from "@/lib/project-event-stream";
-import { isCadDomainError } from "@/lib/cad-errors";
+} from "../../../../../features/authentication/index";
+import { createProjectEventStream } from "../../../../../features/project-events/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

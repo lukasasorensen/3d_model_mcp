@@ -1,5 +1,4 @@
 import { type AuthenticatedUser } from "@theoryfoundry/runtime";
-
 export const NO_STORE_HEADERS = Object.freeze({
   "cache-control": "no-store",
   "x-content-type-options": "nosniff",
@@ -14,22 +13,6 @@ export function jsonError(
     { error: { code, ...(message ? { message } : {}) } },
     { status, headers: NO_STORE_HEADERS },
   );
-}
-
-export async function authenticateRequest(
-  request: Request,
-  getUser: (headers: Headers) => Promise<AuthenticatedUser | null>,
-): Promise<AuthenticatedUser | Response> {
-  try {
-    const user = await getUser(request.headers);
-    return user ?? jsonError("UNAUTHENTICATED", 401, "Sign in is required.");
-  } catch {
-    return jsonError(
-      "AUTHENTICATION_UNAVAILABLE",
-      503,
-      "Authentication is temporarily unavailable.",
-    );
-  }
 }
 
 export function isPolicyResponse(

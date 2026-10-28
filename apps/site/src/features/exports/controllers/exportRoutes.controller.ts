@@ -1,30 +1,18 @@
 import {
   CAD_LIMITS,
+  opaqueIdSchema,
   projectIdSchema,
   sessionIdSchema,
-  opaqueIdSchema,
 } from "@theoryfoundry/contracts";
-import type {
-  ModelExportsStore,
-  ModelExportOperations,
-  AuthenticatedUser,
-} from "@theoryfoundry/runtime";
 import { CadDomainError, remoteMcpEnabled } from "@theoryfoundry/runtime";
 import {
   isPolicyResponse,
   jsonError,
   NO_STORE_HEADERS,
   requireSameOrigin,
-} from "./route-policy";
-import { localMcpBridgeEnabled } from "./local-mcp-browser-routes";
-export interface ExportRouteDependencies {
-  authenticate(request: Request): Promise<AuthenticatedUser | Response>;
-  createStore(ownerId: string): Pick<ModelExportsStore, "claim" | "get">;
-  createExports(): Pick<
-    ModelExportOperations,
-    "fail" | "complete" | "download"
-  >;
-}
+} from "../../authentication/index";
+import { localMcpBridgeEnabled } from "../../browser-rendering/index";
+import type { ExportRouteDependencies } from "../exportRoutes.port";
 export function exportRoute(
   action: "claim" | "complete",
   dependencies: ExportRouteDependencies,
@@ -121,6 +109,7 @@ export function exportRoute(
     }
   };
 }
+
 export async function downloadExport(
   request: Request,
   context: {

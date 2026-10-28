@@ -6,7 +6,7 @@ import {
   withConfiguredCadRuntime,
 } from "@theoryfoundry/runtime";
 import { authenticateRequest } from "./authentication.composition";
-import { previewRoute as createRoute } from "./lib/preview-routes";
+import { previewRoute as createRoute } from "./features/model-preview/index";
 export function previewRoute(
   action: "presence" | "claim" | "complete" | "status",
 ) {

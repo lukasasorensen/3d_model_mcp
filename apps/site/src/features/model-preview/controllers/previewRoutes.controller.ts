@@ -1,63 +1,21 @@
 import {
-  previewStatusInputSchema,
   browserPresenceSchema,
-  previewCompletionSchema,
   PREVIEW_LIMITS,
+  previewCompletionSchema,
+  previewStatusInputSchema,
   projectIdSchema,
   sessionIdSchema,
 } from "@theoryfoundry/contracts";
-import {
-  CadDomainError,
-  remoteMcpEnabled,
-  type AuthenticatedUser,
-  type BrowserPreviewStore,
-} from "@theoryfoundry/runtime";
+import { CadDomainError, remoteMcpEnabled } from "@theoryfoundry/runtime";
 import {
   isPolicyResponse,
   jsonError,
   NO_STORE_HEADERS,
   requireSameOrigin,
-} from "./route-policy";
-import { localMcpBridgeEnabled } from "./local-mcp-browser-routes";
-
-async function boundedJson(request: Request, limit: number): Promise<unknown> {
-  const reader = request.body?.getReader();
-  if (!reader) throw new SyntaxError("Missing request body.");
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  try {
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > limit) throw new RangeError("Preview upload exceeds limit.");
-      chunks.push(value);
-    }
-    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
-  } finally {
-    await reader.cancel().catch(() => undefined);
-    reader.releaseLock();
-  }
-}
-
-export interface PreviewRouteDependencies {
-  authenticate(request: Request): Promise<AuthenticatedUser | Response>;
-  authorize(ownerId: string, projectId: string): Promise<unknown>;
-  presence(
-    ownerId: string,
-    projectId: string,
-    presence: import("@theoryfoundry/contracts").BrowserPresence,
-  ): Promise<void>;
-  claim(
-    ownerId: string,
-    ...args: Parameters<BrowserPreviewStore["claim"]>
-  ): ReturnType<BrowserPreviewStore["claim"]>;
-  status(
-    ownerId: string,
-    ...args: Parameters<BrowserPreviewStore["browserStatus"]>
-  ): ReturnType<BrowserPreviewStore["browserStatus"]>;
-  complete(ownerId: string, raw: unknown): Promise<void>;
-}
+} from "../../authentication/index";
+import { localMcpBridgeEnabled } from "../../browser-rendering/index";
+import type { PreviewRouteDependencies } from "../previewRoutes.port";
+import { boundedJson } from "../utils/boundedJson.util";
 export function previewRoute(
   action: "presence" | "claim" | "complete" | "status",
   dependencies: PreviewRouteDependencies,

@@ -1,7 +1,6 @@
 import type { ProjectEvent } from "@theoryfoundry/contracts";
 import type { ProjectChangeSource } from "@theoryfoundry/runtime";
-
-type ChangeSource = ProjectChangeSource;
+export type ChangeSource = ProjectChangeSource;
 
 export async function createProjectEventStream(options: {
   request: Request;

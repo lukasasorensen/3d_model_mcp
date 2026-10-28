@@ -1,3 +1,8 @@
+import { authenticateRequest } from "@/authentication.composition";
+import {
+  ProjectCreateBodyTooLargeError,
+  readProjectCreateBody,
+} from "@/lib/project-create-request";
 import {
   createProjectInputSchema,
   projectListSchema,
@@ -5,16 +10,11 @@ import {
 } from "@theoryfoundry/contracts";
 import { withConfiguredCadRuntime } from "@theoryfoundry/runtime";
 import {
-  ProjectCreateBodyTooLargeError,
-  readProjectCreateBody,
-} from "@/lib/project-create-request";
-import {
   NO_STORE_HEADERS,
   isPolicyResponse,
   jsonError,
   requireSameOrigin,
-} from "@/lib/route-policy";
-import { authenticateRequest } from "@/authentication.composition";
+} from "../../../features/authentication/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

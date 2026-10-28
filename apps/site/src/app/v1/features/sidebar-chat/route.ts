@@ -1,10 +1,10 @@
+import { authenticateRequest } from "@/authentication.composition";
 import {
   isPolicyResponse,
   jsonError,
   NO_STORE_HEADERS,
-} from "@/lib/route-policy";
-import { authenticateRequest } from "@/authentication.composition";
-import { getSidebarChatFlags } from "@/lib/sidebar-chat-flags";
+} from "../../../../features/authentication/index";
+import { getSidebarChatFlags } from "../../../../features/chat/index";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
