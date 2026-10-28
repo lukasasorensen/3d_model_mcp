@@ -20,7 +20,7 @@
     "db:migrate": "dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @theoryfoundry/model-project db:migrate",
     "auth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @theoryfoundry/runtime auth:provision",
     "build": "pnpm prepare:browser-renderer && pnpm build:packages && pnpm --filter @theoryfoundry/site build",
-    "build:packages": "pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && pnpm --filter @theoryfoundry/model-project build && pnpm --filter @theoryfoundry/renderer build && pnpm --filter @theoryfoundry/mcp build && pnpm --filter @theoryfoundry/gateway build && pnpm --filter @theoryfoundry/runtime build && pnpm --filter @theoryfoundry/worker-auth build",
+    "build:packages": "pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && pnpm --filter @theoryfoundry/model-project build && pnpm --filter @theoryfoundry/renderer build && pnpm --filter @theoryfoundry/mcp build && pnpm --filter @theoryfoundry/gateway build && pnpm --filter @theoryfoundry/runtime build && pnpm --filter @theoryfoundry/worker-auth build && pnpm --filter @theoryfoundry/local-worker build",
     "typecheck": "pnpm build:packages && pnpm --recursive --if-present run typecheck",
     "lint": "eslint . --max-warnings=0",
     "test": "pnpm build:packages && node tooling/testing/runTests.script.mjs",
@@ -40,7 +40,10 @@
     "check:conventions": "node tooling/conventions/checkConventions.script.mjs conventions",
     "check:architecture": "node tooling/architecture/checkArchitecture.script.mjs",
     "test:architecture": "node --test tests/tooling/architecture/*.test.mjs",
-    "worker:auth": "node packages/worker-auth/dist/authCli.composition.js"
+    "worker:auth": "node packages/worker-auth/dist/authCli.composition.js",
+    "build:worker-assets": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && node tooling/local-worker/buildAssets.script.mjs",
+    "worker:serve": "node packages/local-worker/dist/stdioServer.composition.js",
+    "acceptance:local-worker": "pnpm build:packages && pnpm build:worker-assets && node packages/local-worker/tooling/acceptance.script.mjs"
   },
   "devDependencies": {
     "@theoryfoundry/browser-renderer": "workspace:*",

@@ -1,26 +1,17 @@
 import {
   CAD_LIMITS,
+  createCadToolCatalog,
   type CadWorkflowService,
   createProjectInputSchema,
-  createProjectOutputSchema,
   exportModelInputSchema,
-  exportModelOutputSchema,
   getProjectStateInputSchema,
-  getProjectStateOutputSchema,
   listRevisionsInputSchema,
-  listRevisionsOutputSchema,
   promoteCandidateInputSchema,
-  promoteCandidateOutputSchema,
   proposeModelSourceInputSchema,
-  proposeModelSourceOutputSchema,
   readModelSourceInputSchema,
-  readModelSourceOutputSchema,
   restoreRevisionInputSchema,
-  restoreRevisionOutputSchema,
   updateProjectInputSchema,
-  updateProjectOutputSchema,
   validateAndRenderInputSchema,
-  validateAndRenderOutputSchema,
 } from "@theoryfoundry/contracts";
 import {
   CadDomainError,
@@ -45,14 +36,10 @@ export function createCadToolRegistry(
   repository: ModelProjectStore,
   workflow?: CadWorkflowService,
 ): CadToolRegistry {
+  const catalog = createCadToolCatalog();
   return {
     create_project: {
-      title: "Create project",
-      description:
-        "Create a project for the authenticated owner with a name and description. Returns its project ID and configured project URL for subsequent CAD tools. Obtain fit-critical measurements or clearly disclose assumptions.",
-      inputSchema: createProjectInputSchema,
-      outputSchema: createProjectOutputSchema,
-      readOnly: false,
+      ...catalog.create_project,
       execute: async (raw): Promise<Record<string, unknown>> => {
         const project = await repository.createProject(
           createProjectInputSchema.parse(raw),
@@ -68,12 +55,7 @@ export function createCadToolRegistry(
       },
     },
     update_project: {
-      title: "Update project details",
-      description:
-        "Update a project's name or description. Omitted fields are preserved; the description must remain nonempty.",
-      inputSchema: updateProjectInputSchema,
-      outputSchema: updateProjectOutputSchema,
-      readOnly: false,
+      ...catalog.update_project,
       execute: async (raw): Promise<Record<string, unknown>> =>
         boundedResult({
           project: await repository.updateProject(
@@ -82,12 +64,7 @@ export function createCadToolRegistry(
         }),
     },
     get_project_state: {
-      title: "Get project state",
-      description:
-        "Inspect the authoritative current CAD revision and its validated artifact metadata.",
-      inputSchema: getProjectStateInputSchema,
-      outputSchema: getProjectStateOutputSchema,
-      readOnly: true,
+      ...catalog.get_project_state,
       execute: async (raw): Promise<Record<string, unknown>> => {
         const input = getProjectStateInputSchema.parse(raw);
         return boundedResult({
@@ -104,12 +81,7 @@ export function createCadToolRegistry(
       },
     },
     read_model_source: {
-      title: "Read model source",
-      description:
-        "Read canonical OpenSCAD source for the current or a historical opaque revision ID.",
-      inputSchema: readModelSourceInputSchema,
-      outputSchema: readModelSourceOutputSchema,
-      readOnly: true,
+      ...catalog.read_model_source,
       execute: async (raw): Promise<Record<string, unknown>> => {
         const input = readModelSourceInputSchema.parse(raw);
         return boundedResult({
@@ -121,12 +93,7 @@ export function createCadToolRegistry(
       },
     },
     propose_model_source: {
-      title: "Propose model source",
-      description:
-        "Create an immutable candidate from bounded OpenSCAD source against an explicit current parent (null only for genesis).",
-      inputSchema: proposeModelSourceInputSchema,
-      outputSchema: proposeModelSourceOutputSchema,
-      readOnly: false,
+      ...catalog.propose_model_source,
       execute: async (raw): Promise<Record<string, unknown>> =>
         boundedResult({
           candidate: await repository.proposeModelSource(
@@ -135,12 +102,7 @@ export function createCadToolRegistry(
         }),
     },
     validate_and_render: {
-      title: "Validate and render candidate",
-      description:
-        "Validate immutable source using the standard profile in a visible project browser. On BROWSER_REQUIRED open/focus projectUrl and retry the same candidate; on BROWSER_BUSY wait. Operational failures are retryable, not invalid models. Inspect get_model_preview before promotion. Geometry validation does not establish fit, strength or printability.",
-      inputSchema: validateAndRenderInputSchema,
-      outputSchema: validateAndRenderOutputSchema,
-      readOnly: false,
+      ...catalog.validate_and_render,
       execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = validateAndRenderInputSchema.parse(raw);
         if (
@@ -167,12 +129,7 @@ export function createCadToolRegistry(
       },
     },
     promote_candidate: {
-      title: "Promote candidate",
-      description:
-        "Atomically promote one validated candidate if its expected parent is still current.",
-      inputSchema: promoteCandidateInputSchema,
-      outputSchema: promoteCandidateOutputSchema,
-      readOnly: false,
+      ...catalog.promote_candidate,
       execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = promoteCandidateInputSchema.parse(raw);
         return boundedResult({
@@ -184,12 +141,7 @@ export function createCadToolRegistry(
       },
     },
     export_model: {
-      title: "Generate downloadable export",
-      description:
-        "Generate or reuse STL/3MF for the current revision. Requires a visible ready project browser for new exports. Returns exact file hash, bytes, filename and an expiring bearer download link. Retrieve the link to save the file; tool success does not mean it was saved locally.",
-      inputSchema: exportModelInputSchema,
-      outputSchema: exportModelOutputSchema,
-      readOnly: false,
+      ...catalog.export_model,
       execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = exportModelInputSchema.parse(raw);
         if (!workflow)
@@ -206,12 +158,7 @@ export function createCadToolRegistry(
       },
     },
     list_revisions: {
-      title: "List revisions",
-      description:
-        "List the authoritative revision chain from current to genesis.",
-      inputSchema: listRevisionsInputSchema,
-      outputSchema: listRevisionsOutputSchema,
-      readOnly: true,
+      ...catalog.list_revisions,
       execute: async (raw): Promise<Record<string, unknown>> => {
         const input = listRevisionsInputSchema.parse(raw);
         return boundedResult({
@@ -220,12 +167,7 @@ export function createCadToolRegistry(
       },
     },
     restore_revision: {
-      title: "Restore revision",
-      description:
-        "Restore a historical valid source as a new child of the current revision without rewinding history.",
-      inputSchema: restoreRevisionInputSchema,
-      outputSchema: restoreRevisionOutputSchema,
-      readOnly: false,
+      ...catalog.restore_revision,
       execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = restoreRevisionInputSchema.parse(raw);
         return boundedResult({

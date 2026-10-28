@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
-  getModelPreviewInputSchema,
+  createCadToolCatalog,
   PREVIEW_LIMITS,
   previewMetadataSchema,
   type ModelPreviewService,
@@ -15,11 +15,7 @@ export function registerModelPreviewTool(
   server.registerTool(
     "get_model_preview",
     {
-      title: "Get model PNG preview",
-      description:
-        "Inspect a saved revision or VALID candidate as a PNG. Defaults to current revision and isometric view. On BROWSER_REQUIRED, focus an existing project tab or open the returned projectUrl visibly using browser tools, then retry; otherwise show the link. BROWSER_BUSY means wait rather than open another tab.",
-      inputSchema: getModelPreviewInputSchema,
-      outputSchema: previewMetadataSchema,
+      ...createCadToolCatalog().get_model_preview,
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,

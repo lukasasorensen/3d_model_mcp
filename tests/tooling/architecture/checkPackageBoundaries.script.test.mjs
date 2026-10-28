@@ -6,6 +6,7 @@ import { dirname, join } from "node:path";
 import { checkWorkspaceBoundaries } from "../../../tooling/architecture/checkPackageBoundaries.script.mjs";
 
 const packageNames = [
+  "local-worker",
   "worker-auth",
   "contracts",
   "browser-renderer",
