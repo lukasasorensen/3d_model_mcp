@@ -17,6 +17,7 @@ packages/renderer      bounded STL/3MF codecs
 packages/mcp           transport-neutral MCP boundary
 packages/gateway       chat and provider orchestration boundary
 packages/runtime       local combined-process boundary
+packages/worker-auth   private local-worker OAuth and OS credential lifecycle
 ```
 
 OpenSCAD runs in the browser as a pinned WebAssembly module. A fresh Web Worker mounts the
@@ -85,3 +86,7 @@ release gates; [earlier harness evidence](docs/g006-verification-evidence.json) 
 - [Verification and development workflow](docs/development-workflow.md)
 - [Security](docs/security.md) and [dependencies/licenses](docs/dependencies-and-licenses.md)
 - [Demo script](docs/demo-script.md)
+
+The [local worker authentication foundation](docs/local-worker-authentication.md)
+provides a dedicated OAuth client and OS-backed credentials. Local stdio integration,
+installable packaging, deployment and platform/client acceptance remain separate.

@@ -1,3 +1,4 @@
+import { createWorkerOAuthPolicy } from "./workerOAuthPolicy.composition.js";
 import { oauthProvider } from "@better-auth/oauth-provider";
 import { APIError } from "better-auth/api";
 import { jwt } from "better-auth/plugins";
@@ -9,10 +10,15 @@ import {
 } from "./shared/utils/remoteMcpPolicy.util.js";
 export function createOAuthPlugins(
   pool: Pool,
-): [ReturnType<typeof jwt>, ReturnType<typeof oauthProvider>] {
+): [
+  ReturnType<typeof jwt>,
+  ReturnType<typeof createWorkerOAuthPolicy>,
+  ReturnType<typeof oauthProvider>,
+] {
   const { issuer, resource } = remoteMcpIdentity();
   return [
     jwt({ jwt: { issuer }, jwks: { disablePrivateKeyEncryption: false } }),
+    createWorkerOAuthPolicy(),
     oauthProvider({
       loginPage: "/sign-in",
       consentPage: "/consent",

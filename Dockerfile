@@ -15,6 +15,7 @@ COPY packages/mcp/package.json packages/mcp/package.json
 COPY packages/runtime/model-project/package.json packages/runtime/model-project/package.json
 COPY packages/renderer/package.json packages/renderer/package.json
 COPY packages/runtime/package.json packages/runtime/package.json
+COPY packages/worker-auth/package.json packages/worker-auth/package.json
 COPY patches/ patches/
 RUN pnpm install --frozen-lockfile
 

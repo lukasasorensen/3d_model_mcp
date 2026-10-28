@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 
 const allowedDependencies = new Map([
   ["contracts", new Set()],
+  ["worker-auth", new Set(["contracts"])],
   ["browser-renderer", new Set(["contracts"])],
   ["model-project", new Set(["contracts"])],
   ["renderer", new Set(["contracts"])],
@@ -16,6 +17,7 @@ const allowedDependencies = new Map([
   ],
 ]);
 const serverOnlyPackages = new Set([
+  "worker-auth",
   "model-project",
   "renderer",
   "mcp",
@@ -177,7 +179,7 @@ export async function checkWorkspaceBoundaries(workspaceRoot = process.cwd()) {
         if (
           nodeBuiltins.has(specifier) ||
           isProvider(specifier) ||
-          /^@theoryfoundry\/(?:model-project|renderer|mcp|gateway|runtime)$/.test(
+          /^@theoryfoundry\/(?:model-project|renderer|mcp|gateway|runtime|worker-auth)$/.test(
             specifier,
           )
         ) {

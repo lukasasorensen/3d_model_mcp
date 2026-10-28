@@ -1,25 +1,35 @@
 import { getProjectDatabase } from "./database.composition.js";
-import { provisionCodexClient } from "./features/authentication/index.js";
+import {
+  provisionCodexClient,
+  provisionWorkerClient,
+} from "./features/authentication/index.js";
 import { validateOAuthCallback } from "./shared/utils/remoteMcpPolicy.util.js";
 const arguments_ = process.argv
   .slice(2)
   .filter((argument) => argument !== "--");
+const worker = arguments_[0] === "--worker";
 const replaceCallbacks = arguments_[0] === "--replace";
 const callback = arguments_[replaceCallbacks ? 1 : 0];
 try {
-  if (!callback || arguments_.length !== (replaceCallbacks ? 2 : 1)) {
+  if (
+    worker
+      ? arguments_.length !== 1
+      : !callback || arguments_.length !== (replaceCallbacks ? 2 : 1)
+  ) {
     throw new Error(
-      "Usage: pnpm oauth:provision -- [--replace] <exact-loopback-callback-url>",
+      "Usage: pnpm oauth:provision -- --worker | [--replace] <exact-loopback-callback-url>",
     );
   }
-  validateOAuthCallback(callback);
+  if (!worker) validateOAuthCallback(callback!);
   const database = getProjectDatabase();
   try {
-    const clientId = await provisionCodexClient(database.pool, callback, {
-      replaceCallbacks,
-    });
+    const clientId = worker
+      ? await provisionWorkerClient(database.pool)
+      : await provisionCodexClient(database.pool, callback!, {
+          replaceCallbacks,
+        });
     process.stdout.write(
-      `Codex client ID: ${clientId}\nCallback mode: ${replaceCallbacks ? "replaced" : "added"}\n`,
+      `OAuth client ID: ${clientId}\nCallback mode: ${worker ? "fixed worker callback" : replaceCallbacks ? "replaced" : "added"}\n`,
     );
   } finally {
     await database.close();
