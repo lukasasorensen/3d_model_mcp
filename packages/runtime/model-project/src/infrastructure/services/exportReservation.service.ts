@@ -6,7 +6,7 @@ import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 
 /** Shared lock order: global quota, project, export/job rows. Never acquire quota after a row lock. */
-export async function lockExportCapacity(client: PoolClient) {
+export async function lockExportCapacity(client: PoolClient): Promise<void> {
   await client.query("SELECT pg_advisory_xact_lock(820461)");
 }
 

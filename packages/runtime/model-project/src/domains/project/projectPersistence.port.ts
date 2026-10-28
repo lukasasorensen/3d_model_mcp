@@ -67,16 +67,18 @@ export interface ProjectPersistence {
     attemptId: string;
     state: "VALID" | "REJECTED" | "CREATED";
     diagnostics: Diagnostic[];
-    renderer?: RendererProvenance;
-    geometry?: GeometrySummary;
-    validationPolicyVersion?: string;
+    renderer?: RendererProvenance | undefined;
+    geometry?: GeometrySummary | undefined;
+    validationPolicyVersion?: string | undefined;
     artifacts: CandidateRecord["artifacts"];
     updatedAt: Date;
-    error?: {
-      code: string;
-      message: string;
-      details: Readonly<Record<string, string | number | boolean | null>>;
-    };
+    error?:
+      | undefined
+      | {
+          code: string;
+          message: string;
+          details: Readonly<Record<string, string | number | boolean | null>>;
+        };
   }): Promise<void>;
   supersedeCandidate(candidateId: string, updatedAt: Date): Promise<void>;
   insertRevision(input: {
@@ -93,7 +95,7 @@ export interface ProjectPersistence {
     validationPolicyVersion: string;
     diagnostics: Diagnostic[];
     renderer: RendererProvenance;
-    geometry?: GeometrySummary;
+    geometry?: GeometrySummary | undefined;
     createdAt: Date;
   }): Promise<void>;
   insertRevisionArtifacts(

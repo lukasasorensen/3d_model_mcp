@@ -25,7 +25,7 @@ export class FileProjectRecords {
     private readonly locks: FileLocks,
   ) {
     this.paths = new FileProjectPaths(options);
-    this.clock = options.clock ?? (() => new Date());
+    this.clock = options.clock ?? ((): Date => new Date());
   }
   async ensureProject(projectId: string): Promise<void> {
     const control = this.paths.controlRoot(projectId);

@@ -1,4 +1,5 @@
 "use client";
+import type { JSX } from "react";
 
 import type { FormEvent, KeyboardEvent, RefObject } from "react";
 import { useState } from "react";
@@ -67,16 +68,16 @@ export function ChatPane({
   onCancel: () => void;
   onRetry: () => void;
   composerRef: RefObject<HTMLTextAreaElement | null>;
-}) {
+}): JSX.Element {
   const [message, setMessage] = useState("");
-  const submit = (event?: FormEvent) => {
+  const submit = (event?: FormEvent): void => {
     event?.preventDefault();
     const trimmed = message.trim();
     if (!trimmed || active || !available) return;
     setMessage("");
     onSubmit(trimmed);
   };
-  const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+  const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
     if (isSubmitShortcut(event)) {
       event.preventDefault();
       submit();

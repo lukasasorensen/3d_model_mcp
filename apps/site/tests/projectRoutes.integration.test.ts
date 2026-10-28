@@ -4,7 +4,7 @@ import test from "node:test";
 import { POST as restoreRevision } from "../src/app/v1/projects/[projectId]/revisions/[revisionId]/restore/route";
 import { isCadDomainError } from "../src/shared/errors/cadErrors.util";
 
-test("restore route enforces exact same-origin requests", async () => {
+void test("restore route enforces exact same-origin requests", async () => {
   const response = await restoreRevision(
     new Request("http://localhost/v1", {
       method: "POST",
@@ -26,7 +26,7 @@ test("restore route enforces exact same-origin requests", async () => {
   });
 });
 
-test("project read errors distinguish hidden projects from operational failures", () => {
+void test("project read errors distinguish hidden projects from operational failures", () => {
   assert.equal(
     isCadDomainError(
       new CadDomainError("PROJECT_NOT_FOUND", "missing"),

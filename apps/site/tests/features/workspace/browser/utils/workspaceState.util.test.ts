@@ -16,7 +16,7 @@ import {
 } from "@/features/workspace/browser/utils/workspaceRevision.util";
 
 import { event, provenance } from "../fixtures/workspace.fixture";
-test("only authoritative promoted/current events advance current revision", () => {
+void test("only authoritative promoted/current events advance current revision", () => {
   const submitted = workspaceReducer(initialWorkspaceState, {
     type: "submit",
     id: "turn-1",
@@ -49,7 +49,7 @@ test("only authoritative promoted/current events advance current revision", () =
   assert.equal(promoted.announcement, null);
 });
 
-test("viewer/export gating requires a manifest linked to revision and source hash", () => {
+void test("viewer/export gating requires a manifest linked to revision and source hash", () => {
   const artifact = {
     artifactId: "artifact-1",
     format: "3mf",
@@ -93,7 +93,7 @@ test("viewer/export gating requires a manifest linked to revision and source has
   );
 });
 
-test("promotion preserves the last-known-valid display and announces only after stable hydration", () => {
+void test("promotion preserves the last-known-valid display and announces only after stable hydration", () => {
   const prior = {
     version: "1",
     projectId: "demo-project",
@@ -171,7 +171,7 @@ test("promotion preserves the last-known-valid display and announces only after 
   assert.equal(duplicateCurrent.announcement, hydrated.announcement);
 });
 
-test("external hydration follows the prior current but preserves historical inspection", () => {
+void test("external hydration follows the prior current but preserves historical inspection", () => {
   const makeRevision = (
     revisionId: string,
     parentRevision: string | null,

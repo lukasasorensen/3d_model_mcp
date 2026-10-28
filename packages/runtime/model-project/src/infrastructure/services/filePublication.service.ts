@@ -5,6 +5,7 @@ import {
   type ArtifactManifest,
   type CandidateRecord,
   type Diagnostic,
+  type GeometrySummary,
   type RendererProvenance,
   type RevisionManifest,
 } from "@theoryfoundry/contracts";
@@ -29,7 +30,7 @@ export class FileProjectPublication {
     private readonly files: DurableFiles,
   ) {
     this.paths = new FileProjectPaths(options);
-    this.clock = options.clock ?? (() => new Date());
+    this.clock = options.clock ?? ((): Date => new Date());
     this.validationPolicyVersion =
       options.validationPolicyVersion ?? VALIDATION_POLICY_VERSION;
   }
@@ -44,7 +45,7 @@ export class FileProjectPublication {
     requestId: string;
     toolCallId: string;
     diagnostics: Diagnostic[];
-    geometry?: import("@theoryfoundry/contracts").GeometrySummary;
+    geometry?: GeometrySummary | undefined;
     renderer: RendererProvenance;
     artifacts: CandidateRecord["artifacts"];
   }): Promise<RevisionManifest> {

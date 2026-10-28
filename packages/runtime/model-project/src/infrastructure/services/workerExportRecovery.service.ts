@@ -3,7 +3,7 @@ export async function recoverWorkerExports(
   client: PoolClient,
   now: Date,
   ownerId?: string,
-) {
+): Promise<void> {
   const expired = await client.query<{ export_id: string; owner_id: string }>(
     `UPDATE worker_export_jobs
     SET state='EXPIRED',retain_until=deadline+interval '1 hour',updated_at=$1

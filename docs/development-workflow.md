@@ -1,7 +1,7 @@
 # Development workflow
 
-Use Node 22 and the pinned `packageManager` version with `pnpm install --frozen-lockfile`.
-The separate Node 24 migration is THE-31. Existing development, database, authentication,
+Use Node 24.21.0 from `.node-version` and pnpm 11.17.0 from `packageManager`.
+Run `fnm exec --using 24 pnpm install --frozen-lockfile`; use that Node version for every command below. Existing development, database, authentication,
 OAuth provisioning and headless-renderer commands remain in `package.json`.
 
 | Command                                     | Purpose                                                                |
@@ -15,7 +15,7 @@ OAuth provisioning and headless-renderer commands remain in `package.json`.
 | `pnpm check:architecture`                   | Check workspace/layer/browser dependencies with zero legacy exceptions |
 | `pnpm test:architecture`                    | Run graph, barrel, alias and baseline regressions                      |
 | `pnpm check:conventions`                    | Check naming, test placement and physical line caps                    |
-| `pnpm lint` / `pnpm typecheck`              | Existing ESLint and workspace TypeScript checks                        |
+| `pnpm lint` / `pnpm typecheck`              | Typed flat ESLint and source/test TypeScript checks                    |
 | `pnpm build`                                | Build libraries and the Next.js app                                    |
 | `pnpm verify`                               | Run all checks, tests and builds without rewriting source              |
 
@@ -60,3 +60,9 @@ CI does not itself configure a required-check or PR-only merge policy.
 Internal tooling paths and architecture checks are documented in
 [architecture enforcement](architecture-enforcement.md). The installed-Codex smoke test
 also skips when the Codex CLI is absent (including hosted CI); record that separately.
+
+TypeScript checks source and mirrored TypeScript tests without emitting. Each library
+uses `tsconfig.build.json` to emit declarations, source maps and JavaScript from `src/`
+only. Next.js keeps its bundler configuration. Strict optional properties, type-only
+imports, return types and promise handling are enforced; generated assets are excluded.
+See [Node 24 toolchain verification](node24-toolchain.md) for pins and compatibility patches.

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { browserRenderer } from "../src/browserRenderer.composition";
 
-test("an already-cancelled preview cannot start a new OpenSCAD worker", async () => {
+void test("an already-cancelled preview cannot start a new OpenSCAD worker", async () => {
   const previous = globalThis.Worker;
   let created = 0;
   globalThis.Worker = class {
@@ -24,13 +24,13 @@ test("an already-cancelled preview cannot start a new OpenSCAD worker", async ()
   }
 });
 
-test("cancelling an in-flight OpenSCAD render terminates its worker", async () => {
+void test("cancelling an in-flight OpenSCAD render terminates its worker", async () => {
   const previousWorker = globalThis.Worker;
   const previousWindow = globalThis.window;
   let terminated = 0;
   globalThis.Worker = class {
-    postMessage() {}
-    terminate() {
+    postMessage(): void {}
+    terminate(): void {
       terminated++;
     }
   } as unknown as typeof Worker;

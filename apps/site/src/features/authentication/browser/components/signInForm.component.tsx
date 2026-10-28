@@ -1,15 +1,16 @@
 "use client";
+import type { JSX } from "react";
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { authClient } from "../services/auth.service";
 import { submitOAuthAction } from "../services/oauthNavigation.service";
 
-export function SignInForm() {
+export function SignInForm(): JSX.Element {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setPending(true);
     setError("");
@@ -41,7 +42,12 @@ export function SignInForm() {
     }
   }
   return (
-    <form className="auth-form" onSubmit={submit}>
+    <form
+      className="auth-form"
+      onSubmit={(event) => {
+        void submit(event);
+      }}
+    >
       <label>
         Email
         <input name="email" type="email" autoComplete="email" required />

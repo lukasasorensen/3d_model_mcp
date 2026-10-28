@@ -15,7 +15,7 @@ import {
 } from "@/features/workspace/browser/utils/workspaceRevision.util";
 
 import { event, provenance } from "../fixtures/workspace.fixture";
-test("canonical R1-R2-R3 stream keeps artifact/export gates causal and rejected edits preserve R3", () => {
+void test("canonical R1-R2-R3 stream keeps artifact/export gates causal and rejected edits preserve R3", () => {
   const makeRevision = (
     revisionId: string,
     parentRevision: string | null,
@@ -124,7 +124,9 @@ test("canonical R1-R2-R3 stream keeps artifact/export gates causal and rejected 
   assert.equal(rejected.currentRevision, r3.revisionId);
   assert.equal(rejected.selectedRevision, r3.revisionId);
   assert.match(rejected.notice, /current revision is unchanged/i);
-  const substituted = { ...r3.artifacts[0], sourceHash: "f".repeat(64) };
+  const originalArtifact = r3.artifacts[0];
+  assert.ok(originalArtifact);
+  const substituted = { ...originalArtifact, sourceHash: "f".repeat(64) };
   assert.equal(
     validatedArtifactFor(
       {
@@ -140,7 +142,7 @@ test("canonical R1-R2-R3 stream keeps artifact/export gates causal and rejected 
   );
 });
 
-test("restore hydration keeps identical artifact bytes linked to both historical and restored-current revisions", () => {
+void test("restore hydration keeps identical artifact bytes linked to both historical and restored-current revisions", () => {
   const sourceHash = "a".repeat(64);
   const shared = {
     artifactId: "shared-artifact",

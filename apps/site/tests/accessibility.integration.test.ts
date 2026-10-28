@@ -2,13 +2,16 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-test("workspace preserves accessible landmarks, live region, restore copy, and inspection-only controls", async () => {
+void test("workspace preserves accessible landmarks, live region, restore copy, and inspection-only controls", async () => {
   const stylesheet = new URL("../src/app/styles.css", import.meta.url);
   const cssImports = [
     ...(await readFile(stylesheet, "utf8")).matchAll(/@import "([^"]+)";/g),
   ];
   const styles = Promise.all(
-    cssImports.map(([, file]) => readFile(new URL(file, stylesheet), "utf8")),
+    cssImports.map(([, file]) => {
+      assert.ok(file);
+      return readFile(new URL(file, stylesheet), "utf8");
+    }),
   ).then((parts) => parts.join("\n"));
   const [workspace, chat, history, viewer, sourcePanel, css] =
     await Promise.all([

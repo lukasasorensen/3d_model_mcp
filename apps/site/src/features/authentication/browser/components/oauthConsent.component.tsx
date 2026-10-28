@@ -1,11 +1,13 @@
 "use client";
+import type { JSX } from "react";
+
 import { useState } from "react";
 import { submitOAuthAction } from "../services/oauthNavigation.service";
 
-export function OAuthConsent() {
+export function OAuthConsent(): JSX.Element {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const submit = async (accept: boolean) => {
+  const submit = async (accept: boolean): Promise<void> => {
     setPending(true);
     try {
       await submitOAuthAction("oauth2/consent", { accept });

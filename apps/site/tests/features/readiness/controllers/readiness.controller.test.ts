@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createReadinessHandler } from "../../../../src/features/readiness/controllers/readiness.controller";
 
-test("readiness route returns 503 unless the renderer probe succeeds", async () => {
+void test("readiness route returns 503 unless the renderer probe succeeds", async () => {
   const unavailable = createReadinessHandler(async () => {
     throw new Error("/private/toolchain detail");
   });

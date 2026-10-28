@@ -45,7 +45,11 @@ async function convertStlToGlb(stl: Uint8Array): Promise<Uint8Array> {
 export async function encodeDownload(
   sourceBytes: Uint8Array,
   format: DownloadFormat,
-) {
+): Promise<{
+  bytes: Uint8Array<ArrayBufferLike>;
+  mimeType: string;
+  extension: DownloadFormat;
+}> {
   const bytes =
     format === "stl" || format === "3mf"
       ? sourceBytes

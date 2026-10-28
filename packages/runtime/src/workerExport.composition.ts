@@ -18,7 +18,7 @@ export const handleWorkerExportRequest = createWorkerExportHandler({
     remoteMcpEnabled() &&
     process.env.THEORYFOUNDRY_LOCAL_WORKER_ENABLED === "1",
   origin: () => remoteMcpIdentity().origin,
-  service: (ownerId) => {
+  service: (ownerId): WorkerExportService => {
     const finalizer = new ExportArtifactFinalizationService(
       createExportFileStore(),
     );

@@ -1,4 +1,5 @@
 "use client";
+import type { JSX } from "react";
 
 import { useId, useRef, useState } from "react";
 import {
@@ -13,14 +14,14 @@ export function ConnectToCodex({
 }: {
   origin: string;
   projectId?: string;
-}) {
+}): JSX.Element {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const commandId = useId();
   const [scope, setScope] = useState<CodexConnectionScope>("global");
   const [notice, setNotice] = useState("");
   const command = codexConnectCommand(origin, scope);
-  async function copy(value: string, label: string) {
+  async function copy(value: string, label: string): Promise<void> {
     try {
       await navigator.clipboard.writeText(value);
       setNotice(`${label} copied.`);

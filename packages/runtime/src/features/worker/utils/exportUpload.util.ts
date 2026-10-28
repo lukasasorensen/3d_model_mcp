@@ -8,7 +8,10 @@ import { readWorkerBody } from "./requestBody.util.js";
 export async function readWorkerExportUpload(
   request: Request,
   readMs: number = WORKER_EXPORT_LIMITS.readMs,
-) {
+): Promise<{
+  metadata: ReturnType<typeof completeWorkerExportSchema.parse>;
+  bytes?: Uint8Array;
+}> {
   const contentType = request.headers.get("content-type") ?? "";
   if (!/^multipart\/form-data\s*;/i.test(contentType))
     throw new SyntaxError("Multipart completion is required.");

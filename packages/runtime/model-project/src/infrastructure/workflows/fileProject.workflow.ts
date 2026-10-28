@@ -47,7 +47,7 @@ export class FileProjectWorkflow {
     private readonly queries: FileProjectQueries,
   ) {
     this.paths = new FileProjectPaths(options);
-    this.clock = options.clock ?? (() => new Date());
+    this.clock = options.clock ?? ((): Date => new Date());
     this.createId = options.createId ?? randomUUID;
     this.validationPolicyVersion =
       options.validationPolicyVersion ?? VALIDATION_POLICY_VERSION;
@@ -79,7 +79,10 @@ export class FileProjectWorkflow {
       return project;
     });
   }
-  async getCandidate(projectId: string, candidateId: string) {
+  async getCandidate(
+    projectId: string,
+    candidateId: string,
+  ): Promise<CandidateRecord> {
     await this.records.ensureProject(projectId);
     return this.records.readCandidate(projectId, candidateId);
   }

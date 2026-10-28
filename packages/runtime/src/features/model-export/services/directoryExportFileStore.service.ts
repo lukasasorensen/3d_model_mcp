@@ -15,12 +15,12 @@ export class DirectoryExportFileStore implements ExportFileStore {
   constructor(directory: string) {
     this.directory = resolve(directory);
   }
-  private path(id: string) {
+  private path(id: string): string {
     if (!/^[a-f0-9-]{36}$/.test(id))
       throw new Error("Invalid export storage key.");
     return join(this.directory, id);
   }
-  async put(id: string, bytes: Uint8Array) {
+  async put(id: string, bytes: Uint8Array): Promise<void> {
     await mkdir(this.directory, { recursive: true, mode: 0o700 });
     const target = this.path(id),
       temporary = `${target}.${randomUUID()}.tmp`;
@@ -31,13 +31,13 @@ export class DirectoryExportFileStore implements ExportFileStore {
       await rm(temporary, { force: true });
     }
   }
-  async read(id: string) {
+  async read(id: string): Promise<Uint8Array> {
     return readFile(this.path(id));
   }
-  async remove(id: string) {
+  async remove(id: string): Promise<void> {
     await rm(this.path(id), { force: true });
   }
-  async reconcile(retained: Set<string>) {
+  async reconcile(retained: Set<string>): Promise<void> {
     await mkdir(this.directory, { recursive: true, mode: 0o700 });
     for (const name of await readdir(this.directory)) {
       if (

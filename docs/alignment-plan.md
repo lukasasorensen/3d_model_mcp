@@ -170,3 +170,10 @@ and global styles are split by responsibility, with public commands, routes and
 stylesheet order preserved. See [final alignment evidence](final-alignment.md) and
 [current test coverage](test-coverage.md). Node 22, deployment topology and asset
 pins remain unchanged. THE-31 owns the separate Node 24/toolchain upgrade.
+
+## Stage 8 runtime and toolchain
+
+PR #21 merged stage 7 as `fbbce9f`. THE-31 pins Node 24 across local development,
+CI and both Docker stages, adopts typed flat ESLint and separates source-only builds
+from source/test typechecks. See [toolchain changes and verification](node24-toolchain.md).
+Both baselines remain empty. Runtime deployment is separately authorized.

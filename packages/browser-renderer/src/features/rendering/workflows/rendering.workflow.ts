@@ -1,9 +1,12 @@
+import type { BrowserCadRenderer } from "../rendering.types.js";
 import type { PreviewJob } from "@theoryfoundry/contracts";
 import type { RenderingCapabilities } from "../rendering.port.js";
 import type { DownloadFormat, RenderedMesh } from "../rendering.types.js";
 
 /** Coordinates independent compilation, cache, image and download capabilities. */
-export function createRenderingWorkflow(capabilities: RenderingCapabilities) {
+export function createRenderingWorkflow(
+  capabilities: RenderingCapabilities,
+): BrowserCadRenderer {
   const { renderOpenScad, cache } = capabilities;
   async function renderPreview(
     source: string,
@@ -39,7 +42,11 @@ export function createRenderingWorkflow(capabilities: RenderingCapabilities) {
     source: string,
     format: DownloadFormat,
     signal?: AbortSignal,
-  ) {
+  ): Promise<{
+    bytes: Uint8Array;
+    mimeType: string;
+    extension: DownloadFormat;
+  }> {
     const result = await renderOpenScad(
       source,
       format === "3mf" ? "3mf" : "stl",

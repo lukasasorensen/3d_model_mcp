@@ -11,7 +11,7 @@ export class PostgresModelProjectRepository {
   constructor(options: PostgresModelProjectRepositoryOptions) {
     if (!options.ownerId) throw new Error("A repository owner is required.");
     const validation = new CandidateValidationService({
-      clock: options.clock ?? (() => new Date()),
+      clock: options.clock ?? ((): Date => new Date()),
       validationPolicyVersion:
         options.validationPolicyVersion ?? VALIDATION_POLICY_VERSION,
       acceptRendererProvenance: options.acceptRendererProvenance,

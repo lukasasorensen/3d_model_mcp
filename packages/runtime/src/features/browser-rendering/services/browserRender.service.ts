@@ -61,7 +61,7 @@ export class BrowserRenderCoordinator implements CadRenderer {
           reject,
           timeout,
         });
-        const abort = () => {
+        const abort = (): void => {
           const pending = this.pending.get(jobId);
           if (!pending) return;
           clearTimeout(pending.timeout);

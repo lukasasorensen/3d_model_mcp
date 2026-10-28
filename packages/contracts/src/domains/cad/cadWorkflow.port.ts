@@ -13,6 +13,6 @@ export interface CadWorkflowService {
     projectId: string;
     revision: string;
     format: "stl" | "3mf";
-    signal?: AbortSignal;
+    signal?: AbortSignal | undefined;
   }): Promise<ExportReceipt>;
 }

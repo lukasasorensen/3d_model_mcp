@@ -8,7 +8,7 @@ export class WorkerValidationTransaction {
     private readonly ownerId: string,
     readonly candidates: ProjectPersistence,
   ) {}
-  async lockOwner() {
+  async lockOwner(): Promise<void> {
     const result = await this.client.query(
       'SELECT id FROM "user" WHERE id=$1 FOR UPDATE',
       [this.ownerId],
@@ -24,7 +24,7 @@ export class WorkerValidationTransaction {
       )
     ).rows;
   }
-  async activeCount() {
+  async activeCount(): Promise<number> {
     return Number(
       (
         await this.client.query(
@@ -42,7 +42,7 @@ export class WorkerValidationTransaction {
     sourceHash: string;
     tokenHash: string;
     deadline: Date;
-  }) {
+  }): Promise<void> {
     await this.client.query(
       `INSERT INTO worker_validation_jobs (id,owner_id,project_id,candidate_id,attempt_id,source_hash,token_hash,deadline)
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
@@ -88,7 +88,7 @@ export class WorkerValidationTransaction {
     now: Date,
     completionHash?: string,
     completion?: unknown,
-  ) {
+  ): Promise<void> {
     await this.client.query(
       `UPDATE worker_validation_jobs SET state=$3,completion_hash=$4,completion=$5,updated_at=$6
       WHERE id=$1 AND owner_id=$2 AND state='PENDING'`,

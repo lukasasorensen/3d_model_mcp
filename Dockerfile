@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM node:22-bookworm-slim AS workspace
+FROM node:24.21.0-bookworm-slim AS workspace
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 WORKDIR /workspace
@@ -15,6 +15,7 @@ COPY packages/mcp/package.json packages/mcp/package.json
 COPY packages/runtime/model-project/package.json packages/runtime/model-project/package.json
 COPY packages/renderer/package.json packages/renderer/package.json
 COPY packages/runtime/package.json packages/runtime/package.json
+COPY patches/ patches/
 RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS build
@@ -38,7 +39,7 @@ FROM build AS tooling
 ENV NODE_ENV=production
 CMD ["pnpm", "db:migrate"]
 
-FROM node:22-bookworm-slim AS runtime
+FROM node:24.21.0-bookworm-slim AS runtime
 ENV HOSTNAME=0.0.0.0
 ENV NODE_ENV=production
 ENV PORT=3000

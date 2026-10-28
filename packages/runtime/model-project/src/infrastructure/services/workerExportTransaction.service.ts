@@ -12,7 +12,7 @@ export class WorkerExportTransaction {
     readonly ownerId: string,
   ) {}
 
-  async activeCount(now: Date) {
+  async activeCount(now: Date): Promise<number> {
     return Number(
       (
         await this.client.query(
@@ -106,7 +106,7 @@ export class WorkerExportTransaction {
     now: Date,
     fingerprint?: string,
     metadata?: WorkerExportMetadata,
-  ) {
+  ): Promise<WorkerExportJob> {
     const result = await this.client.query<WorkerExportJob>(
       `UPDATE worker_export_jobs SET state=$3,completion_hash=$4,
       completion=$5,retain_until=$6,updated_at=$7 WHERE id=$1 AND owner_id=$2 AND state='PENDING' RETURNING *`,

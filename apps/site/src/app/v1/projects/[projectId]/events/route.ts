@@ -29,7 +29,7 @@ export async function GET(
   if (isPolicyResponse(user)) return user;
   const projectId = projectIdSchema.safeParse((await context.params).projectId);
   if (!projectId.success) return jsonError("INVALID_REQUEST", 400);
-  const authorize = async () => {
+  const authorize = async (): Promise<void> => {
     const current = await authenticateRequest(request);
     if (isPolicyResponse(current) || current.id !== user.id)
       throw new Error("Project subscription authorization expired.");

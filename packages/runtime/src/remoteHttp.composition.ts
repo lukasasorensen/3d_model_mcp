@@ -7,7 +7,7 @@ export function createRemoteMcpHandler(
     createServer: createRemoteCadMcpServer,
   },
   timeoutMs?: number,
-) {
+): (request: Request) => Promise<Response> {
   return createHandler(dependencies, timeoutMs);
 }
 export const handleRemoteMcpRequest = createRemoteMcpHandler();

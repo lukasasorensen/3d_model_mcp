@@ -5,12 +5,12 @@ import type { AuthenticatedUser } from "./features/authentication/index.js";
 import { recordRejectedOAuthRedirect } from "./features/authentication/index.js";
 export function createConfiguredAuth(
   database: Pick<ProjectDatabase, "pool" | "db"> = getProjectDatabase(),
-) {
+): ReturnType<typeof createAuth> {
   return createAuth(database);
 }
 let configuredAuth: ReturnType<typeof createConfiguredAuth> | undefined;
 
-export function getAuth() {
+export function getAuth(): ReturnType<typeof createAuth> {
   configuredAuth ??= createConfiguredAuth(getProjectDatabase());
   return configuredAuth;
 }

@@ -2,12 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { receiveProjectEvents } from "../../../../../src/features/project-events/browser/services/projectEvents.service";
 
-test("SSE client parses split frames and acknowledges heartbeats without job invalidations", async () => {
+void test("SSE client parses split frames and acknowledges heartbeats without job invalidations", async () => {
   const original = globalThis.fetch;
-  globalThis.fetch = async () =>
+  globalThis.fetch = async (): Promise<Response> =>
     new Response(
       new ReadableStream({
-        start(controller) {
+        start(controller): void {
           for (const part of [
             ': heartbeat\n\ndata: {"type":',
             '"ready"}\n',
@@ -39,9 +39,10 @@ test("SSE client parses split frames and acknowledges heartbeats without job inv
   }
 });
 
-test("SSE client stops retries on authentication failures", async () => {
+void test("SSE client stops retries on authentication failures", async () => {
   const original = globalThis.fetch;
-  globalThis.fetch = async () => new Response(null, { status: 401 });
+  globalThis.fetch = async (): Promise<Response> =>
+    new Response(null, { status: 401 });
   try {
     assert.equal(
       await receiveProjectEvents("project", new AbortController().signal, () =>

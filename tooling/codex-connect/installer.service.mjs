@@ -46,8 +46,8 @@ export async function runInstaller(
     throw new Error(
       "Usage: node connect-codex-v1.mjs <application-origin> <global|project>",
     );
-  if (Number(process.versions.node.split(".")[0]) < 22)
-    throw new Error("Install Node.js 22 or newer, then retry.");
+  if (Number(process.versions.node.split(".")[0]) < 24)
+    throw new Error("Install Node.js 24 or newer, then retry.");
   const [origin, scope] = args;
   const settings = connectionSettings(origin);
   const path = configurationPath(scope, cwd, environment, home);

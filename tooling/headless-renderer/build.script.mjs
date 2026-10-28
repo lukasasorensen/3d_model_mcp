@@ -72,7 +72,7 @@ await writeFile(
       version: "0.0.0",
       private: true,
       type: "module",
-      engines: { node: ">=22.9.0" },
+      engines: { node: ">=24 <25" },
       scripts: { proof: "node cli.mjs" },
       dependencies: { playwright: devDependencies.playwright },
     },

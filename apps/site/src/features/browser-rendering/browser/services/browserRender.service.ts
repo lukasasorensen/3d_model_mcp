@@ -5,6 +5,7 @@ import {
 import {
   type BrowserRenderCompletion,
   type Diagnostic,
+  type ChatEvent,
   type GeometrySummary,
   type LocalMcpBrowserRenderJob,
   type RemoteMcpBrowserRenderJob,
@@ -24,7 +25,7 @@ async function renderCompletion(
 ): Promise<BrowserRenderCompletion> {
   let outcome: "VALID" | "REJECTED" | "FAILED" = "VALID";
   let geometry: GeometrySummary | undefined;
-  let diagnostics: Diagnostic[] = [];
+  let diagnostics: Diagnostic[];
   try {
     const result = await renderPreview(
       request.source,
@@ -60,10 +61,7 @@ async function renderCompletion(
 
 export async function completeBrowserRender(
   renderPreview: BrowserRenderer["renderPreview"],
-  event: Extract<
-    import("@theoryfoundry/contracts").ChatEvent,
-    { type: "browser_render_request" }
-  >,
+  event: Extract<ChatEvent, { type: "browser_render_request" }>,
 ): Promise<void> {
   const completion = await renderCompletion(
     renderPreview,
@@ -128,7 +126,7 @@ export async function completeRemoteMcpBrowserRender(
     `/v1/browser-renders/${encodeURIComponent(job.jobId)}`,
     {
       method: "POST",
-      signal,
+      ...(signal ? { signal } : {}),
       headers: {
         "content-type": "application/json",
         "x-theoryfoundry-session-id": sessionId,

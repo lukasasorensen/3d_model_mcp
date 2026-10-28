@@ -6,7 +6,7 @@ import type { ExportRouteDependencies } from "../../../../src/features/exports/e
 const context = { params: Promise.resolve({ projectId: "project-1" }) };
 const origin =
   process.env.THEORYFOUNDRY_ALLOWED_ORIGIN ?? "http://localhost:3000";
-const request = (allowedOrigin = origin) =>
+const request = (allowedOrigin = origin): Request =>
   new Request(`${origin}/v1/projects/project-1/export-jobs/claim`, {
     method: "POST",
     headers: {
@@ -17,7 +17,7 @@ const request = (allowedOrigin = origin) =>
 const unused = (): never =>
   assert.fail("admission must finish before persistence");
 
-test("export admission checks origin and authentication before persistence", async () => {
+void test("export admission checks origin and authentication before persistence", async () => {
   let authenticated = 0;
   const handler = exportRoute("claim", {
     authenticate: async () => {
@@ -36,18 +36,27 @@ test("export admission checks origin and authentication before persistence", asy
   assert.equal(authenticated, 1);
 });
 
-test("export claims bind owner, project and session and hide infrastructure failures", async () => {
+void test("export claims bind owner, project and session and hide infrastructure failures", async () => {
   const dependencies: ExportRouteDependencies = {
     authenticate: async () => ({
       id: "owner-1",
       email: "owner@example.invalid",
       name: "Owner",
     }),
-    createStore: (ownerId) => {
+    createStore: (
+      ownerId,
+    ): {
+      get: () => never;
+      claim: (
+        projectId: string,
+        sessionId: string,
+        modes: string[],
+      ) => Promise<undefined>;
+    } => {
       assert.equal(ownerId, "owner-1");
       return {
         get: unused,
-        claim: async (projectId, sessionId, modes) => {
+        claim: async (projectId, sessionId, modes): Promise<undefined> => {
           assert.equal(projectId, "project-1");
           assert.equal(sessionId, "session-1");
           assert.ok(modes.includes("chat"));
@@ -60,7 +69,7 @@ test("export claims bind owner, project and session and hide infrastructure fail
   const response = await exportRoute("claim", dependencies)(request(), context);
   assert.equal(response.status, 204);
   assert.equal(response.headers.get("cache-control"), "no-store");
-  dependencies.createStore = () => {
+  dependencies.createStore = (): never => {
     throw new Error("private database details");
   };
   const failed = await exportRoute("claim", dependencies)(request(), context);

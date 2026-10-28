@@ -1,3 +1,4 @@
+import type { ModelExportsStore } from "../../domains/worker/index.js";
 import {
   exportMetadataSchema,
   type ExportReceipt,
@@ -17,7 +18,7 @@ export class ModelExportsRepository {
     readonly pool: Pool,
     readonly ownerId: string,
   ) {}
-  async list(projectId: string) {
+  async list(projectId: string): ReturnType<ModelExportsStore["list"]> {
     const result = await this.pool.query(
       "SELECT e.metadata FROM model_exports e JOIN projects p ON p.id=e.project_id AND p.owner_id=e.owner_id WHERE e.owner_id=$1 AND e.project_id=$2 AND e.state='READY' AND e.expires_at>now()",
       [this.ownerId, projectId],
@@ -58,7 +59,11 @@ export class ModelExportsRepository {
       throw new CadDomainError("EXPORT_UNAVAILABLE", "Export is unavailable.");
     return result.rows[0]!;
   }
-  async claim(projectId: string, sessionId: string, modes: string[]) {
+  async claim(
+    projectId: string,
+    sessionId: string,
+    modes: string[],
+  ): ReturnType<ModelExportsStore["claim"]> {
     const token = randomBytes(32).toString("hex");
     const result = await this.pool.query<ExportRow & { source: string }>(
       "WITH next AS (SELECT e.id FROM model_exports e JOIN projects p ON p.id=e.project_id AND p.owner_id=e.owner_id WHERE e.owner_id=$1 AND e.project_id=$2 AND e.mode=ANY($5::text[]) AND e.mode<>'local-worker' AND e.state='PENDING' AND e.session_id IS NULL AND e.deadline>now() ORDER BY e.created_at FOR UPDATE OF e SKIP LOCKED LIMIT 1), claimed AS (UPDATE model_exports e SET session_id=$3,token_hash=$4,updated_at=now() FROM next WHERE e.id=next.id RETURNING e.*) SELECT claimed.*,r.source FROM claimed JOIN revisions r ON r.id=claimed.revision_id AND r.project_id=claimed.project_id",

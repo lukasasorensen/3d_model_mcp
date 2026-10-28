@@ -4,7 +4,7 @@ Authenticated conversational CAD using React, MCP tools, PostgreSQL, and OpenSCA
 
 ## Workspace
 
-This repository is a pnpm workspace targeting Node.js 22 (until the separate Node 24 stage). The package
+This repository is a pnpm workspace targeting Node.js 24 (pinned in `.node-version`). The package
 boundaries intentionally separate browser-safe contracts from Node-only model,
 renderer, MCP, gateway, and runtime concerns.
 

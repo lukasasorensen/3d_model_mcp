@@ -6,7 +6,14 @@ export async function claimMcpBrowserRender(
   projectId: string,
   sessionId: string,
   recordClaim: () => void,
-) {
+): Promise<
+  | (NonNullable<Awaited<ReturnType<RemoteRenderJobs["claim"]>>> & {
+      token: string;
+      purpose: "candidate";
+      format: "stl";
+    })
+  | undefined
+> {
   const token = randomBytes(32).toString("hex");
   const job = await jobs.claim(projectId, sessionId, sha256(token));
   if (!job) return undefined;
@@ -24,7 +31,19 @@ export async function claimRemoteBrowserRender(
   projectId: string,
   sessionId: string,
   recordClaim: () => void,
-) {
+): Promise<
+  | {
+      jobId: string;
+      candidateId: string;
+      source: string;
+      sourceHash: string;
+      deadline: string;
+      token: string;
+      purpose: "candidate";
+      format: "stl";
+    }
+  | undefined
+> {
   const job = await claimMcpBrowserRender(
     jobs,
     projectId,

@@ -32,7 +32,8 @@ function updateAssistant(
   const index = turns.findLastIndex(
     (turn) => turn.role === "assistant" && !turn.outcome,
   );
-  if (index >= 0) turns[index] = update(turns[index]);
+  const turn = turns[index];
+  if (turn) turns[index] = update(turn);
   return turns;
 }
 

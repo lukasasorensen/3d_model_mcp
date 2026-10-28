@@ -1,4 +1,5 @@
 "use client";
+import type { WorkspaceView } from "../workspaceView.types";
 import { exportFilename } from "@theoryfoundry/contracts";
 
 import {
@@ -51,7 +52,7 @@ export function useModelWorkspace({
   projectId: string;
   localMcpBridgeEnabled?: boolean;
   remoteMcpEnabled?: boolean;
-}) {
+}): WorkspaceView {
   const { renderPreview, generateDownload } = useBrowserRenderer();
   const router = useRouter();
   const isSidebarChatEnabled = useSidebarChat();
@@ -85,7 +86,7 @@ export function useModelWorkspace({
       dispatch({ type: "hydrate", ...snapshot }),
     );
     snapshotLoader.current = loader;
-    return () => {
+    return (): void => {
       loader.close();
       if (snapshotLoader.current === loader) snapshotLoader.current = undefined;
     };
@@ -139,7 +140,7 @@ export function useModelWorkspace({
       setSessionId(created);
     }
     void Promise.all([refreshProject(), refreshProjects(), checkRuntime()]);
-    return () => abortRef.current?.abort();
+    return (): void | undefined => abortRef.current?.abort();
   }, [checkRuntime, projectId, refreshProject, refreshProjects]);
 
   const {
@@ -251,7 +252,7 @@ export function useModelWorkspace({
     wasActive.current = state.active;
   }, [readiness, sessionId, state.active]);
 
-  const restore = async (revisionId: string) => {
+  const restore = async (revisionId: string): Promise<void> => {
     if (!(await acquireRenderer())) return;
     setRestorePending(true);
     try {
@@ -298,7 +299,7 @@ export function useModelWorkspace({
       : "Promoting first revision";
   }
 
-  const exportCurrent = async () => {
+  const exportCurrent = async (): Promise<void> => {
     if (!currentManifest || !(await acquireRenderer())) return;
     setExportState("preparing");
     try {

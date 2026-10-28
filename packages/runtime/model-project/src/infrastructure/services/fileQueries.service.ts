@@ -84,7 +84,10 @@ export class FileProjectQueries {
         .map((entry) => this.records.readProjectDetails(entry.name)),
     );
   }
-  async readValidatedCandidateSource(projectId: string, candidateId: string) {
+  async readValidatedCandidateSource(
+    projectId: string,
+    candidateId: string,
+  ): Promise<{ candidateId: string; source: string; sourceHash: string }> {
     const candidate = await this.records.readCandidate(projectId, candidateId);
     if (candidate.state !== "VALID")
       throw new CadDomainError(

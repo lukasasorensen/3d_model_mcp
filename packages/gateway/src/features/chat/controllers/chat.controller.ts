@@ -123,7 +123,7 @@ export function createChatRouteHandler(
       responseAbort.signal,
     ]);
     const body = new ReadableStream<Uint8Array>({
-      async start(controller) {
+      async start(controller): Promise<void> {
         try {
           for await (const event of streamCadChat(
             parsed.data,
@@ -137,7 +137,7 @@ export function createChatRouteHandler(
             controller.error(new Error("The chat stream failed safely."));
         }
       },
-      cancel() {
+      cancel(): void {
         responseAbort.abort();
       },
     });

@@ -68,7 +68,7 @@ class DeterministicCadChatModel extends BaseChatModel {
     return "theoryfoundry-deterministic-cad";
   }
 
-  bindTools(tools: BindToolsInput[]): Runnable {
+  override bindTools(tools: BindToolsInput[]): Runnable {
     const bound = new DeterministicCadChatModel(this.request, this.requestId);
     bound.tools = [...tools];
     return bound;
@@ -89,7 +89,7 @@ class DeterministicCadChatModel extends BaseChatModel {
         "name" in candidate ? String(candidate.name) : "",
       ),
     );
-    const invoke = (name: string, args: Record<string, unknown>) => {
+    const invoke = (name: string, args: Record<string, unknown>): AIMessage => {
       if (!available.has(name))
         throw new Error("Required CAD tool is unavailable.");
       return this.call(name, args);

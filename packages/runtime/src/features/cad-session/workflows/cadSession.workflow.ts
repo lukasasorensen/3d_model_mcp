@@ -20,10 +20,10 @@ export class RuntimeCadWorkflow implements CadWorkflowService {
     private readonly presence: BrowserPresenceStore,
     private readonly exportRecords: ModelExportsStore,
   ) {}
-  projectUrl(projectId: string) {
+  projectUrl(projectId: string): string {
     return `${this.origin}/projects/${encodeURIComponent(projectId)}`;
   }
-  async inspect(projectId: string) {
+  async inspect(projectId: string): ReturnType<CadWorkflowService["inspect"]> {
     await this.repository.getProjectState(projectId);
     await this.jobs.recover();
     const rendererAvailability = await this.presence.availability(
@@ -33,7 +33,7 @@ export class RuntimeCadWorkflow implements CadWorkflowService {
     const exports = await this.exportRecords.list(projectId);
     return { rendererAvailability, exports };
   }
-  async requireReady(projectId: string) {
+  async requireReady(projectId: string): Promise<void> {
     const { rendererAvailability } = await this.inspect(projectId);
     if (rendererAvailability !== "ready")
       throw new CadDomainError(
@@ -44,7 +44,9 @@ export class RuntimeCadWorkflow implements CadWorkflowService {
         { projectUrl: this.projectUrl(projectId), retryable: true },
       );
   }
-  async exportModel(input: Parameters<CadWorkflowService["exportModel"]>[0]) {
+  async exportModel(
+    input: Parameters<CadWorkflowService["exportModel"]>[0],
+  ): ReturnType<CadWorkflowService["exportModel"]> {
     await this.repository.getProjectState(input.projectId);
     const cached = (await this.exportRecords.list(input.projectId)).some(
       (e) => e.revision === input.revision && e.format === input.format,

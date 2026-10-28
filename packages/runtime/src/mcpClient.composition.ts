@@ -17,7 +17,10 @@ export async function createInMemoryCadMcpClient(
   repository: ModelProjectStore,
   workflowService?: CadWorkflowService,
 ): Promise<ConnectedCadMcpClient> {
-  const server = createCadMcpServer(repository, { workflowService });
+  const server = createCadMcpServer(
+    repository,
+    workflowService ? { workflowService } : {},
+  );
   const client = new Client(
     { name: "theoryfoundry-gateway", version: "0.1.0" },
     { capabilities: {} },

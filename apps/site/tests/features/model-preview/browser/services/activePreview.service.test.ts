@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { BrowserRenderLease } from "../../../../../src/features/browser-rendering/browser/services/browserRenderLease.service";
 import { ActivePreview } from "../../../../../src/features/model-preview/browser/services/activePreview.service";
-const tick = () => new Promise<void>((resolve) => setImmediate(resolve));
+const tick = (): Promise<void> =>
+  new Promise<void>((resolve) => setImmediate(resolve));
 
-test("cancellation invalidation aborts rendering and releases a waiting foreground action", async () => {
+void test("cancellation invalidation aborts rendering and releases a waiting foreground action", async () => {
   const lease = new BrowserRenderLease();
   assert.equal(lease.tryBackground(), true);
   let state: "pending" | "cancelled" = "pending";
@@ -30,7 +31,7 @@ test("cancellation invalidation aborts rendering and releases a waiting foregrou
   lease.release();
 });
 
-test("invalidation during a status read schedules a trailing read", async () => {
+void test("invalidation during a status read schedules a trailing read", async () => {
   let finish: (state: "pending") => void = () => undefined;
   let reads = 0;
   const active = new ActivePreview(new AbortController().signal, async () => {
@@ -49,7 +50,7 @@ test("invalidation during a status read schedules a trailing read", async () => 
   assert.equal(active.signal.aborted, true);
 });
 
-test("late cancellation reads do not abort a finished render during normal delivery", async () => {
+void test("late cancellation reads do not abort a finished render during normal delivery", async () => {
   let finish: (state: "cancelled") => void = () => undefined;
   const active = new ActivePreview(
     new AbortController().signal,
@@ -65,7 +66,7 @@ test("late cancellation reads do not abort a finished render during normal deliv
   assert.equal(active.signal.aborted, false);
 });
 
-test("lifecycle cancellation reaches the worker and failed status reads fail closed", async () => {
+void test("lifecycle cancellation reaches the worker and failed status reads fail closed", async () => {
   const lifecycle = new AbortController();
   const active = new ActivePreview(lifecycle.signal, async () => "pending");
   lifecycle.abort();

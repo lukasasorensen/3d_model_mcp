@@ -26,7 +26,8 @@ async function verifiedBytes(
 }
 
 export function registerOpenScadWorker(scope: OpenScadWorkerScope): void {
-  scope.onmessage = async (event: MessageEvent<RenderMessage>) => {
+  scope.onmessage = render;
+  async function render(event: MessageEvent<RenderMessage>): Promise<void> {
     const diagnostics: string[] = [];
     let failureKind: "operational" | "model" = "operational";
     try {
@@ -104,5 +105,5 @@ export function registerOpenScadWorker(scope: OpenScadWorkerScope): void {
       if (diagnostics.length === 0) diagnostics.push(message);
       scope.postMessage({ ok: false, diagnostics, message, failureKind });
     }
-  };
+  }
 }

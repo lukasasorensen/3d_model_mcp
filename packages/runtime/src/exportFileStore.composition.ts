@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { DirectoryExportFileStore } from "./features/model-export/index.js";
-export function createExportFileStore() {
+export function createExportFileStore(): DirectoryExportFileStore {
   const directory = process.env.THEORYFOUNDRY_EXPORT_DIRECTORY
     ? resolve(process.env.THEORYFOUNDRY_EXPORT_DIRECTORY)
     : join(

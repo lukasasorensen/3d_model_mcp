@@ -6,7 +6,7 @@ export function useSidebarChat(): boolean {
   useEffect(() => {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
-    const refresh = async () => {
+    const refresh = async (): Promise<void> => {
       try {
         const response = await fetch("/v1/features/sidebar-chat", {
           cache: "no-store",
@@ -30,7 +30,7 @@ export function useSidebarChat(): boolean {
       }
     };
     void refresh();
-    return () => {
+    return (): void => {
       controller.abort();
       clearTimeout(timer);
     };

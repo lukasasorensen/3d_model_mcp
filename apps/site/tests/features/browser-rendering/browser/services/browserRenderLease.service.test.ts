@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { BrowserRenderLease } from "../../../../../src/features/browser-rendering/browser/services/browserRenderLease.service";
 
-test("a user submit during a claim poll waits instead of being silently dropped", async () => {
+void test("a user submit during a claim poll waits instead of being silently dropped", async () => {
   const lease = new BrowserRenderLease();
   assert.equal(lease.tryBackground(), true);
   const submit = lease.acquireForeground();

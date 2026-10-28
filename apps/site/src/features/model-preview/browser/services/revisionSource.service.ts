@@ -6,7 +6,7 @@ export async function fetchRevisionSource(
 ): Promise<string> {
   const response = await fetch(
     `/v1/projects/${encodeURIComponent(projectId)}/revisions/${encodeURIComponent(revisionId)}/source`,
-    { cache: "no-store", signal },
+    { cache: "no-store", ...(signal ? { signal } : {}) },
   );
   if (
     !response.ok ||

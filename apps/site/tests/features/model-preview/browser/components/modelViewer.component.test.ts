@@ -12,16 +12,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { BufferGeometry, MeshStandardMaterial, Texture } from "three";
 
-test("camera auto-fit occurs only for the first model in each project", () => {
+void test("camera auto-fit occurs only for the first model in each project", () => {
   assert.equal(shouldAutoFit(undefined, "project-a"), true);
   assert.equal(shouldAutoFit("project-a", "project-a"), false);
   assert.equal(shouldAutoFit("project-a", "project-b"), true);
 });
 
-test("geometry disposal is exact-once", () => {
+void test("geometry disposal is exact-once", () => {
   const geometry = new BufferGeometry();
   let calls = 0;
-  geometry.dispose = () => {
+  geometry.dispose = (): void => {
     calls += 1;
   };
   disposeGeometry(geometry);
@@ -29,11 +29,11 @@ test("geometry disposal is exact-once", () => {
   assert.equal(calls, 1);
 });
 
-test("committed viewer swap keeps the previous geometry alive until commit", () => {
+void test("committed viewer swap keeps the previous geometry alive until commit", () => {
   const previous = new BufferGeometry();
   const next = new BufferGeometry();
   let previousDisposals = 0;
-  previous.dispose = () => {
+  previous.dispose = (): void => {
     previousDisposals += 1;
   };
   assert.equal(previousDisposals, 0);
@@ -43,16 +43,16 @@ test("committed viewer swap keeps the previous geometry alive until commit", () 
   assert.equal(previousDisposals, 1);
 });
 
-test("materials, textures, and object URLs dispose exactly once", () => {
+void test("materials, textures, and object URLs dispose exactly once", () => {
   const material = new MeshStandardMaterial();
   const texture = new Texture();
   material.map = texture;
   let materialDisposals = 0;
   let textureDisposals = 0;
-  material.dispose = () => {
+  material.dispose = (): void => {
     materialDisposals += 1;
   };
-  texture.dispose = () => {
+  texture.dispose = (): void => {
     textureDisposals += 1;
   };
   disposeMaterialResources(material);
@@ -61,7 +61,7 @@ test("materials, textures, and object URLs dispose exactly once", () => {
 
   const originalRevoke = URL.revokeObjectURL;
   let revocations = 0;
-  URL.revokeObjectURL = () => {
+  URL.revokeObjectURL = (): void => {
     revocations += 1;
   };
   try {

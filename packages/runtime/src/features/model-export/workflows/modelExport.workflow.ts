@@ -1,3 +1,4 @@
+import type { ModelExportOperations } from "../modelExport.port.js";
 import { exportMetadataSchema } from "@theoryfoundry/contracts";
 import type { ModelExportsStore } from "@theoryfoundry/model-project";
 import {
@@ -31,7 +32,7 @@ export class ModelExportWorkflow {
     },
     mode: string,
     origin: string,
-  ) {
+  ): ReturnType<ModelExportOperations["generate"]> {
     await this.cleanup();
     const repository = this.createRepository(ownerId);
     const accepted = await repository.accept(
@@ -82,7 +83,7 @@ export class ModelExportWorkflow {
     token: string,
     sourceHash: string,
     bytes: Uint8Array,
-  ) {
+  ): Promise<void> {
     const client = await this.database.pool.connect();
     try {
       await client.query("BEGIN");
@@ -113,7 +114,7 @@ export class ModelExportWorkflow {
     sessionId: string,
     token: string,
     sourceHash: string,
-  ) {
+  ): Promise<void> {
     const result = await this.database.pool.query(
       "UPDATE model_exports SET state='FAILED',token_hash=NULL,reserved_bytes=0,updated_at=now() WHERE id=$1 AND owner_id=$2 AND project_id=$3 AND session_id=$4 AND token_hash=$5 AND source_hash=$6 AND state='PENDING' AND deadline>now() RETURNING id",
       [id, ownerId, projectId, sessionId, sha256(token), sourceHash],
@@ -124,7 +125,10 @@ export class ModelExportWorkflow {
         "Export completion binding failed.",
       );
   }
-  async download(id: string, token: string) {
+  async download(
+    id: string,
+    token: string,
+  ): ReturnType<ModelExportOperations["download"]> {
     const result = await this.database.pool.query(
       "SELECT e.metadata FROM export_download_tokens t JOIN model_exports e ON e.id=t.export_id JOIN projects p ON p.id=e.project_id AND p.owner_id=e.owner_id WHERE t.hash=$1 AND e.id=$2 AND t.expires_at>now() AND e.expires_at>now() AND e.state='READY'",
       [sha256(token), id],
@@ -146,7 +150,7 @@ export class ModelExportWorkflow {
       );
     return { metadata, bytes };
   }
-  async cleanup() {
+  async cleanup(): Promise<void> {
     const client = await this.database.pool.connect();
     let expired: { id: string }[];
     try {

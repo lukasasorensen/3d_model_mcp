@@ -1,3 +1,11 @@
+import type { IsPrimaryKey, NotNull, HasDefault } from "drizzle-orm";
+import type {
+  PgTextBuilderInitial,
+  PgTimestampBuilderInitial,
+  PgIntegerBuilderInitial,
+  PgJsonbBuilderInitial,
+  CheckBuilder,
+} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import {
   check,
@@ -15,26 +23,41 @@ interface SourceIntegrityColumns {
   sourceBytes: AnyPgColumn;
 }
 
-export function primaryTextId() {
+export function primaryTextId(): IsPrimaryKey<
+  NotNull<PgTextBuilderInitial<"id", [string, ...string[]]>>
+> {
   return text("id").primaryKey();
 }
 
-export function creationTimestamp() {
+export function creationTimestamp(): HasDefault<
+  NotNull<PgTimestampBuilderInitial<"created_at">>
+> {
   return timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 }
 
-export function updateTimestamp() {
+export function updateTimestamp(): HasDefault<
+  NotNull<PgTimestampBuilderInitial<"updated_at">>
+> {
   return timestamp("updated_at", { withTimezone: true }).notNull().defaultNow();
 }
 
-export function auditTimestamps() {
+export function auditTimestamps(): {
+  createdAt: ReturnType<typeof creationTimestamp>;
+  updatedAt: ReturnType<typeof updateTimestamp>;
+} {
   return {
     createdAt: creationTimestamp(),
     updatedAt: updateTimestamp(),
   };
 }
 
-export function sourceDocumentColumns() {
+export function sourceDocumentColumns(): {
+  source: NotNull<PgTextBuilderInitial<"source", [string, ...string[]]>>;
+  sourceHash: NotNull<
+    PgTextBuilderInitial<"source_hash", [string, ...string[]]>
+  >;
+  sourceBytes: NotNull<PgIntegerBuilderInitial<"source_bytes">>;
+} {
   return {
     source: text("source").notNull(),
     sourceHash: text("source_hash").notNull(),
@@ -42,26 +65,39 @@ export function sourceDocumentColumns() {
   };
 }
 
-export function requestTraceColumns() {
+export function requestTraceColumns(): {
+  requestId: NotNull<PgTextBuilderInitial<"request_id", [string, ...string[]]>>;
+  toolCallId: NotNull<
+    PgTextBuilderInitial<"tool_call_id", [string, ...string[]]>
+  >;
+} {
   return {
     requestId: text("request_id").notNull(),
     toolCallId: text("tool_call_id").notNull(),
   };
 }
 
-export function diagnosticsColumn() {
+export function diagnosticsColumn(): HasDefault<
+  NotNull<PgJsonbBuilderInitial<"diagnostics">>
+> {
   return jsonb("diagnostics").notNull().default([]);
 }
 
-export function optionalRendererMetadataColumn() {
+export function optionalRendererMetadataColumn(): PgJsonbBuilderInitial<"renderer"> {
   return jsonb("renderer");
 }
 
-export function requiredRendererMetadataColumn() {
+export function requiredRendererMetadataColumn(): NotNull<
+  PgJsonbBuilderInitial<"renderer">
+> {
   return jsonb("renderer").notNull();
 }
 
-export function artifactColumns() {
+export function artifactColumns(): {
+  format: NotNull<PgTextBuilderInitial<"format", [string, ...string[]]>>;
+  metadata: NotNull<PgJsonbBuilderInitial<"metadata">>;
+  objectKey: PgTextBuilderInitial<"object_key", [string, ...string[]]>;
+} {
   return {
     format: text("format").notNull(),
     metadata: jsonb("metadata").notNull(),
@@ -72,7 +108,7 @@ export function artifactColumns() {
 export function sourceIntegrityChecks(
   constraintPrefix: string,
   table: SourceIntegrityColumns,
-) {
+): CheckBuilder[] {
   return [
     check(
       `${constraintPrefix}_source_hash_check`,
@@ -88,7 +124,7 @@ export function sourceIntegrityChecks(
 export function artifactFormatCheck(
   constraintPrefix: string,
   formatColumn: AnyPgColumn,
-) {
+): CheckBuilder {
   return check(
     `${constraintPrefix}_format_check`,
     sql`${formatColumn} IN ('stl', '3mf')`,

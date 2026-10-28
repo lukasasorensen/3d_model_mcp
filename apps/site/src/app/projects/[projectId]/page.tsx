@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { projectIdSchema } from "@theoryfoundry/contracts";
 import { BrowserWorkspace } from "@/workspace.composition";
 import { notFound, redirect } from "next/navigation";
@@ -14,7 +15,7 @@ export default async function ProjectPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
-}) {
+}): Promise<JSX.Element> {
   const projectId = projectIdSchema.safeParse((await params).projectId);
   if (!projectId.success) notFound();
   const user = await getAuthenticatedUser(await headers());

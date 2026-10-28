@@ -14,6 +14,7 @@ export type OpenScadModule = {
 };
 
 export interface OpenScadWorkerScope {
-  onmessage: ((event: MessageEvent<RenderMessage>) => void) | null;
+  onmessage:
+    ((event: MessageEvent<RenderMessage>) => void | Promise<void>) | null;
   postMessage(message: unknown, transfer?: Transferable[]): void;
 }

@@ -20,7 +20,7 @@ export class ExportArtifactFinalizationService {
     row: ExportRow & { name: string },
     bytes: Uint8Array,
     now: Date,
-  ) {
+  ): Promise<ReturnType<typeof exportMetadataSchema.parse>> {
     if (
       !bytes.byteLength ||
       bytes.byteLength >

@@ -1,3 +1,4 @@
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type {
@@ -13,7 +14,9 @@ import {
   type CadToolName,
 } from "./features/cad-tools/index.js";
 
-function mcpResult(result: Awaited<ReturnType<typeof invokeCadTool>>) {
+function mcpResult(
+  result: Awaited<ReturnType<typeof invokeCadTool>>,
+): CallToolResult {
   if (!result.ok) {
     return {
       content: [

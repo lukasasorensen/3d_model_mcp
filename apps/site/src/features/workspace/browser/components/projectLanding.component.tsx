@@ -1,4 +1,5 @@
 "use client";
+import type { JSX } from "react";
 
 import type { ProjectSummary } from "@theoryfoundry/contracts";
 import { useRouter } from "next/navigation";
@@ -13,14 +14,16 @@ export function ProjectLanding({
   projects: ProjectSummary[];
   userName: string;
   remoteMcpEnabled?: boolean;
-}) {
+}): JSX.Element {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  async function createProject(event: FormEvent<HTMLFormElement>) {
+  async function createProject(
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
     event.preventDefault();
     setPending(true);
     setError("");
@@ -44,7 +47,7 @@ export function ProjectLanding({
       setPending(false);
     }
   }
-  async function signOut() {
+  async function signOut(): Promise<void> {
     await authClient.signOut();
     router.replace("/sign-in");
     router.refresh();
@@ -57,7 +60,12 @@ export function ProjectLanding({
           <h1>Your projects</h1>
           <p>Signed in as {userName}</p>
         </div>
-        <button type="button" onClick={signOut}>
+        <button
+          type="button"
+          onClick={() => {
+            void signOut();
+          }}
+        >
           Sign out
         </button>
       </header>
@@ -78,7 +86,12 @@ export function ProjectLanding({
           </button>
         </div>
         {isCreating && (
-          <form className="project-form" onSubmit={createProject}>
+          <form
+            className="project-form"
+            onSubmit={(event) => {
+              void createProject(event);
+            }}
+          >
             <label>
               Title
               <input

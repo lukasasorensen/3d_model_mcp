@@ -69,7 +69,10 @@ async function createConfiguredCadRuntime(
     observability,
     repository,
     close: () => client.close(),
-    async probeReadiness() {
+    async probeReadiness(): Promise<{
+      status: "ready";
+      profile: "browser-wasm";
+    }> {
       if (Date.now() - lastReadyAt < 5_000)
         return { status: "ready" as const, profile: "browser-wasm" as const };
       const result = await readiness();

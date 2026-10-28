@@ -1,5 +1,8 @@
 import type { Pool } from "pg";
-import { WorkerExportWorkflow } from "./domains/worker/index.js";
+import {
+  type WorkerExportTransactionPort,
+  WorkerExportWorkflow,
+} from "./domains/worker/index.js";
 import {
   WorkerExportJobsRepository,
   WorkerExportTransaction,
@@ -20,7 +23,7 @@ export class WorkerExportService {
     const jobs = new WorkerExportJobsRepository(
       pool,
       ownerId,
-      (client) => {
+      (client): WorkerExportTransactionPort => {
         const tx = new WorkerExportTransaction(client, ownerId);
         return {
           activeCount: tx.activeCount.bind(tx),

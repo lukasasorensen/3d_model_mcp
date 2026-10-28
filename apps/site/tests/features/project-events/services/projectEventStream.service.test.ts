@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createProjectEventStream } from "../../../../src/features/project-events/services/projectEventStream.service";
 
-const tick = () => new Promise((resolve) => setImmediate(resolve));
+const tick = (): Promise<unknown> =>
+  new Promise((resolve) => setImmediate(resolve));
 
-test("project streams scope events, resync on listener gaps, and release cancelled subscriptions", async () => {
+void test("project streams scope events, resync on listener gaps, and release cancelled subscriptions", async () => {
   let listener: Parameters<
     Parameters<typeof createProjectEventStream>[0]["changes"]["subscribe"]
   >[0] = () => undefined;
@@ -18,7 +19,7 @@ test("project streams scope events, resync on listener gaps, and release cancell
     changes: {
       async subscribe(receive) {
         listener = receive;
-        return () => {
+        return (): void => {
           released = true;
         };
       },
@@ -28,7 +29,7 @@ test("project streams scope events, resync on listener gaps, and release cancell
     },
   });
   const reader = response.body!.getReader();
-  const text = async () =>
+  const text = async (): Promise<string> =>
     new TextDecoder().decode((await reader.read()).value);
   assert.match(await text(), /ready/);
   listener({ kind: "project", ownerId: "other", projectId: "project" });
@@ -57,7 +58,7 @@ test("project streams scope events, resync on listener gaps, and release cancell
   assert.equal(released, true);
 });
 
-test("project streams stop forwarding after authorization is revoked", async () => {
+void test("project streams stop forwarding after authorization is revoked", async () => {
   let listener: Parameters<
     Parameters<typeof createProjectEventStream>[0]["changes"]["subscribe"]
   >[0] = () => undefined;
@@ -70,7 +71,7 @@ test("project streams stop forwarding after authorization is revoked", async () 
     changes: {
       async subscribe(receive) {
         listener = receive;
-        return () => {
+        return (): void => {
           released = true;
         };
       },

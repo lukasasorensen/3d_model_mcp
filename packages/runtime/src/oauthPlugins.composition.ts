@@ -7,7 +7,9 @@ import {
   REMOTE_MCP_SCOPE,
   remoteMcpIdentity,
 } from "./shared/utils/remoteMcpPolicy.util.js";
-export function createOAuthPlugins(pool: Pool) {
+export function createOAuthPlugins(
+  pool: Pool,
+): [ReturnType<typeof jwt>, ReturnType<typeof oauthProvider>] {
   const { issuer, resource } = remoteMcpIdentity();
   return [
     jwt({ jwt: { issuer }, jwks: { disablePrivateKeyEncryption: false } }),

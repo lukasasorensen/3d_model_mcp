@@ -1,4 +1,5 @@
 "use client";
+import type { JSX } from "react";
 
 import { Canvas, useThree } from "@react-three/fiber";
 import {
@@ -9,10 +10,9 @@ import {
   useRef,
   useState,
 } from "react";
+import type { BufferGeometry, Material } from "three";
 import {
-  BufferGeometry,
   Color,
-  Material,
   MeshStandardMaterial,
   PerspectiveCamera,
   Sphere,
@@ -90,7 +90,7 @@ function Scene({
   command: ViewCommand;
   autoFit: boolean;
   onCommitted: (geometry: BufferGeometry) => void;
-}) {
+}): JSX.Element {
   const { camera, gl, invalidate } = useThree();
   const controls = useMemo(
     () => new OrbitControls(camera, gl.domElement),
@@ -127,9 +127,9 @@ function Scene({
     controls.enablePan = true;
     controls.enableRotate = true;
     controls.enableZoom = true;
-    const update = () => invalidate();
+    const update = (): void => invalidate();
     controls.addEventListener("change", update);
-    return () => {
+    return (): void => {
       controls.removeEventListener("change", update);
       controls.dispose();
       disposeMaterialResources(material);
@@ -227,12 +227,12 @@ export function ModelViewer({
   onLoadStateChange,
 }: {
   projectId: string;
-  revisionId?: string;
-  sourceHash?: string;
+  revisionId?: string | undefined;
+  sourceHash?: string | undefined;
   currentLabel: string;
   updating: boolean;
   onLoadStateChange?: (state: PreviewLoadState) => void;
-}) {
+}): JSX.Element {
   const renderer = useBrowserRenderer();
   const [geometry, setGeometry] = useState<BufferGeometry>();
   const [loadState, setLoadState] = useState<PreviewLoadState>("empty");
@@ -282,11 +282,11 @@ export function ModelViewer({
         if (!controller.signal.aborted) setLoadState("error");
         void error;
       });
-    return () => controller.abort();
+    return (): void => controller.abort();
   }, [projectId, revisionId, sourceHash, renderer]);
 
   useEffect(
-    () => () => {
+    () => (): void => {
       loadGeneration.current += 1;
       disposeGeometry(geometryRef.current);
       if (pendingGeometryRef.current !== geometryRef.current)
@@ -315,9 +315,9 @@ export function ModelViewer({
     [projectId],
   );
 
-  const issue = (type: ViewCommand["type"]) =>
+  const issue = (type: ViewCommand["type"]): void =>
     setCommand({ id: command.id + 1, type });
-  const keyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const keyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
     const map: Record<string, ViewCommand["type"]> = {
       ArrowLeft: "orbit-left",
       ArrowRight: "orbit-right",

@@ -1,3 +1,4 @@
+import type { WorkerValidationOperations } from "../workerOperations.port.js";
 import {
   WORKER_VALIDATION_LIMITS,
   acceptsWorkerRenderer,
@@ -11,10 +12,8 @@ import {
 import { randomBytes, randomUUID } from "node:crypto";
 import { CadDomainError } from "../../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../../shared/utils/hash.util.js";
-import {
-  CandidateValidationService,
-  VALIDATION_POLICY_VERSION,
-} from "../../project/index.js";
+import type { CandidateValidationService } from "../../project/index.js";
+import { VALIDATION_POLICY_VERSION } from "../../project/index.js";
 import type {
   WorkerValidationJobsPort,
   WorkerValidationTransactionPort,
@@ -61,7 +60,7 @@ export class WorkerValidationWorkflow {
     if (result.error) throw result.error;
     return result.value as T;
   }
-  async begin(raw: unknown) {
+  async begin(raw: unknown): ReturnType<WorkerValidationOperations["begin"]> {
     const input = beginWorkerValidationSchema.parse(raw);
     return this.execute(async (transaction, now) => {
       await transaction.candidates.requireProject(input.projectId);
@@ -111,7 +110,9 @@ export class WorkerValidationWorkflow {
       });
     });
   }
-  private statusOf(job: WorkerValidationJob) {
+  private statusOf(
+    job: WorkerValidationJob,
+  ): Awaited<ReturnType<WorkerValidationOperations["status"]>> {
     return workerValidationStatusSchema.parse({
       version: "1",
       jobId: job.id,
@@ -123,13 +124,15 @@ export class WorkerValidationWorkflow {
       executionOrigin: "local-worker",
     });
   }
-  async status(raw: unknown) {
+  async status(raw: unknown): ReturnType<WorkerValidationOperations["status"]> {
     const input = workerValidationCapabilitySchema.parse(raw);
     return this.execute(async (transaction) =>
       this.statusOf(await transaction.find(input, sha256(input.token))),
     );
   }
-  async complete(raw: unknown) {
+  async complete(
+    raw: unknown,
+  ): ReturnType<WorkerValidationOperations["complete"]> {
     const input = completeWorkerValidationSchema.parse(raw);
     return this.execute(async (transaction, now) => {
       const job = await transaction.find(input, sha256(input.token));
@@ -214,7 +217,7 @@ export class WorkerValidationWorkflow {
       });
     });
   }
-  async cancel(raw: unknown) {
+  async cancel(raw: unknown): ReturnType<WorkerValidationOperations["cancel"]> {
     const input = workerValidationCapabilitySchema.parse(raw);
     return this.execute(async (transaction, now) => {
       const job = await transaction.find(input, sha256(input.token));

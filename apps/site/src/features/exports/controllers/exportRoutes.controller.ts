@@ -24,7 +24,7 @@ export function exportRoute(
         projectId: string;
       }>;
     },
-  ) => {
+  ): Promise<Response> => {
     const origin = requireSameOrigin(request);
     if (origin) return origin;
     const user = await dependencies.authenticate(request);
@@ -118,7 +118,7 @@ export async function downloadExport(
     }>;
   },
   dependencies: Pick<ExportRouteDependencies, "createExports">,
-) {
+): Promise<Response> {
   try {
     const id = opaqueIdSchema.parse((await context.params).exportId),
       token = new URL(request.url).searchParams.get("token") ?? "";

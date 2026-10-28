@@ -12,7 +12,10 @@ function bounded64(view: DataView, offset: number): number {
   return Number(value);
 }
 /** ZIP64 is a container encoding, not permission to exceed the existing artifact budgets. */
-export function zipDirectory(view: DataView, eocd: number) {
+export function zipDirectory(
+  view: DataView,
+  eocd: number,
+): { count: number; size: number; offset: number; end: number } {
   let count = view.getUint16(eocd + 10, true),
     size = view.getUint32(eocd + 12, true),
     offset = view.getUint32(eocd + 16, true);
@@ -57,7 +60,7 @@ export function zipEntrySizes(
     compressedSize: number;
     localOffset?: number;
   },
-) {
+): { uncompressedSize: number; compressedSize: number; localOffset?: number } {
   if (start < 0 || length < 0 || start + length > view.byteLength)
     return invalid();
   const result = { ...sizes };
@@ -69,7 +72,7 @@ export function zipEntrySizes(
     if (cursor + size > start + length) return invalid();
     if (tag === 1) {
       const fieldEnd = cursor + size;
-      const read = () => {
+      const read = (): number => {
         if (cursor + 8 > fieldEnd) return invalid();
         const value = view.getBigUint64(cursor, true);
         cursor += 8;

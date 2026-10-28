@@ -9,7 +9,7 @@ import {
   codexStarterPrompt,
 } from "../../../../../src/features/onboarding/browser/utils/codexConnectCommand.util";
 
-test("copied commands execute with correct arguments and clean up even on download failure", async () => {
+void test("copied commands execute with correct arguments and clean up even on download failure", async () => {
   const directory = await mkdtemp(join(tmpdir(), "cad command "));
   try {
     const bin = join(directory, "bin");
@@ -46,6 +46,7 @@ test("copied commands execute with correct arguments and clean up even on downlo
         .split("\n");
       assert.equal(origin, "https://cad.example.com");
       assert.equal(scope, "project");
+      assert.ok(script);
       await assert.rejects(readFile(script), { code: "ENOENT" });
       const failed = spawnSync(shell, ["-c", command], {
         env: {
@@ -62,7 +63,7 @@ test("copied commands execute with correct arguments and clean up even on downlo
   }
 });
 
-test("commands reject noncanonical origins and starter prompts include the project", () => {
+void test("commands reject noncanonical origins and starter prompts include the project", () => {
   for (const origin of [
     "https://example.com/$(touch /tmp/oops)",
     "http://example.com",

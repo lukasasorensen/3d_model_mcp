@@ -71,5 +71,4 @@ See [alignment plan](docs/alignment-plan.md) for the staged migration and
   Commit migrations only for intentional schema changes; structural refactors produce none.
 - Update imports, exports, build inputs, commands, tests and documentation together.
   Preserve public protocols, feature flags, artifact formats and renderer asset pins.
-- Run focused checks while iterating, then `pnpm verify` before handoff. Use Node 22
-  until the separately verified Node 24 stage. See [development workflow](docs/development-workflow.md).
+- Run focused checks while iterating, then `pnpm verify` before handoff. Use the Node 24 version pinned in `.node-version`. See [development workflow](docs/development-workflow.md).

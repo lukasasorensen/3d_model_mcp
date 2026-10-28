@@ -11,12 +11,12 @@ export async function receiveProjectEvents(
   heartbeat: () => void = () => undefined,
 ): Promise<boolean> {
   const controller = new AbortController();
-  const abort = () => controller.abort();
+  const abort = (): void => controller.abort();
   signal.addEventListener("abort", abort, { once: true });
   if (signal.aborted) abort();
   let watchdog: ReturnType<typeof setTimeout> | undefined;
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
-  const touch = () => {
+  const touch = (): void => {
     clearTimeout(watchdog);
     watchdog = setTimeout(abort, 45_000);
   };

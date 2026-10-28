@@ -9,7 +9,10 @@ export class ModelSourceService {
       "readCandidate" | "requireProject" | "readRevision"
     >,
   ) {}
-  async readValidatedCandidateSource(projectId: string, candidateId: string) {
+  async readValidatedCandidateSource(
+    projectId: string,
+    candidateId: string,
+  ): Promise<{ candidateId: string; source: string; sourceHash: string }> {
     const { candidate, source } = await this.persistence.readCandidate(
       projectId,
       candidateId,
@@ -22,7 +25,10 @@ export class ModelSourceService {
     return { candidateId, source, sourceHash: candidate.sourceHash };
   }
 
-  async readModelSource(projectId: string, revision?: string) {
+  async readModelSource(
+    projectId: string,
+    revision?: string,
+  ): Promise<{ revision: string; source: string; sourceHash: string }> {
     const project = await this.persistence.requireProject(projectId);
     const selectedRevision = revision ?? project.currentRevision;
     if (!selectedRevision)
