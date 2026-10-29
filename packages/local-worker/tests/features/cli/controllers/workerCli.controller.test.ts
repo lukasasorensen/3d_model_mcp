@@ -28,6 +28,16 @@ function harness(): {
     deps: {
       metadata: { name: "@theoryfoundry/local-worker", version: "1.2.3" },
       renderer,
+      prepareAssets: async (): Promise<void> => {
+        calls.push("assets");
+      },
+      configureClient: async (): Promise<{
+        path: string;
+        changed: boolean;
+      }> => {
+        calls.push("configure");
+        return { path: "/fixture", changed: true };
+      },
       installBrowser: async (): Promise<void> => {
         calls.push("install");
       },
@@ -98,7 +108,7 @@ void test("help/version are side-effect free and version-pinned; serve does not 
 void test("setup explicitly installs then verifies and closes the renderer without acquiring credentials", async () => {
   const f = harness();
   assert.equal(await workerCli(["setup"], f.deps, signal()), 0);
-  assert.deepEqual(f.calls, ["install", "render", "close"]);
+  assert.deepEqual(f.calls, ["assets", "install", "render", "close"]);
   assert.equal(f.stdout.length, 0);
 });
 void test("login/logout use the existing auth lifecycle and login prints version-pinned serve arguments", async () => {
@@ -182,4 +192,67 @@ void test("pre-cancelled commands perform no installation, login or rendering", 
   abort.abort();
   assert.equal(await workerCli(["setup"], f.deps, abort.signal), 1);
   assert.deepEqual(f.calls, []);
+});
+
+void test("guided setup configures only after renderer and authentication success and can reuse an account", async () => {
+  const f = harness();
+  assert.equal(
+    await workerCli(
+      ["setup", "--server", "https://cad.example", "--client", "codex"],
+      f.deps,
+      signal(),
+    ),
+    0,
+  );
+  assert.deepEqual(f.calls, [
+    "assets",
+    "install",
+    "render",
+    "close",
+    "native",
+    "browser",
+    "login",
+    "configure",
+  ]);
+  f.calls.length = 0;
+  assert.equal(
+    await workerCli(
+      [
+        "setup",
+        "--server",
+        "https://cad.example",
+        "--client",
+        "claude",
+        "--account",
+        "account",
+      ],
+      f.deps,
+      signal(),
+    ),
+    0,
+  );
+  assert.deepEqual(f.calls, [
+    "assets",
+    "install",
+    "render",
+    "close",
+    "native",
+    "token:account",
+    "configure",
+  ]);
+  f.calls.length = 0;
+  f.deps.loadAuthentication = async (): ReturnType<
+    typeof f.deps.loadAuthentication
+  > => {
+    throw new WorkerAuthError("LOGIN_REQUIRED", "Log in again.");
+  };
+  assert.equal(
+    await workerCli(
+      ["setup", "--server", "https://cad.example", "--client", "codex"],
+      f.deps,
+      signal(),
+    ),
+    1,
+  );
+  assert.ok(!f.calls.includes("configure"));
 });

@@ -2,6 +2,7 @@ import { pathToFileURL, fileURLToPath } from "node:url";
 import { dirname, join, sep } from "node:path";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { WorkerAuthentication } from "@theoryfoundry/worker-auth";
+import type { WorkerRenderer } from "./domains/compute/index.js";
 import type { WorkerTarget } from "./domains/installation/index.js";
 import {
   createAuthorizedFetch,
@@ -17,6 +18,7 @@ export async function serveWorker(
     join(dirname(fileURLToPath(import.meta.url)), "assets") + sep,
   ),
   version = "0.1.0",
+  renderer: WorkerRenderer = createWorkerRenderer(assets),
 ): Promise<void> {
   signal.throwIfAborted();
   let authentication: Promise<WorkerAuthentication> | undefined;
@@ -35,7 +37,7 @@ export async function serveWorker(
   const worker = createLocalWorkerServer(
     {
       api: createHostedWorkerApi(target.server, request),
-      renderer: createWorkerRenderer(assets),
+      renderer,
       callHosted: createHostedToolCaller(target.server, request),
     },
     version,

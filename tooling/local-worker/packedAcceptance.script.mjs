@@ -2,7 +2,14 @@ import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile, writeFile, rm } from "node:fs/promises";
+import {
+  mkdtemp,
+  mkdir,
+  readFile,
+  writeFile,
+  rm,
+  realpath,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -17,7 +24,7 @@ const smoke = process.argv.includes("--smoke");
 const archiveArgument = process.argv.slice(2).find((arg) => arg !== "--smoke");
 const archive = resolve(
   archiveArgument ??
-    join(root, "dist/packages", `theoryfoundry-local-worker-${version}.tgz`),
+    join(root, "dist/packages", `tfoundry-local-worker-${version}.tgz`),
 );
 const tarball = await readFile(archive);
 const manifest = JSON.parse(
@@ -25,7 +32,11 @@ const manifest = JSON.parse(
 );
 const files = (await exec("tar", ["-tzf", archive])).stdout.trim().split("\n");
 assert.equal(manifest.version, version);
-assert.equal(manifest.name, "@theoryfoundry/local-worker");
+assert.equal(manifest.name, "@tfoundry/local-worker");
+assert.deepEqual(manifest.publishConfig, {
+  registry: "https://registry.npmjs.org/",
+  access: "public",
+});
 assert.equal(manifest.bin["theoryfoundry-worker"], "dist/cli.js");
 assert.equal(manifest.scripts, undefined);
 assert.doesNotMatch(JSON.stringify(manifest), /workspace:|file:|link:/);
@@ -36,9 +47,11 @@ for (const [name, value] of Object.entries(manifest.dependencies)) {
 for (const file of files)
   assert.match(
     file,
-    /^package\/(?:dist\/(?:[a-zA-Z0-9_-]+\.js|assets\/(?:index\.html|proof\.js|openscad-worker\.js|vendor\/openscad\/(?:openscad\.js|openscad\.wasm|bosl2\.zip|manifest\.json)))|licenses\/[a-zA-Z0-9.-]+|package\.json|README\.md|THIRD_PARTY_NOTICES\.md)$/,
+    /^package\/(?:dist\/(?:[a-zA-Z0-9_-]+\.js|assets\/(?:integrity\.json|index\.html|proof\.js|openscad-worker\.js|vendor\/openscad\/(?:openscad\.js|openscad\.wasm|bosl2\.zip|manifest\.json)))|licenses\/[a-zA-Z0-9.-]+|package\.json|README\.md|THIRD_PARTY_NOTICES\.md)$/,
   );
-const directory = await mkdtemp(join(tmpdir(), "theoryfoundry-packed-"));
+const directory = await realpath(
+  await mkdtemp(join(tmpdir(), "theoryfoundry-packed-")),
+);
 assert.ok(relative(root, directory).startsWith(".."));
 await mkdir(join(directory, "home"));
 await mkdir(join(directory, "work"));

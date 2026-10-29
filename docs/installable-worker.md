@@ -1,6 +1,6 @@
 # Installable local worker
 
-THE-15 packages the existing stdio worker as `@theoryfoundry/local-worker@0.1.0`.
+THE-15 packages the existing stdio worker as `@tfoundry/local-worker@0.1.0`.
 The CLI provides `setup`, `serve`, `login`, `logout`, `doctor`, `--help` and
 `--version`. See the [package README](../packages/local-worker/README.md) for
 version-pinned client configuration and commands after registry publication.
@@ -17,11 +17,13 @@ pnpm acceptance:worker-package
 
 `pack:worker` builds workspace packages and the pinned renderer assets, generates
 `dist/local-worker-package`, then writes
-`dist/packages/theoryfoundry-local-worker-0.1.0.tgz`. The workspace package version
+`dist/packages/tfoundry-local-worker-0.1.0.tgz`. The workspace package version
 is the release version. Update it and the documented version-pinned examples
 together for the next release. This command does not publish anything.
 
-The workspace packages retain their names and remain private. The generated
+The public package uses the user-owned `@tfoundry` npm scope because `@theoryfoundry`
+is unavailable. Publication explicitly targets npm with public access. The workspace
+packages retain their names and remain private. The generated
 manifest exposes one executable, `theoryfoundry-worker`, and bundles the internal
 worker/authentication/renderer/contracts code. Runtime npm dependencies have exact
 versions from the installed lockfile graph; native optional packages remain npm
@@ -35,6 +37,13 @@ scripts. Installation does not download Chromium, access credentials or prompt
 for login. `setup` explicitly installs the pinned Playwright Chromium revision
 and renders a PNG; repeated setup reuses its browser cache. Linux system packages
 and Secret Service are operator prerequisites. Setup never invokes sudo.
+
+Guided setup accepts `--server`, `--client codex|claude`, `--scope global|project`
+and optional `--account`. It verifies rendering, authenticates (or validates the
+existing account), then installs backed-up, conflict-checked client configuration.
+Renderer assets are copied only by setup to a manifest-addressed user cache outside
+dlx. Every render verifies all cached hashes; interrupted/corrupt caches are repaired
+through explicit setup. Lock directories serialize setup without stealing live locks.
 
 `serve` preserves the local worker's cancellation and cleanup behavior and uses
 the packaged version in MCP initialization. It lazily loads credential bindings
@@ -58,7 +67,7 @@ contents, then serves that name/version through a disposable loopback npm regist
 Dependency metadata is proxied read-only to npm; no registry credentials are used.
 Each run creates an external working directory, HOME, npm configuration, dlx cache
 and pnpm store. The worker is launched as
-`pnpm --silent dlx @theoryfoundry/local-worker@0.1.0`, without workspace imports.
+`pnpm --silent dlx @tfoundry/local-worker@0.1.0`, without workspace imports.
 The fixture registry and temporary directories are cleaned up afterward.
 
 The full check covers help/version, missing-browser diagnostics, repeated setup,
@@ -79,7 +88,8 @@ safe diagnostics and renderer cleanup with injected capabilities.
 
 ## Remaining release gates
 
-Registry publication/access and distribution terms are separate release decisions;
+Initial support is scoped to Apple Silicon macOS; THE-32 tracks other platforms.
+Public npm publication and distribution terms remain release gates;
 see [third-party notices](../packages/local-worker/THIRD_PARTY_NOTICES.md).
 Supported-platform browser/native-store checks, real OAuth login/rotation/logout,
 and real Codex/Claude validation/PNG/STL/3MF journeys with the project tab closed

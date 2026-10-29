@@ -21,7 +21,7 @@ export function codexConnectCommand(
   }
   if (scope !== "global" && scope !== "project")
     throw new Error("Invalid Codex scope.");
-  return `( set -eu; command -v node >/dev/null || { echo 'Install Node.js 22 or newer first.' >&2; exit 1; }; cad_setup_dir=$(mktemp -d); trap 'rm -rf "$cad_setup_dir"' EXIT; curl --fail --silent --show-error ${shellQuote(`${origin}/installers/connect-codex-v1.mjs`)} -o "$cad_setup_dir/connect.mjs"; node "$cad_setup_dir/connect.mjs" ${shellQuote(origin)} ${shellQuote(scope)} )`;
+  return `( set -eu; command -v node >/dev/null || { echo 'Install Node.js 24 or newer first.' >&2; exit 1; }; cad_setup_dir=$(mktemp -d); trap 'rm -rf "$cad_setup_dir"' EXIT; curl --fail --silent --show-error ${shellQuote(`${origin}/installers/connect-codex-v1.mjs`)} -o "$cad_setup_dir/connect.mjs"; node "$cad_setup_dir/connect.mjs" ${shellQuote(origin)} ${shellQuote(scope)} )`;
 }
 
 export function codexStarterPrompt(projectId: string): string {

@@ -3,8 +3,19 @@ export interface WorkerTarget {
   account?: string;
   allowLoopbackHttp: boolean;
 }
+export interface ClientInstallation {
+  client: "codex" | "claude";
+  scope: "global" | "project";
+  target: WorkerTarget;
+}
+export interface ConfigurationReceipt {
+  path: string;
+  changed: boolean;
+  backup?: string;
+}
 export type WorkerCommand =
-  | { command: "help" | "version" | "setup" }
+  | { command: "help" | "version" }
+  | { command: "setup"; installation?: ClientInstallation }
   | { command: "login" | "logout" | "serve"; target: WorkerTarget }
   | { command: "doctor"; target?: WorkerTarget; json: boolean };
 export interface Diagnostic {

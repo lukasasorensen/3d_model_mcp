@@ -26,6 +26,8 @@ export function parseWorkerCommand(args: string[]): WorkerCommand {
     parsed = parseArgs({
       args: args.slice(1),
       options: {
+        client: { type: "string" },
+        scope: { type: "string" },
         server: { type: "string" },
         account: { type: "string" },
         "allow-loopback-http": { type: "boolean" },
@@ -43,10 +45,15 @@ export function parseWorkerCommand(args: string[]): WorkerCommand {
     .map((token) => token.name);
   if (new Set(names).size !== names.length) return usage();
   const { values } = parsed;
-  if (command === "setup") {
-    if (names.length) return usage();
-    return { command };
-  }
+  if (command === "setup" && !names.length) return { command };
+  if (command !== "setup" && (values.client || values.scope)) return usage();
+  if (
+    command === "setup" &&
+    (!values.server ||
+      !["codex", "claude"].includes(values.client ?? "") ||
+      (values.scope && !["global", "project"].includes(values.scope)))
+  )
+    return usage();
   if (values.json && command !== "doctor") return usage();
   if (
     command === "doctor" &&
@@ -57,7 +64,7 @@ export function parseWorkerCommand(args: string[]): WorkerCommand {
     return { command, json: values.json ?? false };
   if (
     !values.server ||
-    (command !== "login" && !values.account) ||
+    (!["login", "setup"].includes(command!) && !values.account) ||
     (command === "login" && values.account)
   )
     return usage();
@@ -98,6 +105,15 @@ export function parseWorkerCommand(args: string[]): WorkerCommand {
     ...(values.account ? { account: values.account } : {}),
     allowLoopbackHttp: values["allow-loopback-http"] ?? false,
   };
+  if (command === "setup")
+    return {
+      command,
+      installation: {
+        client: values.client as "codex" | "claude",
+        scope: (values.scope ?? "global") as "global" | "project",
+        target,
+      },
+    };
   if (command === "doctor")
     return { command, target, json: values.json ?? false };
   return { command: command as "serve" | "login" | "logout", target };

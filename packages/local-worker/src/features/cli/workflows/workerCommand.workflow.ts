@@ -49,7 +49,10 @@ export async function runWorkerCommand(
       }
       return 0;
     }
-    if (command.command === "setup") await dependencies.installBrowser(signal);
+    if (command.command === "setup") {
+      await dependencies.prepareAssets(signal);
+      await dependencies.installBrowser(signal);
+    }
     const checks: Diagnostic[] = [];
     try {
       const source = "cube([3,4,5]);";
@@ -124,7 +127,30 @@ export async function runWorkerCommand(
         stderr(
           `${check.status.toUpperCase()} ${check.check}: ${check.message}\n`,
         );
-    if (command.command === "setup" && ok)
+    if (command.command === "setup" && ok && command.installation) {
+      signal.throwIfAborted();
+      const installation = command.installation;
+      const auth = await dependencies.loadAuthentication(installation.target);
+      if (!auth) throw new Error("Missing authentication adapter.");
+      const account = installation.target.account
+        ? (await auth.accessToken(installation.target.account, signal)).account
+        : await auth.login(
+            (url) => dependencies.openBrowser(url, signal),
+            signal,
+          );
+      signal.throwIfAborted();
+      const receipt = await dependencies.configureClient(
+        { ...installation, target: { ...installation.target, account } },
+        signal,
+      );
+      stderr(
+        `Configuration ${receipt.changed ? "saved" : "already installed"}: ${receipt.path}\n`,
+      );
+      if (receipt.backup) stderr(`Backup: ${receipt.backup}\n`);
+      stderr(
+        "Restart your client or start a fresh session. The project browser tab may be closed.\n",
+      );
+    } else if (command.command === "setup" && ok)
       stderr(
         "Setup complete. Run login for your hosted server, then configure serve using the printed account ID.\n",
       );
