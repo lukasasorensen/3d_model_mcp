@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./errors": {
+      "types": "./dist/shared/errors/index.d.ts",
+      "import": "./dist/shared/errors/index.js"
     }
   },
   "files": [

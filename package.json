@@ -43,7 +43,11 @@
     "worker:auth": "node packages/worker-auth/dist/authCli.composition.js",
     "build:worker-assets": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && node tooling/local-worker/buildAssets.script.mjs",
     "worker:serve": "node packages/local-worker/dist/stdioServer.composition.js",
-    "acceptance:local-worker": "pnpm build:packages && pnpm build:worker-assets && node packages/local-worker/tooling/acceptance.script.mjs"
+    "acceptance:local-worker": "pnpm build:packages && pnpm build:worker-assets && node packages/local-worker/tooling/acceptance.script.mjs",
+    "worker": "node packages/local-worker/dist/workerCli.composition.js",
+    "build:worker-package": "pnpm build:packages && pnpm build:worker-assets && node tooling/local-worker/buildPackage.script.mjs",
+    "pack:worker": "pnpm build:worker-package && pnpm --dir dist/local-worker-package pack --pack-destination ../packages",
+    "acceptance:worker-package": "pnpm pack:worker && node tooling/local-worker/packedAcceptance.script.mjs"
   },
   "devDependencies": {
     "@theoryfoundry/browser-renderer": "workspace:*",

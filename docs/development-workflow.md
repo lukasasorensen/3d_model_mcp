@@ -41,8 +41,9 @@ Compose configuration tests require Docker Compose (CI checks its presence); the
 not start production services. Do not claim live or real PostgreSQL acceptance from PGlite.
 
 CI runs on PRs and pushes to the existing `master`, with read-only permissions and no
-secrets. It installs from the frozen lockfile, runs `pnpm verify`, and checks tracked-file
-nonmutation. `ALIGNMENT_BASE_REF` is the PR base SHA or pre-push SHA; local checks use
+secrets. It installs from the frozen lockfile, runs `pnpm verify`, builds the worker
+tarball, smoke-tests exact-version `pnpm dlx` outside the repository, and checks
+tracked-file nonmutation. `ALIGNMENT_BASE_REF` is the PR base SHA or pre-push SHA; local checks use
 `origin/master` and require Git history. Docker intentionally excludes Git metadata:
 its existing build checks remain unchanged; run full verification in a Git checkout.
 Temporary-Git-repository tooling regressions skip only when the Git executable is
@@ -76,3 +77,8 @@ The private local stdio worker uses `pnpm build:worker-assets` and `pnpm worker:
 after building packages. Its Chromium integration is exercised separately with
 `pnpm acceptance:local-worker`. See [local stdio worker](local-stdio-worker.md)
 for prerequisites, commands, cancellation semantics and remaining release gates.
+
+The installable worker uses `pnpm pack:worker` to generate a versioned tarball and
+`pnpm acceptance:worker-package` to exercise it through an isolated registry and
+fresh external dlx store. See [installable worker](installable-worker.md) for the
+artifact boundary, explicit setup, diagnostics and release gates.

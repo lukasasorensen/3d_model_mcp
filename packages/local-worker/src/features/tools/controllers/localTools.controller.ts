@@ -7,7 +7,7 @@ import {
   createCadToolCatalog,
   getProjectStateOutputSchema,
 } from "@theoryfoundry/contracts";
-import { WorkerAuthError } from "@theoryfoundry/worker-auth";
+import { WorkerAuthError } from "@theoryfoundry/worker-auth/errors";
 import { LocalWorkerError } from "../../../shared/utils/workerError.util.js";
 import type { LocalToolOperations } from "../tools.port.js";
 export function registerLocalTools(

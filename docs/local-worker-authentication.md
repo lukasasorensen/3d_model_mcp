@@ -4,7 +4,7 @@ THE-15's authentication slice adds the private `@theoryfoundry/worker-auth`
 workspace package. It has no database, MCP transport, renderer or published CLI.
 The existing runtime, MCP package identity and browser-backed mode remain intact.
 Local stdio integration is described in [local stdio worker](local-stdio-worker.md);
-versioned distribution follows separately.
+versioned packaging is described in [installable worker](installable-worker.md).
 
 ## Operator provisioning
 
@@ -111,8 +111,9 @@ cancellation, port reuse, credential-write failure and retryable logout.
 
 A synthetic native Keychain write/read/delete passed on the development Mac.
 Linux Secret Service and Windows native-store acceptance remain release gates;
-mocked adapter tests do not establish platform support. The full installable
-artifact, crash/fault acceptance across supported OS targets, real Codex/Claude
+mocked adapter tests do not establish platform support. Packed-artifact checks
+are recorded in [installable worker](installable-worker.md). Registry publication,
+crash/fault acceptance across supported OS targets, real Codex/Claude
 journeys, hosted provisioning, deployment and enablement remain separate work.
 THE-15 stays In Progress; THE-9's production acceptance is unchanged.
 
