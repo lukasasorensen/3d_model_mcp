@@ -133,7 +133,7 @@ Provision the initial account without saving its password in shell history:
 read -r -s -p 'Initial password (at least 12 characters): ' THEORYFOUNDRY_INITIAL_PASSWORD
 printf '\n'
 export THEORYFOUNDRY_INITIAL_PASSWORD
-cad_compose run --rm --no-deps --no-build \
+cad_compose run --rm --no-deps --pull never \
   -e THEORYFOUNDRY_AUTH_ALLOW_SIGNUP=1 \
   -e THEORYFOUNDRY_INITIAL_PASSWORD \
   migrate pnpm auth:provision -- you@example.com 'Your Name'
@@ -143,7 +143,7 @@ unset THEORYFOUNDRY_INITIAL_PASSWORD
 For remote MCP, provision the **exact loopback callback URL used by the client**:
 
 ```bash
-cad_compose run --rm --no-deps --no-build migrate \
+cad_compose run --rm --no-deps --pull never migrate \
   pnpm oauth:provision -- '<exact-Codex-loopback-callback-url>'
 ```
 

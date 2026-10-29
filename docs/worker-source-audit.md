@@ -1,0 +1,35 @@
+# OpenSCAD redistribution source audit
+
+Status: unresolved; npm publication is blocked. Renderer pins remain unchanged.
+This records evidence and missing materials, not a legal clearance.
+
+The bundled web snapshot is [OpenSCAD 2026.07.20](https://files.openscad.org/snapshots/OpenSCAD-2026.07.20-WebAssembly-web.zip),
+SHA-256 `8b81d3d025f29bc1dec40a2ce5acbad5bd06a0f568c1bfa1f6572ad5baa97dcd`.
+The official snapshot index lists the binary, detached signature and hash files.
+The package already includes the upstream GPL text; that alone does not supply
+matching source and build materials.
+
+Candidate source commit is
+[`e4fdec49730103274a4e21c2390b9a12882f01aa`](https://github.com/openscad/openscad/commit/e4fdec49730103274a4e21c2390b9a12882f01aa).
+Its timestamp and a Windows report in [upstream issue 6927](https://github.com/openscad/openscad/issues/6927)
+associate it with this dated version. That is not proof of the exact web binary's
+source. The WASM contains the date, but inspection did not establish that commit.
+
+The candidate's [.circleci/config.yml](https://github.com/openscad/openscad/blob/e4fdec49730103274a4e21c2390b9a12882f01aa/.circleci/config.yml)
+describes the `openscad-wasm` job and web build commands. Its executor references
+`openscad/wasm-base-release:latest`; an immutable image identity and corresponding
+dependency sources are still needed. The GitHub commit status query did not return
+a matching CircleCI artifact record. Do not treat a generic repository URL or a
+date-matched source archive as a resolved source offer.
+
+Before distribution, establish the exact snapshot-to-source/build association,
+collect required source including pinned submodules/dependencies and build scripts,
+review their licenses/notices, and arrange the required source delivery alongside
+the binary. Record stable URLs, digests and verification evidence. If the original
+build cannot be established, an explicit renderer-pin change with a reproducible
+build and new acceptance is a separate decision; this work does not silently switch
+the renderer. The owner must also select TheoryFoundry distribution terms.
+
+BOSL2 v2.0.741 is already shipped as its complete pinned source archive with LICENSE.
+Three.js and fflate notices are bundled; runtime npm dependencies retain their own
+notices. Review the final dependency inventory with the exact release tarball.
