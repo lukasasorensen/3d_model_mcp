@@ -133,7 +133,7 @@ export function createChromiumRenderer(
           )
             throw new LocalWorkerError(
               "WORKER_SETUP_REQUIRED",
-              "Build worker assets and install Playwright Chromium before rendering; see docs/local-stdio-worker.md.",
+              "Run setup for this worker version. If packaged assets are missing, reinstall the package; repository users must also build worker assets.",
             );
           starting = start(startAssets, provenance, active);
           instance = await starting;

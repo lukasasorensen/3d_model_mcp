@@ -121,7 +121,8 @@ model rejection, cancellation/recovery and shutdown. It passed on macOS arm64
 with Node 24.21.0. It does not establish production OAuth/API or real-client
 acceptance. Chromium is installed explicitly before running this harness.
 
-Versioned `pnpm dlx` publication, unified `setup`/`serve`/`login`/`logout`/`doctor`,
-packed-artifact checks outside the repository, supported-platform acceptance,
-and real Codex/Claude journeys with the project tab closed remain later THE-15
-work. Production browser/OAuth/render/export acceptance remains tracked in THE-9.
+The unified `setup`/`serve`/`login`/`logout`/`doctor` CLI, versioned tarball and
+external `pnpm dlx` checks are described in [installable worker](installable-worker.md).
+Registry publication, supported-platform acceptance and real Codex/Claude journeys
+with the project tab closed remain THE-15 release work. Production
+browser/OAuth/render/export acceptance remains tracked in THE-9.

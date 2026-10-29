@@ -14,11 +14,12 @@ import {
 } from "./features/tools/index.js";
 export function createLocalWorkerServer(
   dependencies: ComputeDependencies & Pick<LocalToolOperations, "callHosted">,
+  version = "0.1.0",
 ): { server: McpServer; close(): Promise<void> } {
   const shutdown = new AbortController();
   const queue = new WorkQueue();
   const server = new McpServer(
-    { name: "theoryfoundry-local-worker", version: "0.1.0" },
+    { name: "theoryfoundry-local-worker", version },
     { instructions: cadToolInstructions("local-worker") },
   );
   const hosted = new Set<Promise<CallToolResult>>();

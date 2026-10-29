@@ -32,5 +32,7 @@ jobs:
       - name: Require Compose configuration validation
         run: docker compose version
       - run: pnpm verify
+      - name: Build and smoke-test the versioned worker tarball outside the repository
+        run: pnpm pack:worker && node tooling/local-worker/packedAcceptance.script.mjs --smoke
       - name: Confirm verification did not rewrite tracked files
         run: git diff --exit-code
