@@ -18,8 +18,11 @@ pnpm acceptance:worker-package
 `pack:worker` builds workspace packages and the pinned renderer assets, generates
 `dist/local-worker-package`, then writes
 `dist/packages/tfoundry-local-worker-0.1.0.tgz`. The workspace package version
-is the release version. Update it and the documented version-pinned examples
-together for the next release. This command does not publish anything.
+is the stable release version. `WORKER_RELEASE_VERSION=0.1.0-rc.1 pnpm pack:worker`
+builds an explicit prerelease of that same base version. Update the workspace version
+and documented examples together for the next stable release. This command does not
+publish anything. See [release procedure](worker-release.md) for artifact inventory,
+registry verification and the outstanding live acceptance gates.
 
 The public package uses the user-owned `@tfoundry` npm scope because `@theoryfoundry`
 is unavailable. Publication explicitly targets npm with public access. The workspace

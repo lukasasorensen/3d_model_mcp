@@ -3,6 +3,8 @@ import { builtinModules } from "node:module";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
+import { releaseVersion } from "./releaseVersion.util.mjs";
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const output = join(root, "dist/local-worker-package");
 const folders = [
@@ -23,8 +25,20 @@ const projects = new Map(
   ),
 );
 const worker = projects.get("@theoryfoundry/local-worker").manifest;
-if (!/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/.test(worker.version))
-  throw new Error("Worker requires an explicit release version.");
+const version = releaseVersion(
+  worker.version,
+  process.env.WORKER_RELEASE_VERSION,
+);
+const sourceCommit = execFileSync("git", ["rev-parse", "HEAD"], {
+  cwd: root,
+  encoding: "utf8",
+}).trim();
+const sourceDirty = Boolean(
+  execFileSync("git", ["status", "--porcelain", "--untracked-files=all"], {
+    cwd: root,
+    encoding: "utf8",
+  }).trim(),
+);
 await rm(output, { recursive: true, force: true });
 await mkdir(join(output, "dist"), { recursive: true });
 const result = await build({
@@ -129,7 +143,8 @@ await writeFile(
         registry: "https://registry.npmjs.org/",
         access: "public",
       },
-      version: worker.version,
+      version,
+      theoryfoundryBuild: { sourceCommit, sourceDirty },
       description:
         "Local stdio CAD worker with hosted projects and secure OAuth credentials",
       type: "module",
@@ -150,4 +165,4 @@ await writeFile(
     2,
   ) + "\n",
 );
-console.log(`Prepared ${worker.name}@${worker.version} at ${output}`);
+console.log(`Prepared @tfoundry/local-worker@${version} at ${output}`);

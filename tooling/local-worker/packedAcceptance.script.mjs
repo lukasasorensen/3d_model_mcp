@@ -9,29 +9,34 @@ import {
   writeFile,
   rm,
   realpath,
+  readdir,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { startPackageRegistry } from "./packageRegistry.fixture.mjs";
 import { runPacked, initializeStdio } from "./packedProcess.fixture.mjs";
+import { releaseVersion } from "./releaseVersion.util.mjs";
 const exec = promisify(execFile);
 const root = fileURLToPath(new URL("../../", import.meta.url));
-const version = JSON.parse(
+const baseVersion = JSON.parse(
   await readFile(join(root, "packages/local-worker/package.json"), "utf8"),
 ).version;
 const smoke = process.argv.includes("--smoke");
-const archiveArgument = process.argv.slice(2).find((arg) => arg !== "--smoke");
+const published = process.argv.includes("--published");
+const archiveArgument = process.argv
+  .slice(2)
+  .find((arg) => !["--smoke", "--published"].includes(arg));
 const archive = resolve(
   archiveArgument ??
-    join(root, "dist/packages", `tfoundry-local-worker-${version}.tgz`),
+    join(root, "dist/packages", `tfoundry-local-worker-${baseVersion}.tgz`),
 );
 const tarball = await readFile(archive);
 const manifest = JSON.parse(
   (await exec("tar", ["-xOzf", archive, "package/package.json"])).stdout,
 );
 const files = (await exec("tar", ["-tzf", archive])).stdout.trim().split("\n");
-assert.equal(manifest.version, version);
+const version = releaseVersion(baseVersion, manifest.version);
 assert.equal(manifest.name, "@tfoundry/local-worker");
 assert.deepEqual(manifest.publishConfig, {
   registry: "https://registry.npmjs.org/",
@@ -55,7 +60,36 @@ const directory = await realpath(
 assert.ok(relative(root, directory).startsWith(".."));
 await mkdir(join(directory, "home"));
 await mkdir(join(directory, "work"));
-const registry = await startPackageRegistry(manifest, tarball);
+if (published) {
+  const url = `https://registry.npmjs.org/@tfoundry%2flocal-worker/${version}`;
+  const response = await fetch(url, {
+    redirect: "error",
+    signal: AbortSignal.timeout(30000),
+  });
+  assert.equal(
+    response.status,
+    200,
+    "Public package must be downloadable without authentication.",
+  );
+  const released = await response.json();
+  const integrity = `sha512-${createHash("sha512").update(tarball).digest("base64")}`;
+  assert.equal(
+    released.dist?.integrity,
+    integrity,
+    "Registry release differs from the tested tarball.",
+  );
+  const download = new URL(released.dist.tarball);
+  assert.equal(download.origin, "https://registry.npmjs.org");
+  const downloaded = await fetch(download, {
+    redirect: "error",
+    signal: AbortSignal.timeout(30000),
+  });
+  assert.equal(downloaded.status, 200);
+  assert.deepEqual(Buffer.from(await downloaded.arrayBuffer()), tarball);
+}
+const registry = published
+  ? { origin: "https://registry.npmjs.org", close: async () => {} }
+  : await startPackageRegistry(manifest, tarball);
 const browserCache = join(directory, "browser-cache");
 const npmrc = join(directory, "npmrc");
 await writeFile(
@@ -81,6 +115,7 @@ const options = {
 const checks = [
   "Tarball manifest, exact dependency pins, portable imports and allowlisted contents",
 ];
+const timings = [];
 try {
   const result = await runPacked(["--version"], options);
   assert.equal(result.code, 0, result.stderr);
@@ -90,7 +125,7 @@ try {
   assert.match(help.stdout, /setup/);
   assert.match(help.stdout, /logout/);
   checks.push(
-    "Exact-version pnpm dlx resolution through a disposable registry with a fresh external home/cache/store",
+    `Exact-version pnpm dlx resolution through ${published ? "public npm" : "a disposable registry"} with a fresh external home/cache/store`,
   );
   const missing = await runPacked(["doctor", "--json"], {
     ...options,
@@ -108,7 +143,12 @@ try {
   );
   if (!smoke) {
     for (let run = 0; run < 2; run++) {
+      const start = performance.now();
       const setup = await runPacked(["setup"], options);
+      timings.push({
+        operation: run ? "warm setup" : "cold setup",
+        milliseconds: Math.round(performance.now() - start),
+      });
       assert.equal(setup.code, 0, setup.stderr);
       assert.equal(setup.stdout, "");
     }
@@ -122,6 +162,33 @@ try {
     );
     checks.push(
       "Cold browser download, repeated setup and doctor pass with packaged assets, real Chromium/PNG and native credential binding",
+    );
+    const cacheRoot = join(
+      env.XDG_CACHE_HOME,
+      "theoryfoundry-worker/renderers",
+    );
+    const entries = await readdir(cacheRoot);
+    assert.equal(
+      entries.length,
+      1,
+      "Setup must leave no temporary cache or lock.",
+    );
+    const cachedProof = join(cacheRoot, entries[0], "proof.js");
+    await writeFile(cachedProof, "corrupted renderer");
+    const corrupt = await runPacked(["doctor", "--json"], options);
+    assert.equal(corrupt.code, 1);
+    assert.match(corrupt.stdout, /WORKER_SETUP_REQUIRED/);
+    assert.equal(
+      await readFile(cachedProof, "utf8"),
+      "corrupted renderer",
+      "Doctor must not repair or download.",
+    );
+    const repaired = await runPacked(["setup"], options);
+    assert.equal(repaired.code, 0, repaired.stderr);
+    assert.notEqual(await readFile(cachedProof, "utf8"), "corrupted renderer");
+    assert.deepEqual(await readdir(cacheRoot), entries);
+    checks.push(
+      "Corrupt persistent assets fail closed; explicit setup repairs them and removes temporary directories/locks",
     );
   }
   for (const command of ["login", "logout"]) {
@@ -208,6 +275,12 @@ try {
         platform: process.platform,
         architecture: process.arch,
         node: process.version,
+        delivery: published
+          ? "public npm, unauthenticated exact-byte download"
+          : "disposable registry fixture",
+        timings,
+        measurements:
+          "Setup wall time includes dlx and PNG smoke; CPU/RSS and hosted request counts require separate live measurements.",
         checks,
       },
       null,

@@ -27,8 +27,11 @@ access still requires TheoryFoundry OAuth; no reusable token enters client confi
 
 The UI tells users to wait for an available release. Publication remains gated on
 distribution terms, matching OpenSCAD source/build materials, and release acceptance.
-Real account login/refresh/revocation, both real clients, registry installation and
-production journeys remain unverified. THE-32 tracks deferred platforms.
+The later [live acceptance record](worker-live-acceptance.md) covers successful
+native login, refresh, logout, remote refresh-token revocation, Connected Apps
+revocation, hosted UI visibility and the core Codex journey. Registry acceptance
+remains pending. Claude Code acceptance is deferred to THE-33 by the owner;
+THE-32 tracks deferred platforms.
 
 Configuration follows the documented [Codex MCP interface](https://developers.openai.com/codex/mcp)
 and [Claude Code MCP scopes](https://code.claude.com/docs/en/mcp). Global Claude
