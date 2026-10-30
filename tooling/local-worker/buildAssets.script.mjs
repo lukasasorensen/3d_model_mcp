@@ -1,5 +1,6 @@
+import { createHash } from "node:crypto";
 import { build } from "esbuild";
-import { cp, mkdir, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 const root = new URL("../../", import.meta.url);
 const output = new URL("packages/local-worker/dist/assets/", root);
@@ -37,3 +38,21 @@ await writeFile(
   '<!doctype html><meta charset="utf-8"><title>TheoryFoundry local renderer</title><script type="module" src="/proof.js"></script>',
 );
 console.log("Built local worker renderer assets.");
+
+const integrity = {};
+for (const file of [
+  "index.html",
+  "proof.js",
+  "openscad-worker.js",
+  "vendor/openscad/openscad.js",
+  "vendor/openscad/openscad.wasm",
+  "vendor/openscad/bosl2.zip",
+  "vendor/openscad/manifest.json",
+])
+  integrity[file] = createHash("sha256")
+    .update(await readFile(new URL(file, output)))
+    .digest("hex");
+await writeFile(
+  new URL("integrity.json", output),
+  JSON.stringify(integrity, null, 2) + "\n",
+);

@@ -1,6 +1,7 @@
 "use client";
 import type { JSX } from "react";
 
+import { LocalWorkerSetup } from "./localWorkerSetup.component";
 import { useId, useRef, useState } from "react";
 import {
   codexConnectCommand,
@@ -18,6 +19,7 @@ export function ConnectToCodex({
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const commandId = useId();
+  const [mode, setMode] = useState<"hosted" | "local">("hosted");
   const [scope, setScope] = useState<CodexConnectionScope>("global");
   const [notice, setNotice] = useState("");
   const command = codexConnectCommand(origin, scope);
@@ -38,70 +40,93 @@ export function ConnectToCodex({
           dialog.current?.showModal();
         }}
       >
-        Connect to Codex
+        Connect CAD tools
       </button>
       <dialog
         ref={dialog}
         className="codex-connect-dialog"
         aria-labelledby={titleId}
       >
-        <h2 id={titleId}>Connect to Codex</h2>
-        <p>
-          Run this command in a macOS or Linux terminal with Node.js 22+ and the
-          Codex CLI installed. Then sign in and approve CAD access in your
-          browser.
-        </p>
+        <h2 id={titleId}>Connect CAD tools</h2>
         <label>
-          Install for{" "}
+          Compute location{" "}
           <select
-            value={scope}
+            value={mode}
             onChange={(event) => {
-              setScope(event.target.value as CodexConnectionScope);
+              setMode(event.target.value as "hosted" | "local");
               setNotice("");
             }}
           >
-            <option value="global">All Codex projects (global)</option>
-            <option value="project">This repository</option>
+            <option value="hosted">
+              Hosted connection / browser rendering
+            </option>
+            <option value="local">Local worker / Mac rendering</option>
           </select>
         </label>
-        {scope === "project" ? (
-          <p>
-            Run from the root of your local Git repository. Trust the repository
-            in Codex to load its settings. This controls where the connection is
-            available; it does not restrict access to one CAD project.
-          </p>
+        {mode === "local" ? (
+          <LocalWorkerSetup origin={origin} />
         ) : (
-          <p>
-            Uses your Codex home configuration, including a custom CODEX_HOME if
-            set.
-          </p>
+          <>
+            <h3>Connect to Codex</h3>
+            <p>
+              Run this command in a macOS or Linux terminal with Node.js 24 and
+              the Codex CLI installed. Then sign in and approve CAD access in
+              your browser.
+            </p>
+            <label>
+              Install for{" "}
+              <select
+                value={scope}
+                onChange={(event) => {
+                  setScope(event.target.value as CodexConnectionScope);
+                  setNotice("");
+                }}
+              >
+                <option value="global">All Codex projects (global)</option>
+                <option value="project">This repository</option>
+              </select>
+            </label>
+            {scope === "project" ? (
+              <p>
+                Run from the root of your local Git repository. Trust the
+                repository in Codex to load its settings. This controls where
+                the connection is available; it does not restrict access to one
+                CAD project.
+              </p>
+            ) : (
+              <p>
+                Uses your Codex home configuration, including a custom
+                CODEX_HOME if set.
+              </p>
+            )}
+            <label htmlFor={commandId}>Setup command</label>
+            <textarea
+              id={commandId}
+              readOnly
+              value={command}
+              rows={6}
+              spellCheck={false}
+            />
+            <button
+              type="button"
+              onClick={() => void copy(command, "Setup command")}
+            >
+              Copy command
+            </button>
+            <p>
+              The command downloads the installer from this site, backs up
+              changed configuration, and adds the connection. Existing
+              conflicting settings require manual review.
+            </p>
+            <p>
+              After authorization, restart Codex or start a fresh session. Keep
+              your CAD project tab visible during rendering.
+            </p>
+          </>
         )}
-        <label htmlFor={commandId}>Setup command</label>
-        <textarea
-          id={commandId}
-          readOnly
-          value={command}
-          rows={6}
-          spellCheck={false}
-        />
-        <button
-          type="button"
-          onClick={() => void copy(command, "Setup command")}
-        >
-          Copy command
-        </button>
-        <p>
-          The command downloads the installer from this site, backs up changed
-          configuration, and adds the connection. Existing conflicting settings
-          require manual review.
-        </p>
-        <p>
-          After authorization, restart Codex or start a fresh session. Keep your
-          CAD project tab visible during rendering.
-        </p>
         {projectId && (
           <div>
-            <p>Once connected, paste this into Codex:</p>
+            <p>Once connected, paste this into your client:</p>
             <pre>{codexStarterPrompt(projectId)}</pre>
             <button
               type="button"

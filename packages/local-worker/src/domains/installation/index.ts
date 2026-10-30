@@ -1,4 +1,6 @@
 export type {
+  ClientInstallation,
+  ConfigurationReceipt,
   WorkerTarget,
   WorkerCommand,
   Diagnostic,

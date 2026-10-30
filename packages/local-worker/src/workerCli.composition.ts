@@ -3,9 +3,12 @@ import { readFile } from "node:fs/promises";
 import { dirname, join, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { workerCli } from "./features/cli/index.js";
-import { createWorkerRenderer } from "./renderer.composition.js";
+import { homedir } from "node:os";
+import { createCachedRenderer } from "./cachedRenderer.composition.js";
 import { serveWorker } from "./stdioRuntime.composition.js";
 import {
+  createAssetCache,
+  configureClient,
   installBrowser,
   openSystemBrowser,
 } from "./infrastructure/installation/index.js";
@@ -26,11 +29,25 @@ try {
     await readFile(join(directory, "../package.json"), "utf8"),
   ) as { name: string; version: string };
   const assets = pathToFileURL(join(directory, "assets") + sep);
+  const cache = createAssetCache(
+    assets,
+    join(
+      process.env.XDG_CACHE_HOME ??
+        (process.platform === "darwin"
+          ? join(homedir(), "Library/Caches")
+          : join(homedir(), ".cache")),
+      "theoryfoundry-worker/renderers",
+    ),
+  );
+  const renderer = createCachedRenderer(cache);
   process.exitCode = await workerCli(
     process.argv.slice(2),
     {
       metadata,
-      renderer: createWorkerRenderer(assets),
+      renderer,
+      prepareAssets: (signal) => cache.prepare(signal),
+      configureClient: (installation, signal) =>
+        configureClient(installation, metadata, signal),
       installBrowser,
       openBrowser: openSystemBrowser,
       loadAuthentication: async (
@@ -52,7 +69,7 @@ try {
         }
       },
       serve: (target, signal) =>
-        serveWorker(target, signal, assets, metadata.version),
+        serveWorker(target, signal, assets, metadata.version, renderer),
       stdout: (text) => {
         process.stdout.write(text);
       },

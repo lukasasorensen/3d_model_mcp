@@ -124,7 +124,11 @@ await writeFile(
   join(output, "package.json"),
   JSON.stringify(
     {
-      name: worker.name,
+      name: "@tfoundry/local-worker",
+      publishConfig: {
+        registry: "https://registry.npmjs.org/",
+        access: "public",
+      },
       version: worker.version,
       description:
         "Local stdio CAD worker with hosted projects and secure OAuth credentials",
