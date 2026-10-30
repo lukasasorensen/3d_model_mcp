@@ -28,7 +28,9 @@ review their licenses/notices, and arrange the required source delivery alongsid
 the binary. Record stable URLs, digests and verification evidence. If the original
 build cannot be established, an explicit renderer-pin change with a reproducible
 build and new acceptance is a separate decision; this work does not silently switch
-the renderer. The owner must also select TheoryFoundry distribution terms.
+the renderer. The owner selected proprietary TheoryFoundry code. Resolve whether
+the delivered combination is compatible with that choice; do not silently
+relicense TheoryFoundry or assume a separate npm download resolves the issue.
 
 BOSL2 v2.0.741 is already shipped as its complete pinned source archive with LICENSE.
 Three.js and fflate notices are bundled; runtime npm dependencies retain their own

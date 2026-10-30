@@ -1,14 +1,17 @@
 # Worker release procedure
 
-THE-15 remains In Progress. First supported target is Apple Silicon macOS with
-Node 24; THE-32 tracks Intel macOS, Linux x64 and Windows x64. Linux CI smoke is
-retained but does not establish supported-platform acceptance.
+THE-15 remains In Progress. First release supports Codex on Apple Silicon macOS
+with Node 24. The owner deferred Claude Code acceptance to THE-33 on October 30;
+keep its configuration support, but do not claim verified support or block this
+release on its journey. THE-32 tracks Intel macOS, Linux x64 and Windows x64.
+Linux CI smoke is retained but does not establish supported-platform acceptance.
 
 October 29 local evidence: full `pnpm verify` passed. Installed Codex 0.164.0 and
 Claude Code 2.1.310 recognized generated version-pinned stdio settings through
 `mcp get`, using disposable external directories (custom Codex home and Claude
 project scope). Claude's project connection remained unapproved. This checks actual
-configuration parsing only; it does not establish authenticated client journeys.
+configuration parsing only. Later native credential and real Codex results are
+recorded in [live acceptance evidence](worker-live-acceptance.md).
 
 The owner selected public `@tfoundry/local-worker` after `@theoryfoundry` was
 unavailable. npm account and organization ownership were verified locally on
@@ -46,18 +49,21 @@ hosted request counts, CPU or memory. `--smoke` retains the Linux CI boundary.
 
 ## Distribution gate — unresolved
 
-The package still declares `UNLICENSED` for TheoryFoundry code. The owner must choose
-distribution terms compatible with the complete delivered work. Do not publish until
-the [OpenSCAD source audit](worker-source-audit.md) is resolved and notices/source
-delivery have been reviewed. A public npm organization alone does not resolve this.
+The owner selected proprietary TheoryFoundry code; the package declares
+`UNLICENSED`. Resolve distribution of the complete delivered work without opening
+TheoryFoundry's source. Do not publish until the
+[OpenSCAD source audit](worker-source-audit.md), proprietary-code compatibility,
+notices and required source delivery have been reviewed. A public npm organization
+alone does not resolve this.
 
 ## Hosted and real-client acceptance
 
 Follow the [hosted handoff](worker-hosted-handoff.md). Use the existing production
-origin and clearly named `THE-15 acceptance — Codex` and `THE-15 acceptance — Claude`
-projects. Keep normal projects, accounts, secrets and storage intact.
+origin and a clearly named `THE-15 acceptance — Codex` project. Keep normal
+projects, accounts, secrets and storage intact. Claude's equivalent journey belongs
+to THE-33 after this release.
 
-For each real client, record its version and the exact tarball/inventory digest.
+For Codex, record its version and the exact tarball/inventory digest.
 Run setup from a disposable Git repository outside this checkout, using project
 scope, and review the generated connection. Also exercise global scope with custom
 CODEX_HOME using preserved client settings. Before registry publication a temporary
@@ -66,7 +72,7 @@ candidate acceptance, not registry delivery. Restart the client after setup.
 
 1. Complete OAuth in the system browser; confirm native Keychain storage. Never
    save authorization codes, refresh/access tokens or raw HTTP logs in evidence.
-2. Close all hosted project tabs. In Codex, then Claude Code, use the actual tools
+2. Close all hosted project tabs. In Codex, use the actual tools
    to create/read the named project, propose a simple model, validate it, request
    PNG and describe the image, promote the exact candidate, and export STL and 3MF.
    Record actual tool calls/results, project/revision IDs and whether the client
@@ -107,7 +113,7 @@ node tooling/local-worker/packedAcceptance.script.mjs \
 against the local candidate, then runs fresh dlx acceptance against npm. Under the
 updated public scope, unauthenticated success is required; the superseded private
 plan's unauthenticated-denial criterion no longer applies. Separately verify the
-owner's authenticated install and repeat both real-client journeys using the
+owner's authenticated install and repeat the Codex journey using the
 registry-delivered command registered by setup.
 
 After prerelease acceptance, build without WORKER_RELEASE_VERSION for `0.1.0`,

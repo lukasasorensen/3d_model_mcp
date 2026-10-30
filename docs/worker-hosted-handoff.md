@@ -1,6 +1,6 @@
 # THE-15 hosted prerequisite handoff
 
-Observed October 29, 2026 against `https://3dai.theoryfoundry.com`.
+Observed October 29–30, 2026 against `https://3dai.theoryfoundry.com`.
 Coolify application: `yjcpwok2vq6r2yeiposbbip2`.
 
 ## Verified before changes
@@ -40,18 +40,22 @@ verified `theoryfoundry-local-worker`, enabled, PKCE required, token auth `none`
 and exact redirect `http://127.0.0.1:43827/oauth/callback`.
 No existing accounts, projects, secrets or volumes were replaced.
 
-## Operator action pending
+## Enablement and OAuth repair completed
 
-The connected Coolify interface exposes reads, but no deployment/environment update
-controls. In the existing application's Coolify configuration, set only
-`THEORYFOUNDRY_LOCAL_WORKER_ENABLED=1`, save and redeploy. Preserve the authentication
-secret, database credentials, other flags and persistent mounts. Inspect migration
-exit and app health; verify the new running revision and effective flag value.
-Do not assume that a successful deployment implies successful worker OAuth.
+The owner enabled `THEORYFOUNDRY_LOCAL_WORKER_ENABLED=1` and redeployed through
+Coolify. Effective worker and remote MCP flags were both verified as `1` afterward.
+The connected Coolify interface still has no deployment/environment update controls.
 
-After that, run the [release acceptance](worker-release.md) using a clearly named
-acceptance project and an actual authorized account. New code merges will trigger
-Coolify automatically, so recheck the deployed revision after each authorized merge.
+PR #28 repaired Next.js middleware URL normalization so the exact numeric-loopback
+OAuth callback survives unchanged. Coolify deployment `npeeta8kervhgddmozzchz30`
+finished at 2026-10-29 22:57:49 UTC. The healthy app image used merged revision
+`a2ef333108522b4cf68885c1501bea324fda4f9b`; the migration count remained 13.
+The public authorization route accepted the configured callback, preserved state
+and rejected an unregistered port. Real native-Keychain login then succeeded.
+
+Continue [release acceptance](worker-release.md) with the named acceptance projects;
+see [recorded results](worker-live-acceptance.md). New code merges trigger Coolify
+automatically, so recheck the deployed revision after each authorized merge.
 
 ## Recovery
 
