@@ -2,6 +2,9 @@
 
 Status: unresolved; npm publication is blocked. Renderer pins remain unchanged.
 This records evidence and missing materials, not a legal clearance.
+The October 30 [distribution decision and upstream handoff](worker-distribution-decision.md)
+records the current integration boundary, additional build-history investigation,
+and paths that retain proprietary TheoryFoundry code. The handoff has not been sent.
 
 The bundled web snapshot is [OpenSCAD 2026.07.20](https://files.openscad.org/snapshots/OpenSCAD-2026.07.20-WebAssembly-web.zip),
 SHA-256 `8b81d3d025f29bc1dec40a2ce5acbad5bd06a0f568c1bfa1f6572ad5baa97dcd`.
