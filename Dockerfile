@@ -21,6 +21,10 @@ COPY patches/ patches/
 RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS build
+# Project-scoped worker setup tests create and inspect temporary Git repositories.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends git \
+  && rm -rf /var/lib/apt/lists/*
 COPY . .
 # The template identity check uses Git metadata, which is excluded from images.
 # Run the full pnpm verify in the checkout before release.
