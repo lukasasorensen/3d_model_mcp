@@ -12,16 +12,19 @@ The official snapshot index lists the binary, detached signature and hash files.
 The package already includes the upstream GPL text; that alone does not supply
 matching source and build materials.
 
-Candidate source commit is
+The pinned WASM now directly reports `2026.07.20 (git e4fdec49)` through `--info`.
+GitHub resolves that prefix to
 [`e4fdec49730103274a4e21c2390b9a12882f01aa`](https://github.com/openscad/openscad/commit/e4fdec49730103274a4e21c2390b9a12882f01aa).
-Its timestamp and a Windows report in [upstream issue 6927](https://github.com/openscad/openscad/issues/6927)
-associate it with this dated version. That is not proof of the exact web binary's
-source. The WASM contains the date, but inspection did not establish that commit.
+This is stronger evidence than the earlier timestamp/Windows-report inference.
+The [WASM clearance packet](worker-wasm-clearance.md) records the repeatable probe,
+library versions and remaining limits: self-reported metadata does not identify
+every dependency source, local patch, or the original build job.
 
 The candidate's [.circleci/config.yml](https://github.com/openscad/openscad/blob/e4fdec49730103274a4e21c2390b9a12882f01aa/.circleci/config.yml)
 describes the `openscad-wasm` job and web build commands. Its executor references
-`openscad/wasm-base-release:latest`; an immutable image identity and corresponding
-dependency sources are still needed. The GitHub commit status query did not return
+`openscad/wasm-base-release:latest`. The follow-up packet identifies a current
+immutable digest whose creation predates the snapshot, but its use by that job and
+the exact dependency sources remain unconfirmed. The GitHub commit status query did not return
 a matching CircleCI artifact record. Do not treat a generic repository URL or a
 date-matched source archive as a resolved source offer.
 

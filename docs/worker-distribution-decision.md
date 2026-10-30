@@ -5,6 +5,11 @@ requires proprietary TheoryFoundry code and public `@tfoundry/local-worker`
 distribution. This is an engineering assessment and a prepared handoff, not legal
 clearance. No renderer pins or license terms are changed here.
 
+The owner explicitly selected retaining WASM and seeking source provenance plus
+licensing clearance on October 30. Native CLI replacement is not the selected
+release path. The [WASM clearance packet](worker-wasm-clearance.md) records new
+binary metadata, build-image evidence, reviewer questions and a send-ready inquiry.
+
 ## Two independent questions
 
 1. Can we supply the corresponding source, dependencies and build materials for
@@ -24,7 +29,7 @@ The official [snapshot index](https://files.openscad.org/snapshots/) lists the w
 archive at 3,298,833 bytes with a signature and checksums, but no corresponding
 source archive for that dated snapshot. The official checksum was fetched again.
 
-The candidate commit remains
+The pinned binary's `--info` now reports `git e4fdec49`, which resolves to
 [`e4fdec49730103274a4e21c2390b9a12882f01aa`](https://github.com/openscad/openscad/commit/e4fdec49730103274a4e21c2390b9a12882f01aa).
 Its [COPYING file](https://github.com/openscad/openscad/blob/e4fdec49730103274a4e21c2390b9a12882f01aa/COPYING)
 contains a CGAL linking exception while retaining GPL requirements for the rest
@@ -46,7 +51,9 @@ establishes these distinctions:
   empty. The July 20 build was not available through that listing. This does not
   prove the build records are unavailable elsewhere.
 - The packaged WASM had no `producers`, `sourceMappingURL` or `build_id` custom
-  section. These checks did not establish its exact source or build image.
+  section. Those earlier static checks did not establish its exact source or build
+  image. The subsequent runtime probe and current registry digest are recorded in
+  the clearance packet; full corresponding-source verification remains incomplete.
 
 ## Actual integration boundary
 
@@ -84,19 +91,10 @@ under the existing release plan, followed by new provenance and acceptance.
 
 ## Prepared upstream inquiry — not sent
 
-Recipient: OpenSCAD maintainers through their official contact channel. No message
-has been sent; sending requires the owner's instruction.
-
-> We are auditing redistribution of the official
-> `OpenSCAD-2026.07.20-WebAssembly-web.zip` archive, SHA-256
-> `8b81d3d025f29bc1dec40a2ce5acbad5bd06a0f568c1bfa1f6572ad5baa97dcd`.
-> Could you identify its exact Git revision and build/job record, immutable WASM
-> build-image digest, and corresponding source/build materials for OpenSCAD,
-> recursive submodules and linked dependencies? Is there a maintained source
-> bundle or documented source-delivery mechanism for this specific snapshot?
-> We found candidate revision `e4fdec49730103274a4e21c2390b9a12882f01aa`, but have
-> not established that it produced this web artifact. We do not want to substitute
-> a date-matched source archive for the exact corresponding sources.
+The updated [inquiry and review checklist](worker-wasm-clearance.md) includes the
+binary's reported revision and the base-image candidate. Recipient: OpenSCAD's
+official general-inquiry address. No message has been sent; sending requires the
+owner's instruction. Do not disclose proprietary source in a public issue.
 
 The source inquiry is separate from review of the proprietary integration. Before
 publication, retain a written resolution of both questions, complete the source

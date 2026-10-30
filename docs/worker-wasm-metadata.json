@@ -1,0 +1,69 @@
+{
+  "openscadVersion": "2026.07.20",
+  "hashes": {
+    "openscad.js": "e458673d46d506d77b780c526d6e5492250f353d582057c6f912724a9586d86e",
+    "openscad.wasm": "c19a3a868991e86f76f22f254e04002db45f00c91f24e4c672cf93c859e80e19"
+  },
+  "commands": [
+    {
+      "argument": "--version",
+      "error": "program has already aborted!",
+      "output": ["OpenSCAD version 2026.07.20"]
+    },
+    {
+      "argument": "--info",
+      "exitCode": 1,
+      "output": [
+        "Could not initialize localization (application path is '/').",
+        "Fontconfig error: Cannot load default config file: No such file: (null)",
+        "OpenSCAD Version: 2026.07.20 (git e4fdec49)",
+        "System information: Emscripten 4.0.10 #1 wasm32 1 CPU 4.00 GB RAM",
+        "User Agent: OpenSCAD/2026.07.20 (git e4fdec49) (Emscripten wasm32)",
+        "Compiler: Clang \"21.0.0git (https:/github.com/llvm/llvm-project 8f7e57485ee73205e108d74abb5565d5c63beaca)\"",
+        "MinGW build: No",
+        "Debug build: No",
+        "Boost version: 1_87",
+        "Eigen version: 3.4.90",
+        "CGAL version, kernels: 6.0.1-I-900, Cartesian<Gmpq>, Extended_cartesian<Gmpq>",
+        "OpenCSG version: <not enabled>",
+        "Clipper2 version: 2.0.1",
+        "Manifold version: 3.5.1",
+        "Qt version: Qt disabled - Commandline Test Version",
+        "GLib version: 2.83.2",
+        "lodepng version: 20260102",
+        "libzip version: 1.11.4",
+        "fontconfig version: 2.16.2",
+        "freetype version: 2.13.3",
+        "harfbuzz version: 11.2.1",
+        "cairo version: (not enabled)",
+        "lib3mf version: 2.3.2",
+        "mi-malloc version: <not enabled>",
+        "Features: roof, input-driver-dbus, lazy-union, vertex-object-renderers-indexing, textmetrics, import-function, object-function, predictible-output, vector-swizzle, discretization-by-error, ai-features",
+        "Application Path: /",
+        "Documents Path: /home/web_user/.local/share",
+        "User Documents Path: /home/web_user",
+        "Resource Path: /",
+        "User Library Path: ",
+        "User Examples Path: ",
+        "User Config Path: ",
+        "Backup Path: ",
+        "OPENSCADPATH: <not set>",
+        "OpenSCAD library path:",
+        "  ",
+        "  /",
+        "",
+        "OPENSCAD_FONT_PATH: <not set>",
+        "OpenSCAD font path:",
+        "  /fonts",
+        "  /home/web_user/.local/share/fonts",
+        "  /usr/local/share/fonts",
+        "  /usr/share/fonts",
+        "",
+        "",
+        "Can't create OpenGL OffscreenView: Unable to create FBO. Exiting.",
+        ""
+      ]
+    }
+  ],
+  "limitation": "Metadata from the pinned binary is supporting evidence, not a verified source/build association or licensing clearance."
+}
