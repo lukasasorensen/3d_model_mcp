@@ -35,8 +35,14 @@ The test held the token only in memory and recorded only status and error code.
 Login was then restored through normal browser OAuth; another `doctor` run passed
 renderer, native binding and authenticated account checks.
 
-This proves logout's refresh-token revocation. The separate Connected Apps grant
-revocation and immediate hosted-access denial check remains pending.
+The separate Connected Apps grant revocation check also passed on October 30 at
+16:32 UTC. The authenticated browser listed `TheoryFoundry Local Worker`; revoking
+it changed the page to `No connected apps`. A token that had just initialized MCP
+successfully (HTTP 200) was rejected with HTTP 401 while still unexpired. Its
+refresh token returned HTTP 400 `invalid_grant`; a fresh authentication instance
+returned `LOGIN_REQUIRED` and removed the stale native Keychain credential.
+Tokens remained only in memory throughout the probe. The owner then approved a
+new browser OAuth grant; packaged `doctor` passed again, restoring worker access.
 
 ## Real Codex journey
 
@@ -71,9 +77,14 @@ contained 400 triangles with bounds `[0,0,0]` to `[30,20,14]`.
 | STL    | 20,084 | `c1c3ca0be6644144f92468aecf6440d94e2df8f00b0f8ed3e3ac58618928299c` |
 | 3MF    |  6,277 | `49f8b42a6306120a08afa19df80d939048d2ed856ea6448a8628091e114116cf` |
 
-Hosted revision visibility was verified through worker read/list tools. Browser UI
-visibility remains pending an authenticated browser session. Export bearer URLs,
-OAuth credentials and raw private client logs are excluded from this record.
+On October 30 the owner signed into Chrome, after completion of the tab-closed
+Codex journey. The hosted project showed `R1`, `Current revision`, the exact
+revision UUID above, matching OpenSCAD source and 30 × 20 × 14 mm bounds. A visual
+screenshot confirmed the slab, hole and post in the 3D viewer. The accessibility
+tree included a WebGL fallback string even while the canvas rendered; it was not
+treated as proof of a rendering failure. This establishes saved-revision visibility,
+not THE-9's complete production browser/render/export acceptance. Export bearer
+URLs, OAuth credentials and raw private client logs are excluded from this record.
 
 ## Cancellation and network recovery
 
@@ -139,12 +150,11 @@ it is not a first-release blocker and no verified Claude support is claimed.
 
 Remaining first-release gates:
 
-1. Finish Connected Apps revocation and hosted UI visibility.
-2. Review and explicitly authorize merges of PR #26 and PR #27; verify resulting
+1. Review and explicitly authorize merges of PR #26 and PR #27; verify resulting
    deployment and build the final candidate from the reviewed release commit.
-3. Resolve matching OpenSCAD source/build delivery and compatibility with the
+2. Resolve matching OpenSCAD source/build delivery and compatibility with the
    owner's proprietary TheoryFoundry requirement. See the
    [source audit](worker-source-audit.md); publication is blocked on this.
-4. Publish the tested public prerelease, verify exact registry bytes and both
+3. Publish the tested public prerelease, verify exact registry bytes and both
    anonymous/authenticated download, repeat Codex acceptance from npm, then build,
    test, publish and verify `0.1.0` as described in the [release procedure](worker-release.md).
