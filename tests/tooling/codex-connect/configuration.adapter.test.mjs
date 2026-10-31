@@ -22,6 +22,9 @@ test("append preserves existing comments, multiline strings, and other server po
   const original =
     '# User preferences\nmodel = "example" # retained\nnotes = """\n[mcp_servers.fake]\n"""\n[mcp_servers.other]\ncommand = "node"\nargs = ["a b.mjs"]\n';
   const merged = mergeConfiguration(original, settings);
+  const installed = parse(merged).mcp_servers[settings.name];
+  assert.deepEqual(installed.scopes, ["cad:tools", "offline_access"]);
+  assert.equal(installed.oauth.scopes, undefined);
   assert.ok(merged.startsWith(original));
   assert.deepEqual(
     JSON.parse(JSON.stringify(parse(merged).mcp_servers[settings.name])),
