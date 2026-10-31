@@ -1,4 +1,8 @@
 :root {
+  --accent: #33888c;
+  --accent-hover: #41999d;
+  --accent-contrast: #66b8bc;
+  --on-accent: #07110e;
   color-scheme: dark;
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   background: #111714;
@@ -23,7 +27,7 @@ button:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {
-  outline: 3px solid #ffbf46;
+  outline: 3px solid var(--accent-contrast);
   outline-offset: 3px;
 }
 button:disabled {
@@ -79,7 +83,7 @@ button:disabled {
   white-space: nowrap;
 }
 .mark {
-  color: #ffbf46;
+  color: var(--accent);
   margin-right: 8px;
 }
 .header .project-name {
@@ -105,12 +109,12 @@ button:disabled {
   background: #505553;
 }
 .button.primary {
-  background: #ffbf46;
-  color: #171f1c;
-  border-color: #ffbf46;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent-contrast);
 }
 .button.primary:hover:not(:disabled) {
-  background: #ffd37f;
+  background: var(--accent-hover);
 }
 .button.small {
   min-height: 38px;
@@ -178,7 +182,7 @@ h2 {
   margin: 16px 32px 0;
   border-radius: 7px;
   background: #454c47;
-  border-left: 3px solid #ffbf46;
+  border-left: 3px solid var(--accent);
   line-height: 1.5;
   font-size: 0.86rem;
 }
@@ -404,7 +408,7 @@ textarea {
 }
 .choice input {
   margin-right: 8px;
-  accent-color: #ffbf46;
+  accent-color: var(--accent);
 }
 .dialog-actions {
   display: flex;

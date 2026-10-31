@@ -68,7 +68,7 @@
     border-bottom: 3px solid transparent;
   }
   .mobile-nav button[aria-pressed="true"] {
-    border-color: #ffbf46;
+    border-color: var(--accent-contrast);
     color: white;
     font-weight: 700;
   }

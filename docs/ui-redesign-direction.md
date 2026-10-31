@@ -19,12 +19,18 @@ that those screens already exist.
   workspace `#3b3d43`, charcoal `#575761` for supporting surfaces, white
   `#ffffff` for model material and primary text, with neutral gray model
   shading. Frosted mint `#e4fde1` is reserved for restrained supporting
-  highlights, and sunflower gold `#ffbf46` for primary actions. THE-37 must
+  highlights, and teal `#33888c` for primary actions. THE-37 must
   define the actual semantic tokens, font, spacing scale, and interaction and
   status colors, with contrast checked in context. These swatches are not by
   themselves a complete accessible theme.
 - Controls must communicate their role, state, and focus without relying only on
   color. Respect reduced motion, forced colors, zoom, and long names.
+
+Primary teal buttons use dark `#07110e` labels (4.60:1 contrast). White labels
+on this teal reach only 4.17:1, so they are not used for normal-size button text.
+The lighter teal `#66b8bc` supplies focus rings, selected-section indicators,
+and primary-button boundaries against dark surfaces; the primary fill remains
+`#33888c`. Hover fill is `#41999d`.
 
 ## Workspace layouts
 
