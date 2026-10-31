@@ -18,9 +18,6 @@
   .header-actions {
     margin-left: auto;
   }
-  .header-actions .all-projects {
-    display: none;
-  }
   .workspace,
   .workspace.no-chat {
     display: block;

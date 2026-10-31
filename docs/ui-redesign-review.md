@@ -5,23 +5,27 @@ White with neutral gray shading keeps the model distinct from the forest
 charcoal canvas. The actual viewer now uses white material as well; its final
 appearance under lighting still needs authenticated WebGL review.
 
-## Findings before implementation
+## Follow-up review
 
-- Mobile project navigation is missing. The responsive stylesheet hides both
-  the project name and All projects without providing a replacement. Add a
-  reachable project menu or navigation link on small screens.
-- Empty-state content is inconsistent. The scenario hides the model and disables
-  download, but static history still lists R3 and R2 and conversation says the
-  model is ready. Supply coherent history, conversation, viewer controls, and
-  readiness for an empty project before validating that journey.
-- Export state is inconsistent with format selection. Preparation and receipt
-  text are hardcoded to STL even when GLB or 3MF is selected. Derive all export
-  labels and sample filenames from the selected format and model the format
-  control's busy state.
+The three identified prototype gaps are resolved:
 
-These are prototype design gaps, not claims that the production application has
-the same defects. The inert CAD controls are explicitly documented; their lack
-of real rendering, restore, or download behavior is intentional at this stage.
+- Projects is a visible disclosure on desktop and mobile. Selecting a sample
+  project closes the menu, returns focus to Projects, clears the old draft, and
+  opens the model section for that project.
+- Empty projects show no history entries, explain the first-model action in
+  conversation, and disable model controls and export. Readiness says No model.
+- Download labels, preparation messages, failures, and sample filenames use the
+  selected STL, GLB, or 3MF format. Format selection is disabled during an
+  operation; changing it after success or failure clears the previous outcome.
+
+Browser review at 390 × 844 confirmed project navigation and empty details and
+conversation. Desktop review at 1440 × 900 confirmed preparation and receipt
+text for all three formats, including the disabled format selector. Chat-disabled
+navigation returned to the model section. No additional blocking issue was found
+in these reviewed paths. This is a focused review, not exhaustive acceptance.
+
+The inert CAD controls remain intentional: this is a design study, not a real
+renderer, download client, or project store.
 
 ## Assessment
 

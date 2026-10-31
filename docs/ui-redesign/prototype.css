@@ -424,3 +424,24 @@ textarea {
 [hidden] {
   display: none !important;
 }
+
+.project-menu {
+  position: relative;
+  border: 0;
+}
+.project-menu summary {
+  list-style: none;
+}
+.project-options {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  width: 220px;
+  padding: 14px;
+  background: #252a29;
+  border: 1px solid #787d7b;
+  border-radius: 8px;
+  z-index: 1;
+  display: grid;
+  gap: 10px;
+}

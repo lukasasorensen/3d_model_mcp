@@ -45,6 +45,26 @@ function update() {
   const value = scenario.value;
   const isEmpty = value === "empty";
   const isHistory = value === "history";
+  const format = byId("format").value;
+  const busy = ["render", "restoring", "exporting"].includes(value);
+  const name = isEmpty ? "Untitled project" : "Bracket project";
+  byId("project-title").textContent = name;
+  document.querySelector(".project-name").textContent = name;
+  byId("empty-history").hidden = !isEmpty;
+  document.querySelectorAll(".history-row").forEach((row) => {
+    row.hidden = isEmpty;
+  });
+  document.querySelectorAll(".tools button").forEach((button) => {
+    button.disabled = isEmpty;
+  });
+  document.querySelector(".viewer-note").hidden = isEmpty;
+  byId("chat-message").textContent = isEmpty
+    ? "No model yet. Describe what you would like to create."
+    : "Your model is ready to inspect. What would you like to change?";
+  byId("message").placeholder = isEmpty
+    ? "Describe your first model…"
+    : "Describe a change…";
+  byId("format").disabled = isEmpty || busy;
   workspace.classList.toggle("no-chat", chat.value === "off");
   byId("chat-panel").hidden = chat.value === "off";
   document.querySelector('[data-section="chat"]').hidden = chat.value === "off";
@@ -62,23 +82,25 @@ function update() {
       ? "R2 · historical"
       : "R3 · current";
   byId("dimensions").textContent = isEmpty ? "Unavailable" : "100 × 40 × 46 mm";
-  byId("download").disabled =
-    isEmpty || ["render", "restoring", "exporting"].includes(value);
+  byId("download").disabled = isEmpty || busy;
   byId("download").textContent = isEmpty
     ? "Download unavailable"
     : value === "exporting"
-      ? "Preparing STL · R3…"
-      : "Download current · R3";
-  byId("status").textContent =
-    value === "render"
-      ? "Rendering"
-      : value === "restoring"
-        ? "Restoring"
-        : value === "failure"
-          ? "Preview error"
-          : value === "export-failure"
-            ? "Download error"
-            : "Ready";
+      ? `Preparing ${format} · R3…`
+      : `Download ${format} · current R3`;
+  byId("status").textContent = isEmpty
+    ? "No model"
+    : value === "exporting"
+      ? "Preparing download"
+      : value === "render"
+        ? "Rendering"
+        : value === "restoring"
+          ? "Restoring"
+          : value === "failure"
+            ? "Preview error"
+            : value === "export-failure"
+              ? "Download error"
+              : "Ready";
   const messages = {
     history:
       "You are inspecting R2. Downloads use current revision R3; restore R2 to create a new current revision.",
@@ -88,10 +110,9 @@ function update() {
       "Restoring R2 as a new revision. The current R3 preview remains visible until the restore completes.",
     failure:
       "Preview could not be verified. The last valid model remains visible. Check your connection and retry.",
-    download: "Download started · bracket-R3.stl",
-    exporting: "Preparing STL from current revision R3 in this browser.",
-    "export-failure":
-      "The export could not be verified. No file was downloaded. Try downloading again.",
+    download: `Download started · bracket-R3.${format.toLowerCase()}`,
+    exporting: `Preparing ${format} from current revision R3 in this browser.`,
+    "export-failure": `The ${format} export could not be verified. No file was downloaded. Try downloading again.`,
   };
   const banner = byId("banner");
   banner.hidden = !messages[value];
@@ -108,6 +129,21 @@ function update() {
   else if (!setup.hidden) closeSetup();
 }
 scenario.addEventListener("change", update);
+byId("format").addEventListener("change", () => {
+  if (["download", "export-failure"].includes(scenario.value))
+    scenario.value = "current";
+  update();
+});
+document.querySelectorAll("[data-project]").forEach((button) =>
+  button.addEventListener("click", () => {
+    scenario.value = button.dataset.project;
+    byId("project-menu").open = false;
+    byId("message").value = "";
+    selectSection("model");
+    update();
+    byId("project-menu").querySelector("summary").focus();
+  }),
+);
 chat.addEventListener("change", update);
 document
   .querySelectorAll("[data-section]")
