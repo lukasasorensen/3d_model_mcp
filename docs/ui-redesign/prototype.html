@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TheoryFoundry workspace design study</title>
+    <link rel="stylesheet" href="prototype.css" />
+    <link rel="stylesheet" href="responsive.css" />
+  </head>
+  <body>
+    <div class="study">
+      <strong>Design study · THE-36</strong>
+      <label
+        >State
+        <select id="scenario">
+          <option value="current">Current model</option>
+          <option value="empty">Empty project</option>
+          <option value="history">Inspecting history</option>
+          <option value="render">Render in progress</option>
+          <option value="restoring">Restore in progress</option>
+          <option value="failure">Preview failure</option>
+          <option value="exporting">Download preparing</option>
+          <option value="export-failure">Download failure</option>
+          <option value="download">Download complete</option>
+          <option value="setup">Connection setup</option>
+        </select></label
+      >
+      <label
+        >Chat
+        <select id="chat-setting">
+          <option value="on">Enabled</option>
+          <option value="off">Disabled</option>
+        </select></label
+      >
+      <p>
+        Illustrative prototype · sample content · controls do not change a
+        project
+      </p>
+    </div>
+    <div class="app">
+      <header class="header">
+        <div class="brand"><span class="mark">◧</span>TheoryFoundry</div>
+        <span class="project-name">Bracket project</span>
+        <div class="header-actions">
+          <details class="project-menu" id="project-menu">
+            <summary class="button small">Projects</summary>
+            <div class="project-options">
+              <p class="subtle">Sample projects</p>
+              <button type="button" class="button small" data-project="current">
+                Bracket project</button
+              ><button type="button" class="button small" data-project="empty">
+                Untitled project
+              </button>
+            </div>
+          </details>
+          <button class="button small" id="connect" type="button">
+            Connect tools
+          </button>
+        </div>
+      </header>
+      <div id="banner" class="banner" role="status" hidden>
+        <span id="banner-text"></span>
+        <button type="button" class="button small" id="retry" hidden>
+          Retry preview
+        </button>
+      </div>
+      <div class="mobile-nav" aria-label="Workspace sections">
+        <button type="button" data-section="model" aria-pressed="true">
+          Model</button
+        ><button type="button" data-section="chat" aria-pressed="false">
+          Conversation</button
+        ><button type="button" data-section="details" aria-pressed="false">
+          Details
+        </button>
+      </div>
+      <div class="workspace" id="workspace">
+        <main class="main" id="model-panel">
+          <div class="heading">
+            <div>
+              <h1 id="project-title">Bracket project</h1>
+              <p class="subtle" id="revision-heading">Current revision · R3</p>
+            </div>
+            <div class="status">
+              <span class="dot"></span><span id="status">Ready</span>
+            </div>
+          </div>
+          <div class="viewer" aria-label="Illustrative model preview">
+            <div class="tools" aria-label="Illustrative viewer controls">
+              <button type="button">Fit</button
+              ><button type="button" aria-label="Zoom out">−</button
+              ><button type="button" aria-label="Zoom in">+</button
+              ><button type="button" aria-label="Viewer help">?</button>
+            </div>
+            <svg
+              class="model"
+              id="model"
+              viewBox="0 0 500 340"
+              role="img"
+              aria-label="Illustration of a bracket model"
+            >
+              <path fill="#eeeeee" d="M75 235 248 137 428 217 257 319Z" />
+              <path fill="#a8a8a8" d="M257 319 428 217 428 239 257 340Z" />
+              <path fill="#f5f5f5" d="M75 235 75 215 248 117 248 137Z" />
+              <path
+                fill="#ffffff"
+                d="M75 215 75 84 119 59 119 190 248 117 248 137Z"
+              />
+              <path fill="#d4d4d4" d="M119 59 145 71 145 174 119 190Z" />
+              <path fill="#bcbcbc" d="M75 84 99 95 99 202 75 215Z" />
+              <ellipse
+                cx="165"
+                cy="235"
+                rx="25"
+                ry="11"
+                fill="#444444"
+                transform="rotate(-20 165 235)"
+              />
+              <ellipse
+                cx="310"
+                cy="234"
+                rx="25"
+                ry="11"
+                fill="#444444"
+                transform="rotate(20 310 234)"
+              />
+            </svg>
+            <div class="empty" id="empty" hidden>
+              <div class="empty-icon">◇</div>
+              <h2>No model yet</h2>
+              <p class="subtle">
+                Connect your CAD tools, then ask your assistant to create a
+                model in this project.
+              </p>
+            </div>
+            <span class="viewer-note"
+              >Drag to orbit · scroll to zoom · ? for help</span
+            >
+          </div>
+          <section class="facts" aria-label="Model details">
+            <div class="fact">
+              <span>Viewing</span><strong id="viewing">R3 · current</strong>
+            </div>
+            <div class="fact">
+              <span>Dimensions</span
+              ><strong id="dimensions">100 × 40 × 46 mm</strong>
+            </div>
+            <div class="actions">
+              <label
+                >Format<select id="format">
+                  <option>STL</option>
+                  <option>GLB</option>
+                  <option>3MF</option>
+                </select></label
+              ><button type="button" class="button primary" id="download">
+                Download current · R3
+              </button>
+            </div>
+          </section>
+          <div class="details" id="details-panel">
+            <details id="history">
+              <summary>Revision history</summary>
+              <p id="empty-history" class="subtle" hidden>
+                No revisions yet. Your first validated model will appear here.
+              </p>
+              <div class="history-row">
+                <div>
+                  <strong>R3 · current</strong>
+                  <p class="subtle">Latest validated revision</p>
+                </div>
+                <button
+                  type="button"
+                  class="button small"
+                  data-scenario="current"
+                >
+                  Inspect R3
+                </button>
+              </div>
+              <div class="history-row">
+                <div>
+                  <strong>R2</strong>
+                  <p class="subtle">Earlier revision</p>
+                </div>
+                <button
+                  type="button"
+                  class="button small"
+                  data-scenario="history"
+                >
+                  Inspect R2
+                </button>
+              </div>
+              <p class="subtle" id="restore" hidden>
+                Inspecting R2. Restoring creates a new current revision from R2.
+                <button type="button" class="button small">
+                  Restore R2 as new revision
+                </button>
+              </p>
+            </details>
+            <details>
+              <summary>Source and technical details</summary>
+              <p class="subtle">
+                Source, project ID, revision ID and preview information appear
+                here when needed.
+              </p>
+            </details>
+            <details id="receipt" hidden>
+              <summary>Download verification</summary>
+              <p class="subtle">
+                SHA-256: example verification hash shown here after download.
+              </p>
+            </details>
+          </div>
+        </main>
+        <aside class="conversation" id="chat-panel" aria-label="Conversation">
+          <div class="chat-header">
+            <h2>Conversation</h2>
+            <p class="subtle">Discuss changes to this project.</p>
+          </div>
+          <div class="chat-body">
+            <div class="bubble" id="chat-message">
+              Your model is ready to inspect. What would you like to change?
+            </div>
+          </div>
+          <div class="composer">
+            <label class="subtle" for="message">Message</label
+            ><textarea
+              id="message"
+              rows="3"
+              placeholder="Describe a change…"
+            ></textarea
+            ><button type="button" class="button primary small">
+              Send message
+            </button>
+          </div>
+        </aside>
+      </div>
+    </div>
+    <div class="dialog-backdrop" id="setup" hidden>
+      <section
+        class="dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
+      >
+        <div class="dialog-head">
+          <div>
+            <h2 id="dialog-title">Connect CAD tools</h2>
+            <p class="subtle">
+              Step <span id="step-number">1</span> of 2 · Connection setup
+            </p>
+          </div>
+          <button
+            type="button"
+            class="button small"
+            id="close-setup"
+            aria-label="Close setup"
+          >
+            ✕
+          </button>
+        </div>
+        <div id="step-one">
+          <h3>Where should rendering run?</h3>
+          <label class="choice"
+            ><input type="radio" name="compute" value="hosted" checked />In this
+            browser<br /><span class="subtle"
+              >Keep this project tab visible during validation.</span
+            ></label
+          >
+          <label class="choice"
+            ><input type="radio" name="compute" value="local" />On my Mac<br /><span
+              class="subtle"
+              >Local worker for Apple Silicon; check release availability with
+              your operator.</span
+            ></label
+          >
+          <div id="client-choice" hidden>
+            <label for="client">Client</label>
+            <select id="client">
+              <option>Codex</option>
+              <option>Claude Code</option>
+            </select>
+          </div>
+          <h3>Where should the connection be installed?</h3>
+          <label class="choice"
+            ><input type="radio" name="scope" checked />All projects for this
+            user<br /><span class="subtle"
+              >Use your client’s user configuration.</span
+            ></label
+          ><label class="choice"
+            ><input type="radio" name="scope" />This repository only<br /><span
+              class="subtle"
+              >Run setup from the repository and trust it in your client. This
+              does not restrict access to one CAD project.</span
+            ></label
+          >
+          <p class="subtle" id="prerequisites">
+            You’ll need Node.js 24 and the Codex CLI on macOS or Linux.
+          </p>
+          <div class="dialog-actions">
+            <button type="button" class="button" id="cancel-setup">
+              Cancel</button
+            ><button type="button" class="button primary" id="next-step">
+              Continue
+            </button>
+          </div>
+        </div>
+        <div id="step-two" hidden>
+          <h3>Run the setup command</h3>
+          <p class="subtle">
+            The installer downloads from TheoryFoundry, backs up existing
+            configuration, and starts authorization. Review its output before
+            approving CAD access in your browser.
+          </p>
+          <div class="code">[Project-specific setup command shown here]</div>
+          <p>
+            <button class="button small" type="button" disabled>
+              Copy command
+            </button>
+          </p>
+          <p class="subtle" id="after-setup">
+            After authorization, restart Codex or start a fresh session. Keep
+            this project tab visible during browser validation.
+          </p>
+          <details>
+            <summary>Setup and security details</summary>
+            <p class="subtle">
+              Show the exact installation scope, backup location, permissions,
+              and troubleshooting guidance here.
+            </p>
+          </details>
+          <div class="dialog-actions">
+            <button type="button" class="button" id="previous-step">Back</button
+            ><button type="button" class="button primary" id="done-setup">
+              Done
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script src="prototype.script.js"></script>
+  </body>
+</html>
