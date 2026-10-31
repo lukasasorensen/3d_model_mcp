@@ -17,7 +17,8 @@ that those screens already exist.
   accessible controls. Do not hide information needed to make an action safe.
 - The selected concept palette is forest charcoal `#171f1c` for deep areas,
   workspace `#3b3d43`, charcoal `#575761` for supporting surfaces, white
-  `#ffffff` for primary text, frosted mint `#e4fde1` for the model and restrained
+  `#ffffff` for model material and primary text, with neutral gray model
+  shading. Frosted mint `#e4fde1` is reserved for restrained supporting
   highlights, and sunflower gold `#ffbf46` for primary actions. THE-37 must
   define the actual semantic tokens, font, spacing scale, and interaction and
   status colors, with contrast checked in context. These swatches are not by

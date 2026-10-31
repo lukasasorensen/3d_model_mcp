@@ -99,7 +99,7 @@ function Scene({
   const material = useMemo(
     () =>
       new MeshStandardMaterial({
-        color: new Color("#dde5dd"),
+        color: new Color("#ffffff"),
         roughness: 0.72,
         metalness: 0.05,
       }),
