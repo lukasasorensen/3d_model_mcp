@@ -28,9 +28,13 @@ that those screens already exist.
 
 Primary teal buttons use dark `#07110e` labels (4.60:1 contrast). White labels
 on this teal reach only 4.17:1, so they are not used for normal-size button text.
-The lighter teal `#66b8bc` supplies focus rings, selected-section indicators,
-and primary-button boundaries against dark surfaces; the primary fill remains
+The lighter teal `#66b8bc` supplies focus rings and selected-section indicators
+against dark surfaces; the primary fill remains
 `#33888c`. Hover fill is `#41999d`.
+
+Buttons, text fields, selects, and setup choice surfaces have no routine border.
+Use fill, labels, spacing, and hover states to distinguish controls. Preserve
+keyboard focus outlines and native radio indicators.
 
 ## Workspace layouts
 
