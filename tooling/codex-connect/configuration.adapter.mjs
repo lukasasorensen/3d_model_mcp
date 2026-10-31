@@ -31,10 +31,10 @@ export function connectionSettings(origin) {
   const server = {
     url: `${origin}/mcp`,
     tool_timeout_sec: 120,
+    scopes: ["cad:tools", "offline_access"],
     oauth: {
       client_id: "theoryfoundry-codex",
       callback_url: "http://127.0.0.1/callback",
-      scopes: ["cad:tools", "offline_access"],
     },
   };
   return { name, server };
