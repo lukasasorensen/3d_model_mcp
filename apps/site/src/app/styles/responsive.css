@@ -137,10 +137,8 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .revision-rail span,
   button {
     transition:
-      width 180ms ease,
       border-color 120ms ease,
       background-color 120ms ease;
   }
@@ -169,8 +167,7 @@
   .revision-history {
     border: 1px solid CanvasText;
   }
-  .readiness-dot,
-  .revision-rail span {
+  .readiness-dot {
     forced-color-adjust: none;
   }
 }

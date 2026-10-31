@@ -176,9 +176,6 @@ export function ModelWorkspace({
                 "Ready for Codex. Keep this project tab visible during validation."}
             </p>
           )}
-          <div className="revision-rail" aria-hidden="true">
-            <span className={state.active ? "rail-working" : ""} />
-          </div>
           {promotionPending && (
             <p className="notice" role="status">
               {promotionStatusLabel(
@@ -291,10 +288,15 @@ export function ModelWorkspace({
             </p>
           )}
           {exportState === "complete" && (
-            <p role="status" className="notice notice-success">
-              Download started · {downloadReceipt?.filename} · SHA-256{" "}
-              {downloadReceipt?.hash}
-            </p>
+            <div className="notice notice-success">
+              <p role="status">
+                Download started · {downloadReceipt?.filename}
+              </p>
+              <details>
+                <summary>Download verification</summary>
+                <p>SHA-256: {downloadReceipt?.hash}</p>
+              </details>
+            </div>
           )}
         </section>
 
