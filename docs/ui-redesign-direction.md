@@ -27,6 +27,19 @@ that those screens already exist.
 
 ## Workspace layouts
 
+The [responsive design study](ui-redesign/prototype.html) is a standalone,
+sample-data prototype. Open it in a browser and use the State and Chat controls
+to compare desktop and mobile layouts. The Model, Conversation, and Details
+controls switch the mobile view; revision selection and the two-step connection
+dialog demonstrate the proposed flow. The illustration and inactive product
+controls do not render, export, restore, connect, or send anything.
+
+The study covers an empty project, a current model, historical inspection,
+render and restore progress, preview failure, download preparation, failure and
+receipt, and browser or local-worker setup. The connection command and hash are
+placeholders. The prototype is a visual and interaction proposal, not a
+replacement for product implementation or a complete accessibility assessment.
+
 On desktop, keep project navigation and connection access in the header. The
 model and its immediate status occupy the main area; conversation, when enabled,
 has a separate adjacent area. Keep dimensions and revision close to the viewer,
@@ -64,9 +77,8 @@ verification. Implement in focused slices, beginning with the workspace, then
 extend the language to project selection and connection setup. Keep feature flags,
 revision semantics, export integrity, and existing capabilities intact.
 
-Before treating THE-36 as complete, review representative desktop and mobile
-designs for the states above, including chat variants and connection setup, with
-real project content. The linked concept alone does not cover all those states.
+Before treating THE-36 as complete, review the representative desktop and mobile
+designs with real project content, including chat variants and connection setup.
 Check keyboard navigation, focus, contrast, touch targets, long names, and
 reduced motion. Record implementation checks separately from authenticated live
 acceptance; neither the concept nor a passing build proves live acceptance.
