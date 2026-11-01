@@ -55,6 +55,7 @@ export function RevisionHistory({
                   <button
                     type="button"
                     className="restore-button"
+                    aria-label={`Restore ${revisionLabel(revisions, revision.revisionId)} as a new revision`}
                     onClick={() => onRestore(revision.revisionId)}
                     disabled={disabled}
                   >
