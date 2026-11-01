@@ -117,6 +117,7 @@ export function workspaceReducer(
       ],
     };
   }
+  if (action.type === "clear_notice") return { ...state, notice: "" };
   if (action.type === "local_error")
     return {
       ...state,

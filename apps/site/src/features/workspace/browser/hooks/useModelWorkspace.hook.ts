@@ -243,6 +243,7 @@ export function useModelWorkspace({
 
   const restore = async (revisionId: string): Promise<void> => {
     if (!(await acquireRenderer())) return;
+    dispatch({ type: "clear_notice" });
     setRestorePending(true);
     try {
       const response = await fetch(

@@ -36,5 +36,6 @@ export type WorkspaceAction =
   | { type: "submit"; id: string; text: string }
   | { type: "event"; event: ChatEvent }
   | { type: "local_error"; message: string }
+  | { type: "clear_notice" }
   | { type: "select_revision"; revisionId: string }
   | { type: "restored"; revision: RevisionManifest };
