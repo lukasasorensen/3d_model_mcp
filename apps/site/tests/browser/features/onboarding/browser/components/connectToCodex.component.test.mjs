@@ -83,9 +83,7 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
             .evaluate((el) => el.scrollWidth > el.clientWidth),
           false,
         );
-        await page
-          .getByRole("button", { name: "Change choices", exact: true })
-          .click();
+        await page.getByRole("button", { name: "Back", exact: true }).click();
         await page.waitForFunction(
           () =>
             document.activeElement?.textContent === "Choose your connection",

@@ -152,7 +152,7 @@ export function ConnectToCodex({
                 · {scope === "global" ? "All projects" : "This repository"}
               </p>
               <button type="button" onClick={() => setStep("choose")}>
-                Change choices
+                Back
               </button>
             </div>
             {mode === "local" ? (

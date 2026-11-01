@@ -6,6 +6,7 @@ import { ChatPane } from "../../../chat/browser/index";
 import { ModelSourcePanel } from "../../../model-preview/browser/index";
 import { ConnectToCodex } from "../../../onboarding/browser/index";
 import { RevisionHistory } from "./revisionHistory.component";
+import { WorkspaceStatusToast } from "./workspaceStatusToast.component";
 
 import { type DownloadFormat } from "../../../exports/browser/index";
 
@@ -203,34 +204,36 @@ export function ModelWorkspace({
                 )}
             </div>
           </div>
-          {syncStatus && (
-            <p className="notice" role="status">
-              {syncStatus}
-            </p>
-          )}
-          {(localMcpBridgeEnabled || remoteMcpEnabled) && (
-            <p className="notice" role="status">
-              {mcpStatus ||
-                "Ready for Codex. Keep this project tab visible during validation."}
-            </p>
-          )}
-          {promotionPending && (
-            <p className="notice" role="status">
-              {promotionStatusLabel(
-                selectedLabel,
-                Boolean(state.selectedRevision),
-              )}
-            </p>
-          )}
-          {(state.active || restorePending || exportState === "preparing") && (
-            <p className="notice" role="status">
-              {restorePending
-                ? "Restoring as a new revision…"
-                : exportState === "preparing"
-                  ? `Preparing ${exportFormat.toUpperCase()}…`
-                  : "Working on your request…"}
-            </p>
-          )}
+          <div
+            className="workspace-toasts"
+            aria-label="Workspace notifications"
+          >
+            {[
+              syncStatus,
+              (localMcpBridgeEnabled || remoteMcpEnabled) &&
+                (mcpStatus ||
+                  "Ready for Codex. Keep this project tab visible during validation."),
+              promotionPending &&
+                promotionStatusLabel(
+                  selectedLabel,
+                  Boolean(state.selectedRevision),
+                ),
+              (state.active || restorePending || exportState === "preparing") &&
+                (restorePending
+                  ? "Restoring as a new revision…"
+                  : exportState === "preparing"
+                    ? `Preparing ${exportFormat.toUpperCase()}…`
+                    : "Working on your request…"),
+            ].map(
+              (message, index) =>
+                message && (
+                  <WorkspaceStatusToast
+                    key={`${index}:${message}`}
+                    message={message}
+                  />
+                ),
+            )}
+          </div>
           {mobile && section !== "model" && previewLoadState === "error" && (
             <p className="notice notice-error" role="alert">
               The model preview could not be loaded.{" "}

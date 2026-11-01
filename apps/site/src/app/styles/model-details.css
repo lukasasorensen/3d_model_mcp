@@ -216,3 +216,28 @@
   max-width: min(420px, calc(100vw - 36px));
   box-shadow: var(--shadow);
 }
+.workspace-toasts {
+  position: fixed;
+  z-index: 19;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  gap: var(--space-2);
+  width: min(420px, calc(100vw - 36px));
+  pointer-events: none;
+}
+.workspace-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 9px 11px;
+  border-left: 2px solid var(--accent-contrast);
+  background: var(--surface-2);
+  box-shadow: var(--shadow);
+  font-size: 0.82rem;
+  pointer-events: auto;
+}
+.workspace-toast button {
+  flex: 0 0 auto;
+}
