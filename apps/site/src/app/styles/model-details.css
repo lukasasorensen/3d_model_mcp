@@ -212,6 +212,10 @@
 }
 .notice-success {
   border-color: var(--success);
+  overflow-wrap: anywhere;
+}
+.notice-success summary {
+  cursor: pointer;
 }
 .global-notice {
   position: fixed;
