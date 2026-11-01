@@ -26,7 +26,7 @@
 .turn-label {
   display: block;
   margin-bottom: 7px;
-  color: var(--mint);
+  color: var(--accent-text);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -94,7 +94,6 @@
   resize: vertical;
   min-height: 82px;
   padding: 11px 12px;
-  border: 1px solid var(--line-strong);
   border-radius: 6px;
   background: var(--surface-2);
   color: var(--text);
@@ -116,22 +115,21 @@
 }
 .starter-list button {
   padding: 8px 10px;
-  border: 1px solid var(--line);
   background: transparent;
   text-align: left;
   color: var(--text-muted);
 }
 .starter-list button:hover {
-  border-color: var(--mint);
+  border-color: var(--accent-contrast);
   color: var(--text);
 }
 .starter-list .starter-primary {
-  border-color: var(--mint);
+  border-color: var(--accent-contrast);
   color: var(--text);
 }
 .retry-button {
   border: 0;
   background: transparent;
-  color: var(--mint);
+  color: var(--accent-text);
   text-decoration: underline;
 }

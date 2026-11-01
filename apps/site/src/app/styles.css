@@ -3,7 +3,8 @@
 @import "./styles/viewer.css";
 @import "./styles/model-details.css";
 @import "./styles/chat.css";
-@import "./styles/responsive.css";
 @import "./styles/authentication.css";
 @import "./styles/onboarding.css";
 @import "./styles/chat-visibility.css";
+@import "./styles/controls.css";
+@import "./styles/responsive.css";

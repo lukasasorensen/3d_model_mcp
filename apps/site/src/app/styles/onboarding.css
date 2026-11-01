@@ -3,11 +3,11 @@
   width: min(640px, calc(100vw - 32px));
   max-height: 85vh;
   overflow: auto;
-  border: 1px solid #59616b;
+  border: 1px solid var(--line);
   border-radius: 12px;
   padding: 24px;
-  background: #171c23;
-  color: #f1f4f8;
+  background: var(--surface-2);
+  color: var(--text);
 }
 .codex-connect-dialog::backdrop {
   background: rgb(0 0 0 / 65%);

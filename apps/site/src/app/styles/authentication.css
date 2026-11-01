@@ -22,7 +22,7 @@
   margin: 4px 0 8px;
 }
 .eyebrow {
-  color: var(--mint);
+  color: var(--accent-text);
   font-size: 0.75rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -40,7 +40,6 @@
 .auth-form input {
   min-height: 44px;
   padding: 10px;
-  border: 1px solid var(--line-strong);
   border-radius: 4px;
   background: var(--surface-2);
   color: var(--text);
@@ -81,7 +80,6 @@
 .project-form textarea {
   width: 100%;
   padding: 10px;
-  border: 1px solid var(--line-strong);
   border-radius: 4px;
   background: var(--surface-2);
   color: var(--text);
@@ -107,7 +105,6 @@
   gap: 16px;
   padding: 12px;
   text-align: left;
-  border: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--text);
 }

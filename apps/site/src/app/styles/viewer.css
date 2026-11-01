@@ -15,14 +15,13 @@
 }
 .viewer-toolbar button {
   padding: 7px 10px;
-  border: 1px solid var(--line-strong);
   border-radius: 4px;
   background: rgb(24 32 28 / 0.94);
   font-size: 0.78rem;
 }
 .viewer-toolbar button:hover:not(:disabled) {
   background: var(--surface-3);
-  border-color: var(--mint);
+  border-color: var(--accent-contrast);
 }
 .viewer-canvas {
   position: absolute;
@@ -51,7 +50,7 @@
   top: 0;
   padding: 9px 12px;
   background: rgb(32 43 37 / 0.97);
-  border-bottom: 2px solid var(--amber);
+  border-bottom: 2px solid var(--accent-contrast);
   color: var(--text);
   font-size: 0.82rem;
 }
