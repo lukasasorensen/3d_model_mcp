@@ -1,4 +1,5 @@
 /* global document, window */
+import { expect } from "playwright/test";
 import { build } from "esbuild";
 import assert from "node:assert/strict";
 import { test, root, applicationStyles } from "../../../../browser.fixture.mjs";
@@ -19,6 +20,28 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
   await page
     .getByRole("button", { name: "Connect CAD tools", exact: true })
     .click();
+  const close = page.getByRole("button", {
+    name: "Close connection setup",
+    exact: true,
+  });
+  await close.focus();
+  const reached = new Set();
+  for (const direction of ["Tab", "Shift+Tab"]) {
+    for (let step = 0; step < 8; step++) {
+      await page.keyboard.press(direction);
+      const focus = await page.evaluate(() => ({
+        // Native browser focus may leave the document, but never enter the inert page.
+        contained:
+          document.activeElement === document.body ||
+          Boolean(document.activeElement?.closest("dialog[open]")),
+        text: document.activeElement?.textContent,
+      }));
+      expect(focus.contained).toBe(true);
+      reached.add(focus.text);
+    }
+  }
+  expect(reached.has("Close")).toBe(true);
+  expect(reached.has("Continue to setup")).toBe(true);
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     assert.equal(

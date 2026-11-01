@@ -12,6 +12,15 @@ export default defineConfig({
     ["list"],
     ["html", { outputFolder: "playwright-report", open: "never" }],
   ],
+  projects: [
+    { name: "chromium" },
+    {
+      name: "chromium-accessibility",
+      use: {
+        contextOptions: { forcedColors: "active", reducedMotion: "reduce" },
+      },
+    },
+  ],
   use: {
     browserName: "chromium",
     headless: true,
