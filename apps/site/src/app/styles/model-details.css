@@ -146,7 +146,7 @@
   border-bottom: 0;
 }
 .revision-selected {
-  border-left: 2px solid var(--mint);
+  border-left: 2px solid var(--accent-contrast);
 }
 .revision-select {
   width: 100%;
@@ -171,26 +171,16 @@
   font-size: 0.67rem;
 }
 .restore-button {
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   margin-top: 5px;
-  border: 1px solid var(--line);
   background: var(--surface-3);
-}
-.export-button,
-.button-primary {
-  padding: 10px 16px;
-  border: 1px solid var(--mint);
-  border-radius: 4px;
-  background: var(--mint);
-  color: #07110e;
-  font-weight: 700;
 }
 .export-button {
   white-space: nowrap;
 }
 .button-danger {
   padding: 10px 16px;
-  border: 1px solid var(--danger);
   border-radius: 4px;
   background: transparent;
   color: var(--danger);
@@ -202,7 +192,7 @@
 .notice,
 .global-notice {
   padding: 9px 11px;
-  border-left: 2px solid var(--mint);
+  border-left: 2px solid var(--accent-contrast);
   background: var(--surface-2);
   font-size: 0.82rem;
 }

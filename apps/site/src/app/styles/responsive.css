@@ -159,6 +159,7 @@
 }
 
 @media (forced-colors: active) {
+  input,
   button,
   textarea,
   select,
