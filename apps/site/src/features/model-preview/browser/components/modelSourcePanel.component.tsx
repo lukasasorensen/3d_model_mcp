@@ -59,7 +59,7 @@ export function ModelSourcePanel({
       className="model-source-panel"
       onToggle={(event) => setOpen(event.currentTarget.open)}
     >
-      <summary>Advanced</summary>
+      <summary>Model source</summary>
       <div className="model-source-content">
         <div className="model-source-heading">
           <h2>Model code</h2>

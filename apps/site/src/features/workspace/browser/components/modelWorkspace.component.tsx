@@ -9,6 +9,7 @@ import { RevisionHistory } from "./revisionHistory.component";
 
 import { type DownloadFormat } from "../../../exports/browser/index";
 
+import { useWorkspaceSection } from "../hooks/useWorkspaceSection.hook";
 import { useModelWorkspace } from "../hooks/useModelWorkspace.hook";
 import {
   previewStatusLabel,
@@ -75,20 +76,26 @@ export function ModelWorkspace({
     localMcpBridgeEnabled,
     remoteMcpEnabled,
   });
+  const { mobile, section, selectSection } =
+    useWorkspaceSection(isSidebarChatEnabled);
   return (
-    <main className="app-shell" data-testid="cad-workspace">
+    <main
+      className="app-shell"
+      data-testid="cad-workspace"
+      data-section={section}
+    >
       <a
         className="skip-link"
-        href={isSidebarChatEnabled ? "#conversation-heading" : "#model-heading"}
+        href="#model-heading"
+        onClick={() => selectSection("model", false)}
       >
-        {isSidebarChatEnabled ? "Skip to conversation" : "Skip to model"}
+        Skip to model
       </a>
       <header className="app-header">
         <div className="brand-mark">
           <span aria-hidden="true">T</span>
           <div>
-            <strong>TheoryFoundry Conversational CAD</strong>
-            <small>Precision workshop</small>
+            <strong>TheoryFoundry</strong>
           </div>
         </div>
         <div className="header-controls">
@@ -144,14 +151,41 @@ export function ModelWorkspace({
         </div>
       </header>
 
+      <nav className="workspace-sections" aria-label="Workspace sections">
+        {(
+          [
+            "model",
+            ...(isSidebarChatEnabled ? (["conversation"] as const) : []),
+            "details",
+          ] as const
+        ).map((destination) => (
+          <button
+            id={`workspace-${destination}-button`}
+            key={destination}
+            type="button"
+            aria-pressed={section === destination}
+            aria-controls={
+              destination === "conversation"
+                ? "conversation-panel"
+                : `${destination}-panel`
+            }
+            onClick={() => selectSection(destination)}
+          >
+            {destination === "model"
+              ? "Model"
+              : destination === "conversation"
+                ? "Conversation"
+                : "Details"}
+          </button>
+        ))}
+      </nav>
       <div
-        className={`workspace-grid ${!isSidebarChatEnabled ? "chat-hidden" : chatCollapsed ? "chat-collapsed" : ""}`}
+        className={`workspace-grid ${!isSidebarChatEnabled ? "chat-hidden" : chatCollapsed && !mobile ? "chat-collapsed" : ""}`}
       >
         <section className="model-pane" aria-labelledby="model-heading">
           <div className="pane-heading">
             <div>
-              <p className="eyebrow">Model inspection</p>
-              <h1 id="model-heading">
+              <h1 id="model-heading" tabIndex={-1}>
                 {state.selectedRevision
                   ? `Inspecting ${selectedLabel}`
                   : "No model yet"}
@@ -184,104 +218,110 @@ export function ModelWorkspace({
               )}
             </p>
           )}
-          <ModelViewer
-            projectId={projectId}
-            revisionId={selectedManifest?.revisionId}
-            sourceHash={selectedManifest?.sourceHash}
-            currentLabel={selectedLabel}
-            updating={state.active}
-            onLoadStateChange={setPreviewLoadState}
-          />
-          <div className="model-facts" aria-label="Model facts">
-            <div>
-              <span>Revision</span>
-              <strong>{selectedLabel}</strong>
-            </div>
-            <div>
-              <span>Bounds</span>
-              <strong>{dimensions} mm</strong>
-            </div>
-            <div>
-              <span>Preview</span>
-              <strong>
-                {selectedManifest ? "Browser-rendered STL" : "Unavailable"}
-              </strong>
-            </div>
-            <div>
-              <span>State</span>
-              <strong>
-                {previewStatusLabel(
-                  Boolean(selectedManifest),
-                  previewLoadState,
-                )}
-              </strong>
-            </div>
-          </div>
-          <ModelSourcePanel
-            projectId={projectId}
-            revisionId={selectedManifest?.revisionId}
-            sourceHash={selectedManifest?.sourceHash}
-            revisionLabel={selectedLabel}
-          />
-          <div className="model-actions">
-            <RevisionHistory
-              revisions={state.revisions}
-              currentRevision={state.currentRevision}
-              selectedRevision={state.selectedRevision}
-              disabled={
-                isMcpRendering ||
-                state.active ||
-                restorePending ||
-                previewLoadState !== "ready"
-              }
-              onSelect={(revisionId) =>
-                dispatch({ type: "select_revision", revisionId })
-              }
-              onRestore={(revisionId) => void restore(revisionId)}
-            />
-            <div className="export-controls">
-              <label htmlFor="export-format">Download format</label>
-              <select
-                id="export-format"
-                value={exportFormat}
-                onChange={(event) => {
-                  setExportFormat(event.target.value as DownloadFormat);
-                  setExportState("idle");
-                }}
-                disabled={
-                  isMcpRendering ||
-                  !currentManifest ||
-                  state.active ||
-                  exportState === "preparing"
-                }
-              >
-                <option value="stl">STL</option>
-                <option value="glb">GLB</option>
-                <option value="3mf">3MF</option>
-              </select>
-              <button
-                type="button"
-                className="export-button"
-                onClick={() => void exportCurrent()}
-                disabled={
-                  isMcpRendering ||
-                  !currentManifest ||
-                  state.active ||
-                  exportState === "preparing"
-                }
-                aria-describedby="export-help"
-              >
-                {exportState === "preparing"
+          {(state.active || restorePending || exportState === "preparing") && (
+            <p className="notice" role="status">
+              {restorePending
+                ? "Restoring as a new revision…"
+                : exportState === "preparing"
                   ? `Preparing ${exportFormat.toUpperCase()}…`
-                  : `Download ${currentLabel}`}
+                  : "Working on your request…"}
+            </p>
+          )}
+          {mobile && section !== "model" && previewLoadState === "error" && (
+            <p className="notice notice-error" role="alert">
+              The model preview could not be loaded.{" "}
+              <button type="button" onClick={() => selectSection("model")}>
+                View model
               </button>
+            </p>
+          )}
+          {mobile &&
+            isSidebarChatEnabled &&
+            section !== "conversation" &&
+            state.turns.at(-1)?.outcome === "failed" && (
+              <p className="notice notice-error" role="alert">
+                The last request failed.{" "}
+                <button
+                  type="button"
+                  onClick={() => selectSection("conversation")}
+                >
+                  View conversation
+                </button>
+              </p>
+            )}
+          <div id="model-panel" className="model-primary">
+            <ModelViewer
+              projectId={projectId}
+              revisionId={selectedManifest?.revisionId}
+              sourceHash={selectedManifest?.sourceHash}
+              currentLabel={selectedLabel}
+              updating={state.active}
+              onLoadStateChange={setPreviewLoadState}
+            />
+            <div className="model-facts" aria-label="Model facts">
+              <div>
+                <span>Revision</span>
+                <strong>{selectedLabel}</strong>
+              </div>
+              <div>
+                <span>Dimensions · mm</span>
+                <strong>{dimensions}</strong>
+              </div>
+              <div>
+                <span>Preview</span>
+                <strong>
+                  {previewStatusLabel(
+                    Boolean(selectedManifest),
+                    previewLoadState,
+                  )}
+                </strong>
+              </div>
             </div>
+            <div className="model-actions">
+              <div className="export-controls">
+                <label htmlFor="export-format">Download format</label>
+                <select
+                  id="export-format"
+                  value={exportFormat}
+                  onChange={(event) => {
+                    setExportFormat(event.target.value as DownloadFormat);
+                    setExportState("idle");
+                  }}
+                  disabled={
+                    isMcpRendering ||
+                    !currentManifest ||
+                    state.active ||
+                    exportState === "preparing"
+                  }
+                >
+                  <option value="stl">STL</option>
+                  <option value="glb">GLB</option>
+                  <option value="3mf">3MF</option>
+                </select>
+                <button
+                  type="button"
+                  className="export-button"
+                  onClick={() => void exportCurrent()}
+                  disabled={
+                    isMcpRendering ||
+                    !currentManifest ||
+                    state.active ||
+                    exportState === "preparing"
+                  }
+                  aria-describedby="export-help"
+                >
+                  {exportState === "preparing"
+                    ? `Preparing ${exportFormat.toUpperCase()}…`
+                    : `Download ${exportFormat.toUpperCase()} · ${currentLabel}`}
+                </button>
+              </div>
+            </div>
+            <p id="export-help" className="action-help">
+              {currentManifest
+                ? `${currentLabel} · ${exportFormat.toUpperCase()} · generated locally in this browser`
+                : "A current revision is required for export."}
+            </p>
           </div>
-          <p id="export-help" className="action-help">
-            {currentManifest
-              ? `${currentLabel} · ${exportFormat.toUpperCase()} · generated locally in this browser`
-              : "A current revision is required for export."}
-          </p>
           {exportState === "failed" && (
             <p role="alert" className="notice notice-error">
               The export could not be verified. No file was downloaded.
@@ -298,6 +338,33 @@ export function ModelWorkspace({
               </details>
             </div>
           )}
+          <section
+            id="details-panel"
+            className="model-details"
+            aria-label="Revision details"
+          >
+            <RevisionHistory
+              revisions={state.revisions}
+              currentRevision={state.currentRevision}
+              selectedRevision={state.selectedRevision}
+              disabled={
+                isMcpRendering ||
+                state.active ||
+                restorePending ||
+                previewLoadState !== "ready"
+              }
+              onSelect={(revisionId) =>
+                dispatch({ type: "select_revision", revisionId })
+              }
+              onRestore={(revisionId) => void restore(revisionId)}
+            />
+            <ModelSourcePanel
+              projectId={projectId}
+              revisionId={selectedManifest?.revisionId}
+              sourceHash={selectedManifest?.sourceHash}
+              revisionLabel={selectedLabel}
+            />
+          </section>
         </section>
 
         {isSidebarChatEnabled && (
@@ -312,7 +379,7 @@ export function ModelWorkspace({
               readiness === "ready" &&
               Boolean(sessionId)
             }
-            collapsed={chatCollapsed}
+            collapsed={chatCollapsed && !mobile}
             onToggleCollapsed={() => setChatCollapsed((value) => !value)}
             onSubmit={(message) => void submit(message)}
             onCancel={() => abortRef.current?.abort()}

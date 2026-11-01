@@ -8,3 +8,5 @@
 @import "./styles/chat-visibility.css";
 @import "./styles/controls.css";
 @import "./styles/responsive.css";
+
+@import "./styles/workspace-sections.css";
