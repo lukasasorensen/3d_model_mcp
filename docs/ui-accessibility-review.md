@@ -1,40 +1,62 @@
 # Redesign accessibility review
 
-THE-40/THE-41 review covers the workspace on develop plus separate snapshots of
-project selection (PR #36, `8d20f5e`) and connection setup (PR #37, `119433f`).
-The draft screens were checked independently, not merged into a deployed app.
+THE-40/THE-41 cover the integrated workspace, project library, connection setup,
+connected apps, sign-in and authorization screens. Code verification is separate
+from authenticated live and assistive-technology acceptance.
 
-## Fixed in this slice
+## Automated browser coverage
 
-- Request completion previously always attempted to focus the composer. It now
-  restores focus only when the composer is visible, enabled, and no other control
-  owns focus. Moving to another control while work runs keeps that focus.
-- The project selector has an explicit label independent of option text.
-- Each history restore button names the revision it restores while retaining the
-  visible “Restore as a new revision” explanation.
+`pnpm test:browser` runs the same 20 journey tests plus a media-preference check in two projects:
 
-## Verification
+- `chromium`: normal rendering.
+- `chromium-accessibility`: forced colors active and reduced motion requested.
 
-The actual completion-focus hook is exercised by
-`pnpm test:browser useComposerFocus.hook`. It covers default
-focus restoration, another focused control, a hidden composer, and restore-action
-names. `modelWorkspace.component.test.mjs` checks the selector name, recovery/resize focus,
-forced-color selection outlines, and reduced-motion transition behavior.
+Both projects run in `pnpm verify` and CI (42 test executions). A dedicated
+check asserts the actual `matchMedia` values, so unsupported or misplaced
+configuration cannot silently disable the requested modes. Use
+`pnpm test:browser --project=chromium-accessibility` for the alternate mode alone,
+or combine a project flag with a filename filter. Reports and failure artifacts
+identify the project, so failures remain distinguishable.
 
-The project and setup acceptance scripts also passed against isolated snapshots
-with Chromium forced colors and reduced motion enabled. Their existing keyboard,
-form/disclosure, error, command-variant, and 320px overflow checks remain green.
-This verifies behavior under those modes, not an exhaustive visual or screen-reader
-assessment. No installer commands were executed.
+Coverage includes responsive layout, long names, named actions, keyboard
+activation, native disclosures, form errors/retries, pending states, setup choices,
+dialog dismissal, revision inspection/restoration, source validation and downloads.
+The workspace checks explicitly assert a visible selected-section outline under
+forced colors and disabled transitions under reduced motion.
 
-Calculated palette contrast ratios against workspace `#3b3d43`: white text 10.86:1,
+Connection setup additionally traverses Tab and Shift+Tab through the native
+modal. The check ensures background page controls stay unreachable and both Close
+and Continue are reached. It permits native browser focus outside the document;
+it does not replace native dialog behavior with a custom focus trap.
+
+## Implemented focus and naming behavior
+
+- Request completion restores composer focus only when it is visible, enabled,
+  and another control has not claimed focus.
+- Mobile section changes and resizing restore focus to a visible destination.
+- The project selector and revision restore actions have explicit names.
+- Cancelling project creation restores focus and preserves the draft.
+- Connection steps focus their headings; closing returns focus to the trigger.
+- Revocation identifies its app, announces success and moves focus before removing
+  the confirmed row. Failed revocation keeps the row available for retry.
+
+## Contrast and visual review
+
+Calculated token ratios against workspace `#3b3d43`: white text 10.86:1,
 muted text 7.46:1, focus teal 4.73:1, and accent text 5.79:1. Dark primary-button
 labels against `#33888c` are 4.60:1. These are token-pair calculations, not a claim
 that every rendered control and interaction state has been audited.
 
+Desktop and phone layouts were reviewed during their implementation slices.
+The alternate-mode test project verifies interactions and existing layout
+assertions; it is not a screenshot-diff suite or an exhaustive contrast audit.
+
 ## Remaining acceptance
 
-Review the combined changes after integration, real authenticated project flows,
-screen-reader announcements, native device zoom/keyboard behavior, and actual
-CAD restore/export operations. Keep these separate from local fixture checks and
-build success. THE-40 and THE-41 remain in progress.
+- Real authenticated project creation, CAD restore/export and OAuth/client flows.
+- Screen-reader announcements and reading order with actual assistive technology.
+- Native-device keyboard, touch and zoom/reflow behavior.
+
+Browser services use fixtures and Chromium media emulation. This does not establish
+live acceptance, native high-contrast behavior on every platform, or WCAG
+conformance. THE-40 and THE-41 remain In Progress. No deployment is implied.

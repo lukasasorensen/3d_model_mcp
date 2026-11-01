@@ -27,7 +27,9 @@ are empty and must stay empty; see [architecture conventions](architecture-conve
 Browser integration tests live under `apps/site/tests/browser/`, mirroring the
 source features. Run `pnpm exec playwright install chromium` once locally, then
 `pnpm test:browser`; pass a filename filter to run one test. `pnpm test:browser --list`
-lists browser coverage. Playwright owns these tests and the Node runner excludes
+lists browser coverage. The `chromium` and `chromium-accessibility` projects run
+the suite normally and with forced colors/reduced motion. Use
+`pnpm test:browser --project=chromium` to select one. Playwright owns these tests and the Node runner excludes
 this directory, so they execute once during `pnpm verify`. No server or database
 is needed: real components/styles use explicit fixture service boundaries.
 CI installs Chromium and system dependencies before verification. Failures retain
