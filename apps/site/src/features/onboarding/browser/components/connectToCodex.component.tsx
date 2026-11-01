@@ -1,10 +1,9 @@
 "use client";
-import type { JSX } from "react";
-
+import { useEffect, useId, useRef, useState, type JSX } from "react";
 import { LocalWorkerSetup } from "./localWorkerSetup.component";
-import { useId, useRef, useState } from "react";
+import { HostedSetup } from "./hostedSetup.component";
+import { SetupCommand } from "./setupCommand.component";
 import {
-  codexConnectCommand,
   codexStarterPrompt,
   type CodexConnectionScope,
 } from "../utils/codexConnectCommand.util";
@@ -17,27 +16,29 @@ export function ConnectToCodex({
   projectId?: string;
 }): JSX.Element {
   const dialog = useRef<HTMLDialogElement>(null);
+  const title = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
-  const commandId = useId();
+  const modeName = useId();
+  const clientId = useId();
+  const scopeId = useId();
+  const [step, setStep] = useState<"choose" | "install">("choose");
   const [mode, setMode] = useState<"hosted" | "local">("hosted");
+  const [client, setClient] = useState<"codex" | "claude">("codex");
   const [scope, setScope] = useState<CodexConnectionScope>("global");
-  const [notice, setNotice] = useState("");
-  const command = codexConnectCommand(origin, scope);
-  async function copy(value: string, label: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(value);
-      setNotice(`${label} copied.`);
-    } catch {
-      setNotice("Clipboard unavailable. Select and copy the text below.");
+  useEffect(() => {
+    if (dialog.current?.open) {
+      dialog.current.scrollTop = 0;
+      title.current?.focus();
     }
-  }
+  }, [step]);
   return (
     <>
       <button
         type="button"
         onClick={() => {
-          setNotice("");
+          setStep("choose");
           dialog.current?.showModal();
+          title.current?.focus();
         }}
       >
         Connect CAD tools
@@ -47,103 +48,131 @@ export function ConnectToCodex({
         className="codex-connect-dialog"
         aria-labelledby={titleId}
       >
-        <h2 id={titleId}>Connect CAD tools</h2>
-        <label>
-          Compute location{" "}
-          <select
-            value={mode}
-            onChange={(event) => {
-              setMode(event.target.value as "hosted" | "local");
-              setNotice("");
-            }}
-          >
-            <option value="hosted">
-              Hosted connection / browser rendering
-            </option>
-            <option value="local">Local worker / Mac rendering</option>
-          </select>
-        </label>
-        {mode === "local" ? (
-          <LocalWorkerSetup origin={origin} />
-        ) : (
-          <>
-            <h3>Connect to Codex</h3>
-            <p>
-              Run this command in a macOS or Linux terminal with Node.js 24 and
-              the Codex CLI installed. Then sign in and approve CAD access in
-              your browser.
+        <header className="setup-heading">
+          <div>
+            <p className="setup-step">
+              Step {step === "choose" ? "1" : "2"} of 2
             </p>
-            <label>
-              Install for{" "}
+            <h2 ref={title} id={titleId} tabIndex={-1}>
+              {step === "choose"
+                ? "Choose your connection"
+                : "Install and authorize"}
+            </h2>
+          </div>
+          <form method="dialog">
+            <button type="submit" aria-label="Close connection setup">
+              Close
+            </button>
+          </form>
+        </header>
+        {step === "choose" ? (
+          <div className="setup-choices">
+            <fieldset>
+              <legend>Where should rendering run?</legend>
+              <label className="setup-choice">
+                <input
+                  type="radio"
+                  name={modeName}
+                  value="hosted"
+                  checked={mode === "hosted"}
+                  onChange={() => setMode("hosted")}
+                />
+                <span>
+                  <strong>In this browser</strong>
+                  <small>
+                    Connect Codex to TheoryFoundry. Keep the project tab visible
+                    during rendering.
+                  </small>
+                </span>
+              </label>
+              <label className="setup-choice">
+                <input
+                  type="radio"
+                  name={modeName}
+                  value="local"
+                  checked={mode === "local"}
+                  onChange={() => setMode("local")}
+                />
+                <span>
+                  <strong>On your Mac</strong>
+                  <small>
+                    Use a local worker with Codex or Claude Code. You can close
+                    the project tab after setup.
+                  </small>
+                </span>
+              </label>
+            </fieldset>
+            {mode === "local" && (
+              <div className="setup-field">
+                <label htmlFor={clientId}>Client</label>
+                <select
+                  id={clientId}
+                  value={client}
+                  onChange={(event) =>
+                    setClient(event.target.value as "codex" | "claude")
+                  }
+                >
+                  <option value="codex">Codex</option>
+                  <option value="claude">Claude Code</option>
+                </select>
+              </div>
+            )}
+            <div className="setup-field">
+              <label htmlFor={scopeId}>Install for</label>
               <select
+                id={scopeId}
                 value={scope}
-                onChange={(event) => {
-                  setScope(event.target.value as CodexConnectionScope);
-                  setNotice("");
-                }}
+                onChange={(event) =>
+                  setScope(event.target.value as CodexConnectionScope)
+                }
               >
-                <option value="global">All Codex projects (global)</option>
+                <option value="global">All projects for this user</option>
                 <option value="project">This repository</option>
               </select>
-            </label>
-            {scope === "project" ? (
-              <p>
-                Run from the root of your local Git repository. Trust the
-                repository in Codex to load its settings. This controls where
-                the connection is available; it does not restrict access to one
-                CAD project.
-              </p>
-            ) : (
-              <p>
-                Uses your Codex home configuration, including a custom
-                CODEX_HOME if set.
-              </p>
-            )}
-            <label htmlFor={commandId}>Setup command</label>
-            <textarea
-              id={commandId}
-              readOnly
-              value={command}
-              rows={6}
-              spellCheck={false}
-            />
+            </div>
+            <p className="setup-hint">
+              This sets where your client loads the connection. It does not
+              limit authorization to a single CAD project.
+            </p>
             <button
               type="button"
-              onClick={() => void copy(command, "Setup command")}
+              className="button-primary"
+              onClick={() => setStep("install")}
             >
-              Copy command
-            </button>
-            <p>
-              The command downloads the installer from this site, backs up
-              changed configuration, and adds the connection. Existing
-              conflicting settings require manual review.
-            </p>
-            <p>
-              After authorization, restart Codex or start a fresh session. Keep
-              your CAD project tab visible during rendering.
-            </p>
-          </>
-        )}
-        {projectId && (
-          <div>
-            <p>Once connected, paste this into your client:</p>
-            <pre>{codexStarterPrompt(projectId)}</pre>
-            <button
-              type="button"
-              onClick={() =>
-                void copy(codexStarterPrompt(projectId), "Starter prompt")
-              }
-            >
-              Copy starter prompt
+              Continue to setup
             </button>
           </div>
+        ) : (
+          <div className="setup-install">
+            <div className="setup-selection">
+              <p>
+                {mode === "hosted"
+                  ? "Browser rendering · Codex"
+                  : `Local worker · ${client === "codex" ? "Codex" : "Claude Code"}`}{" "}
+                · {scope === "global" ? "All projects" : "This repository"}
+              </p>
+              <button type="button" onClick={() => setStep("choose")}>
+                Change choices
+              </button>
+            </div>
+            {mode === "local" ? (
+              <LocalWorkerSetup origin={origin} client={client} scope={scope} />
+            ) : (
+              <HostedSetup origin={origin} scope={scope} />
+            )}
+            {projectId && (
+              <details className="setup-starter">
+                <summary>Start with this project</summary>
+                <p>Once connected, paste this into your client:</p>
+                <SetupCommand
+                  label="Starter prompt"
+                  value={codexStarterPrompt(projectId)}
+                  rows={4}
+                />
+              </details>
+            )}
+          </div>
         )}
-        <p role="status" aria-live="polite">
-          {notice}
-        </p>
-        <form method="dialog">
-          <button type="submit">Close</button>
-        </form>
       </dialog>
     </>
   );

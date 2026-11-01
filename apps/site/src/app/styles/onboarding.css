@@ -28,3 +28,123 @@
 .codex-connect-dialog select {
   min-height: 44px;
 }
+.setup-heading,
+.setup-selection {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.setup-heading {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding-bottom: var(--space-4);
+  background: var(--surface-2);
+  margin-bottom: var(--space-6);
+}
+.setup-heading > div {
+  min-width: 0;
+}
+.setup-step,
+.setup-hint,
+.setup-selection p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.setup-step {
+  margin-bottom: var(--space-2);
+}
+.setup-choices,
+.setup-install,
+.setup-instructions {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.setup-choices fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.setup-choices legend {
+  padding: 0;
+  margin-bottom: var(--space-3);
+  font-weight: 600;
+}
+.setup-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  margin-bottom: var(--space-2);
+  border-radius: var(--control-radius);
+  background: var(--canvas);
+  cursor: pointer;
+}
+.setup-choice:has(input:checked) {
+  background: var(--surface-1);
+}
+.setup-choice input[type="radio"] {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: var(--accent-contrast);
+}
+.setup-choice strong,
+.setup-choice small {
+  display: block;
+}
+.setup-choice small {
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.setup-field {
+  display: grid;
+  gap: var(--space-2);
+}
+.setup-field select {
+  width: 100%;
+  min-width: 0;
+}
+.setup-choices > button,
+.setup-command > button {
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+}
+.setup-selection {
+  align-items: center;
+  flex-wrap: wrap;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+.setup-command > label {
+  display: block;
+  font-weight: 600;
+}
+.setup-command > p:not(:empty) {
+  margin-top: var(--space-3);
+}
+.setup-starter {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+.setup-starter summary {
+  min-height: 44px;
+  padding: var(--space-3) 0;
+  cursor: pointer;
+}
+.setup-starter > p {
+  margin-bottom: var(--space-3);
+}
+@media (max-width: 480px) {
+  .codex-connect-dialog {
+    padding: var(--space-4);
+    max-height: calc(100dvh - 32px);
+  }
+}
