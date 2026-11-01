@@ -44,3 +44,13 @@
 .auth-error {
   color: var(--danger);
 }
+
+.oauth-consent > p {
+  margin-top: var(--space-4);
+}
+.consent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
