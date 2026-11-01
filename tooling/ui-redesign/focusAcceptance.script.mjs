@@ -1,4 +1,5 @@
-/* global document */
+/* global document, window */
+import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { chromium } from "playwright";
@@ -47,6 +48,12 @@ try {
       '</style></head><body><div id="root"></div></body></html>',
   );
   await page.addScriptTag({ content: result.outputFiles[0].text });
+  assert.equal(
+    await page
+      .getByRole("combobox", { name: "Project selector", exact: true })
+      .count(),
+    1,
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   const nav = page.getByRole("navigation", { name: "Workspace sections" });
   await nav.getByRole("button", { name: "Details", exact: true }).click();
@@ -75,6 +82,25 @@ try {
       id: document.activeElement.id,
       visible: document.activeElement.getClientRects().length > 0,
     })),
+  );
+  await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
+  const selected = page.locator('.workspace-sections [aria-pressed="true"]');
+  assert.notEqual(
+    await selected.evaluate((el) => window.getComputedStyle(el).outlineStyle),
+    "none",
+  );
+  assert.ok(
+    (await selected.evaluate((el) =>
+      parseFloat(window.getComputedStyle(el).outlineWidth),
+    )) >= 2,
+  );
+  assert.ok(
+    (await selected.evaluate((el) =>
+      parseFloat(window.getComputedStyle(el).transitionDuration),
+    )) <= 0.00001,
+  );
+  console.log(
+    "PASS: selected mobile section remains outlined in forced colors; reduced motion disables transitions",
   );
 } finally {
   await browser.close();

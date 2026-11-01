@@ -19,8 +19,9 @@ export function shouldRestoreComposerFocus(
   wasActive: boolean,
   active: boolean,
   available: boolean,
+  focusUnclaimed: boolean,
 ): boolean {
-  return wasActive && !active && available;
+  return wasActive && !active && available && focusUnclaimed;
 }
 
 export function readinessFromProbe(

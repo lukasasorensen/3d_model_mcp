@@ -1,5 +1,5 @@
 "use client";
-import type { JSX } from "react";
+import { useId, type JSX } from "react";
 
 import dynamic from "next/dynamic";
 import { ChatPane } from "../../../chat/browser/index";
@@ -36,6 +36,7 @@ export function ModelWorkspace({
   remoteMcpEnabled?: boolean;
   codexOrigin?: string | undefined;
 }): JSX.Element {
+  const projectSelectorId = useId();
   const {
     router,
     isSidebarChatEnabled,
@@ -114,9 +115,12 @@ export function ModelWorkspace({
           >
             All projects
           </button>
-          <label className="project-selector">
-            Project<span className="sr-only"> selector</span>
+          <div className="project-selector">
+            <label htmlFor={projectSelectorId}>
+              Project<span className="sr-only"> selector</span>
+            </label>
             <select
+              id={projectSelectorId}
               value={projectId}
               onChange={(event) =>
                 router.push(
@@ -139,7 +143,7 @@ export function ModelWorkspace({
                 </option>
               ))}
             </select>
-          </label>
+          </div>
           <div className="header-status">
             <span
               className={`readiness-dot readiness-${readiness}`}
