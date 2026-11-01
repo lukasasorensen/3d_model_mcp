@@ -1,4 +1,4 @@
-/* global document, window */
+/* global document, window, requestAnimationFrame */
 import assert from "node:assert/strict";
 import { build } from "esbuild";
 import { test, root, applicationStyles } from "../../../../browser.fixture.mjs";
@@ -52,6 +52,8 @@ test("workspace focus, responsive sections and integrated connection setup", asy
   await page.setViewportSize({ width: 390, height: 844 });
   const nav = page.getByRole("navigation", { name: "Workspace sections" });
   await nav.getByRole("button", { name: "Details", exact: true }).click();
+  // Let the section change finish its scheduled focus restoration first.
+  await page.evaluate(() => new Promise(requestAnimationFrame));
   await page.getByRole("button", { name: "View model", exact: true }).focus();
   await page.keyboard.press("Enter");
   await page.waitForFunction(
