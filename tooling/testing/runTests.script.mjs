@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   discoverTests,
+  isBrowserTest,
   groupTests,
   runTestGroups,
 } from "./testDiscovery.service.mjs";
@@ -22,7 +23,11 @@ const projects = JSON.parse(
     encoding: "utf8",
   }),
 );
-const groups = groupTests(root, await discoverTests(root), projects).filter(
+const groups = groupTests(
+  root,
+  (await discoverTests(root)).filter((file) => !isBrowserTest(file)),
+  projects,
+).filter(
   (group) =>
     !argumentsList.includes("--project") ||
     resolve(group.path) === process.cwd(),

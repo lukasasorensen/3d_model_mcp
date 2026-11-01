@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import test from "node:test";
 import {
   discoverTests,
+  isBrowserTest,
   groupTests,
   runTestGroups,
 } from "../../../tooling/testing/testDiscovery.service.mjs";
@@ -22,6 +23,8 @@ test("discovers nested source and mirrored tests without build output or symlink
   for (const file of [
     ...expected,
     "node_modules/a.test.js",
+    "test-results/a.test.js",
+    "playwright-report/a.test.js",
     "apps/site/.next-acceptance/a.test.js",
     "packages/runtime/dist/a.test.js",
     "apps/site/public/vendor/a.test.js",
@@ -103,5 +106,24 @@ test("propagates nonzero exits, signals and spawn failures", () => {
   assert.throws(
     () => groupTests("/workspace", ["a.test.mjs"], []),
     /no workspace owner/,
+  );
+});
+
+test("routes site browser integration tests exclusively to Playwright", () => {
+  assert.equal(
+    isBrowserTest("apps/site/tests/browser/features/a.component.test.mjs"),
+    true,
+  );
+  assert.equal(
+    isBrowserTest("apps\\site\\tests\\browser\\a.component.test.mjs"),
+    true,
+  );
+  assert.equal(
+    isBrowserTest("apps/site/tests/features/browser/a.component.test.ts"),
+    false,
+  );
+  assert.equal(
+    isBrowserTest("packages/renderer/tests/browser/a.test.mjs"),
+    false,
   );
 });

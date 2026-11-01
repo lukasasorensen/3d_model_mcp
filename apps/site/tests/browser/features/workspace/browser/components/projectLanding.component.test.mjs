@@ -1,49 +1,43 @@
 /* global document, window, innerWidth */
-import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
-import { chromium } from "playwright";
-import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
-const root = fileURLToPath(new URL("../../", import.meta.url));
-const result = await build({
-  stdin: {
-    contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {ProjectLanding} from './src/features/workspace/browser/components/projectLanding.component';const root=createRoot(document.getElementById('root'));window.renderProjects=(projects)=>root.render(<ProjectLanding projects={projects} userName="A long account name that should wrap on phones" remoteMcpEnabled/>);window.renderProjects([{projectId:'project/one',name:'Adjustable mounting bracket with a very long project name for the workshop',description:'A detailed description of the part and its revision history.'}]);`,
-    resolveDir: root + "/apps/site",
-    loader: "tsx",
-  },
-  bundle: true,
-  write: false,
-  jsx: "automatic",
-  plugins: [
-    {
-      name: "local-stubs",
-      setup(b) {
-        b.onResolve({ filter: /^next\/navigation$/ }, () => ({
-          path: "nav",
-          namespace: "stub",
-        }));
-        b.onResolve({ filter: /authentication\/browser\/index$/ }, () => ({
-          path: "auth",
-          namespace: "stub",
-        }));
-        b.onLoad({ filter: /.*/, namespace: "stub" }, ({ path }) => ({
-          contents:
-            path === "nav"
-              ? `export function useRouter(){return {push(path){window.navigationPath=path},replace(){},refresh(){}}}`
-              : `export const authClient={signOut:async()=>{}}`,
-        }));
-      },
+import { test, root, applicationStyles } from "../../../../browser.fixture.mjs";
+
+test("project selection and create form pending, failure and cancel states", async ({
+  page,
+}) => {
+  const result = await build({
+    stdin: {
+      contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {ProjectLanding} from './src/features/workspace/browser/components/projectLanding.component';const root=createRoot(document.getElementById('root'));window.renderProjects=(projects)=>root.render(<ProjectLanding projects={projects} userName="A long account name that should wrap on phones" remoteMcpEnabled/>);window.renderProjects([{projectId:'project/one',name:'Adjustable mounting bracket with a very long project name for the workshop',description:'A detailed description of the part and its revision history.'}]);`,
+      resolveDir: root + "/apps/site",
+      loader: "tsx",
     },
-  ],
-});
-let styles = "";
-for (const [, p] of (
-  await readFile(root + "/apps/site/src/app/styles.css", "utf8")
-).matchAll(/@import "(.+)"/g))
-  styles += await readFile(root + "/apps/site/src/app/" + p, "utf8");
-const browser = await chromium.launch({ headless: true });
-try {
-  const page = await browser.newPage();
+    bundle: true,
+    write: false,
+    jsx: "automatic",
+    plugins: [
+      {
+        name: "local-stubs",
+        setup(b) {
+          b.onResolve({ filter: /^next\/navigation$/ }, () => ({
+            path: "nav",
+            namespace: "stub",
+          }));
+          b.onResolve({ filter: /authentication\/browser\/index$/ }, () => ({
+            path: "auth",
+            namespace: "stub",
+          }));
+          b.onLoad({ filter: /.*/, namespace: "stub" }, ({ path }) => ({
+            contents:
+              path === "nav"
+                ? `export function useRouter(){return {push(path){window.navigationPath=path},replace(){},refresh(){}}}`
+                : `export const authClient={signOut:async()=>{}}`,
+          }));
+        },
+      },
+    ],
+  });
+  const styles = await applicationStyles();
   await page.setContent("<style>" + styles + '</style><div id="root"></div>');
   await page.addScriptTag({ content: result.outputFiles[0].text });
   for (const width of [1440, 390, 320]) {
@@ -110,6 +104,4 @@ try {
   console.log(
     "PASS: desktop/mobile layout, native link, keyboard disclosure, create/cancel focus, retained draft, pending/error behavior and empty state",
   );
-} finally {
-  await browser.close();
-}
+});

@@ -15,7 +15,7 @@ project/account names and adapts at phone widths without routine control borders
 
 ## Verification
 
-Run `node tooling/ui-redesign/projectAcceptance.script.mjs` with the pinned Node
+Run `pnpm test:browser projectLanding.component` with the pinned Node
 version and Playwright Chromium installed. It renders the actual component with
 sample projects and stubbed routing/authentication and creation responses.
 

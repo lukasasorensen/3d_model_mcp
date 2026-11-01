@@ -16,9 +16,9 @@ The draft screens were checked independently, not merged into a deployed app.
 ## Verification
 
 The actual completion-focus hook is exercised by
-`node tooling/ui-redesign/composerFocusAcceptance.script.mjs`. It covers default
+`pnpm test:browser useComposerFocus.hook`. It covers default
 focus restoration, another focused control, a hidden composer, and restore-action
-names. `focusAcceptance.script.mjs` checks the selector name, recovery/resize focus,
+names. `modelWorkspace.component.test.mjs` checks the selector name, recovery/resize focus,
 forced-color selection outlines, and reduced-motion transition behavior.
 
 The project and setup acceptance scripts also passed against isolated snapshots

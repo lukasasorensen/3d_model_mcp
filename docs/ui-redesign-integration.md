@@ -10,12 +10,17 @@ No production deployment or merge into `master` occurred.
 Run with Node 24.21.0 from the repository root:
 
 ```sh
-node tooling/ui-redesign/focusAcceptance.script.mjs
-node tooling/ui-redesign/viewerAcceptance.script.mjs
-node tooling/ui-redesign/composerFocusAcceptance.script.mjs
-node tooling/ui-redesign/projectAcceptance.script.mjs
-node tooling/ui-redesign/setupAcceptance.script.mjs
+pnpm test:browser modelWorkspace.component
+pnpm test:browser modelViewer.component
+pnpm test:browser useComposerFocus.hook
+pnpm test:browser projectLanding.component
+pnpm test:browser connectToCodex.component
 ```
+
+The five former standalone scripts now run as named Playwright browser integration
+tests under `apps/site/tests/browser/`, with shared setup and isolated pages.
+`pnpm verify` runs them through `pnpm test:browser`; CI installs Chromium and
+uploads failure diagnostics. The old scripts have been removed.
 
 All five Chromium suites passed against the combined tree. They cover project
 selection and create-form failure/pending states, six connection-command variants,
@@ -33,8 +38,9 @@ stylesheets are loaded together. No integration defect was found in these checks
 `pnpm verify` passed on Node 24.21.0: formatting, conventions, architecture,
 lint, types, tests and the production build. Three existing optional tests remain
 skipped: the disabled performance budget and two provisioned-database tests.
-The expanded browser script and this report also passed focused lint, formatting
-and convention checks.
+The migrated Playwright suite passes all five tests; discovery routing has four
+passing regressions. An isolated intentional failure confirmed screenshot and
+trace retention.
 
 ## Acceptance boundary
 

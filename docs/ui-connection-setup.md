@@ -24,7 +24,7 @@ The UI does not claim that copying a command establishes a connection.
 With the pinned Node version and Playwright Chromium installed, run:
 
 ```sh
-node tooling/ui-redesign/setupAcceptance.script.mjs
+pnpm test:browser connectToCodex.component
 ```
 
 The check renders the actual dialog without executing commands. It checks all six
