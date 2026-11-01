@@ -13,7 +13,7 @@ See [alignment plan](docs/alignment-plan.md) for the staged migration and
 - Keep statuses, dependencies, PR links, and verification evidence current. Fetch
   saved updates to verify them. Keep secrets and sensitive logs out of Linear.
   If tracking is unavailable, continue authorized local work and report pending updates.
-- Use `develop` for staging integration and `master` for production promotion.
+- Use `develop` for integration without deployment and `master` for production promotion.
   Create short-lived `codex/<ISSUE-ID>-<slug>` branches from `develop`
   (`codex/<slug>` if tracking is unavailable). Open focused PRs. Use `Fixes` only when
   merging completes the issue, `Contributes to` for partial work, and `Relates to` for context.

@@ -51,11 +51,10 @@ absent (such as a slim build image); they run in checkout CI. The other tooling 
 remain independent of Git. The convention commands themselves never skip missing history.
 
 Create short-lived `codex/<ISSUE-ID>-<slug>` branches from `develop` and target their
-PRs at `develop`. This is the integration branch for staging. Promote tested changes
+PRs at `develop`. This integration branch has no deployment attached. Promote tested changes
 with a separate PR from `develop` to `master`; production continues to track `master`.
-Merging into `develop` does not establish a live staging deployment: provision it
-separately with its own hostname, database, storage, and credentials, and record
-live acceptance before promotion. Never reuse production data or secrets for staging.
+Merging into `develop` must not trigger production deployment. A hosted staging
+environment is outside the current scope and requires a separate setup request.
 
 Read the issue first, verify saved
 Linear updates, open a focused PR with correct issue linkage, and distinguish code
