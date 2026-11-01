@@ -7,7 +7,7 @@ import { readFile } from "node:fs/promises";
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const result = await build({
   stdin: {
-    contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {ModelWorkspace} from './src/features/workspace/browser/components/modelWorkspace.component'; createRoot(document.getElementById('root')).render(<ModelWorkspace projectId="sample"/>);`,
+    contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {ModelWorkspace} from './src/features/workspace/browser/components/modelWorkspace.component'; createRoot(document.getElementById('root')).render(<ModelWorkspace projectId="sample" remoteMcpEnabled codexOrigin="https://example.test"/>);`,
     resolveDir: root + "/apps/site",
     loader: "tsx",
   },
@@ -82,6 +82,60 @@ try {
       id: document.activeElement.id,
       visible: document.activeElement.getClientRects().length > 0,
     })),
+  );
+  // Exercise setup inside the workspace, where its dialog and panel focus interact.
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    if (width < 1024)
+      await nav
+        .getByRole("button", { name: "Conversation", exact: true })
+        .click();
+    const composer = page.getByRole("textbox");
+    await composer.fill("Keep this draft while connecting CAD tools");
+    await page
+      .getByRole("button", { name: "Connect CAD tools", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Continue to setup", exact: true })
+      .click();
+    await page.getByText("Start with this project", { exact: true }).click();
+    assert.match(
+      await page.getByLabel("Starter prompt", { exact: true }).inputValue(),
+      /sample/,
+    );
+    assert.equal(
+      await page
+        .locator("dialog")
+        .evaluate((el) => el.scrollWidth > el.clientWidth),
+      false,
+    );
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(
+      () => document.activeElement?.textContent === "Connect CAD tools",
+    );
+    assert.equal(
+      await composer.inputValue(),
+      "Keep this draft while connecting CAD tools",
+    );
+    if (width < 1024) {
+      await nav.getByRole("button", { name: "Details", exact: true }).click();
+      await nav
+        .getByRole("button", { name: "Conversation", exact: true })
+        .click();
+      assert.equal(
+        await composer.inputValue(),
+        "Keep this draft while connecting CAD tools",
+      );
+    }
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth,
+      ),
+      false,
+    );
+  }
+  console.log(
+    "PASS: integrated workspace/setup at 1440/390/320px preserves draft, project context and dialog focus without overflow",
   );
   await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
   const selected = page.locator('.workspace-sections [aria-pressed="true"]');
