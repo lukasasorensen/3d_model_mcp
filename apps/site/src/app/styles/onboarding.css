@@ -2,7 +2,7 @@
 .codex-connect-dialog {
   width: min(640px, calc(100vw - 32px));
   max-height: 85vh;
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 24px;
@@ -11,6 +11,10 @@
 }
 .codex-connect-dialog::backdrop {
   background: rgb(0 0 0 / 65%);
+}
+.codex-connect-dialog[open] {
+  display: flex;
+  flex-direction: column;
 }
 .codex-connect-dialog textarea {
   display: block;
@@ -36,11 +40,7 @@
   gap: var(--space-4);
 }
 .setup-heading {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  padding-bottom: var(--space-4);
-  background: var(--surface-2);
+  flex: 0 0 auto;
   margin-bottom: var(--space-6);
 }
 .setup-heading > div {
@@ -61,6 +61,12 @@
   display: grid;
   gap: var(--space-4);
   min-width: 0;
+}
+.setup-choices,
+.setup-install {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .setup-choices fieldset {
   min-width: 0;

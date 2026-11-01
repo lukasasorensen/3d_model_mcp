@@ -114,6 +114,15 @@ try {
     await page.getByLabel("Starter prompt", { exact: true }).inputValue(),
     /sample-project/,
   );
+  const closeBounds = await page
+    .getByRole("button", { name: "Close connection setup" })
+    .boundingBox();
+  const dialogBounds = await page.locator("dialog").boundingBox();
+  assert.ok(closeBounds && dialogBounds);
+  assert.ok(closeBounds.y >= dialogBounds.y);
+  assert.ok(
+    closeBounds.y + closeBounds.height <= dialogBounds.y + dialogBounds.height,
+  );
   await page.keyboard.press("Escape");
   await page.waitForFunction(
     () => document.activeElement?.textContent === "Connect CAD tools",
