@@ -40,7 +40,7 @@ concurrency uses `THEORYFOUNDRY_TEST_EXPORT_DATABASE_URL`. Report these skips se
 Compose configuration tests require Docker Compose (CI checks its presence); they do
 not start production services. Do not claim live or real PostgreSQL acceptance from PGlite.
 
-CI runs on PRs and pushes to the existing `master`, with read-only permissions and no
+CI runs on PRs and pushes to `master` and `develop`, with read-only permissions and no
 secrets. It installs from the frozen lockfile, runs `pnpm verify`, builds the worker
 tarball, smoke-tests exact-version `pnpm dlx` outside the repository, and checks
 tracked-file nonmutation. `ALIGNMENT_BASE_REF` is the PR base SHA or pre-push SHA; local checks use
@@ -50,7 +50,13 @@ Temporary-Git-repository tooling regressions skip only when the Git executable i
 absent (such as a slim build image); they run in checkout CI. The other tooling tests
 remain independent of Git. The convention commands themselves never skip missing history.
 
-Use short-lived `codex/<ISSUE-ID>-<slug>` branches. Read the issue first, verify saved
+Create short-lived `codex/<ISSUE-ID>-<slug>` branches from `develop` and target their
+PRs at `develop`. This integration branch has no deployment attached. Promote tested changes
+with a separate PR from `develop` to `master`; production continues to track `master`.
+Merging into `develop` must not trigger production deployment. A hosted staging
+environment is outside the current scope and requires a separate setup request.
+
+Read the issue first, verify saved
 Linear updates, open a focused PR with correct issue linkage, and distinguish code
 completion from deployment/acceptance. Merge only when explicitly requested, after
 rechecking head and required checks. Branch protection is separate from adding CI.
