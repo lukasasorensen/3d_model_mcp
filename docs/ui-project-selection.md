@@ -23,3 +23,19 @@ Checks cover 1440/390/320px overflow, link destinations, keyboard disclosure,
 create/cancel focus, draft preservation, pending/error states, and an empty list.
 Desktop and phone screenshots were visually inspected. This local check does not
 establish authenticated live project creation or deployment acceptance.
+
+## Creation and account journeys
+
+Additional desktop (1440px) and phone (390px) tests use the actual authentication
+client and intercepted HTTP responses. They verify native required-field blocking,
+trimmed creation payloads, retained drafts after failed or malformed responses,
+keyboard submission, and navigation only after successful creation.
+
+Sign-out tests cover server errors, network failure, pending controls, and retry.
+They exposed navigation to sign-in despite a failed sign-out response. The page
+now checks the client result, shows a retryable alert on failure, and disables
+conflicting form actions while signing out. Successful sign-out replaces the
+route and refreshes it. Both viewport tests failed before the fix and pass after.
+
+Routing remains a recorded fixture; HTTP never reaches a real service. These
+checks do not prove session-cookie revocation or authenticated database creation.
