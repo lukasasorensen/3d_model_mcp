@@ -1,4 +1,6 @@
 /* global document, window, innerWidth */
+import { expect } from "playwright/test";
+import { mountProjectLanding } from "../fixtures/projectLanding.fixture.mjs";
 import { build } from "esbuild";
 import assert from "node:assert/strict";
 import { test, root, applicationStyles } from "../../../../browser.fixture.mjs";
@@ -105,3 +107,85 @@ test("project selection and create form pending, failure and cancel states", asy
     "PASS: desktop/mobile layout, native link, keyboard disclosure, create/cancel focus, retained draft, pending/error behavior and empty state",
   );
 });
+
+for (const width of [1440, 390]) {
+  test(`project creation retry and successful navigation at ${width}px`, async ({
+    page,
+  }) => {
+    const { controls, errors } = await mountProjectLanding(page, width);
+    await page
+      .getByRole("button", { name: "New project", exact: true })
+      .click();
+    const name = page.getByLabel("Project name", { exact: true });
+    const description = page.getByLabel("Description", { exact: true });
+    await expect(name).toBeFocused();
+    await page
+      .getByRole("button", { name: "Create project", exact: true })
+      .click();
+    expect(controls.requests).toHaveLength(0);
+    await name.fill("  Bracket  ");
+    await description.fill("  A fixture  ");
+    for (const mode of ["failure", "malformed"]) {
+      controls.createMode = mode;
+      await page
+        .getByRole("button", { name: "Create project", exact: true })
+        .click();
+      await expect(page.getByRole("alert")).toHaveText(
+        "The project could not be created.",
+      );
+      await expect(name).toHaveValue("  Bracket  ");
+      expect(await page.evaluate(() => window.navigation)).toEqual([]);
+    }
+    controls.createMode = "success";
+    await name.focus();
+    await page.keyboard.press("Enter");
+    await expect
+      .poll(() => page.evaluate(() => window.navigation))
+      .toEqual([{ type: "push", path: "/projects/new-project" }]);
+    expect(controls.requests).toHaveLength(3);
+    for (const request of controls.requests)
+      expect(request).toEqual({
+        path: "/v1/projects",
+        method: "POST",
+        body: { name: "Bracket", description: "A fixture" },
+      });
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    expect(errors).toEqual([]);
+  });
+
+  test(`sign-out reports failures and navigates only after success at ${width}px`, async ({
+    page,
+  }) => {
+    const { controls, errors } = await mountProjectLanding(page, width);
+    for (const mode of ["failure", "network"]) {
+      controls.signOutMode = mode;
+      await page.getByRole("button", { name: "Sign out", exact: true }).click();
+      await expect(page.getByRole("alert")).toHaveText(
+        "Sign-out is temporarily unavailable. Please try again.",
+      );
+      expect(await page.evaluate(() => window.navigation)).toEqual([]);
+      await expect(
+        page.getByRole("button", { name: "Sign out", exact: true }),
+      ).toBeEnabled();
+    }
+    controls.signOutMode = "success";
+    let finishSignOut;
+    controls.signOutGate = new Promise((resolve) => {
+      finishSignOut = resolve;
+    });
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "Signing out…", exact: true }),
+    ).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "New project", exact: true }),
+    ).toBeDisabled();
+    expect(await page.evaluate(() => window.navigation)).toEqual([]);
+    finishSignOut();
+    await expect
+      .poll(() => page.evaluate(() => window.navigation))
+      .toEqual([{ type: "replace", path: "/sign-in" }, { type: "refresh" }]);
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    expect(errors).toEqual([]);
+  });
+}

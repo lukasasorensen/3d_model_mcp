@@ -18,6 +18,8 @@ export function ProjectLanding({
   const router = useRouter();
   const createButton = useRef<HTMLButtonElement>(null);
   const [pending, setPending] = useState(false);
+  const [signOutPending, setSignOutPending] = useState(false);
+  const busy = pending || signOutPending;
   const [error, setError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState("");
@@ -26,6 +28,7 @@ export function ProjectLanding({
     event: FormEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
+    if (busy) return;
     setPending(true);
     setError("");
     try {
@@ -49,9 +52,19 @@ export function ProjectLanding({
     }
   }
   async function signOut(): Promise<void> {
-    await authClient.signOut();
-    router.replace("/sign-in");
-    router.refresh();
+    if (busy) return;
+    setSignOutPending(true);
+    setError("");
+    try {
+      const result = await authClient.signOut();
+      if (result.error) throw new Error("sign-out failed");
+      router.replace("/sign-in");
+      router.refresh();
+    } catch {
+      setError("Sign-out is temporarily unavailable. Please try again.");
+    } finally {
+      setSignOutPending(false);
+    }
   }
   return (
     <main className="project-landing">
@@ -67,11 +80,12 @@ export function ProjectLanding({
           )}
           <button
             type="button"
+            disabled={busy}
             onClick={() => {
               void signOut();
             }}
           >
-            Sign out
+            {signOutPending ? "Signing out…" : "Sign out"}
           </button>
         </nav>
       </header>
@@ -90,7 +104,7 @@ export function ProjectLanding({
               setError("");
               setIsCreating((value) => !value);
             }}
-            disabled={pending}
+            disabled={busy}
           >
             {isCreating ? "Close form" : "New project"}
           </button>
@@ -108,7 +122,7 @@ export function ProjectLanding({
             <label>
               Project name
               <input
-                disabled={pending}
+                disabled={busy}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 required
@@ -119,7 +133,7 @@ export function ProjectLanding({
             <label>
               Description
               <textarea
-                disabled={pending}
+                disabled={busy}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 required
@@ -128,16 +142,12 @@ export function ProjectLanding({
               />
             </label>
             <div className="project-form-actions">
-              <button
-                type="submit"
-                className="button-primary"
-                disabled={pending}
-              >
+              <button type="submit" className="button-primary" disabled={busy}>
                 {pending ? "Creating…" : "Create project"}
               </button>
               <button
                 type="button"
-                disabled={pending}
+                disabled={busy}
                 onClick={() => {
                   setIsCreating(false);
                   setError("");
