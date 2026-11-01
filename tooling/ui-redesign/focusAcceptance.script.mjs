@@ -1,3 +1,4 @@
+/* global document */
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { chromium } from "playwright";
