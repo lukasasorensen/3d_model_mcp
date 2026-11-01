@@ -87,7 +87,7 @@ export function ModelWorkspace({
       <a
         className="skip-link"
         href="#model-heading"
-        onClick={() => selectSection("model")}
+        onClick={() => selectSection("model", false)}
       >
         Skip to model
       </a>
@@ -160,6 +160,7 @@ export function ModelWorkspace({
           ] as const
         ).map((destination) => (
           <button
+            id={`workspace-${destination}-button`}
             key={destination}
             type="button"
             aria-pressed={section === destination}

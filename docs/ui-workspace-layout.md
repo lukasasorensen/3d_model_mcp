@@ -38,3 +38,22 @@ chat-disabled navigation, export-error visibility across sections, and no
 horizontal overflow at 320, 390, and 768px. These checks use sample state and a
 placeholder viewer; real WebGL camera retention, authenticated CAD acceptance,
 and the broader assistive-technology review remain outstanding.
+
+## Review fixes and repeatable checks
+
+Preview readiness now means the STL has passed parsing and validation, independent
+of whether the WebGL canvas is visible. Geometry resource disposal still waits for
+the scene commit. Mobile recovery actions focus the destination section control;
+breakpoint changes recover focus when the previously focused panel becomes hidden.
+
+With the pinned Node version and Playwright Chromium installed, run:
+
+```sh
+node tooling/ui-redesign/focusAcceptance.script.mjs
+node tooling/ui-redesign/viewerAcceptance.script.mjs
+```
+
+The first uses sample workspace state to reproduce keyboard recovery and resize.
+The second uses the real viewer with an in-memory STL and checks readiness while
+hidden, then visible. These explicit browser checks supplement `pnpm verify`;
+they do not require production credentials or claim authenticated acceptance.

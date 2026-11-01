@@ -277,6 +277,9 @@ export function ModelViewer({
           projectId,
         );
         setGeometry(next);
+        // Validation finishes independently of a visible WebGL canvas.
+        // Resource disposal still waits for the scene to commit the swap.
+        setLoadState("ready");
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) setLoadState("error");
@@ -310,7 +313,6 @@ export function ModelViewer({
       pendingGeometryRef.current = undefined;
       if (autoFitPending.current) lastFittedProjectId.current = projectId;
       autoFitPending.current = false;
-      setLoadState("ready");
     },
     [projectId],
   );
