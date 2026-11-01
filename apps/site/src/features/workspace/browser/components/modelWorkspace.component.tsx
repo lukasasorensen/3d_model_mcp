@@ -87,8 +87,7 @@ export function ModelWorkspace({
         <div className="brand-mark">
           <span aria-hidden="true">T</span>
           <div>
-            <strong>TheoryFoundry Conversational CAD</strong>
-            <small>Precision workshop</small>
+            <strong>TheoryFoundry</strong>
           </div>
         </div>
         <div className="header-controls">
@@ -150,7 +149,6 @@ export function ModelWorkspace({
         <section className="model-pane" aria-labelledby="model-heading">
           <div className="pane-heading">
             <div>
-              <p className="eyebrow">Model inspection</p>
               <h1 id="model-heading">
                 {state.selectedRevision
                   ? `Inspecting ${selectedLabel}`
@@ -198,17 +196,11 @@ export function ModelWorkspace({
               <strong>{selectedLabel}</strong>
             </div>
             <div>
-              <span>Bounds</span>
-              <strong>{dimensions} mm</strong>
+              <span>Dimensions · mm</span>
+              <strong>{dimensions}</strong>
             </div>
             <div>
               <span>Preview</span>
-              <strong>
-                {selectedManifest ? "Browser-rendered STL" : "Unavailable"}
-              </strong>
-            </div>
-            <div>
-              <span>State</span>
               <strong>
                 {previewStatusLabel(
                   Boolean(selectedManifest),
@@ -217,28 +209,7 @@ export function ModelWorkspace({
               </strong>
             </div>
           </div>
-          <ModelSourcePanel
-            projectId={projectId}
-            revisionId={selectedManifest?.revisionId}
-            sourceHash={selectedManifest?.sourceHash}
-            revisionLabel={selectedLabel}
-          />
           <div className="model-actions">
-            <RevisionHistory
-              revisions={state.revisions}
-              currentRevision={state.currentRevision}
-              selectedRevision={state.selectedRevision}
-              disabled={
-                isMcpRendering ||
-                state.active ||
-                restorePending ||
-                previewLoadState !== "ready"
-              }
-              onSelect={(revisionId) =>
-                dispatch({ type: "select_revision", revisionId })
-              }
-              onRestore={(revisionId) => void restore(revisionId)}
-            />
             <div className="export-controls">
               <label htmlFor="export-format">Download format</label>
               <select
@@ -273,7 +244,7 @@ export function ModelWorkspace({
               >
                 {exportState === "preparing"
                   ? `Preparing ${exportFormat.toUpperCase()}…`
-                  : `Download ${currentLabel}`}
+                  : `Download ${exportFormat.toUpperCase()} · ${currentLabel}`}
               </button>
             </div>
           </div>
@@ -298,6 +269,29 @@ export function ModelWorkspace({
               </details>
             </div>
           )}
+          <div className="model-details" aria-label="Revision details">
+            <RevisionHistory
+              revisions={state.revisions}
+              currentRevision={state.currentRevision}
+              selectedRevision={state.selectedRevision}
+              disabled={
+                isMcpRendering ||
+                state.active ||
+                restorePending ||
+                previewLoadState !== "ready"
+              }
+              onSelect={(revisionId) =>
+                dispatch({ type: "select_revision", revisionId })
+              }
+              onRestore={(revisionId) => void restore(revisionId)}
+            />
+            <ModelSourcePanel
+              projectId={projectId}
+              revisionId={selectedManifest?.revisionId}
+              sourceHash={selectedManifest?.sourceHash}
+              revisionLabel={selectedLabel}
+            />
+          </div>
         </section>
 
         {isSidebarChatEnabled && (
