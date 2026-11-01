@@ -1,5 +1,4 @@
-.auth-shell,
-.project-landing {
+.auth-shell {
   min-height: 100vh;
   padding: clamp(24px, 6vw, 80px);
   background: var(--canvas);
@@ -9,16 +8,14 @@
   display: grid;
   place-items: center;
 }
-.auth-shell > section,
-.project-landing > section {
+.auth-shell > section {
   width: min(100%, 680px);
   padding: 24px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface-1);
 }
-.auth-shell h1,
-.project-landing h1 {
+.auth-shell h1 {
   margin: 4px 0 8px;
 }
 .eyebrow {
@@ -46,79 +43,4 @@
 }
 .auth-error {
   color: var(--danger);
-}
-.project-landing {
-  display: grid;
-  align-content: start;
-  justify-items: center;
-  gap: 24px;
-}
-.project-landing > header {
-  width: min(100%, 680px);
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-}
-.project-list-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-.project-form {
-  display: grid;
-  gap: 14px;
-  padding: 18px 0;
-}
-.project-form label {
-  display: grid;
-  gap: 6px;
-  color: var(--text-muted);
-}
-.project-form input,
-.project-form textarea {
-  width: 100%;
-  padding: 10px;
-  border-radius: 4px;
-  background: var(--surface-2);
-  color: var(--text);
-}
-.project-form input {
-  min-height: 44px;
-}
-.project-form textarea {
-  resize: vertical;
-}
-.project-landing ul {
-  display: grid;
-  gap: 8px;
-  padding: 0;
-  list-style: none;
-}
-.project-landing li button {
-  width: 100%;
-  min-height: 56px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 12px;
-  text-align: left;
-  background: var(--surface-2);
-  color: var(--text);
-}
-.project-list-details {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-.project-list-details span {
-  color: var(--text-muted);
-  overflow-wrap: anywhere;
-}
-.project-landing code {
-  color: var(--text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
