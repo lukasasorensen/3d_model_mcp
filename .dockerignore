@@ -41,3 +41,6 @@ apps/site/public/vendor/openscad
 **/.git
 **/.aws
 **/.ssh
+
+test-results
+playwright-report

@@ -49,8 +49,8 @@ breakpoint changes recover focus when the previously focused panel becomes hidde
 With the pinned Node version and Playwright Chromium installed, run:
 
 ```sh
-node tooling/ui-redesign/focusAcceptance.script.mjs
-node tooling/ui-redesign/viewerAcceptance.script.mjs
+pnpm test:browser modelWorkspace.component
+pnpm test:browser modelViewer.component
 ```
 
 The first uses sample workspace state to reproduce keyboard recovery and resize.

@@ -23,3 +23,6 @@ apps/site/public/vendor/openscad/
 
 .next-acceptance/
 renderer-proof-output/
+
+test-results/
+playwright-report/

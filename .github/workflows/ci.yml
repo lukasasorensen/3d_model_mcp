@@ -31,7 +31,19 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Require Compose configuration validation
         run: docker compose version
+      - name: Install Chromium for browser integration tests
+        run: pnpm exec playwright install --with-deps chromium
       - run: pnpm verify
+      - name: Upload browser failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: browser-test-results
+          path: |
+            test-results/browser/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Build and smoke-test the versioned worker tarball outside the repository
         run: pnpm pack:worker && node tooling/local-worker/packedAcceptance.script.mjs --smoke
       - name: Confirm verification did not rewrite tracked files

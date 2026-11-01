@@ -1,25 +1,19 @@
 /* global document, window */
-import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
-import { chromium } from "playwright";
-import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
-const root = fileURLToPath(new URL("../../", import.meta.url));
-const entry = `import React from 'react';import {createRoot} from 'react-dom/client';import {ConnectToCodex} from './src/features/onboarding/browser/components/connectToCodex.component';import {codexConnectCommand} from './src/features/onboarding/browser/utils/codexConnectCommand.util';import {localWorkerCommand} from './src/features/onboarding/browser/utils/localWorkerCommand.util';window.expected=(mode,client,scope)=>mode==='hosted'?codexConnectCommand('https://example.test',scope):localWorkerCommand('https://example.test',client,scope);createRoot(document.getElementById('root')).render(<ConnectToCodex origin="https://example.test" projectId="sample-project"/>);`;
-const result = await build({
-  stdin: { contents: entry, resolveDir: root + "/apps/site", loader: "tsx" },
-  bundle: true,
-  write: false,
-  jsx: "automatic",
-});
-let styles = "";
-for (const [, p] of (
-  await readFile(root + "/apps/site/src/app/styles.css", "utf8")
-).matchAll(/@import "(.+)"/g))
-  styles += await readFile(root + "/apps/site/src/app/" + p, "utf8");
-const browser = await chromium.launch({ headless: true });
-try {
-  const page = await browser.newPage();
+import { test, root, applicationStyles } from "../../../../browser.fixture.mjs";
+
+test("connection setup choices, commands, clipboard and dialog navigation", async ({
+  page,
+}) => {
+  const entry = `import React from 'react';import {createRoot} from 'react-dom/client';import {ConnectToCodex} from './src/features/onboarding/browser/components/connectToCodex.component';import {codexConnectCommand} from './src/features/onboarding/browser/utils/codexConnectCommand.util';import {localWorkerCommand} from './src/features/onboarding/browser/utils/localWorkerCommand.util';window.expected=(mode,client,scope)=>mode==='hosted'?codexConnectCommand('https://example.test',scope):localWorkerCommand('https://example.test',client,scope);createRoot(document.getElementById('root')).render(<ConnectToCodex origin="https://example.test" projectId="sample-project"/>);`;
+  const result = await build({
+    stdin: { contents: entry, resolveDir: root + "/apps/site", loader: "tsx" },
+    bundle: true,
+    write: false,
+    jsx: "automatic",
+  });
+  const styles = await applicationStyles();
   await page.setContent("<style>" + styles + '</style><div id="root"></div>');
   await page.addScriptTag({ content: result.outputFiles[0].text });
   await page
@@ -136,6 +130,4 @@ try {
   console.log(
     "PASS: all six command variants, step focus, preserved choices, clipboard success/unavailable, starter prompt, Escape focus, reopen and responsive overflow",
   );
-} finally {
-  await browser.close();
-}
+});

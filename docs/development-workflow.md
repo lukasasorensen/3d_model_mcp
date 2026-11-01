@@ -17,14 +17,26 @@ OAuth provisioning and headless-renderer commands remain in `package.json`.
 | `pnpm check:conventions`                    | Check naming, test placement and physical line caps                    |
 | `pnpm lint` / `pnpm typecheck`              | Typed flat ESLint and source/test TypeScript checks                    |
 | `pnpm build`                                | Build libraries and the Next.js app                                    |
-| `pnpm verify`                               | Run all checks, tests and builds without rewriting source              |
+| `pnpm verify`                               | Run all checks, Node/browser tests and builds without rewriting source |
 
 All handwritten files use Prettier where a parser is available. Format explicit files
 with `pnpm exec prettier --write path/to/file`. Every handwritten text file is capped
 at 500 physical lines, including tests, configuration and docs. Both legacy baselines
 are empty and must stay empty; see [architecture conventions](architecture-conventions.md).
 
-Discovery includes `.test` and `.spec` files with mjs/cjs/js/ts/tsx extensions, regardless
+Browser integration tests live under `apps/site/tests/browser/`, mirroring the
+source features. Run `pnpm exec playwright install chromium` once locally, then
+`pnpm test:browser`; pass a filename filter to run one test. `pnpm test:browser --list`
+lists browser coverage. Playwright owns these tests and the Node runner excludes
+this directory, so they execute once during `pnpm verify`. No server or database
+is needed: real components/styles use explicit fixture service boundaries.
+CI installs Chromium and system dependencies before verification. Failures retain
+screenshots/traces under `test-results/browser/` and an HTML report under
+`playwright-report/`; CI uploads these as `browser-test-results` for seven days.
+Use `pnpm exec playwright show-report` to view the local report. Browser tests do
+not replace authenticated end-to-end or assistive-technology acceptance.
+
+Node discovery includes `.test` and `.spec` files with mjs/cjs/js/ts/tsx extensions, regardless
 of depth, excluding known output/dependency directories and symlinks. Mixed TypeScript
 suites use `tsx`. Nested workspaces belong to their closest package, so model-project
 is not run twice. Test fixtures must not embed executable test files in the repository;
