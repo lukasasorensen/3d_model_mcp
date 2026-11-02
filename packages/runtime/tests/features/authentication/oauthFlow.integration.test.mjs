@@ -27,6 +27,7 @@ for (const worker of [false, true])
       THEORYFOUNDRY_ALLOWED_ORIGIN: origin,
       BETTER_AUTH_SECRET: "test-only-secret-not-for-production-123456789",
       THEORYFOUNDRY_REMOTE_MCP_ENABLED: "1",
+      THEORYFOUNDRY_LOCAL_WORKER_ENABLED: "0",
       THEORYFOUNDRY_AUTH_ALLOW_SIGNUP: "1",
     });
     try {

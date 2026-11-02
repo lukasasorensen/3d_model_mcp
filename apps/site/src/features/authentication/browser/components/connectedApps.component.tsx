@@ -8,9 +8,11 @@ type Grant = { id: string; name: string };
 export function ConnectedApps({
   grants,
   codexOrigin,
+  localWorkerAvailable = false,
 }: {
   grants: Grant[];
   codexOrigin: string;
+  localWorkerAvailable?: boolean;
 }): JSX.Element {
   const router = useRouter();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -50,7 +52,10 @@ export function ConnectedApps({
             Connected apps
           </h1>
         </div>
-        <ConnectToCodex origin={codexOrigin} />
+        <ConnectToCodex
+          origin={codexOrigin}
+          localWorkerAvailable={localWorkerAvailable}
+        />
       </header>
       <p className="connected-apps-help">
         Revoking access blocks new requests and token refreshes. An operation

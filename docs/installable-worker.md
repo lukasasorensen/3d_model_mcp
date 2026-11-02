@@ -1,5 +1,8 @@
 # Installable local worker
 
+Hosted UI/API enablement and the browser-only launch are described in
+[local worker availability](local-worker-availability.md).
+
 THE-15 packages the existing stdio worker as `@tfoundry/local-worker@0.1.0`.
 The CLI provides `setup`, `serve`, `login`, `logout`, `doctor`, `--help` and
 `--version`. See the [package README](../packages/local-worker/README.md) for

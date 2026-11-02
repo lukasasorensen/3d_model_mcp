@@ -30,7 +30,7 @@ for (const width of [1440, 390, 320]) {
     });
     const bundle = await build({
       stdin: {
-        contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {ConnectedApps} from './src/features/authentication/browser/components/connectedApps.component';window.refreshes=0;const root=createRoot(document.getElementById('root'));window.renderGrants=grants=>root.render(<ConnectedApps grants={grants} codexOrigin="https://example.test"/>);window.renderGrants([{id:'grant/one',name:'Codex workstation'},{id:'grant-two',name:'A'.repeat(160)}]);`,
+        contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {ConnectedApps} from './src/features/authentication/browser/components/connectedApps.component';window.refreshes=0;const root=createRoot(document.getElementById('root'));window.renderGrants=(grants,available)=>root.render(<ConnectedApps grants={grants} localWorkerAvailable={available} codexOrigin="https://example.test"/>);window.renderGrants([{id:'grant/one',name:'Codex workstation'},{id:'grant-two',name:'A'.repeat(160)}]);`,
         resolveDir: root + "/apps/site",
         loader: "tsx",
       },
@@ -112,6 +112,29 @@ for (const width of [1440, 390, 320]) {
     await expect(
       page.getByRole("button", { name: "Connect CAD tools", exact: true }),
     ).toBeFocused();
+    for (const available of [true, false, undefined]) {
+      await page.evaluate((value) => window.renderGrants([], value), available);
+      await page
+        .getByRole("button", { name: "Connect CAD tools", exact: true })
+        .click();
+      await expect(page.getByRole("radio")).toHaveCount(available ? 2 : 0);
+      if (available) {
+        await page.getByRole("radio", { name: /On your Mac/ }).check();
+        await expect(page.getByLabel("Client", { exact: true })).toBeVisible();
+      } else {
+        await expect(page.getByLabel("Client", { exact: true })).toHaveCount(0);
+      }
+      await page
+        .getByRole("button", { name: "Continue to setup", exact: true })
+        .click();
+      const command = await page
+        .getByLabel("Setup command", { exact: true })
+        .inputValue();
+      expect(command.includes("@tfoundry/local-worker")).toBe(
+        Boolean(available),
+      );
+      await page.keyboard.press("Escape");
+    }
     await page.evaluate(() => window.renderGrants([]));
     await expect(
       page.getByText("No connected apps.", { exact: true }),

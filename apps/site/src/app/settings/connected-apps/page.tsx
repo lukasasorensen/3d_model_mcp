@@ -3,6 +3,7 @@ import {
   getAuthenticatedUser,
   getProjectDatabase,
   listOAuthGrants,
+  localWorkerEnabled,
   remoteMcpEnabled,
   remoteMcpIdentity,
 } from "@theoryfoundry/runtime";
@@ -19,6 +20,7 @@ export default async function ConnectedAppsPage(): Promise<JSX.Element> {
     <main className="auth-shell">
       <ConnectedApps
         grants={await listOAuthGrants(getProjectDatabase().pool, user.id)}
+        localWorkerAvailable={localWorkerEnabled()}
         codexOrigin={remoteMcpIdentity().origin}
       />
     </main>
