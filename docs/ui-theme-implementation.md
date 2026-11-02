@@ -6,7 +6,7 @@ or deploy it.
 
 ## Changes
 
-- Semantic theme tokens supply forest charcoal, gray workspace surfaces, teal
+- Semantic theme tokens supply blue charcoal, gray workspace surfaces, teal
   primary actions, white text/model, and distinct success/error/warning colors.
 - System sans typography replaces the condensed font stack. No remote font
   request is required. Spacing and control-radius tokens establish the shared
@@ -14,8 +14,10 @@ or deploy it.
 - Shared control styles supply borderless buttons and fields, hover, disabled,
   and visible focus states. Authentication inputs now have explicit focus rules.
   Forced-colors mode restores system-colored boundaries, including for inputs.
-- Primary buttons use #33888c with #07110e text (4.60:1). Focus uses #66b8bc;
-  smaller accent text uses a lighter #83c9cc to remain readable on raised surfaces.
+- Primary buttons use #36aaaf with #07110e text. Focus uses #66b8bc;
+  the separate #2ba1a6 accent-text token colors headings, model fact labels,
+  the download format label, and existing accent labels.
+  The canvas uses #14191e.
 - Restore actions fit their content rather than spanning the entire history row.
 - Connection setup inherits the shared surfaces and text colors.
 

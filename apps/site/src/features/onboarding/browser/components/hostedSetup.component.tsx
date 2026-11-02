@@ -16,35 +16,21 @@ export function HostedSetup({
     <section className="setup-instructions" aria-label="Hosted Codex setup">
       <h3>Connect to Codex</h3>
       <p>
-        Use a macOS or Linux terminal with Node.js 24 and the Codex CLI
-        installed. Sign in and approve CAD access in your browser when prompted.
+        On macOS or Linux, install Node.js 24 and the Codex CLI. Run the
+        command, then sign in and approve CAD access in your browser.
       </p>
-      {scope === "project" ? (
+      {scope === "project" && (
         <p>
-          Run from the root of your local Git repository. Trust the repository
-          in Codex to load its settings. This controls where the connection is
-          available; it does not restrict access to one CAD project.
-        </p>
-      ) : (
-        <p>
-          Uses your Codex home configuration, including a custom CODEX_HOME if
-          set.
+          Run in your Git repository root and trust it in Codex. Repository
+          scope does not limit access to one CAD project.
         </p>
       )}
-      <p>
-        The command downloads the installer from this site, backs up changed
-        configuration, and adds the connection. Existing conflicting settings
-        require manual review.
-      </p>
       <SetupCommand
+        key={scope}
         label="Setup command"
         value={codexConnectCommand(origin, scope)}
       />
-      <h3>After authorization</h3>
-      <p>
-        Restart Codex or start a fresh session. Keep your CAD project tab
-        visible during rendering.
-      </p>
+      <p>After authorization, restart Codex or start a new session.</p>
     </section>
   );
 }

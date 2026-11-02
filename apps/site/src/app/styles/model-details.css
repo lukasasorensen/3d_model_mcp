@@ -13,7 +13,7 @@
 .model-facts span {
   display: block;
   margin-bottom: 4px;
-  color: var(--text-muted);
+  color: var(--accent-text);
   font-size: 0.68rem;
   text-transform: uppercase;
 }
@@ -50,7 +50,7 @@
   margin-bottom: 9px;
 }
 .model-source-heading h2 {
-  color: var(--text-muted);
+  color: var(--accent-text);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -104,7 +104,7 @@
 }
 .export-controls label {
   width: 100%;
-  color: var(--text-muted);
+  color: var(--accent-text);
   text-align: right;
   font-size: 0.72rem;
 }
@@ -215,4 +215,29 @@
   bottom: 18px;
   max-width: min(420px, calc(100vw - 36px));
   box-shadow: var(--shadow);
+}
+.workspace-toasts {
+  position: fixed;
+  z-index: 19;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  gap: var(--space-2);
+  width: min(420px, calc(100vw - 36px));
+  pointer-events: none;
+}
+.workspace-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 9px 11px;
+  border-left: 2px solid var(--accent-contrast);
+  background: var(--surface-2);
+  box-shadow: var(--shadow);
+  font-size: 0.82rem;
+  pointer-events: auto;
+}
+.workspace-toast button {
+  flex: 0 0 auto;
 }

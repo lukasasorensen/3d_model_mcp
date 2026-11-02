@@ -32,29 +32,22 @@
 .codex-connect-dialog select {
   min-height: 44px;
 }
-.setup-heading,
-.setup-selection {
+.setup-heading {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
-}
-.setup-heading {
   flex: 0 0 auto;
   margin-bottom: var(--space-6);
 }
 .setup-heading > div {
   min-width: 0;
 }
-.setup-step,
-.setup-hint,
-.setup-selection p {
+.setup-hint {
   color: var(--text-muted);
   font-size: 0.85rem;
 }
-.setup-step {
-  margin-bottom: var(--space-2);
-}
+.setup-content,
 .setup-choices,
 .setup-install,
 .setup-instructions {
@@ -62,8 +55,7 @@
   gap: var(--space-4);
   min-width: 0;
 }
-.setup-choices,
-.setup-install {
+.setup-content {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -117,17 +109,10 @@
   width: 100%;
   min-width: 0;
 }
-.setup-choices > button,
 .setup-command > button {
   justify-self: start;
   width: fit-content;
   max-width: 100%;
-}
-.setup-selection {
-  align-items: center;
-  flex-wrap: wrap;
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--line);
 }
 .setup-command > label {
   display: block;
@@ -140,10 +125,8 @@
   padding-top: var(--space-4);
   border-top: 1px solid var(--line);
 }
-.setup-starter summary {
-  min-height: 44px;
-  padding: var(--space-3) 0;
-  cursor: pointer;
+.setup-starter h3 {
+  margin-bottom: var(--space-3);
 }
 .setup-starter > p {
   margin-bottom: var(--space-3);

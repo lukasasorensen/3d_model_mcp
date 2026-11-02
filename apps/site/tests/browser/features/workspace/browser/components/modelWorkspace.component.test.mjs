@@ -49,6 +49,10 @@ test("workspace focus, responsive sections and integrated connection setup", asy
       .count(),
     1,
   );
+  assert.equal(
+    await page.locator(".brand-mark strong").textContent(),
+    "3d AI MCP Server | TheoryFoundry",
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   const nav = page.getByRole("navigation", { name: "Workspace sections" });
   await nav.getByRole("button", { name: "Details", exact: true }).click();
@@ -92,10 +96,6 @@ test("workspace focus, responsive sections and integrated connection setup", asy
     await page
       .getByRole("button", { name: "Connect CAD tools", exact: true })
       .click();
-    await page
-      .getByRole("button", { name: "Continue to setup", exact: true })
-      .click();
-    await page.getByText("Start with this project", { exact: true }).click();
     assert.match(
       await page.getByLabel("Starter prompt", { exact: true }).inputValue(),
       /sample/,
@@ -131,6 +131,13 @@ test("workspace focus, responsive sections and integrated connection setup", asy
       false,
     );
   }
+  for (const width of [1440, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.screenshot({
+      path: test.info().outputPath(`workspace-${width}.png`),
+      fullPage: true,
+    });
+  }
   for (const available of [true, false, undefined]) {
     await page.evaluate((value) => window.renderConnection(value), available);
     await page
@@ -139,9 +146,6 @@ test("workspace focus, responsive sections and integrated connection setup", asy
     assert.equal(await page.getByRole("radio").count(), available ? 2 : 0);
     if (available)
       await page.getByRole("radio", { name: /On your Mac/ }).check();
-    await page
-      .getByRole("button", { name: "Continue to setup", exact: true })
-      .click();
     const command = await page
       .getByLabel("Setup command", { exact: true })
       .inputValue();

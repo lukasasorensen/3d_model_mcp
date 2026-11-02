@@ -123,6 +123,7 @@ function Scene({
   }, [camera, controls, geometry, invalidate]);
 
   useEffect(() => {
+    controls.rotateSpeed = 0.5;
     controls.enableDamping = false;
     controls.enablePan = true;
     controls.enableRotate = true;

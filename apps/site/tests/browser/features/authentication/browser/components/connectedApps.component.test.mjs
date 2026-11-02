@@ -124,9 +124,6 @@ for (const width of [1440, 390, 320]) {
       } else {
         await expect(page.getByLabel("Client", { exact: true })).toHaveCount(0);
       }
-      await page
-        .getByRole("button", { name: "Continue to setup", exact: true })
-        .click();
       const command = await page
         .getByLabel("Setup command", { exact: true })
         .inputValue();
