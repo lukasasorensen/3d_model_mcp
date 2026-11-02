@@ -21,7 +21,7 @@ export function codexConnectCommand(
   }
   if (scope !== "global" && scope !== "project")
     throw new Error("Invalid Codex scope.");
-  return `npx --yes @tfoundry/connect-codex@0.1.0 ${shellQuote(origin)} ${shellQuote(scope)}`;
+  return `npx --yes @tfoundry/connect-codex@0.2.0 ${shellQuote(origin)} ${shellQuote(scope)}`;
 }
 
 export function codexStarterPrompt(projectId: string): string {

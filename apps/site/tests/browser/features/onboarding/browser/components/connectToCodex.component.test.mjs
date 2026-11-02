@@ -211,7 +211,7 @@ for (const available of [false, undefined]) {
       const command = await page
         .getByLabel("Setup command", { exact: true })
         .inputValue();
-      expect(command).toContain("npx --yes @tfoundry/connect-codex@0.1.0");
+      expect(command).toContain("npx --yes @tfoundry/connect-codex@0.2.0");
       expect(command).not.toContain("@tfoundry/local-worker");
       await expect(
         page.getByLabel("Starter prompt", { exact: true }),

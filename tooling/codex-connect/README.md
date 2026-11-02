@@ -3,7 +3,7 @@
 Install Node.js 24 or newer (including npm/npx) and the Codex CLI, then run:
 
 ```sh
-npx --yes @tfoundry/connect-codex@0.1.0 https://YOUR-CAD-DOMAIN global
+npx --yes @tfoundry/connect-codex@0.2.0 https://YOUR-CAD-DOMAIN global
 ```
 
 Sign in and approve CAD access in your browser. Restart Codex or start a fresh
@@ -26,6 +26,6 @@ Authorization runs through `codex mcp login`. The installer requests `cad:tools`
 and `offline_access`, using the public `theoryfoundry-codex` client. If login fails,
 the configuration remains installed and a retry command is printed.
 
-Run `npx --yes @tfoundry/connect-codex@0.1.0 --help` for usage. This package has
+Run `npx --yes @tfoundry/connect-codex@0.2.0 --help` for usage. This package has
 no runtime dependencies or install scripts. Its bundled TOML parser's license is
 included in the executable. TheoryFoundry code is proprietary.

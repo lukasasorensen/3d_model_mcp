@@ -15,7 +15,7 @@ pnpm verify
 ```
 
 Packing rebuilds the public installer, checks it against its source, and prepares
-`dist/packages/tfoundry-connect-codex-0.1.0.tgz`. The executable has a Node shebang
+`dist/packages/tfoundry-connect-codex-0.2.0.tgz`. The executable has a Node shebang
 and reuses the public bundle. No runtime dependencies, credentials, install scripts,
 local renderer assets or source maps are shipped.
 
@@ -28,8 +28,8 @@ Publish only an approved, verified tarball using an account with access to the
 `@tfoundry` scope:
 
 ```sh
-npm publish dist/packages/tfoundry-connect-codex-0.1.0.tgz --access public
-npm view @tfoundry/connect-codex@0.1.0 version dist.integrity --registry https://registry.npmjs.org/
+npm publish dist/packages/tfoundry-connect-codex-0.2.0.tgz --access public
+npm view @tfoundry/connect-codex@0.2.0 version dist.integrity --registry https://registry.npmjs.org/
 ```
 
 Publication must precede deployment of the onboarding command. Before promotion,

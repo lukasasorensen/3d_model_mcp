@@ -130,7 +130,7 @@ or authorization.
 The setup command runs the versioned npm installer:
 
 ```sh
-npx --yes @tfoundry/connect-codex@0.1.0 https://YOUR-CAD-DOMAIN global
+npx --yes @tfoundry/connect-codex@0.2.0 https://YOUR-CAD-DOMAIN global
 ```
 
 Replace `global` with `project` for repository scope. The package bundles the existing
