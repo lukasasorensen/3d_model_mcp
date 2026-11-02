@@ -5,14 +5,18 @@ import { pluginManifests } from "./pluginManifests.util.mjs";
 
 async function archiveFiles(directory, base = directory) {
   const result = {};
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  entries.sort((left, right) =>
+    left.name < right.name ? -1 : left.name > right.name ? 1 : 0,
+  );
+  for (const entry of entries) {
     const file = join(directory, entry.name);
     if (entry.isDirectory())
       Object.assign(result, await archiveFiles(file, base));
     else if (entry.isFile())
       result[relative(base, file).replaceAll("\\", "/")] = [
         new Uint8Array(await readFile(file)),
-        { mtime: new Date("2020-01-01T00:00:00Z") },
+        { mtime: new Date(2020, 0, 1) },
       ];
     else throw new Error("Plugin packages cannot contain symlinks.");
   }

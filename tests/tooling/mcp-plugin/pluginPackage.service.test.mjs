@@ -73,6 +73,33 @@ test("plugin archives contain only the intended files, correct public clients, a
         "utf8",
       ),
     );
+    const builderUrl = new URL(
+      "../../../tooling/mcp-plugin/pluginPackage.service.mjs",
+      import.meta.url,
+    ).href;
+    const code = `import { buildPluginPackages } from ${JSON.stringify(builderUrl)}; await buildPluginPackages(process.argv[1], process.argv[2]);`;
+    for (const timezone of ["UTC", "America/Chicago"]) {
+      const timezoneOutput = join(directory, timezone.replaceAll("/", "-"));
+      const result = spawnSync(
+        process.execPath,
+        ["--input-type=module", "-e", code, root, timezoneOutput],
+        {
+          env: { ...process.env, TZ: timezone },
+          encoding: "utf8",
+        },
+      );
+      assert.equal(result.status, 0, result.stderr);
+      for (const client of ["codex", "claude"])
+        assert.deepEqual(
+          await readFile(
+            join(
+              timezoneOutput,
+              `theoryfoundry-cad-${client}-${readiness.version}.zip`,
+            ),
+          ),
+          archives[client],
+        );
+    }
     const fixture = join(directory, "fixture");
     await mkdir(fixture);
     await cp(join(root, "plugins"), join(fixture, "plugins"), {
