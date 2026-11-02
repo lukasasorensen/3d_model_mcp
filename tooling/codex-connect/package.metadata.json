@@ -1,0 +1,23 @@
+{
+  "name": "@tfoundry/connect-codex",
+  "version": "0.1.0",
+  "description": "Connect Codex to a hosted TheoryFoundry CAD MCP server",
+  "type": "module",
+  "license": "UNLICENSED",
+  "bin": {
+    "connect-codex": "connect-codex.mjs"
+  },
+  "files": ["connect-codex.mjs", "README.md"],
+  "engines": {
+    "node": ">=24"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lukasasorensen/3d_model_mcp.git",
+    "directory": "tooling/codex-connect"
+  }
+}

@@ -31,6 +31,7 @@
     "verify": "pnpm format:check && pnpm check:conventions && pnpm check:architecture && pnpm test:codex-installer && pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm test:browser && pnpm build && pnpm check:leaks && pnpm check:boundaries",
     "oauth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @theoryfoundry/runtime oauth:provision",
     "build:codex-installer": "node tooling/codex-connect/buildInstaller.script.mjs",
+    "pack:codex-installer": "pnpm build:codex-installer && node tooling/codex-connect/buildPackage.script.mjs && pnpm --dir dist/codex-connect-package pack --pack-destination ../packages",
     "test:codex-installer": "node tooling/codex-connect/buildInstaller.script.mjs --check && node --test tests/tooling/codex-connect/*.test.mjs",
     "build:headless-renderer-proof": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && pnpm --filter @theoryfoundry/renderer build && node tooling/headless-renderer/build.script.mjs",
     "proof:headless-renderer": "pnpm build:headless-renderer-proof && node dist/headless-renderer-proof/cli.mjs",
