@@ -4,6 +4,7 @@ import { BrowserWorkspace } from "@/workspace.composition";
 import { notFound, redirect } from "next/navigation";
 import {
   getAuthenticatedUser,
+  localWorkerEnabled,
   remoteMcpEnabled,
   remoteMcpIdentity,
   withConfiguredCadRuntime,
@@ -38,6 +39,7 @@ export default async function ProjectPage({
       projectId={projectId.data}
       localMcpBridgeEnabled={localMcpBridge}
       remoteMcpEnabled={remoteMcpEnabled()}
+      localWorkerAvailable={localWorkerEnabled()}
       codexOrigin={remoteMcpEnabled() ? remoteMcpIdentity().origin : undefined}
     />
   );

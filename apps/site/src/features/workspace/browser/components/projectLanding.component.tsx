@@ -3,7 +3,7 @@ import type { JSX } from "react";
 
 import type { ProjectSummary } from "@theoryfoundry/contracts";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { authClient } from "../../../authentication/browser/index";
 
 export function ProjectLanding({
@@ -16,7 +16,10 @@ export function ProjectLanding({
   remoteMcpEnabled?: boolean;
 }): JSX.Element {
   const router = useRouter();
+  const createButton = useRef<HTMLButtonElement>(null);
   const [pending, setPending] = useState(false);
+  const [signOutPending, setSignOutPending] = useState(false);
+  const busy = pending || signOutPending;
   const [error, setError] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState("");
@@ -25,6 +28,7 @@ export function ProjectLanding({
     event: FormEvent<HTMLFormElement>,
   ): Promise<void> {
     event.preventDefault();
+    if (busy) return;
     setPending(true);
     setError("");
     try {
@@ -48,53 +52,77 @@ export function ProjectLanding({
     }
   }
   async function signOut(): Promise<void> {
-    await authClient.signOut();
-    router.replace("/sign-in");
-    router.refresh();
+    if (busy) return;
+    setSignOutPending(true);
+    setError("");
+    try {
+      const result = await authClient.signOut();
+      if (result.error) throw new Error("sign-out failed");
+      router.replace("/sign-in");
+      router.refresh();
+    } catch {
+      setError("Sign-out is temporarily unavailable. Please try again.");
+    } finally {
+      setSignOutPending(false);
+    }
   }
   return (
     <main className="project-landing">
       <header>
         <div>
-          <p className="eyebrow">TheoryFoundry Conversational CAD</p>
-          <h1>Your projects</h1>
-          <p>Signed in as {userName}</p>
+          <p className="project-brand">TheoryFoundry</p>
+          <h1 id="project-list-title">Your projects</h1>
+          <p className="project-account">Signed in as {userName}</p>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            void signOut();
-          }}
-        >
-          Sign out
-        </button>
-      </header>
-      {remoteMcpEnabled && (
-        <p>
-          <a href="/settings/connected-apps">Connected Apps</a>
-        </p>
-      )}
-      <section aria-labelledby="project-list-title">
-        <div className="project-list-heading">
-          <h2 id="project-list-title">Projects</h2>
+        <nav className="project-account-actions" aria-label="Account">
+          {remoteMcpEnabled && (
+            <a href="/settings/connected-apps">Connected apps</a>
+          )}
           <button
             type="button"
-            onClick={() => setIsCreating((value) => !value)}
-            disabled={pending}
+            disabled={busy}
+            onClick={() => {
+              void signOut();
+            }}
           >
-            {isCreating ? "Cancel" : "New project"}
+            {signOutPending ? "Signing out…" : "Sign out"}
+          </button>
+        </nav>
+      </header>
+      <section aria-labelledby="project-list-title">
+        <div className="project-list-heading">
+          <p className="project-count">
+            {projects.length} {projects.length === 1 ? "project" : "projects"}
+          </p>
+          <button
+            type="button"
+            ref={createButton}
+            className="button-primary"
+            aria-expanded={isCreating}
+            aria-controls="new-project-form"
+            onClick={() => {
+              setError("");
+              setIsCreating((value) => !value);
+            }}
+            disabled={busy}
+          >
+            {isCreating ? "Close form" : "New project"}
           </button>
         </div>
         {isCreating && (
           <form
+            id="new-project-form"
+            aria-labelledby="new-project-title"
             className="project-form"
             onSubmit={(event) => {
               void createProject(event);
             }}
           >
+            <h2 id="new-project-title">Create a project</h2>
             <label>
-              Title
+              Project name
               <input
+                disabled={busy}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 required
@@ -105,6 +133,7 @@ export function ProjectLanding({
             <label>
               Description
               <textarea
+                disabled={busy}
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 required
@@ -112,9 +141,22 @@ export function ProjectLanding({
                 rows={3}
               />
             </label>
-            <button type="submit" disabled={pending}>
-              {pending ? "Creating…" : "Create project"}
-            </button>
+            <div className="project-form-actions">
+              <button type="submit" className="button-primary" disabled={busy}>
+                {pending ? "Creating…" : "Create project"}
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => {
+                  setIsCreating(false);
+                  setError("");
+                  createButton.current?.focus();
+                }}
+              >
+                Cancel
+              </button>
+            </div>
           </form>
         )}
         {error ? (
@@ -123,25 +165,36 @@ export function ProjectLanding({
           </p>
         ) : null}
         {projects.length === 0 ? (
-          <p>No projects yet. Create one to start a model.</p>
+          <div className="projects-empty">
+            <h2>Start your first model</h2>
+            <p>
+              Create a project to keep its model and revision history together.
+            </p>
+          </div>
         ) : (
           <ul>
             {projects.map((project) => (
               <li key={project.projectId}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    router.push(
-                      `/projects/${encodeURIComponent(project.projectId)}`,
-                    )
-                  }
+                <a
+                  className="project-open"
+                  href={`/projects/${encodeURIComponent(project.projectId)}`}
                 >
-                  <span className="project-list-details">
-                    <strong>{project.name}</strong>
-                    <span>{project.description}</span>
-                  </span>
-                  <code>{project.projectId}</code>
-                </button>
+                  <strong>{project.name}</strong>
+                  <span aria-hidden="true">Open →</span>
+                </a>
+                <details className="project-details">
+                  <summary>
+                    Project details
+                    <span className="sr-only"> for {project.name}</span>
+                  </summary>
+                  <p>{project.description}</p>
+                  <dl>
+                    <dt>Project ID</dt>
+                    <dd>
+                      <code>{project.projectId}</code>
+                    </dd>
+                  </dl>
+                </details>
               </li>
             ))}
           </ul>

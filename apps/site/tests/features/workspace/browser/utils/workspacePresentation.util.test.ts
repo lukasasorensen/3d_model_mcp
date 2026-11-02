@@ -35,9 +35,9 @@ void test("composer sends only with Ctrl/Command+Enter and selected history rema
   );
   assert.equal(selected.currentRevision, "revision-2");
   assert.equal(selected.selectedRevision, "revision-1");
-  assert.equal(shouldRestoreComposerFocus(true, false, true), true);
-  assert.equal(shouldRestoreComposerFocus(true, false, false), false);
-  assert.equal(shouldRestoreComposerFocus(false, false, true), false);
+  assert.equal(shouldRestoreComposerFocus(true, false, true, true), true);
+  assert.equal(shouldRestoreComposerFocus(true, false, false, true), false);
+  assert.equal(shouldRestoreComposerFocus(false, false, true, true), false);
   assert.equal(readinessFromProbe({ ok: false }), "unavailable");
   assert.equal(readinessFromProbe({ ok: true }), "ready");
   assert.equal(chatStatusLabel(false, false), "Unavailable");
@@ -69,4 +69,9 @@ void test("starter prompts are state-aware and match deterministic CAD actions",
       (prompt) => /100 mm/.test(prompt) && /70 mm spacing/.test(prompt),
     ),
   );
+});
+
+void test("request completion does not take focus from another control", () => {
+  assert.equal(shouldRestoreComposerFocus(true, false, true, false), false);
+  assert.equal(shouldRestoreComposerFocus(true, true, true, true), false);
 });

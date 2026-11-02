@@ -9,6 +9,8 @@ export default tseslint.config(
       "**/.next*/**",
       "**/node_modules/**",
       "**/coverage/**",
+      "test-results/**",
+      "playwright-report/**",
       ".omx/**",
       ".pnpm-store/**",
       "apps/site/public/vendor/**",

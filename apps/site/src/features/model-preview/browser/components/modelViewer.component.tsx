@@ -99,7 +99,7 @@ function Scene({
   const material = useMemo(
     () =>
       new MeshStandardMaterial({
-        color: new Color("#dde5dd"),
+        color: new Color("#ffffff"),
         roughness: 0.72,
         metalness: 0.05,
       }),
@@ -123,6 +123,7 @@ function Scene({
   }, [camera, controls, geometry, invalidate]);
 
   useEffect(() => {
+    controls.rotateSpeed = 0.5;
     controls.enableDamping = false;
     controls.enablePan = true;
     controls.enableRotate = true;
@@ -277,6 +278,9 @@ export function ModelViewer({
           projectId,
         );
         setGeometry(next);
+        // Validation finishes independently of a visible WebGL canvas.
+        // Resource disposal still waits for the scene to commit the swap.
+        setLoadState("ready");
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) setLoadState("error");
@@ -310,7 +314,6 @@ export function ModelViewer({
       pendingGeometryRef.current = undefined;
       if (autoFitPending.current) lastFittedProjectId.current = projectId;
       autoFitPending.current = false;
-      setLoadState("ready");
     },
     [projectId],
   );

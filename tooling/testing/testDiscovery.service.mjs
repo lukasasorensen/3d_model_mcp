@@ -7,6 +7,8 @@ const excludedDirectories = new Set([
   ".pnpm-store",
   "dist",
   "coverage",
+  "test-results",
+  "playwright-report",
   "vendor",
   ".codex",
   ".omx",
@@ -73,4 +75,9 @@ export function runTestGroups(groups, execute) {
     if (result.status !== 0) return result.status ?? 1;
   }
   return 0;
+}
+
+// Playwright owns browser integration tests; Node must never execute them.
+export function isBrowserTest(file) {
+  return file.replaceAll("\\", "/").startsWith("apps/site/tests/browser/");
 }

@@ -1,0 +1,59 @@
+.auth-shell > .connected-apps {
+  width: min(100%, 880px);
+  min-width: 0;
+  padding: clamp(16px, 3vw, 32px);
+  border: 0;
+  border-radius: var(--control-radius);
+}
+.connected-apps-heading,
+.connected-apps-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+.connected-apps-heading > div,
+.connected-apps-list strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.connected-apps-heading a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text-muted);
+  text-underline-offset: 4px;
+}
+.connected-apps-help {
+  margin-top: var(--space-4);
+  color: var(--text-muted);
+}
+.connected-apps-status:not(:empty),
+.connected-apps .auth-error {
+  margin-top: var(--space-4);
+  overflow-wrap: anywhere;
+}
+.connected-apps-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.connected-apps-list li,
+.connected-apps-empty {
+  padding: var(--space-4);
+  background: var(--canvas);
+  border-radius: var(--control-radius);
+}
+.connected-apps-list strong {
+  flex: 1 1 180px;
+}
+.connected-apps-list button {
+  flex: 0 0 auto;
+}
+.connected-apps-empty {
+  margin-top: var(--space-6);
+  color: var(--text-muted);
+}

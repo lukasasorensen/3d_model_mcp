@@ -10,14 +10,7 @@ import {
   type ProjectSummary,
 } from "@theoryfoundry/contracts";
 import { useRouter } from "next/navigation";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useReducer,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
   completeBrowserRender,
   useBrowserPresence,
@@ -26,6 +19,7 @@ import {
 import { streamChat, useSidebarChat } from "../../../chat/browser/index";
 import type { PreviewLoadState } from "../../../model-preview/browser/index";
 import { useProjectEvents } from "../../../project-events/browser/index";
+import { useComposerFocus } from "./useComposerFocus.hook";
 import { useMcpBrowserRenderer } from "../hooks/useMcpBrowserRenderer.hook";
 import { createProjectSnapshotLoader } from "../services/projectSnapshotLoader.service";
 import {
@@ -39,10 +33,7 @@ import {
 } from "../../../exports/browser/index";
 import { fetchRevisionSource } from "../../../model-preview/browser/index";
 
-import {
-  newOpaqueId,
-  shouldRestoreComposerFocus,
-} from "../utils/workspacePresentation.util";
+import { newOpaqueId } from "../utils/workspacePresentation.util";
 const SESSION_KEY_PREFIX = "theoryfoundry-cad-session:";
 export function useModelWorkspace({
   projectId,
@@ -75,7 +66,6 @@ export function useModelWorkspace({
   const abortRef = useRef<AbortController | undefined>(undefined);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const lastMessage = useRef("");
-  const wasActive = useRef(false);
   const [sessionId, setSessionId] = useState("");
 
   const snapshotLoader = useRef<
@@ -245,15 +235,15 @@ export function useModelWorkspace({
     if (!isSidebarChatEnabled) abortRef.current?.abort();
   }, [isSidebarChatEnabled]);
 
-  useLayoutEffect(() => {
-    const available = readiness === "ready" && Boolean(sessionId);
-    if (shouldRestoreComposerFocus(wasActive.current, state.active, available))
-      composerRef.current?.focus();
-    wasActive.current = state.active;
-  }, [readiness, sessionId, state.active]);
+  useComposerFocus(
+    state.active,
+    readiness === "ready" && Boolean(sessionId),
+    composerRef,
+  );
 
   const restore = async (revisionId: string): Promise<void> => {
     if (!(await acquireRenderer())) return;
+    dispatch({ type: "clear_notice" });
     setRestorePending(true);
     try {
       const response = await fetch(

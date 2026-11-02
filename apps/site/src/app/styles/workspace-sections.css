@@ -1,0 +1,80 @@
+.workspace-sections {
+  display: none;
+}
+.model-primary {
+  display: contents;
+}
+.model-primary > .viewer-shell,
+.model-primary > .viewer-loading {
+  flex: 1 0 340px;
+}
+
+@media (max-width: 1023px) {
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+  }
+  .workspace-sections {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background: var(--surface-1);
+  }
+  .workspace-sections button {
+    flex: 1;
+    padding: var(--space-3) var(--space-2);
+    background: transparent;
+    border-radius: 0;
+  }
+  .workspace-sections [aria-pressed="true"] {
+    box-shadow: inset 0 -3px var(--accent-contrast);
+    font-weight: 700;
+  }
+  .workspace-grid,
+  .workspace-grid.chat-collapsed {
+    display: flex;
+    flex-direction: column;
+  }
+  .model-pane {
+    min-height: 0;
+    border: 0;
+  }
+  .model-primary > .viewer-shell,
+  .model-primary > .viewer-loading {
+    flex: none;
+  }
+  .app-shell:not([data-section="model"]) .model-primary,
+  .app-shell:not([data-section="details"]) .model-details,
+  .app-shell:not([data-section="conversation"]) .chat-pane {
+    display: none;
+  }
+  .model-details {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .chat-pane {
+    min-height: 0;
+  }
+  .chat-pane .chat-toggle {
+    display: none;
+  }
+  .chat-content {
+    display: flex;
+    flex-direction: column;
+  }
+  .transcript {
+    max-height: 40svh;
+  }
+  .chat-empty {
+    margin: var(--space-4) auto;
+  }
+  .composer {
+    position: static;
+  }
+}
+
+@media (forced-colors: active) {
+  .workspace-sections [aria-pressed="true"] {
+    outline: 2px solid Highlight;
+  }
+}

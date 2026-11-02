@@ -17,14 +17,28 @@ OAuth provisioning and headless-renderer commands remain in `package.json`.
 | `pnpm check:conventions`                    | Check naming, test placement and physical line caps                    |
 | `pnpm lint` / `pnpm typecheck`              | Typed flat ESLint and source/test TypeScript checks                    |
 | `pnpm build`                                | Build libraries and the Next.js app                                    |
-| `pnpm verify`                               | Run all checks, tests and builds without rewriting source              |
+| `pnpm verify`                               | Run all checks, Node/browser tests and builds without rewriting source |
 
 All handwritten files use Prettier where a parser is available. Format explicit files
 with `pnpm exec prettier --write path/to/file`. Every handwritten text file is capped
 at 500 physical lines, including tests, configuration and docs. Both legacy baselines
 are empty and must stay empty; see [architecture conventions](architecture-conventions.md).
 
-Discovery includes `.test` and `.spec` files with mjs/cjs/js/ts/tsx extensions, regardless
+Browser integration tests live under `apps/site/tests/browser/`, mirroring the
+source features. Run `pnpm exec playwright install chromium` once locally, then
+`pnpm test:browser`; pass a filename filter to run one test. `pnpm test:browser --list`
+lists browser coverage. The `chromium` and `chromium-accessibility` projects run
+the suite normally and with forced colors/reduced motion. Use
+`pnpm test:browser --project=chromium` to select one. Playwright owns these tests and the Node runner excludes
+this directory, so they execute once during `pnpm verify`. No server or database
+is needed: real components/styles use explicit fixture service boundaries.
+CI installs Chromium and system dependencies before verification. Failures retain
+screenshots/traces under `test-results/browser/` and an HTML report under
+`playwright-report/`; CI uploads these as `browser-test-results` for seven days.
+Use `pnpm exec playwright show-report` to view the local report. Browser tests do
+not replace authenticated end-to-end or assistive-technology acceptance.
+
+Node discovery includes `.test` and `.spec` files with mjs/cjs/js/ts/tsx extensions, regardless
 of depth, excluding known output/dependency directories and symlinks. Mixed TypeScript
 suites use `tsx`. Nested workspaces belong to their closest package, so model-project
 is not run twice. Test fixtures must not embed executable test files in the repository;
@@ -40,7 +54,7 @@ concurrency uses `THEORYFOUNDRY_TEST_EXPORT_DATABASE_URL`. Report these skips se
 Compose configuration tests require Docker Compose (CI checks its presence); they do
 not start production services. Do not claim live or real PostgreSQL acceptance from PGlite.
 
-CI runs on PRs and pushes to the existing `master`, with read-only permissions and no
+CI runs on PRs and pushes to `master` and `develop`, with read-only permissions and no
 secrets. It installs from the frozen lockfile, runs `pnpm verify`, builds the worker
 tarball, smoke-tests exact-version `pnpm dlx` outside the repository, and checks
 tracked-file nonmutation. `ALIGNMENT_BASE_REF` is the PR base SHA or pre-push SHA; local checks use
@@ -50,7 +64,13 @@ Temporary-Git-repository tooling regressions skip only when the Git executable i
 absent (such as a slim build image); they run in checkout CI. The other tooling tests
 remain independent of Git. The convention commands themselves never skip missing history.
 
-Use short-lived `codex/<ISSUE-ID>-<slug>` branches. Read the issue first, verify saved
+Create short-lived `codex/<ISSUE-ID>-<slug>` branches from `develop` and target their
+PRs at `develop`. This integration branch has no deployment attached. Promote tested changes
+with a separate PR from `develop` to `master`; production continues to track `master`.
+Merging into `develop` must not trigger production deployment. A hosted staging
+environment is outside the current scope and requires a separate setup request.
+
+Read the issue first, verify saved
 Linear updates, open a focused PR with correct issue linkage, and distinguish code
 completion from deployment/acceptance. Merge only when explicitly requested, after
 rechecking head and required checks. Branch protection is separate from adding CI.
