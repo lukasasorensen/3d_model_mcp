@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,9 +15,6 @@ test("plugin archives contain only the intended files, correct public clients, a
   try {
     const output = join(directory, "release");
     const readiness = await buildPluginPackages(root, output);
-    assert.ok(
-      readiness.missingPublicationMetadata.includes("termsOfServiceURL"),
-    );
     const archives = {};
     for (const client of ["codex", "claude"]) {
       const path = join(
@@ -70,16 +67,46 @@ test("plugin archives contain only the intended files, correct public clients, a
         ),
         archives[client],
       );
-    await assert.rejects(
-      buildPluginPackages(root, output, true),
-      /Public submission is not ready/,
-    );
     const metadata = JSON.parse(
       await readFile(
         join(root, "plugins/theoryfoundry/plugin.metadata.json"),
         "utf8",
       ),
     );
+    const fixture = join(directory, "fixture");
+    await mkdir(fixture);
+    await cp(join(root, "plugins"), join(fixture, "plugins"), {
+      recursive: true,
+    });
+    await writeFile(
+      join(fixture, "package.json"),
+      JSON.stringify({ version: metadata.version }),
+    );
+    const publicationFile = join(
+      fixture,
+      "plugins/theoryfoundry/publication.metadata.json",
+    );
+    await writeFile(publicationFile, "{}");
+    await assert.rejects(
+      buildPluginPackages(fixture, join(directory, "submission"), true),
+      /Public submission is not ready/,
+    );
+    await writeFile(
+      publicationFile,
+      JSON.stringify({
+        supportURL: "https://example.test/support",
+        privacyPolicyURL: "https://example.test/privacy",
+        termsOfServiceURL: "https://example.test/terms",
+        demoRecordingURL: "https://example.test/recording",
+      }),
+    );
+    const submission = await buildPluginPackages(
+      fixture,
+      join(directory, "submission"),
+      true,
+    );
+    assert.deepEqual(submission.missingPublicationMetadata, []);
+    assert.ok(submission.pending.includes("directory review and approval"));
     assert.throws(() =>
       pluginManifests(
         { ...metadata, origin: "http://example.com" },
