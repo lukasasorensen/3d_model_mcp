@@ -11,9 +11,11 @@ import {
 export function ConnectToCodex({
   origin,
   projectId,
+  localWorkerAvailable = false,
 }: {
   origin: string;
   projectId?: string;
+  localWorkerAvailable?: boolean;
 }): JSX.Element {
   const dialog = useRef<HTMLDialogElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
@@ -23,6 +25,7 @@ export function ConnectToCodex({
   const scopeId = useId();
   const [step, setStep] = useState<"choose" | "install">("choose");
   const [mode, setMode] = useState<"hosted" | "local">("hosted");
+  const effectiveMode = localWorkerAvailable ? mode : "hosted";
   const [client, setClient] = useState<"codex" | "claude">("codex");
   const [scope, setScope] = useState<CodexConnectionScope>("global");
   useEffect(() => {
@@ -55,7 +58,9 @@ export function ConnectToCodex({
             </p>
             <h2 ref={title} id={titleId} tabIndex={-1}>
               {step === "choose"
-                ? "Choose your connection"
+                ? localWorkerAvailable
+                  ? "Choose your connection"
+                  : "Set up browser rendering"
                 : "Install and authorize"}
             </h2>
           </div>
@@ -67,42 +72,49 @@ export function ConnectToCodex({
         </header>
         {step === "choose" ? (
           <div className="setup-choices">
-            <fieldset>
-              <legend>Where should rendering run?</legend>
-              <label className="setup-choice">
-                <input
-                  type="radio"
-                  name={modeName}
-                  value="hosted"
-                  checked={mode === "hosted"}
-                  onChange={() => setMode("hosted")}
-                />
-                <span>
-                  <strong>In this browser</strong>
-                  <small>
-                    Connect Codex to TheoryFoundry. Keep the project tab visible
-                    during rendering.
-                  </small>
-                </span>
-              </label>
-              <label className="setup-choice">
-                <input
-                  type="radio"
-                  name={modeName}
-                  value="local"
-                  checked={mode === "local"}
-                  onChange={() => setMode("local")}
-                />
-                <span>
-                  <strong>On your Mac</strong>
-                  <small>
-                    Use a local worker with Codex or Claude Code. You can close
-                    the project tab after setup.
-                  </small>
-                </span>
-              </label>
-            </fieldset>
-            {mode === "local" && (
+            {localWorkerAvailable ? (
+              <fieldset>
+                <legend>Where should rendering run?</legend>
+                <label className="setup-choice">
+                  <input
+                    type="radio"
+                    name={modeName}
+                    value="hosted"
+                    checked={effectiveMode === "hosted"}
+                    onChange={() => setMode("hosted")}
+                  />
+                  <span>
+                    <strong>In this browser</strong>
+                    <small>
+                      Connect Codex to TheoryFoundry. Keep the project tab
+                      visible during rendering.
+                    </small>
+                  </span>
+                </label>
+                <label className="setup-choice">
+                  <input
+                    type="radio"
+                    name={modeName}
+                    value="local"
+                    checked={effectiveMode === "local"}
+                    onChange={() => setMode("local")}
+                  />
+                  <span>
+                    <strong>On your Mac</strong>
+                    <small>
+                      Use a local worker with Codex or Claude Code. You can
+                      close the project tab after setup.
+                    </small>
+                  </span>
+                </label>
+              </fieldset>
+            ) : (
+              <p>
+                Connect Codex to TheoryFoundry. Keep the project tab visible
+                during rendering.
+              </p>
+            )}
+            {effectiveMode === "local" && (
               <div className="setup-field">
                 <label htmlFor={clientId}>Client</label>
                 <select
@@ -146,7 +158,7 @@ export function ConnectToCodex({
           <div className="setup-install">
             <div className="setup-selection">
               <p>
-                {mode === "hosted"
+                {effectiveMode === "hosted"
                   ? "Browser rendering · Codex"
                   : `Local worker · ${client === "codex" ? "Codex" : "Claude Code"}`}{" "}
                 · {scope === "global" ? "All projects" : "This repository"}
@@ -155,7 +167,7 @@ export function ConnectToCodex({
                 Change choices
               </button>
             </div>
-            {mode === "local" ? (
+            {effectiveMode === "local" ? (
               <LocalWorkerSetup origin={origin} client={client} scope={scope} />
             ) : (
               <HostedSetup origin={origin} scope={scope} />

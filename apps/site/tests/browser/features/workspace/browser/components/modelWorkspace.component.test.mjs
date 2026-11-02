@@ -8,7 +8,7 @@ test("workspace focus, responsive sections and integrated connection setup", asy
 }) => {
   const result = await build({
     stdin: {
-      contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {ModelWorkspace} from './src/features/workspace/browser/components/modelWorkspace.component'; createRoot(document.getElementById('root')).render(<ModelWorkspace projectId="sample" remoteMcpEnabled codexOrigin="https://example.test"/>);`,
+      contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {ModelWorkspace} from './src/features/workspace/browser/components/modelWorkspace.component'; const root=createRoot(document.getElementById('root'));window.renderConnection=(available,remote=true)=>root.render(<ModelWorkspace projectId="sample" remoteMcpEnabled={remote} localWorkerAvailable={available} codexOrigin="https://example.test"/>);window.renderConnection();`,
       resolveDir: root + "/apps/site",
       loader: "tsx",
     },
@@ -131,6 +131,30 @@ test("workspace focus, responsive sections and integrated connection setup", asy
       false,
     );
   }
+  for (const available of [true, false, undefined]) {
+    await page.evaluate((value) => window.renderConnection(value), available);
+    await page
+      .getByRole("button", { name: "Connect CAD tools", exact: true })
+      .click();
+    assert.equal(await page.getByRole("radio").count(), available ? 2 : 0);
+    if (available)
+      await page.getByRole("radio", { name: /On your Mac/ }).check();
+    await page
+      .getByRole("button", { name: "Continue to setup", exact: true })
+      .click();
+    const command = await page
+      .getByLabel("Setup command", { exact: true })
+      .inputValue();
+    assert.equal(
+      command.includes("@tfoundry/local-worker"),
+      Boolean(available),
+    );
+    await page.keyboard.press("Escape");
+  }
+  await page.evaluate(() => window.renderConnection(true, false));
+  await page
+    .getByRole("button", { name: "Connect CAD tools", exact: true })
+    .waitFor({ state: "detached" });
   console.log(
     "PASS: integrated workspace/setup at 1440/390/320px preserves draft, project context and dialog focus without overflow",
   );

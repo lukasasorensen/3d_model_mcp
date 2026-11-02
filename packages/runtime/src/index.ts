@@ -74,3 +74,5 @@ export type { ModelExportOperations } from "./features/model-export/index.js";
 export type { AuthenticatedUser } from "./features/authentication/index.js";
 
 export type { ConnectedCadMcpClient } from "./features/mcp/index.js";
+
+export { localWorkerEnabled } from "./shared/utils/localWorkerPolicy.util.js";

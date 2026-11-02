@@ -30,11 +30,13 @@ export function ModelWorkspace({
   localMcpBridgeEnabled = false,
   remoteMcpEnabled = false,
   codexOrigin,
+  localWorkerAvailable = false,
 }: {
   projectId: string;
   localMcpBridgeEnabled?: boolean;
   remoteMcpEnabled?: boolean;
   codexOrigin?: string | undefined;
+  localWorkerAvailable?: boolean;
 }): JSX.Element {
   const projectSelectorId = useId();
   const {
@@ -101,7 +103,11 @@ export function ModelWorkspace({
         </div>
         <div className="header-controls">
           {remoteMcpEnabled && codexOrigin && (
-            <ConnectToCodex origin={codexOrigin} projectId={projectId} />
+            <ConnectToCodex
+              origin={codexOrigin}
+              projectId={projectId}
+              localWorkerAvailable={localWorkerAvailable}
+            />
           )}
           <button
             type="button"
