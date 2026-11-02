@@ -59,8 +59,9 @@ from hosted setup. Changing scope or client clears stale command-copy feedback.
 The existing server-controlled local-worker availability gate remains in place.
 
 The toolbar brand reads “3d AI MCP Server | TheoryFoundry” and wraps at phone
-widths. Canvas uses #14191e; primary actions and the independent accent-text token
-use #36aaaf, with accent text applied to headings and existing accent labels.
+widths. Canvas uses #14191e; primary actions use #36aaaf. The independent accent-text
+token uses #2ba1a6 on headings, Revision/Dimensions/Preview labels, the download
+format label, and existing accent labels.
 Mouse orbit rotation uses half the default speed; keyboard view commands retain
 their existing increments.
 

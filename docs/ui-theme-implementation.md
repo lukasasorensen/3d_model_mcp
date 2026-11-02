@@ -15,7 +15,8 @@ or deploy it.
   and visible focus states. Authentication inputs now have explicit focus rules.
   Forced-colors mode restores system-colored boundaries, including for inputs.
 - Primary buttons use #36aaaf with #07110e text. Focus uses #66b8bc;
-  the separate #36aaaf accent-text token colors headings and accent labels.
+  the separate #2ba1a6 accent-text token colors headings, model fact labels,
+  the download format label, and existing accent labels.
   The canvas uses #14191e.
 - Restore actions fit their content rather than spanning the entire history row.
 - Connection setup inherits the shared surfaces and text colors.
