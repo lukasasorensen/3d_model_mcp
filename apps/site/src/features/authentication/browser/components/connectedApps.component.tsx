@@ -1,7 +1,10 @@
 "use client";
 import { useId, useRef, useState, type JSX } from "react";
 import { useRouter } from "next/navigation";
-import { ConnectToCodex } from "../../../onboarding/browser/index";
+import {
+  type HostedInstallations,
+  ConnectToCodex,
+} from "../../../onboarding/browser/index";
 
 type Grant = { id: string; name: string };
 
@@ -9,10 +12,12 @@ export function ConnectedApps({
   grants,
   codexOrigin,
   localWorkerAvailable = false,
+  installations,
 }: {
   grants: Grant[];
   codexOrigin: string;
   localWorkerAvailable?: boolean;
+  installations?: HostedInstallations | undefined;
 }): JSX.Element {
   const router = useRouter();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -55,6 +60,7 @@ export function ConnectedApps({
         <ConnectToCodex
           origin={codexOrigin}
           localWorkerAvailable={localWorkerAvailable}
+          installations={installations}
         />
       </header>
       <p className="connected-apps-help">

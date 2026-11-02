@@ -127,7 +127,13 @@ For repository scope, run it from the Git repository root, then trust that
 repository in Codex. Scope controls configuration availability, not CAD ownership
 or authorization.
 
-The setup command runs the versioned npm installer:
+The primary setup path selects Codex or Claude Code and links to its published
+TheoryFoundry plugin. Until a verified listing URL is configured for this deployment,
+the dialog provides matching-origin manual configuration instead. See
+[plugin packaging and release](plugin-release.md).
+
+The optional Codex npm installer is available under Advanced setup only after its
+exact version is published and the operator enables it:
 
 ```sh
 npx --yes @tfoundry/connect-codex@0.2.0 https://YOUR-CAD-DOMAIN global
@@ -151,8 +157,8 @@ The installer is built from `tooling/codex-connect/` using
 `pnpm test:codex-installer` (included in `pnpm verify`) checks it is current and tests
 the installer, including an offline `npx` run from a packed tarball outside the checkout.
 See [installer packaging and release](codex-installer-release.md) for publication.
-Publish the pinned package and provision the OAuth client below before deploying
-the onboarding change.
+Publish the pinned package before enabling that optional installer. Provision the
+OAuth clients for each enabled installation path before advertising it.
 No database credentials, secrets, or tokens are included in the copied command.
 
 Remote MCP is opt-in: set `THEORYFOUNDRY_REMOTE_MCP_ENABLED=1` only after applying the

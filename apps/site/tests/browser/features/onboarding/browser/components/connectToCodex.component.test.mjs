@@ -7,7 +7,7 @@ import { test, root, applicationStyles } from "../../../../browser.fixture.mjs";
 test("connection setup choices, commands, clipboard and dialog navigation", async ({
   page,
 }) => {
-  const entry = `import React from 'react';import {createRoot} from 'react-dom/client';import {ConnectToCodex} from './src/features/onboarding/browser/components/connectToCodex.component';import {codexConnectCommand} from './src/features/onboarding/browser/utils/codexConnectCommand.util';import {localWorkerCommand} from './src/features/onboarding/browser/utils/localWorkerCommand.util';window.expected=(mode,client,scope)=>mode==='hosted'?codexConnectCommand('https://example.test',scope):localWorkerCommand('https://example.test',client,scope);createRoot(document.getElementById('root')).render(<ConnectToCodex origin="https://example.test" projectId="sample-project" localWorkerAvailable/>);`;
+  const entry = `import React from 'react';import {createRoot} from 'react-dom/client';import {ConnectToCodex} from './src/features/onboarding/browser/components/connectToCodex.component';import {codexConnectCommand} from './src/features/onboarding/browser/utils/codexConnectCommand.util';import {nativeMcpConfiguration,nativeClaudeCommand} from './src/features/onboarding/browser/utils/nativeMcpConfiguration.util';import {localWorkerCommand} from './src/features/onboarding/browser/utils/localWorkerCommand.util';window.expected=(mode,client,scope)=>mode==='hosted'?(client==='claude'&&scope==='global'?nativeClaudeCommand('https://example.test'):nativeMcpConfiguration('https://example.test',client)):localWorkerCommand('https://example.test',client,scope);createRoot(document.getElementById('root')).render(<ConnectToCodex origin="https://example.test" projectId="sample-project" localWorkerAvailable installations={{origin:"https://example.test",codex:"https://chatgpt.com/plugins/test",claude:"https://claude.ai/plugins/test",npmAvailable:true}}/>);`;
   const result = await build({
     stdin: { contents: entry, resolveDir: root + "/apps/site", loader: "tsx" },
     bundle: true,
@@ -41,7 +41,7 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
     }
   }
   expect(reached.has("Close")).toBe(true);
-  expect(reached.has("Copy setup command")).toBe(true);
+  expect(reached.has("Copy starter prompt")).toBe(true);
   await expect(
     page.getByRole("button", { name: "Continue to setup" }),
   ).toHaveCount(0);
@@ -52,7 +52,7 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
     page.getByLabel("Starter prompt", { exact: true }),
   ).toBeVisible();
   await expect(page.locator("dialog")).not.toContainText(
-    /Keep (?:the|this) project tab|CODEX_HOME|backs up changed settings|Step 1 of 2/,
+    /backs up changed settings|Step 1 of 2/,
   );
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 844 });
@@ -64,24 +64,43 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
     );
   }
   for (const mode of ["hosted", "local"])
-    for (const client of mode === "hosted" ? ["codex"] : ["codex", "claude"])
+    for (const client of ["codex", "claude"])
       for (const scope of ["global", "project"]) {
         await page
           .getByRole("radio", {
             name: mode === "hosted" ? /In this browser/ : /On your Mac/,
           })
           .check();
-        if (mode === "local")
-          await page.getByLabel("Client", { exact: true }).selectOption(client);
-        await page.getByLabel("Install for", { exact: true }).focus();
-        await page
-          .getByLabel("Install for", { exact: true })
-          .selectOption(scope);
+        await page.getByLabel("Client", { exact: true }).selectOption(client);
+        if (mode === "hosted") {
+          await expect(
+            page.getByRole("link", {
+              name: `Install for ${client === "codex" ? "Codex" : "Claude Code"}`,
+              exact: true,
+            }),
+          ).toBeVisible();
+          if (
+            (await page
+              .locator(".setup-instructions details")
+              .getAttribute("open")) === null
+          ) {
+            await page.getByText("Advanced setup", { exact: true }).click();
+          }
+        }
+        const scopeLabel =
+          mode === "hosted" ? "Manual installation scope" : "Install for";
+        await page.getByLabel(scopeLabel, { exact: true }).focus();
+        await page.getByLabel(scopeLabel, { exact: true }).selectOption(scope);
         await expect(
-          page.getByLabel("Install for", { exact: true }),
+          page.getByLabel(scopeLabel, { exact: true }),
         ).toBeFocused();
         assert.equal(
-          await page.getByLabel("Setup command", { exact: true }).inputValue(),
+          await page
+            .getByLabel(
+              mode === "hosted" ? "Connection settings" : "Setup command",
+              { exact: true },
+            )
+            .inputValue(),
           await page.evaluate(
             ({ mode, client, scope }) => window.expected(mode, client, scope),
             { mode, client, scope },
@@ -94,7 +113,7 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
           false,
         );
         assert.equal(
-          await page.getByLabel("Install for", { exact: true }).inputValue(),
+          await page.getByLabel(scopeLabel, { exact: true }).inputValue(),
           scope,
         );
       }
@@ -158,7 +177,7 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
   await page.getByLabel("Install for", { exact: true }).selectOption("global");
   await expect(page.getByText(/Clipboard unavailable/)).toHaveCount(0);
   console.log(
-    "PASS: all six immediate command variants, selection focus, preserved choices, clipboard success/unavailable, starter prompt, Escape focus, reopen and responsive overflow",
+    "PASS: all eight hosted/local configuration variants, selection focus, preserved choices, clipboard success/unavailable, starter prompt, Escape focus, reopen and responsive overflow",
   );
 });
 
@@ -198,27 +217,31 @@ for (const available of [false, undefined]) {
       }),
     ).toBeFocused();
     await expect(dialog.getByRole("radio")).toHaveCount(0);
-    await expect(dialog.getByLabel("Client", { exact: true })).toHaveCount(0);
+    await expect(dialog.getByLabel("Client", { exact: true })).toBeVisible();
     await expect(dialog).not.toContainText(
-      /local worker|Claude|@tfoundry\/local-worker|On your Mac/i,
+      /local worker|@tfoundry\/local-worker|On your Mac/i,
     );
-    for (const scope of ["global", "project"]) {
-      await page.getByLabel("Install for", { exact: true }).focus();
-      await page.getByLabel("Install for", { exact: true }).selectOption(scope);
-      await expect(
-        page.getByLabel("Install for", { exact: true }),
-      ).toBeFocused();
-      const command = await page
-        .getByLabel("Setup command", { exact: true })
-        .inputValue();
-      expect(command).toContain("npx --yes @tfoundry/connect-codex@0.2.0");
-      expect(command).not.toContain("@tfoundry/local-worker");
-      await expect(
-        page.getByLabel("Starter prompt", { exact: true }),
-      ).toHaveValue(/sample-project/);
-      await expect(page.getByLabel("Install for", { exact: true })).toHaveValue(
-        scope,
-      );
+    await expect(dialog.getByRole("link", { name: /Install for/ })).toHaveCount(
+      0,
+    );
+    await expect(
+      dialog.getByLabel("Setup command", { exact: true }),
+    ).toHaveCount(0);
+    for (const client of ["codex", "claude"]) {
+      await page.getByLabel("Client", { exact: true }).selectOption(client);
+      for (const scope of ["global", "project"]) {
+        await page
+          .getByLabel("Manual installation scope", { exact: true })
+          .selectOption(scope);
+        expect(
+          await page
+            .getByLabel("Connection settings", { exact: true })
+            .inputValue(),
+        ).toContain("https://example.test/mcp");
+        await expect(
+          page.getByLabel("Starter prompt", { exact: true }),
+        ).toHaveValue(/sample-project/);
+      }
     }
     await page
       .getByRole("button", { name: "Close connection setup", exact: true })
@@ -256,3 +279,41 @@ for (const available of [false, undefined]) {
     await expect(trigger).toBeFocused();
   });
 }
+
+test("public listing links stay bound to their deployment and npm is optional", async ({
+  page,
+}) => {
+  const result = await build({
+    stdin: {
+      contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {ConnectToCodex} from './src/features/onboarding/browser/components/connectToCodex.component';const root=createRoot(document.getElementById('root'));window.renderOrigin=(origin)=>root.render(<ConnectToCodex origin={origin} installations={{origin:'https://3dai.theoryfoundry.com',codex:'https://chatgpt.com/plugins/test',claude:'https://claude.ai/plugins/test'}}/>);window.renderOrigin('https://3dai.theoryfoundry.com');`,
+      resolveDir: root + "/apps/site",
+      loader: "tsx",
+    },
+    bundle: true,
+    write: false,
+    jsx: "automatic",
+  });
+  await page.setContent('<div id="root"></div>');
+  await page.addScriptTag({ content: result.outputFiles[0].text });
+  await page
+    .getByRole("button", { name: "Connect CAD tools", exact: true })
+    .click();
+  await expect(
+    page.getByRole("link", { name: "Install for Codex", exact: true }),
+  ).toHaveAttribute("href", "https://chatgpt.com/plugins/test");
+  await expect(page.getByLabel("Setup command", { exact: true })).toHaveCount(
+    0,
+  );
+  await page.getByLabel("Client", { exact: true }).selectOption("claude");
+  await expect(
+    page.getByRole("link", { name: "Install for Claude Code", exact: true }),
+  ).toHaveAttribute("href", "https://claude.ai/plugins/test");
+  await page.evaluate(() => window.renderOrigin("http://localhost:3000"));
+  await expect(page.getByRole("link", { name: /Install for/ })).toHaveCount(0);
+  await expect(
+    page.getByLabel("Connection settings", { exact: true }),
+  ).toHaveValue(/http:\/\/localhost:3000\/mcp/);
+  await expect(page.getByLabel("Setup command", { exact: true })).toHaveCount(
+    0,
+  );
+});

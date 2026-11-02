@@ -1,6 +1,6 @@
 # Codex installer packaging and release
 
-The hosted Codex installer is distributed as `@tfoundry/connect-codex`.
+The optional hosted Codex installer is distributed as `@tfoundry/connect-codex`.
 Its npm metadata is in `tooling/codex-connect/package.metadata.json`; the generated
 package is outside the workspace under `dist/codex-connect-package/`. Existing
 workspace packages retain their identities. The package contains only a manifest,
@@ -32,7 +32,8 @@ npm publish dist/packages/tfoundry-connect-codex-0.2.0.tgz --access public
 npm view @tfoundry/connect-codex@0.2.0 version dist.integrity --registry https://registry.npmjs.org/
 ```
 
-Publication must precede deployment of the onboarding command. Before promotion,
+Publication must precede enabling `THEORYFOUNDRY_CODEX_NPM_AVAILABLE=1`.
+Plugins are the primary setup path; see [plugin release](plugin-release.md). Before promotion,
 verify the exact public version from a clean cache with `--help`, then complete
 the setup and browser authorization with an isolated Codex home against the target
 deployment. Restart Codex and verify the hosted CAD tools in a fresh session.

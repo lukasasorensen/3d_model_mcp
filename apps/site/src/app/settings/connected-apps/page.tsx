@@ -1,3 +1,4 @@
+import { pluginDistribution } from "../../../features/onboarding/server";
 import type { JSX } from "react";
 import {
   getAuthenticatedUser,
@@ -21,6 +22,7 @@ export default async function ConnectedAppsPage(): Promise<JSX.Element> {
       <ConnectedApps
         grants={await listOAuthGrants(getProjectDatabase().pool, user.id)}
         localWorkerAvailable={localWorkerEnabled()}
+        installations={pluginDistribution(process.env)}
         codexOrigin={remoteMcpIdentity().origin}
       />
     </main>

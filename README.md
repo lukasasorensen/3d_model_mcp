@@ -66,7 +66,7 @@ release gates; [earlier harness evidence](docs/g006-verification-evidence.json) 
 
 ## Remote Codex connection (deployed application)
 
-[Installer, OAuth provisioning and remote MCP operation](docs/mcp-clients.md#remote-codex-connection-deployed-application).
+[Plugins, optional installer, OAuth provisioning and remote MCP operation](docs/mcp-clients.md#remote-codex-connection-deployed-application).
 
 ## MCP model PNG previews
 

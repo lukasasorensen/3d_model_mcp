@@ -14,11 +14,26 @@ import { provisionWorkerClient } from "../../../dist/features/authentication/ser
 const verifier = "a".repeat(64);
 const challenge = createHash("sha256").update(verifier).digest("base64url");
 
-for (const worker of [false, true])
-  test(`real ${worker ? "worker" : "Codex"} OAuth login, PKCE, consent, refresh, token binding, storage, and revocation`, async () => {
-    const callback = worker
-      ? WORKER_OAUTH_CALLBACK
-      : "http://127.0.0.1/callback";
+for (const { worker, profile, callback } of [
+  { worker: false, profile: "codex", callback: "http://127.0.0.1/callback" },
+  { worker: true, profile: "codex", callback: WORKER_OAUTH_CALLBACK },
+  {
+    worker: false,
+    profile: "openai-plugin",
+    callback: "http://127.0.0.1/callback",
+  },
+  {
+    worker: false,
+    profile: "claude-code",
+    callback: "http://localhost/callback",
+  },
+  {
+    worker: false,
+    profile: "openai-plugin",
+    callback: "https://chatgpt.com/connector_platform_oauth_redirect",
+  },
+])
+  test(`real ${worker ? "worker" : profile} ${callback.startsWith("https:") ? "directory" : "native"} OAuth login, PKCE, consent, refresh, token binding, storage, and revocation`, async () => {
     const fixture = await createPostgresFixture();
     const previous = { ...process.env };
     Object.assign(process.env, {
@@ -38,7 +53,7 @@ for (const worker of [false, true])
       await auth.$context;
       const clientId = worker
         ? await provisionWorkerClient(fixture.pool)
-        : await provisionCodexClient(fixture.pool, callback);
+        : await provisionCodexClient(fixture.pool, callback, { profile });
       if (worker) {
         assert.equal(await provisionWorkerClient(fixture.pool), clientId);
         const client = (
@@ -54,11 +69,11 @@ for (const worker of [false, true])
         assert.deepEqual(client.redirect_uris, [WORKER_OAUTH_CALLBACK]);
       } else {
         assert.equal(
-          await provisionCodexClient(fixture.pool, callback),
+          await provisionCodexClient(fixture.pool, callback, { profile }),
           clientId,
         );
         const legacyCallback = "http://127.0.0.1/callback/legacy";
-        await provisionCodexClient(fixture.pool, legacyCallback);
+        await provisionCodexClient(fixture.pool, legacyCallback, { profile });
         assert.deepEqual(
           (
             await fixture.pool.query(
@@ -70,6 +85,7 @@ for (const worker of [false, true])
         );
         await provisionCodexClient(fixture.pool, callback, {
           replaceCallbacks: true,
+          profile,
         });
         assert.deepEqual(
           (

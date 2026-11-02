@@ -137,3 +137,11 @@
     max-height: calc(100dvh - 32px);
   }
 }
+
+.setup-plugin-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  border-radius: var(--control-radius);
+  text-decoration: none;
+}
