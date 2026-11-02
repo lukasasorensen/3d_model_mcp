@@ -49,3 +49,32 @@ prove authenticated project creation, actual CAD revision restoration/downloads,
 installer execution, or client authorization. The viewer suite uses an in-memory
 STL, not a real CAD engine request. Screen-reader and native-device acceptance
 remain separate. THE-41 stays In Progress until remaining acceptance is resolved.
+
+## PR 45 review follow-up — November 2, 2026
+
+Connection setup now shows choices and matching commands in one scrolling dialog,
+without Continue or Back navigation. The project starter is always expanded.
+The requested Codex-home, backup/conflict and browser-tab reminder copy is removed
+from hosted setup. Changing scope or client clears stale command-copy feedback.
+The existing server-controlled local-worker availability gate remains in place.
+
+The toolbar brand reads “3d AI MCP Server | TheoryFoundry” and wraps at phone
+widths. Canvas uses #14191e; primary actions and the independent accent-text token
+use #36aaaf, with accent text applied to headings and existing accent labels.
+Mouse orbit rotation uses half the default speed; keyboard view commands retain
+their existing increments.
+
+Verification on Node 24.21.0: full
+`THEORYFOUNDRY_NEXT_DIST_DIR=.next-acceptance pnpm verify` passed, including all
+48 browser executions in normal and forced-color/reduced-motion projects.
+Three existing optional Node tests remain skipped: the frozen p95 benchmark,
+provisioned PostgreSQL export concurrency, and provisioned PostgreSQL stdio/browser
+peer acceptance. No new skips. The separate build directory avoids interference
+with an active development server; its generated Next declaration was restored.
+
+Browser checks cover immediate command updates for all six supported variants,
+selection focus, clipboard fallback, choice retention, expanded starter text,
+Escape/Close focus, and 1440/390/320px overflow. Desktop and phone fixture
+screenshots were inspected. Real authenticated CAD, external-client authorization,
+physical-device and assistive-technology acceptance remain separate from these
+fixture checks. This PR update does not merge or deploy the redesign.

@@ -27,7 +27,7 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
   await close.focus();
   const reached = new Set();
   for (const direction of ["Tab", "Shift+Tab"]) {
-    for (let step = 0; step < 8; step++) {
+    for (let step = 0; step < 14; step++) {
       await page.keyboard.press(direction);
       const focus = await page.evaluate(() => ({
         // Native browser focus may leave the document, but never enter the inert page.
@@ -41,7 +41,19 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
     }
   }
   expect(reached.has("Close")).toBe(true);
-  expect(reached.has("Continue to setup")).toBe(true);
+  expect(reached.has("Copy setup command")).toBe(true);
+  await expect(
+    page.getByRole("button", { name: "Continue to setup" }),
+  ).toHaveCount(0);
+  await expect(
+    page.locator(".setup-starter details, details.setup-starter"),
+  ).toHaveCount(0);
+  await expect(
+    page.getByLabel("Starter prompt", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator("dialog")).not.toContainText(
+    /Keep (?:the|this) project tab|CODEX_HOME|backs up changed settings|Step 1 of 2/,
+  );
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 844 });
     assert.equal(
@@ -61,15 +73,13 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
           .check();
         if (mode === "local")
           await page.getByLabel("Client", { exact: true }).selectOption(client);
+        await page.getByLabel("Install for", { exact: true }).focus();
         await page
           .getByLabel("Install for", { exact: true })
           .selectOption(scope);
-        await page
-          .getByRole("button", { name: "Continue to setup", exact: true })
-          .click();
-        await page.waitForFunction(
-          () => document.activeElement?.textContent === "Install and authorize",
-        );
+        await expect(
+          page.getByLabel("Install for", { exact: true }),
+        ).toBeFocused();
         assert.equal(
           await page.getByLabel("Setup command", { exact: true }).inputValue(),
           await page.evaluate(
@@ -83,19 +93,11 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
             .evaluate((el) => el.scrollWidth > el.clientWidth),
           false,
         );
-        await page.getByRole("button", { name: "Back", exact: true }).click();
-        await page.waitForFunction(
-          () =>
-            document.activeElement?.textContent === "Choose your connection",
-        );
         assert.equal(
           await page.getByLabel("Install for", { exact: true }).inputValue(),
           scope,
         );
       }
-  await page
-    .getByRole("button", { name: "Continue to setup", exact: true })
-    .click();
   await page.evaluate(() =>
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,
@@ -124,7 +126,6 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
     .getByRole("button", { name: "Copy setup command", exact: true })
     .click();
   await page.getByText(/Clipboard unavailable/).waitFor();
-  await page.getByText("Start with this project", { exact: true }).click();
   assert.match(
     await page.getByLabel("Starter prompt", { exact: true }).inputValue(),
     /sample-project/,
@@ -145,11 +146,19 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
   await page
     .getByRole("button", { name: "Connect CAD tools", exact: true })
     .click();
-  await page
-    .getByRole("heading", { name: "Choose your connection", exact: true })
-    .waitFor();
+  await expect(
+    page.getByRole("heading", { name: "Connect CAD tools", exact: true }),
+  ).toBeFocused();
+  await expect(page.getByLabel("Install for", { exact: true })).toHaveValue(
+    "project",
+  );
+  await expect(page.getByLabel("Client", { exact: true })).toHaveValue(
+    "claude",
+  );
+  await page.getByLabel("Install for", { exact: true }).selectOption("global");
+  await expect(page.getByText(/Clipboard unavailable/)).toHaveCount(0);
   console.log(
-    "PASS: all six command variants, step focus, preserved choices, clipboard success/unavailable, starter prompt, Escape focus, reopen and responsive overflow",
+    "PASS: all six immediate command variants, selection focus, preserved choices, clipboard success/unavailable, starter prompt, Escape focus, reopen and responsive overflow",
   );
 });
 
@@ -194,32 +203,19 @@ for (const available of [false, undefined]) {
       /local worker|Claude|@tfoundry\/local-worker|On your Mac/i,
     );
     for (const scope of ["global", "project"]) {
+      await page.getByLabel("Install for", { exact: true }).focus();
       await page.getByLabel("Install for", { exact: true }).selectOption(scope);
-      await page
-        .getByRole("button", { name: "Continue to setup", exact: true })
-        .click();
       await expect(
-        page.getByRole("heading", {
-          name: "Install and authorize",
-          exact: true,
-        }),
+        page.getByLabel("Install for", { exact: true }),
       ).toBeFocused();
       const command = await page
         .getByLabel("Setup command", { exact: true })
         .inputValue();
       expect(command).toContain("connect-codex-v1.mjs");
       expect(command).not.toContain("@tfoundry");
-      await page.getByText("Start with this project", { exact: true }).click();
       await expect(
         page.getByLabel("Starter prompt", { exact: true }),
       ).toHaveValue(/sample-project/);
-      await page.getByRole("button", { name: "Back", exact: true }).click();
-      await expect(
-        page.getByRole("heading", {
-          name: "Set up browser rendering",
-          exact: true,
-        }),
-      ).toBeFocused();
       await expect(page.getByLabel("Install for", { exact: true })).toHaveValue(
         scope,
       );
@@ -245,6 +241,10 @@ for (const available of [false, undefined]) {
           (element) => element.scrollWidth > element.clientWidth,
         ),
       ).toBe(false);
+      await page.screenshot({
+        path: test.info().outputPath(`connection-${width}.png`),
+        fullPage: true,
+      });
     }
     await page.keyboard.press("Escape");
     await expect(trigger).toBeFocused();

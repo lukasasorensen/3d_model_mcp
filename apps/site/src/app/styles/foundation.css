@@ -1,6 +1,6 @@
 :root {
   color-scheme: dark;
-  --canvas: #171f1c;
+  --canvas: #14191e;
   --surface-1: #161718;
   --surface-2: #232524;
   --surface-3: #414a45;
@@ -8,10 +8,10 @@
   --line-strong: #858b86;
   --text: #ffffff;
   --text-muted: #d0d8d2;
-  --accent: #33888c;
-  --accent-hover: #41999d;
+  --accent: #36aaaf;
+  --accent-hover: #45bbc0;
   --accent-contrast: #66b8bc;
-  --accent-text: #83c9cc;
+  --accent-text: #36aaaf;
   --on-accent: #07110e;
   --success: #b8eab6;
   --danger: #ffb7aa;
@@ -51,6 +51,11 @@ h2,
 h3,
 p {
   margin: 0;
+}
+h1,
+h2,
+h3 {
+  color: var(--accent-text);
 }
 h1,
 h2 {

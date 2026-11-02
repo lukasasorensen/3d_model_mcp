@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useId, useRef, useState, type JSX } from "react";
+import { useId, useRef, useState, type JSX } from "react";
 import { LocalWorkerSetup } from "./localWorkerSetup.component";
 import { HostedSetup } from "./hostedSetup.component";
 import { SetupCommand } from "./setupCommand.component";
@@ -23,23 +23,15 @@ export function ConnectToCodex({
   const modeName = useId();
   const clientId = useId();
   const scopeId = useId();
-  const [step, setStep] = useState<"choose" | "install">("choose");
   const [mode, setMode] = useState<"hosted" | "local">("hosted");
   const effectiveMode = localWorkerAvailable ? mode : "hosted";
   const [client, setClient] = useState<"codex" | "claude">("codex");
   const [scope, setScope] = useState<CodexConnectionScope>("global");
-  useEffect(() => {
-    if (dialog.current?.open) {
-      dialog.current.scrollTop = 0;
-      title.current?.focus();
-    }
-  }, [step]);
   return (
     <>
       <button
         type="button"
         onClick={() => {
-          setStep("choose");
           dialog.current?.showModal();
           title.current?.focus();
         }}
@@ -53,15 +45,10 @@ export function ConnectToCodex({
       >
         <header className="setup-heading">
           <div>
-            <p className="setup-step">
-              Step {step === "choose" ? "1" : "2"} of 2
-            </p>
             <h2 ref={title} id={titleId} tabIndex={-1}>
-              {step === "choose"
-                ? localWorkerAvailable
-                  ? "Choose your connection"
-                  : "Set up browser rendering"
-                : "Install and authorize"}
+              {localWorkerAvailable
+                ? "Connect CAD tools"
+                : "Set up browser rendering"}
             </h2>
           </div>
           <form method="dialog">
@@ -70,7 +57,7 @@ export function ConnectToCodex({
             </button>
           </form>
         </header>
-        {step === "choose" ? (
+        <div className="setup-content">
           <div className="setup-choices">
             {localWorkerAvailable ? (
               <fieldset>
@@ -85,10 +72,7 @@ export function ConnectToCodex({
                   />
                   <span>
                     <strong>In this browser</strong>
-                    <small>
-                      Connect Codex to TheoryFoundry. Keep the project tab
-                      visible during rendering.
-                    </small>
+                    <small>Connect Codex to TheoryFoundry.</small>
                   </span>
                 </label>
                 <label className="setup-choice">
@@ -109,10 +93,7 @@ export function ConnectToCodex({
                 </label>
               </fieldset>
             ) : (
-              <p>
-                Connect Codex to TheoryFoundry. Keep the project tab visible
-                during rendering.
-              </p>
+              <p>Connect Codex to TheoryFoundry.</p>
             )}
             {effectiveMode === "local" && (
               <div className="setup-field">
@@ -146,45 +127,29 @@ export function ConnectToCodex({
               This sets where your client loads the connection. It does not
               limit authorization to a single CAD project.
             </p>
-            <button
-              type="button"
-              className="button-primary"
-              onClick={() => setStep("install")}
-            >
-              Continue to setup
-            </button>
           </div>
-        ) : (
           <div className="setup-install">
-            <div className="setup-selection">
-              <p>
-                {effectiveMode === "hosted"
-                  ? "Browser rendering · Codex"
-                  : `Local worker · ${client === "codex" ? "Codex" : "Claude Code"}`}{" "}
-                · {scope === "global" ? "All projects" : "This repository"}
-              </p>
-              <button type="button" onClick={() => setStep("choose")}>
-                Back
-              </button>
-            </div>
             {effectiveMode === "local" ? (
               <LocalWorkerSetup origin={origin} client={client} scope={scope} />
             ) : (
               <HostedSetup origin={origin} scope={scope} />
             )}
             {projectId && (
-              <details className="setup-starter">
-                <summary>Start with this project</summary>
+              <section
+                className="setup-starter"
+                aria-label="Start with this project"
+              >
+                <h3>Start with this project</h3>
                 <p>Once connected, paste this into your client:</p>
                 <SetupCommand
                   label="Starter prompt"
                   value={codexStarterPrompt(projectId)}
                   rows={4}
                 />
-              </details>
+              </section>
             )}
           </div>
-        )}
+        </div>
       </dialog>
     </>
   );

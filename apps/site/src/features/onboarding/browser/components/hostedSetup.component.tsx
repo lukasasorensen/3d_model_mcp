@@ -19,23 +19,18 @@ export function HostedSetup({
         On macOS or Linux, install Node.js 24 and the Codex CLI. Run the
         command, then sign in and approve CAD access in your browser.
       </p>
-      {scope === "project" ? (
+      {scope === "project" && (
         <p>
           Run in your Git repository root and trust it in Codex. Repository
           scope does not limit access to one CAD project.
         </p>
-      ) : (
-        <p>Uses your Codex home configuration, including CODEX_HOME.</p>
       )}
-      <p>Setup backs up changed settings; conflicts need manual review.</p>
       <SetupCommand
+        key={scope}
         label="Setup command"
         value={codexConnectCommand(origin, scope)}
       />
-      <p>
-        After authorization, restart Codex or start a new session. Keep this
-        project tab visible during rendering.
-      </p>
+      <p>After authorization, restart Codex or start a new session.</p>
     </section>
   );
 }

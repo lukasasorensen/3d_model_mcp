@@ -40,6 +40,7 @@ export function LocalWorkerSetup({
         authorization. The public worker needs no npm account.
       </p>
       <SetupCommand
+        key={`${client}-${scope}`}
         label="Setup command"
         value={localWorkerCommand(origin, client, scope)}
       />

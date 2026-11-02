@@ -99,7 +99,7 @@ export function ModelWorkspace({
         <div className="brand-mark">
           <span aria-hidden="true">T</span>
           <div>
-            <strong>TheoryFoundry</strong>
+            <strong>3d AI MCP Server | TheoryFoundry</strong>
           </div>
         </div>
         <div className="header-controls">
