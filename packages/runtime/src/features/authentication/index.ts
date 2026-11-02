@@ -5,3 +5,4 @@ export * from "./services/oauthProvisioning.service.js";
 export * from "./services/oauthRedirectDiagnostics.service.js";
 export * from "./workflows/remoteMcpAuthentication.workflow.js";
 export * from "./services/workerOAuthProvisioning.service.js";
+export * from "./utils/oauthClientProfile.util.js";

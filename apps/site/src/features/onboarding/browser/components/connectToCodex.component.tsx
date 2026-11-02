@@ -3,6 +3,7 @@ import { useId, useRef, useState, type JSX } from "react";
 import { LocalWorkerSetup } from "./localWorkerSetup.component";
 import { HostedSetup } from "./hostedSetup.component";
 import { SetupCommand } from "./setupCommand.component";
+import type { HostedInstallations } from "../../installation.types";
 import {
   codexStarterPrompt,
   type CodexConnectionScope,
@@ -12,10 +13,12 @@ export function ConnectToCodex({
   origin,
   projectId,
   localWorkerAvailable = false,
+  installations,
 }: {
   origin: string;
   projectId?: string;
   localWorkerAvailable?: boolean;
+  installations?: HostedInstallations | undefined;
 }): JSX.Element {
   const dialog = useRef<HTMLDialogElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
@@ -72,7 +75,7 @@ export function ConnectToCodex({
                   />
                   <span>
                     <strong>In this browser</strong>
-                    <small>Connect Codex to TheoryFoundry.</small>
+                    <small>Connect your AI client to TheoryFoundry.</small>
                   </span>
                 </label>
                 <label className="setup-choice">
@@ -93,9 +96,9 @@ export function ConnectToCodex({
                 </label>
               </fieldset>
             ) : (
-              <p>Connect Codex to TheoryFoundry.</p>
+              <p>Connect your AI client to TheoryFoundry.</p>
             )}
-            {effectiveMode === "local" && (
+            {
               <div className="setup-field">
                 <label htmlFor={clientId}>Client</label>
                 <select
@@ -109,30 +112,41 @@ export function ConnectToCodex({
                   <option value="claude">Claude Code</option>
                 </select>
               </div>
+            }
+            {effectiveMode === "local" && (
+              <div className="setup-field">
+                <label htmlFor={scopeId}>Install for</label>
+                <select
+                  id={scopeId}
+                  value={scope}
+                  onChange={(event) =>
+                    setScope(event.target.value as CodexConnectionScope)
+                  }
+                >
+                  <option value="global">All projects for this user</option>
+                  <option value="project">This repository</option>
+                </select>
+              </div>
             )}
-            <div className="setup-field">
-              <label htmlFor={scopeId}>Install for</label>
-              <select
-                id={scopeId}
-                value={scope}
-                onChange={(event) =>
-                  setScope(event.target.value as CodexConnectionScope)
-                }
-              >
-                <option value="global">All projects for this user</option>
-                <option value="project">This repository</option>
-              </select>
-            </div>
-            <p className="setup-hint">
-              This sets where your client loads the connection. It does not
-              limit authorization to a single CAD project.
-            </p>
+            {effectiveMode === "local" && (
+              <p className="setup-hint">
+                This sets where your client loads the connection. It does not
+                limit authorization to a single CAD project.
+              </p>
+            )}
           </div>
           <div className="setup-install">
             {effectiveMode === "local" ? (
               <LocalWorkerSetup origin={origin} client={client} scope={scope} />
             ) : (
-              <HostedSetup origin={origin} scope={scope} />
+              <HostedSetup
+                key={client}
+                origin={origin}
+                scope={scope}
+                client={client}
+                installations={installations}
+                onScopeChange={setScope}
+              />
             )}
             {projectId && (
               <section

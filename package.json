@@ -1,6 +1,6 @@
 {
   "name": "3d-model-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Local-first conversational CAD using MCP tools and OpenSCAD.",
   "packageManager": "pnpm@11.17.0",
@@ -31,6 +31,7 @@
     "verify": "pnpm format:check && pnpm check:conventions && pnpm check:architecture && pnpm test:codex-installer && pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm test:browser && pnpm build && pnpm check:leaks && pnpm check:boundaries",
     "oauth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @theoryfoundry/runtime oauth:provision",
     "build:codex-installer": "node tooling/codex-connect/buildInstaller.script.mjs",
+    "pack:codex-installer": "pnpm build:codex-installer && node tooling/codex-connect/buildPackage.script.mjs && pnpm --dir dist/codex-connect-package pack --pack-destination ../packages",
     "test:codex-installer": "node tooling/codex-connect/buildInstaller.script.mjs --check && node --test tests/tooling/codex-connect/*.test.mjs",
     "build:headless-renderer-proof": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/contracts build && pnpm --filter @theoryfoundry/browser-renderer build && pnpm --filter @theoryfoundry/renderer build && node tooling/headless-renderer/build.script.mjs",
     "proof:headless-renderer": "pnpm build:headless-renderer-proof && node dist/headless-renderer-proof/cli.mjs",
@@ -48,7 +49,8 @@
     "build:worker-package": "pnpm build:packages && pnpm build:worker-assets && node tooling/local-worker/buildPackage.script.mjs",
     "pack:worker": "pnpm build:worker-package && pnpm --dir dist/local-worker-package pack --pack-destination ../packages",
     "acceptance:worker-package": "pnpm pack:worker && node tooling/local-worker/packedAcceptance.script.mjs",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "pack:plugins": "node tooling/mcp-plugin/buildPackages.script.mjs"
   },
   "devDependencies": {
     "@theoryfoundry/browser-renderer": "workspace:*",

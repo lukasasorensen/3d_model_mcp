@@ -1,3 +1,4 @@
+import { pluginDistribution } from "../../../features/onboarding/server";
 import type { JSX } from "react";
 import { projectIdSchema } from "@theoryfoundry/contracts";
 import { BrowserWorkspace } from "@/workspace.composition";
@@ -40,6 +41,7 @@ export default async function ProjectPage({
       localMcpBridgeEnabled={localMcpBridge}
       remoteMcpEnabled={remoteMcpEnabled()}
       localWorkerAvailable={localWorkerEnabled()}
+      installations={pluginDistribution(process.env)}
       codexOrigin={remoteMcpEnabled() ? remoteMcpIdentity().origin : undefined}
     />
   );

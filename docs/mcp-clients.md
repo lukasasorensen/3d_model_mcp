@@ -122,13 +122,27 @@ The opt-in hosted validation lease API is described in
 
 When remote MCP is enabled, **Connect to Codex** appears in the project workspace
 and **Connected Apps**. Choose global or repository scope and copy the setup
-command into a macOS/Linux terminal with Node.js 22+ and the Codex CLI on PATH.
+command into a macOS/Linux terminal with Node.js 24+ (including npm/npx) and the Codex CLI on PATH.
 For repository scope, run it from the Git repository root, then trust that
 repository in Codex. Scope controls configuration availability, not CAD ownership
 or authorization.
 
-The command downloads `/installers/connect-codex-v1.mjs` from this application,
-runs it, and removes the temporary download. The installer adds a deployment-specific
+The primary setup path selects Codex or Claude Code and links to its published
+TheoryFoundry plugin. Until a verified listing URL is configured for this deployment,
+the dialog provides matching-origin manual configuration instead. See
+[plugin packaging and release](plugin-release.md).
+
+The optional Codex npm installer is available under Advanced setup only after its
+exact version is published and the operator enables it:
+
+```sh
+npx --yes @tfoundry/connect-codex@0.2.0 https://YOUR-CAD-DOMAIN global
+```
+
+Replace `global` with `project` for repository scope. The package bundles the existing
+installer and TOML parser, with no runtime dependencies or install scripts. The
+legacy `/installers/connect-codex-v1.mjs` download URL remains available for commands
+copied from older deployments. The installer adds a deployment-specific
 server name to `$CODEX_HOME/config.toml` (default `~/.codex/config.toml`) or the
 repository's `.codex/config.toml`, preserving existing text and backing up changed
 files. It sets the 120-second tool timeout and opens Codex OAuth authorization.
@@ -141,7 +155,10 @@ also provides a starter prompt with the current CAD project ID.
 The installer is built from `tooling/codex-connect/` using
 `pnpm build:codex-installer`. Commit the generated public bundle with source changes;
 `pnpm test:codex-installer` (included in `pnpm verify`) checks it is current and tests
-the installer. Provision the OAuth client below before offering the connection.
+the installer, including an offline `npx` run from a packed tarball outside the checkout.
+See [installer packaging and release](codex-installer-release.md) for publication.
+Publish the pinned package before enabling that optional installer. Provision the
+OAuth clients for each enabled installation path before advertising it.
 No database credentials, secrets, or tokens are included in the copied command.
 
 Remote MCP is opt-in: set `THEORYFOUNDRY_REMOTE_MCP_ENABLED=1` only after applying the

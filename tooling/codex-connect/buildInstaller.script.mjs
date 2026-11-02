@@ -1,11 +1,13 @@
 import { build } from "esbuild";
 import { readFile, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 
 const output = new URL(
   "../../apps/site/public/installers/connect-codex-v1.mjs",
   import.meta.url,
 );
 const result = await build({
+  absWorkingDir: fileURLToPath(new URL("../../", import.meta.url)),
   entryPoints: [new URL("./connectCodex.cli.mjs", import.meta.url).pathname],
   bundle: true,
   platform: "node",

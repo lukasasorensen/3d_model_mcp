@@ -17,6 +17,13 @@ See [alignment plan](docs/alignment-plan.md) for the staged migration and
   Create short-lived `codex/<ISSUE-ID>-<slug>` branches from `develop`
   (`codex/<slug>` if tracking is unavailable). Open focused PRs. Use `Fixes` only when
   merging completes the issue, `Contributes to` for partial work, and `Relates to` for context.
+- Every implementation or maintenance PR must include a semantic-version bump in
+  the root `package.json` and affected package/release manifests. Use patch for fixes
+  and maintenance, minor for backward-compatible features, and major for breaking
+  changes. Keep command pins, release examples and any affected lockfile entries in
+  sync. Bump once per PR relative to its integration base, not per review commit;
+  recheck after rebasing. Promotion PRs carry the tested versions from `develop`
+  without another bump. State the version change in the PR description.
 - Merge only when explicitly requested, after rechecking the PR head and required checks.
   Mark Done only when completion criteria are verified. Track implementation,
   deployment, and live acceptance separately; a passing build is not live acceptance.
