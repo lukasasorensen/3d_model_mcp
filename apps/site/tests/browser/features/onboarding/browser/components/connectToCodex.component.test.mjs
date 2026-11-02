@@ -7,7 +7,7 @@ import { test, root, applicationStyles } from "../../../../browser.fixture.mjs";
 test("connection setup choices, commands, clipboard and dialog navigation", async ({
   page,
 }) => {
-  const entry = `import React from 'react';import {createRoot} from 'react-dom/client';import {ConnectToCodex} from './src/features/onboarding/browser/components/connectToCodex.component';import {codexConnectCommand} from './src/features/onboarding/browser/utils/codexConnectCommand.util';import {localWorkerCommand} from './src/features/onboarding/browser/utils/localWorkerCommand.util';window.expected=(mode,client,scope)=>mode==='hosted'?codexConnectCommand('https://example.test',scope):localWorkerCommand('https://example.test',client,scope);createRoot(document.getElementById('root')).render(<ConnectToCodex origin="https://example.test" projectId="sample-project"/>);`;
+  const entry = `import React from 'react';import {createRoot} from 'react-dom/client';import {ConnectToCodex} from './src/features/onboarding/browser/components/connectToCodex.component';import {codexConnectCommand} from './src/features/onboarding/browser/utils/codexConnectCommand.util';import {localWorkerCommand} from './src/features/onboarding/browser/utils/localWorkerCommand.util';window.expected=(mode,client,scope)=>mode==='hosted'?codexConnectCommand('https://example.test',scope):localWorkerCommand('https://example.test',client,scope);createRoot(document.getElementById('root')).render(<ConnectToCodex origin="https://example.test" projectId="sample-project" localWorkerAvailable/>);`;
   const result = await build({
     stdin: { contents: entry, resolveDir: root + "/apps/site", loader: "tsx" },
     bundle: true,
@@ -152,3 +152,107 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
     "PASS: all six command variants, step focus, preserved choices, clipboard success/unavailable, starter prompt, Escape focus, reopen and responsive overflow",
   );
 });
+
+for (const available of [false, undefined]) {
+  test(`browser-only dialog is accessible when availability is ${available}`, async ({
+    page,
+  }) => {
+    const result = await build({
+      stdin: {
+        contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {ConnectToCodex} from './src/features/onboarding/browser/components/connectToCodex.component';createRoot(document.getElementById('root')).render(<ConnectToCodex origin="https://example.test" projectId="sample-project" ${available === undefined ? "" : "localWorkerAvailable={false}"}/>);`,
+        resolveDir: root + "/apps/site",
+        loader: "tsx",
+      },
+      bundle: true,
+      write: false,
+      jsx: "automatic",
+    });
+    await page.setContent(
+      "<style>" + (await applicationStyles()) + '</style><div id="root"></div>',
+    );
+    await page.addScriptTag({ content: result.outputFiles[0].text });
+    const trigger = page.getByRole("button", {
+      name: "Connect CAD tools",
+      exact: true,
+    });
+    await trigger.focus();
+    await page.keyboard.press("Enter");
+    const dialog = page.getByRole("dialog", {
+      name: "Set up browser rendering",
+      exact: true,
+    });
+    await expect(dialog).toBeVisible();
+    await expect(
+      page.getByRole("heading", {
+        name: "Set up browser rendering",
+        exact: true,
+      }),
+    ).toBeFocused();
+    await expect(dialog.getByRole("radio")).toHaveCount(0);
+    await expect(dialog.getByLabel("Client", { exact: true })).toHaveCount(0);
+    await expect(dialog).not.toContainText(
+      /local worker|Claude|@tfoundry\/local-worker|On your Mac/i,
+    );
+    for (const scope of ["global", "project"]) {
+      await page.getByLabel("Install for", { exact: true }).selectOption(scope);
+      await page
+        .getByRole("button", { name: "Continue to setup", exact: true })
+        .click();
+      await expect(
+        page.getByRole("heading", {
+          name: "Install and authorize",
+          exact: true,
+        }),
+      ).toBeFocused();
+      const command = await page
+        .getByLabel("Setup command", { exact: true })
+        .inputValue();
+      expect(command).toContain("connect-codex-v1.mjs");
+      expect(command).not.toContain("@tfoundry");
+      await page.getByText("Start with this project", { exact: true }).click();
+      await expect(
+        page.getByLabel("Starter prompt", { exact: true }),
+      ).toHaveValue(/sample-project/);
+      await page.getByRole("button", { name: "Back", exact: true }).click();
+      await expect(
+        page.getByRole("heading", {
+          name: "Set up browser rendering",
+          exact: true,
+        }),
+      ).toBeFocused();
+      await expect(page.getByLabel("Install for", { exact: true })).toHaveValue(
+        scope,
+      );
+    }
+    await page
+      .getByRole("button", { name: "Close connection setup", exact: true })
+      .focus();
+    for (const direction of ["Tab", "Shift+Tab"])
+      for (let index = 0; index < 6; index++) {
+        await page.keyboard.press(direction);
+        expect(
+          await page.evaluate(
+            () =>
+              document.activeElement === document.body ||
+              Boolean(document.activeElement?.closest("dialog[open]")),
+          ),
+        ).toBe(true);
+      }
+    for (const width of [1440, 390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      expect(
+        await dialog.evaluate(
+          (element) => element.scrollWidth > element.clientWidth,
+        ),
+      ).toBe(false);
+    }
+    await page.keyboard.press("Escape");
+    await expect(trigger).toBeFocused();
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await page
+      .getByRole("button", { name: "Close connection setup", exact: true })
+      .click();
+    await expect(trigger).toBeFocused();
+  });
+}
