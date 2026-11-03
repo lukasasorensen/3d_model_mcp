@@ -24,6 +24,10 @@ functional cookies/storage, retention, user requests and policy updates. It deli
 avoids feature inventories, named clients and product-specific instructions. Changes to
 actual data practices still require checking the policy for accuracy.
 
+Terms use generic account, acceptable-use, content-permission and disclaimer language.
+Output review is one general responsibility, and ending use points to Privacy for data
+handling and deletion. There are no feature inventories or product-specific controls.
+
 ## Review and release
 
 The deletion wording describes intended release behavior, not verified implementation.
@@ -33,7 +37,7 @@ Do not publish these drafts as current policies before that work is complete.
 
 Before promoting these pages to production:
 
-1. Review the exact wording with the owner, including project-use permission, beta
+1. Review the exact wording with the owner, including content-processing permission, beta
    disclaimers, privacy purposes and retention exceptions.
 2. Complete THE-45 and align the wording with the actual controls. Verify residual
    security/support data and backup retention, including restored-backup handling.
