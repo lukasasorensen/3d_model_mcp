@@ -28,7 +28,7 @@ export default function PublicInfoLayout({
         {children}
       </main>
       <footer>
-        <p>TheoryFoundry · Lukas Sorensen · Minnesota, United States</p>
+        <p>TheoryFoundry</p>
         <a href="mailto:lukas@theoryfoundry.com">lukas@theoryfoundry.com</a>
       </footer>
     </div>

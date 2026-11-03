@@ -9,6 +9,8 @@ publication date. The public-information layout sets noindex/nofollow while in d
 ## Owner-confirmed decisions
 
 - Operator: Lukas Sorensen personally, Minnesota, United States.
+- Terms and the shared footer identify the service as TheoryFoundry without the
+  operator's personal name or location. Terms contain no governing-law provision.
 - Contact for support and privacy: `lukas@theoryfoundry.com`.
 - Adults aged 18 and over; free beta, without payments. The age requirement appears
   only in Terms, not Support or Privacy.
@@ -32,7 +34,7 @@ Do not publish these drafts as current policies before that work is complete.
 Before promoting these pages to production:
 
 1. Review the exact wording with the owner, including project-use permission, beta
-   disclaimers, Minnesota governing law, privacy purposes and retention exceptions.
+   disclaimers, privacy purposes and retention exceptions.
 2. Complete THE-45 and align the wording with the actual controls. Verify residual
    security/support data and backup retention, including restored-backup handling.
    No specific retention periods or support response times have been promised here.

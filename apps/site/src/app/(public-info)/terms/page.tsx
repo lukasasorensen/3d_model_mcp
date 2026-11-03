@@ -15,9 +15,8 @@ export default function TermsPage(): JSX.Element {
         Draft for public release · November 3, 2026
       </p>
       <p>
-        These terms govern your use of TheoryFoundry, operated by Lukas Sorensen
-        in Minnesota, United States. By using the service, you agree to these
-        terms. Contact{" "}
+        These terms govern your use of TheoryFoundry. By using the service, you
+        agree to these terms. Contact{" "}
         <a href="mailto:lukas@theoryfoundry.com">lukas@theoryfoundry.com</a>{" "}
         with questions.
       </p>
@@ -105,22 +104,16 @@ export default function TermsPage(): JSX.Element {
           uninterrupted operation or error-free output.
         </p>
         <p>
-          To the extent permitted by applicable law, Lukas Sorensen is not
-          liable for indirect, incidental, special, or consequential losses
-          arising from use of the service, including lost profits or lost data.
-          Nothing in these terms excludes liability or consumer rights that
-          cannot lawfully be excluded.
+          To the extent permitted by applicable law, TheoryFoundry is not liable
+          for indirect, incidental, special, or consequential losses arising
+          from use of the service, including lost profits or lost data. Nothing
+          in these terms excludes liability or consumer rights that cannot
+          lawfully be excluded.
         </p>
       </section>
-      <section aria-labelledby="law-heading">
-        <h2 id="law-heading">Governing law and changes</h2>
-        <p>
-          Minnesota law governs these terms, except where mandatory laws
-          applicable to you provide otherwise. We may revise these terms as the
-          service changes, update this page, and provide additional notice where
-          required. Contact us with questions before continuing to use the
-          service under revised terms.
-        </p>
+      <section aria-labelledby="changes-heading">
+        <h2 id="changes-heading">Changes to these terms</h2>
+        <p>We may revise these terms as the service changes.</p>
       </section>
     </article>
   );
