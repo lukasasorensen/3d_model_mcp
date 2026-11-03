@@ -73,6 +73,8 @@ Replace the example email, name, and password, then run once per account:
 THEORYFOUNDRY_AUTH_ALLOW_SIGNUP=1 THEORYFOUNDRY_INITIAL_PASSWORD='a-long-initial-password' pnpm auth:provision -- user@example.com "Demo User"
 ```
 
+To let this account invite others, follow the [system admin setup](system-invitations.md).
+
 The command prints `Provisioned account ... with user ID ...`. Copy that ID into
 `THEORYFOUNDRY_ACTOR_USER_ID` in `apps/site/.env.local` and, when registering the local MCP
 server below, into its environment configuration. Use the same database and

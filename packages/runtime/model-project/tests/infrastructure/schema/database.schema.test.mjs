@@ -23,6 +23,7 @@ test("split schema modules assemble the complete database schema", () => {
     "oauth_consent",
     "oauth_refresh_token",
     "oauth_resource",
+    "platform_invitation",
     "projects",
     "revision_artifacts",
     "revisions",

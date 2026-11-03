@@ -10,7 +10,7 @@ shared. Public directory publication and live client acceptance remain release g
 `plugins/theoryfoundry/` owns the shared identity, publisher metadata, logo and setup
 skill. `tooling/mcp-plugin/` builds client packages and local validation catalogs.
 Publisher: Lukas Sorensen. Production origin: `https://3dai.theoryfoundry.com`.
-Version: 0.2.0, matching the root/site/runtime versions in this unmerged feature PR.
+The plugin version is 0.3.0 and matches the root, site, and runtime manifests.
 
 ```sh
 pnpm pack:plugins
