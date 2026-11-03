@@ -7,7 +7,9 @@ import { createExportFileStore } from "./exportFileStore.composition.js";
 
 const database = createProjectDatabase(process.env.DATABASE_URL ?? "");
 try {
-  await createDataErasure(database.pool).replay();
+  await createDataErasure(database.pool, {
+    requireManagedJournal: true,
+  }).replay();
   if (process.argv.includes("--offline")) {
     const retained = await database.pool.query<{ id: string }>(
       "SELECT id FROM model_exports",

@@ -156,6 +156,12 @@ test("an unavailable production journal prevents deletion and corrupt records st
   });
   try {
     const { projectId } = await f.target();
+    process.env.NODE_ENV = "development";
+    await assert.rejects(
+      createDataErasure(f.pool, { requireManagedJournal: true }).replay(),
+      { code: "ENOENT" },
+    );
+    process.env.NODE_ENV = "production";
     const erasure = createDataErasure(f.pool);
     await assert.rejects(
       erasure.erase({ ownerId: f.ownerId, projectId: null }),

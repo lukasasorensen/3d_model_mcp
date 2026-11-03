@@ -15,10 +15,10 @@ export function exportDirectory(): string {
       );
 }
 
-export function erasureDirectory(): string {
+export function erasureDirectory(requireManagedJournal: boolean): string {
   const configured = process.env.THEORYFOUNDRY_ERASURE_DIRECTORY;
   if (configured) return resolve(configured);
-  if (process.env.NODE_ENV === "production")
+  if (requireManagedJournal)
     throw new Error("A persistent erasure journal is required.");
   return exportDirectory() + "-erasure";
 }

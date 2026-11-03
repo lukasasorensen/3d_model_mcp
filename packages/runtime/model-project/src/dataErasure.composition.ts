@@ -6,12 +6,17 @@ import {
   erasureDirectory,
 } from "./infrastructure/index.js";
 
-export function createDataErasure(pool: Pool): DataErasureWorkflow {
+export function createDataErasure(
+  pool: Pool,
+  {
+    requireManagedJournal = process.env.NODE_ENV === "production",
+  }: { requireManagedJournal?: boolean } = {},
+): DataErasureWorkflow {
   return new DataErasureWorkflow(
     pool,
     new ErasureJournal(
-      erasureDirectory(),
-      process.env.NODE_ENV === "production",
+      erasureDirectory(requireManagedJournal),
+      requireManagedJournal,
     ),
     exportDirectory(),
   );

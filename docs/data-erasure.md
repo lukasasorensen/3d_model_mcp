@@ -13,7 +13,7 @@ A separate journal retains the owner ID, optional project ID and affected export
 - Production operators must keep the latest erasure journal **outside the database and export backup restore set**, with a restricted, independently protected copy. Never roll the journal back with a database backup. Keep records until every backup or snapshot that could contain the corresponding data has expired or been destroyed. If that inventory is unknown, keep the records.
 - Private database and export backups may contain deleted content until their scheduled expiry. Inventory all locations, expiry rules and recovery copies before enabling public deletion claims. Restorable copies stay access-restricted and offline except for controlled recovery. No verified production expiry period is asserted here.
 - Support correspondence is managed separately. Retain only the minimum correspondence needed for an open request, then remove it when the request and any documented legal or security hold end. Limit security logs to the established operational retention schedule. Exclude passwords, bearer links, journal payloads and model source from logs.
-- Development defaults to a journal adjacent to the temporary export store. For persistent developer instances, configure an absolute private THEORYFOUNDRY_ERASURE_DIRECTORY. In production it is required, and both replay and deletion check for the JOURNAL marker.
+- Development defaults to a journal adjacent to the temporary export store. For persistent developer instances, configure an absolute private THEORYFOUNDRY_ERASURE_DIRECTORY. Production deletion and the operator replay command always require an explicitly configured journal with a JOURNAL marker.
 
 ## Initial Coolify setup
 
