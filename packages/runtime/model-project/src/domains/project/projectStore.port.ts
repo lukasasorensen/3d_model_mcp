@@ -65,6 +65,9 @@ export interface ModelProjectStore {
 }
 
 export interface ProjectRepository extends ModelProjectStore {
+  listProjects(view?: "active" | "archived"): Promise<ProjectSummary[]>;
+  setProjectArchived(projectId: string, isArchived: boolean): Promise<void>;
+  deleteProject(projectId: string): Promise<void>;
   assertProjectAccess(projectId: string): Promise<void>;
   getProjectSnapshot(
     projectId: string,

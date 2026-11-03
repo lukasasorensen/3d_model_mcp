@@ -1,13 +1,13 @@
 export const PROJECT_CREATE_BODY_BYTES = 24 * 1024;
 
-export class ProjectCreateBodyTooLargeError extends Error {
+export class ProjectBodyTooLargeError extends Error {
   constructor() {
-    super("Project creation request exceeds the byte limit.");
-    this.name = "ProjectCreateBodyTooLargeError";
+    super("Project request exceeds the byte limit.");
+    this.name = "ProjectBodyTooLargeError";
   }
 }
 
-export async function readProjectCreateBody(
+export async function readProjectRequestBody(
   request: Request,
 ): Promise<unknown> {
   const declaredLength = request.headers.get("content-length");
@@ -15,7 +15,7 @@ export async function readProjectCreateBody(
     if (!/^\d+$/.test(declaredLength))
       throw new SyntaxError("Invalid Content-Length.");
     if (Number(declaredLength) > PROJECT_CREATE_BODY_BYTES)
-      throw new ProjectCreateBodyTooLargeError();
+      throw new ProjectBodyTooLargeError();
   }
 
   const reader = request.body?.getReader();
@@ -28,7 +28,7 @@ export async function readProjectCreateBody(
       if (done) break;
       byteLength += value.byteLength;
       if (byteLength > PROJECT_CREATE_BODY_BYTES)
-        throw new ProjectCreateBodyTooLargeError();
+        throw new ProjectBodyTooLargeError();
       chunks.push(value);
     }
   } finally {

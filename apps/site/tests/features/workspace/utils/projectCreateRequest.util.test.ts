@@ -3,8 +3,8 @@ import test from "node:test";
 
 import {
   PROJECT_CREATE_BODY_BYTES,
-  ProjectCreateBodyTooLargeError,
-  readProjectCreateBody,
+  ProjectBodyTooLargeError,
+  readProjectRequestBody,
 } from "../../../../src/features/workspace/utils/projectCreateRequest.util";
 
 void test("project creation JSON is bounded with and without Content-Length", async () => {
@@ -12,7 +12,7 @@ void test("project creation JSON is bounded with and without Content-Length", as
     method: "POST",
     body: JSON.stringify({ name: "Bracket", description: "Mounting bracket" }),
   });
-  assert.deepEqual(await readProjectCreateBody(valid), {
+  assert.deepEqual(await readProjectRequestBody(valid), {
     name: "Bracket",
     description: "Mounting bracket",
   });
@@ -23,8 +23,8 @@ void test("project creation JSON is bounded with and without Content-Length", as
     body: "{}",
   });
   await assert.rejects(
-    readProjectCreateBody(declaredOversize),
-    ProjectCreateBodyTooLargeError,
+    readProjectRequestBody(declaredOversize),
+    ProjectBodyTooLargeError,
   );
 
   const streamedOversize = new Request("http://localhost/v1/projects", {
@@ -32,7 +32,7 @@ void test("project creation JSON is bounded with and without Content-Length", as
     body: "x".repeat(PROJECT_CREATE_BODY_BYTES + 1),
   });
   await assert.rejects(
-    readProjectCreateBody(streamedOversize),
-    ProjectCreateBodyTooLargeError,
+    readProjectRequestBody(streamedOversize),
+    ProjectBodyTooLargeError,
   );
 });

@@ -31,7 +31,7 @@ export interface ProjectPersistence {
     input: CreateProjectInput,
   ): Promise<ProjectSummary>;
   updateProject(raw: UpdateProjectInput): Promise<ProjectSummary>;
-  listProjects(): Promise<ProjectSummary[]>;
+  listProjects(view?: "active" | "archived"): Promise<ProjectSummary[]>;
   readCandidate(
     projectId: string,
     candidateId: string,

@@ -1,12 +1,15 @@
+/* global window */
 import { build } from "esbuild";
 import { root, applicationStyles } from "../../../../browser.fixture.mjs";
 
-export async function mountProjectLanding(page, width) {
+export async function mountProjectLanding(page, width, initialProjects = []) {
   const controls = {
     createMode: "failure",
     signOutMode: "failure",
     signOutGate: null,
     requests: [],
+    projects: initialProjects,
+    mutationFails: false,
   };
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -39,6 +42,22 @@ export async function mountProjectLanding(page, width) {
         },
       });
     }
+    if (path.startsWith("/v1/projects/")) {
+      const id = decodeURIComponent(path.slice("/v1/projects/".length));
+      const item = controls.projects.find(
+        (project) => project.projectId === id,
+      );
+      if (!item || controls.mutationFails)
+        return route.fulfill({ status: 500 });
+      if (request.method() === "DELETE")
+        controls.projects = controls.projects.filter(
+          (project) => project !== item,
+        );
+      else if (request.method() === "PATCH")
+        item.isArchived = request.postDataJSON().isArchived;
+      else throw new Error("Unexpected project mutation.");
+      return route.fulfill({ status: 204 });
+    }
     if (path === "/api/auth/sign-out") {
       await controls.signOutGate;
       controls.requests.push({ path, method: request.method() });
@@ -51,7 +70,7 @@ export async function mountProjectLanding(page, width) {
   });
   const result = await build({
     stdin: {
-      contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {ProjectLanding} from './src/features/workspace/browser/components/projectLanding.component';window.navigation=[];createRoot(document.getElementById('root')).render(<ProjectLanding projects={[]} userName="Test user" remoteMcpEnabled/>);`,
+      contents: `import React from 'react';import {createRoot} from 'react-dom/client';import {ProjectLanding} from './src/features/workspace/browser/components/projectLanding.component';window.navigation=[];createRoot(document.getElementById('root')).render(<ProjectLanding projects={window.projects.filter(p => !p.isArchived)} archivedProjects={window.projects.filter(p => p.isArchived)} userName="Test user" remoteMcpEnabled/>);`,
       resolveDir: root + "/apps/site",
       loader: "tsx",
     },
@@ -74,8 +93,21 @@ export async function mountProjectLanding(page, width) {
     ],
   });
   await page.setViewportSize({ width, height: 900 });
+  async function render() {
+    await page.addStyleTag({ content: await applicationStyles() });
+    await page.evaluate((projects) => {
+      window.projects = projects;
+    }, controls.projects);
+    await page.addScriptTag({ content: result.outputFiles[0].text });
+  }
   await page.goto("https://example.test/projects");
-  await page.addStyleTag({ content: await applicationStyles() });
-  await page.addScriptTag({ content: result.outputFiles[0].text });
-  return { controls, errors };
+  await render();
+  return {
+    controls,
+    errors,
+    reload: async () => {
+      await page.reload();
+      await render();
+    },
+  };
 }

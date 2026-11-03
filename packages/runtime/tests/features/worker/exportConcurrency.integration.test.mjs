@@ -36,7 +36,15 @@ test(
           "utf8",
         ),
       );
-      for (const { tag } of journal.entries)
+      for (const { tag } of journal.entries) {
+        if (tag === "0013_project_lifecycle") {
+          await pool.query(
+            "INSERT INTO \"user\" (id,name,email) VALUES ('legacy','Legacy','legacy@example.com')",
+          );
+          await pool.query(
+            "INSERT INTO projects (id,owner_id) VALUES ('existing-project','legacy')",
+          );
+        }
         await pool.query(
           await readFile(
             new URL(
@@ -46,6 +54,15 @@ test(
             "utf8",
           ),
         );
+      }
+      assert.deepEqual(
+        (
+          await pool.query(
+            "SELECT is_archived,is_deleted FROM projects WHERE id='existing-project'",
+          )
+        ).rows,
+        [{ is_archived: false, is_deleted: false }],
+      );
       const f = await createWorkerExportFixture({ pool, notifications });
       const targets = await Promise.all([f.target(), f.target(), f.target()]);
       const admissions = await Promise.allSettled(
@@ -83,6 +100,37 @@ test(
           (await f.service.status(capability(lease))).state,
           results[0].state,
         );
+      }
+      // Queue completion behind an uncommitted deletion, then release the project lock.
+      const retiring = await f.target();
+      const late = await f.service.begin(retiring);
+      const deletion = await pool.connect();
+      try {
+        await deletion.query("BEGIN");
+        await deletion.query(
+          "UPDATE projects SET is_deleted=true WHERE id=$1 AND owner_id=$2",
+          [retiring.projectId, f.ownerId],
+        );
+        const before = f.writes();
+        const rejected = assert.rejects(
+          f.service.complete(completion(late), stl()),
+          { code: "EXPORT_UNAVAILABLE" },
+        );
+        let blocked = false;
+        for (let poll = 0; poll < 100 && !blocked; poll++) {
+          const waits = await deletion.query(
+            "SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE pg_backend_pid() = ANY(pg_blocking_pids(pid))) AS blocked",
+          );
+          blocked = waits.rows[0].blocked;
+          if (!blocked) await new Promise((resolve) => setTimeout(resolve, 10));
+        }
+        assert.ok(blocked, "completion must wait on the project row");
+        await deletion.query("COMMIT");
+        await rejected;
+        assert.equal(f.writes(), before);
+      } finally {
+        await deletion.query("ROLLBACK");
+        deletion.release();
       }
       // Fill to 235 MiB: two simultaneous 10 MiB browser/worker admissions must allow exactly one.
       await pool.query("UPDATE model_exports SET reserved_bytes=0");

@@ -53,6 +53,16 @@ Omitted fields are preserved; the description must remain nonempty. Both tools
 use the authenticated owner's repository. Apply the project-details database
 migration with `pnpm db:migrate` before using the updated PostgreSQL runtime.
 
+Apply migration `0013_project_lifecycle.sql` before serving the updated site or
+MCP runtime. Existing projects appear in **Active**. Owners can move a project
+between **Active** and **Archived** on the Projects page. Its URL and editing
+tools work in either view.
+
+The confirmed **Delete** action retains the project records and removes access,
+including existing export links and worker leases. Owners cannot restore a deleted
+project. Account erasure, physical cleanup, and backup retention are tracked
+separately in THE-45.
+
 ## Recoverable validation and downloadable MCP exports
 
 The supported agent workflow is: create a project, use its returned `projectUrl`,

@@ -55,8 +55,10 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
     );
   }
 
-  async listProjects(): Promise<ProjectSummary[]> {
-    return this.persistence.listProjects();
+  async listProjects(
+    view: "active" | "archived" = "active",
+  ): Promise<ProjectSummary[]> {
+    return this.persistence.listProjects(view);
   }
 
   async getProjectState(projectId: string): Promise<ProjectState> {
