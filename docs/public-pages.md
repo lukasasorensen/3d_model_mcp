@@ -17,7 +17,7 @@ publication date. The public-information layout sets noindex/nofollow while in d
 - TheoryFoundry does not sell personal information or train AI models on user content.
   This is TheoryFoundry's own policy, not a claim about external AI providers.
 - Write against the intended account/project deletion behavior; the owner will
-  implement deletion separately before public release.
+  verify deletion separately before public release.
 
 Support is contact-only. Privacy uses broad data categories, purposes, sharing,
 functional cookies/storage, retention, user requests and policy updates. It deliberately
@@ -30,7 +30,7 @@ handling and deletion. There are no feature inventories or product-specific cont
 
 ## Review and release
 
-The deletion wording describes intended release behavior, not verified implementation.
+The deletion wording follows the implemented [account and project erasure workflow](data-erasure.md). Production deployment and live verification remain outstanding.
 THE-45 blocks the public plugin release until account/project deletion, owned-data
 cleanup, artifact invalidation and session/grant revocation work and are verified.
 Do not publish these drafts as current policies before that work is complete.

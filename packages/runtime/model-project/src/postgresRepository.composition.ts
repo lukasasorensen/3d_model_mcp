@@ -1,3 +1,4 @@
+import { createDataErasure } from "./dataErasure.composition.js";
 import {
   CandidateValidationService,
   ModelSourceService,
@@ -11,9 +12,14 @@ import {
 import type { PostgresModelProjectRepositoryOptions } from "./postgresRepository.types.js";
 export class PostgresModelProjectRepository {
   private readonly workflow: PostgresProjectWorkflow;
+  private readonly ownerPool: Pick<
+    PostgresModelProjectRepositoryOptions,
+    "pool" | "ownerId"
+  >;
   private readonly lifecycle: ProjectLifecycleService;
   constructor(options: PostgresModelProjectRepositoryOptions) {
     if (!options.ownerId) throw new Error("A repository owner is required.");
+    this.ownerPool = { pool: options.pool, ownerId: options.ownerId };
     this.lifecycle = new ProjectLifecycleService(options.pool, options.ownerId);
     const validation = new CandidateValidationService({
       clock: options.clock ?? ((): Date => new Date()),
@@ -39,8 +45,12 @@ export class PostgresModelProjectRepository {
   setProjectArchived: ProjectLifecycleService["setProjectArchived"] = (
     ...args
   ) => this.lifecycle.setProjectArchived(...args);
-  deleteProject: ProjectLifecycleService["deleteProject"] = (...args) =>
-    this.lifecycle.deleteProject(...args);
+  deleteProject(projectId: string): Promise<void> {
+    return createDataErasure(this.ownerPool.pool).erase({
+      ownerId: this.ownerPool.ownerId,
+      projectId,
+    });
+  }
   listProjects: PostgresProjectWorkflow["listProjects"] = (...args) =>
     this.workflow.listProjects(...args);
   listProjectViews: PostgresProjectWorkflow["listProjectViews"] = () =>

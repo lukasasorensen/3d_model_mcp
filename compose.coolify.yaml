@@ -4,6 +4,8 @@ x-app-environment: &app-environment
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Set a stable secret of at least 32 characters}
   BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Set the public HTTPS origin}
   THEORYFOUNDRY_ALLOWED_ORIGIN: ${THEORYFOUNDRY_ALLOWED_ORIGIN:?Set the same public HTTPS origin}
+  THEORYFOUNDRY_ERASURE_DIRECTORY: /var/lib/theoryfoundry/erasures
+  THEORYFOUNDRY_EXPORT_DIRECTORY: /var/lib/theoryfoundry/exports
   THEORYFOUNDRY_CHAT_PROVIDER: mock
   THEORYFOUNDRY_PLUGIN_ORIGIN: ${THEORYFOUNDRY_PLUGIN_ORIGIN:-}
   THEORYFOUNDRY_CODEX_PLUGIN_URL: ${THEORYFOUNDRY_CODEX_PLUGIN_URL:-}
@@ -42,7 +44,15 @@ services:
       target: tooling
     restart: "no"
     environment: *app-environment
-    command: ["pnpm", "db:migrate"]
+    command:
+      [
+        "sh",
+        "-ec",
+        "pnpm db:migrate && node packages/runtime/dist/replayErasures.composition.js",
+      ]
+    volumes:
+      - export-data:/var/lib/theoryfoundry/exports
+      - erasure-journal:/var/lib/theoryfoundry/erasures
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,13 +65,12 @@ services:
       dockerfile: Dockerfile
       target: runtime
     restart: unless-stopped
-    environment:
-      <<: *app-environment
-      THEORYFOUNDRY_EXPORT_DIRECTORY: /var/lib/theoryfoundry/exports
+    environment: *app-environment
     expose:
       - "3000"
     volumes:
       - export-data:/var/lib/theoryfoundry/exports
+      - erasure-journal:/var/lib/theoryfoundry/erasures
     depends_on:
       postgres:
         condition: service_healthy
@@ -84,6 +93,9 @@ services:
 volumes:
   postgres18-data:
   export-data:
+  erasure-journal:
+    external: true
+    name: ${THEORYFOUNDRY_ERASURE_VOLUME:-theoryfoundry-erasure-journal}
 
 networks:
   edge:

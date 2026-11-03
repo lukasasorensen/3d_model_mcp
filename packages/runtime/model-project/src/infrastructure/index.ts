@@ -7,7 +7,7 @@ export type {
 export * from "./schema/index.js";
 export * from "./services/browserPresence.service.js";
 export * from "./services/browserPreviewJobs.service.js";
-export * as durableFiles from "./services/durableFiles.service.js";
+export * as durableFiles from "./utils/durableFiles.util.js";
 export { issueExportReceipt } from "./services/exportReceipt.service.js";
 export {
   lockExportCapacity,
@@ -31,3 +31,9 @@ export { FileProjectWorkflow } from "./workflows/fileProject.workflow.js";
 
 export * from "./workflows/modelExports.workflow.js";
 export { ProjectLifecycleService } from "./services/projectLifecycle.service.js";
+export { DataErasureWorkflow } from "./workflows/dataErasure.workflow.js";
+export { ErasureJournal } from "./services/erasureJournal.service.js";
+export {
+  exportDirectory,
+  erasureDirectory,
+} from "./utils/erasureStorage.util.js";

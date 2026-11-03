@@ -82,3 +82,4 @@ export {
   PlatformInvitations,
   InvitationError,
 } from "./infrastructure/invitations/index.js";
+export { deleteOwnAccount } from "./accountErasure.composition.js";

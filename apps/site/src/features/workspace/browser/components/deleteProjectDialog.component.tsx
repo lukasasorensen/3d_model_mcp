@@ -33,8 +33,8 @@ export function DeleteProjectDialog({
     >
       <h2 id="delete-project-title">Delete {name}?</h2>
       <p id="delete-project-description">
-        You will lose access to this project and its history. You cannot restore
-        it.
+        This permanently deletes the project, its history, and its hosted
+        exports. You cannot restore it.
       </p>
       {error && (
         <p role="alert" className="auth-error">
