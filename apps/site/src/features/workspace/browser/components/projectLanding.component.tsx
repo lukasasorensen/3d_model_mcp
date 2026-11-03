@@ -1,4 +1,5 @@
 "use client";
+import { ProjectList } from "./projectList.component";
 import type { JSX } from "react";
 
 import type { ProjectSummary } from "@theoryfoundry/contracts";
@@ -8,11 +9,13 @@ import { authClient } from "../../../authentication/browser/index";
 
 export function ProjectLanding({
   projects,
+  archivedProjects,
   userName,
   remoteMcpEnabled = false,
   canInvite = false,
 }: {
   projects: ProjectSummary[];
+  archivedProjects?: ProjectSummary[];
   userName: string;
   remoteMcpEnabled?: boolean;
   canInvite?: boolean;
@@ -73,7 +76,9 @@ export function ProjectLanding({
       <header>
         <div>
           <p className="project-brand">TheoryFoundry</p>
-          <h1 id="project-list-title">Your projects</h1>
+          <h1 id="project-list-title" tabIndex={-1}>
+            Your projects
+          </h1>
           <p className="project-account">Signed in as {userName}</p>
         </div>
         <nav className="project-account-actions" aria-label="Account">
@@ -94,9 +99,6 @@ export function ProjectLanding({
       </header>
       <section aria-labelledby="project-list-title">
         <div className="project-list-heading">
-          <p className="project-count">
-            {projects.length} {projects.length === 1 ? "project" : "projects"}
-          </p>
           <button
             type="button"
             ref={createButton}
@@ -167,41 +169,11 @@ export function ProjectLanding({
             {error}
           </p>
         ) : null}
-        {projects.length === 0 ? (
-          <div className="projects-empty">
-            <h2>Start your first model</h2>
-            <p>
-              Create a project to keep its model and revision history together.
-            </p>
-          </div>
-        ) : (
-          <ul>
-            {projects.map((project) => (
-              <li key={project.projectId}>
-                <a
-                  className="project-open"
-                  href={`/projects/${encodeURIComponent(project.projectId)}`}
-                >
-                  <strong>{project.name}</strong>
-                  <span aria-hidden="true">Open →</span>
-                </a>
-                <details className="project-details">
-                  <summary>
-                    Project details
-                    <span className="sr-only"> for {project.name}</span>
-                  </summary>
-                  <p>{project.description}</p>
-                  <dl>
-                    <dt>Project ID</dt>
-                    <dd>
-                      <code>{project.projectId}</code>
-                    </dd>
-                  </dl>
-                </details>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ProjectList
+          active={projects}
+          archived={archivedProjects}
+          busy={busy}
+        />
       </section>
     </main>
   );

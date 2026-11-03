@@ -56,9 +56,9 @@ export class PostgresBrowserRenderAdapter implements CadRenderer {
     const jobId = opaqueRandomId("render");
     const token = randomBytes(32).toString("hex");
     const deadline = new Date(Date.now() + BROWSER_RENDERER.timeoutMs);
-    await this.pool.query(
+    const inserted = await this.pool.query(
       `INSERT INTO browser_render_jobs (id, owner_id, project_id, candidate_id, session_id, token_hash, source_hash, state, deadline)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,'PENDING',$8)`,
+       SELECT $1,$2,id,$4,$5,$6,$7,'PENDING',$8 FROM projects WHERE id=$3 AND owner_id=$2 AND NOT is_deleted FOR SHARE RETURNING id`,
       [
         jobId,
         this.ownerId,
@@ -70,6 +70,8 @@ export class PostgresBrowserRenderAdapter implements CadRenderer {
         deadline,
       ],
     );
+    if (!inserted.rows.length)
+      throw new CadDomainError("PROJECT_NOT_FOUND", "Project not found.");
     try {
       listener.callback({
         jobId,
@@ -92,7 +94,7 @@ export class PostgresBrowserRenderAdapter implements CadRenderer {
             completion: unknown;
             deadline: Date;
           }>(
-            "SELECT state, completion, deadline FROM browser_render_jobs WHERE id = $1 AND owner_id = $2",
+            "SELECT state, completion, deadline FROM browser_render_jobs j WHERE id = $1 AND owner_id = $2 AND EXISTS (SELECT 1 FROM projects p WHERE p.id=j.project_id AND p.owner_id=$2 AND NOT p.is_deleted)",
             [jobId, this.ownerId],
           );
           const job = result.rows[0];
@@ -151,6 +153,7 @@ export class PostgresBrowserRenderAdapter implements CadRenderer {
     const result = await this.pool.query(
       `UPDATE browser_render_jobs SET state = 'COMPLETED', completion = $1, updated_at = now()
        WHERE id = $2 AND owner_id = $3 AND state = 'PENDING' AND session_id = $4 AND token_hash = $5 AND source_hash = $6 AND deadline > now()
+       AND EXISTS (SELECT 1 FROM projects p WHERE p.id=browser_render_jobs.project_id AND p.owner_id=$3 AND NOT p.is_deleted FOR SHARE)
        RETURNING id`,
       [
         JSON.stringify(storedCompletion),

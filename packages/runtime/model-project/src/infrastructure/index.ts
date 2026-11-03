@@ -30,3 +30,4 @@ export { WorkerValidationTransaction } from "./services/workerValidationTransact
 export { FileProjectWorkflow } from "./workflows/fileProject.workflow.js";
 
 export * from "./workflows/modelExports.workflow.js";
+export { ProjectLifecycleService } from "./services/projectLifecycle.service.js";

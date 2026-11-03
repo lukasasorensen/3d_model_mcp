@@ -99,6 +99,13 @@
       "when": 1793720910332,
       "tag": "0013_platform-invitations",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793729883615,
+      "tag": "0014_project_lifecycle",
+      "breakpoints": true
     }
   ]
 }

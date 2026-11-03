@@ -5,7 +5,11 @@ import type {
   UpdateProjectInput,
 } from "@theoryfoundry/contracts";
 
-import type { ProjectState, ProjectSummary } from "./project.types.js";
+import type {
+  ProjectState,
+  ProjectSummary,
+  ProjectViews,
+} from "./project.types.js";
 
 /** Project persistence scoped to one authenticated owner. */
 export interface ModelProjectStore {
@@ -65,6 +69,10 @@ export interface ModelProjectStore {
 }
 
 export interface ProjectRepository extends ModelProjectStore {
+  listProjects(view?: "active" | "archived"): Promise<ProjectSummary[]>;
+  listProjectViews(): Promise<ProjectViews>;
+  setProjectArchived(projectId: string, isArchived: boolean): Promise<void>;
+  deleteProject(projectId: string): Promise<void>;
   assertProjectAccess(projectId: string): Promise<void>;
   getProjectSnapshot(
     projectId: string,

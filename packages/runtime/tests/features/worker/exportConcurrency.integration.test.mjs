@@ -1,4 +1,7 @@
-import { PostgresProjectNotifications } from "@theoryfoundry/model-project";
+import {
+  PostgresProjectNotifications,
+  RemoteRenderJobsRepository,
+} from "@theoryfoundry/model-project";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -14,7 +17,7 @@ const connectionString = process.env.THEORYFOUNDRY_TEST_EXPORT_DATABASE_URL;
 test(
   "real PostgreSQL serializes worker capacity, shared quota and terminal races",
   { skip: !connectionString },
-  async () => {
+  async (t) => {
     const pool = new pg.Pool({ connectionString, max: 8 });
     const notifications = new PostgresProjectNotifications(pool);
     try {
@@ -36,7 +39,15 @@ test(
           "utf8",
         ),
       );
-      for (const { tag } of journal.entries)
+      for (const { tag } of journal.entries) {
+        if (tag === "0014_project_lifecycle") {
+          await pool.query(
+            "INSERT INTO \"user\" (id,name,email) VALUES ('legacy','Legacy','legacy@example.com')",
+          );
+          await pool.query(
+            "INSERT INTO projects (id,owner_id) VALUES ('existing-project','legacy')",
+          );
+        }
         await pool.query(
           await readFile(
             new URL(
@@ -46,7 +57,75 @@ test(
             "utf8",
           ),
         );
+      }
+      assert.deepEqual(
+        (
+          await pool.query(
+            "SELECT is_archived,is_deleted FROM projects WHERE id='existing-project'",
+          )
+        ).rows,
+        [{ is_archived: false, is_deleted: false }],
+      );
       const f = await createWorkerExportFixture({ pool, notifications });
+      await t.test(
+        "both render recovery paths skip a project during deletion and recover it after rollback",
+        async () => {
+          const { projectId } = await f.repository.createProject({
+            name: "Recovery race",
+            description: "Lock ordering",
+          });
+          const propose = (id) =>
+            f.repository.proposeModelSource({
+              projectId,
+              parentRevision: null,
+              source: "cube(1);",
+              requestId: id,
+              toolCallId: id,
+            });
+          const expired = await propose("expired"),
+            legacy = await propose("legacy");
+          await pool.query(
+            "INSERT INTO validation_attempts (id,candidate_id,state,deadline) VALUES ('stale',$1,'RUNNING',now()-interval '1 minute')",
+            [expired.candidateId],
+          );
+          await pool.query(
+            `UPDATE candidates SET state='RUNNING',updated_at=now()-interval '3 minutes',
+          active_attempt_id=CASE WHEN id=$2 THEN 'stale' END WHERE project_id=$1`,
+            [projectId, expired.candidateId],
+          );
+          const snapshot = async () =>
+            (
+              await pool.query(
+                `SELECT c.state AS candidate,a.state AS attempt FROM candidates c
+           LEFT JOIN validation_attempts a ON a.candidate_id=c.id
+           WHERE c.id IN ($1,$2) ORDER BY (c.id=$1) DESC`,
+                [expired.candidateId, legacy.candidateId],
+              )
+            ).rows;
+          const jobs = new RemoteRenderJobsRepository(pool, f.ownerId);
+          const deleting = await pool.connect();
+          try {
+            await deleting.query("BEGIN");
+            await deleting.query(
+              "UPDATE projects SET is_deleted=true WHERE id=$1 AND owner_id=$2",
+              [projectId, f.ownerId],
+            );
+            await jobs.recover();
+            assert.deepEqual(await snapshot(), [
+              { candidate: "RUNNING", attempt: "RUNNING" },
+              { candidate: "RUNNING", attempt: null },
+            ]);
+          } finally {
+            await deleting.query("ROLLBACK");
+            deleting.release();
+          }
+          await jobs.recover();
+          assert.deepEqual(await snapshot(), [
+            { candidate: "CREATED", attempt: "FAILED" },
+            { candidate: "CREATED", attempt: null },
+          ]);
+        },
+      );
       const targets = await Promise.all([f.target(), f.target(), f.target()]);
       const admissions = await Promise.allSettled(
         targets.map((target) => f.service.begin(target)),
@@ -83,6 +162,37 @@ test(
           (await f.service.status(capability(lease))).state,
           results[0].state,
         );
+      }
+      // Queue completion behind an uncommitted deletion, then release the project lock.
+      const retiring = await f.target();
+      const late = await f.service.begin(retiring);
+      const deletion = await pool.connect();
+      try {
+        await deletion.query("BEGIN");
+        await deletion.query(
+          "UPDATE projects SET is_deleted=true WHERE id=$1 AND owner_id=$2",
+          [retiring.projectId, f.ownerId],
+        );
+        const before = f.writes();
+        const rejected = assert.rejects(
+          f.service.complete(completion(late), stl()),
+          { code: "EXPORT_UNAVAILABLE" },
+        );
+        let blocked = false;
+        for (let poll = 0; poll < 100 && !blocked; poll++) {
+          const waits = await deletion.query(
+            "SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE pg_backend_pid() = ANY(pg_blocking_pids(pid))) AS blocked",
+          );
+          blocked = waits.rows[0].blocked;
+          if (!blocked) await new Promise((resolve) => setTimeout(resolve, 10));
+        }
+        assert.ok(blocked, "completion must wait on the project row");
+        await deletion.query("COMMIT");
+        await rejected;
+        assert.equal(f.writes(), before);
+      } finally {
+        await deletion.query("ROLLBACK");
+        deletion.release();
       }
       // Fill to 235 MiB: two simultaneous 10 MiB browser/worker admissions must allow exactly one.
       await pool.query("UPDATE model_exports SET reserved_bytes=0");

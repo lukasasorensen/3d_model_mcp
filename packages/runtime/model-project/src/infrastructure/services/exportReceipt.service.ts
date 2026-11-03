@@ -22,8 +22,8 @@ export async function issueExportReceipt(
   );
   const result = await executor.query(
     `INSERT INTO export_download_tokens (hash,export_id,expires_at)
-    SELECT $1,e.id,$3 FROM model_exports e JOIN projects p ON p.id=e.project_id AND p.owner_id=e.owner_id
-    WHERE e.id=$2 AND e.owner_id=$4 AND e.state='READY' AND e.expires_at>$5 RETURNING export_id`,
+    SELECT $1,e.id,$3 FROM model_exports e JOIN projects p ON NOT p.is_deleted AND p.id=e.project_id AND p.owner_id=e.owner_id
+    WHERE e.id=$2 AND e.owner_id=$4 AND e.state='READY' AND e.expires_at>$5 FOR SHARE OF p RETURNING export_id`,
     [sha256(token), row.id, expiry, ownerId, now],
   );
   if (!result.rows[0])

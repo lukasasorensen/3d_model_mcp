@@ -1,5 +1,11 @@
 import { defineTableFactory } from "./shared/tableFactory.util.js";
-import { index, pgTable, text, type AnyPgColumn } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  index,
+  pgTable,
+  text,
+  type AnyPgColumn,
+} from "drizzle-orm/pg-core";
 
 import {
   auditTimestamps,
@@ -18,6 +24,8 @@ export const defineProjectsSchema = defineTableFactory(
           .references(() => user.id, { onDelete: "cascade" }),
         name: text("name").notNull().default("Untitled project"),
         description: text("description").notNull().default(""),
+        isArchived: boolean("is_archived").notNull().default(false),
+        isDeleted: boolean("is_deleted").notNull().default(false),
         currentRevisionId: text("current_revision_id").references(
           references.revisions,
           { onDelete: "restrict" },

@@ -1,4 +1,13 @@
-import type { ArtifactManifest, Diagnostic } from "@theoryfoundry/contracts";
+import type {
+  ArtifactManifest,
+  Diagnostic,
+  ProjectSummary,
+} from "@theoryfoundry/contracts";
+
+export interface ProjectViews {
+  active: ProjectSummary[];
+  archived: ProjectSummary[];
+}
 
 export interface ProjectState {
   projectId: string;
