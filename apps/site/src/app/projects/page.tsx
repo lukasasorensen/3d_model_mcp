@@ -11,14 +11,10 @@ import { ProjectLanding } from "../../features/workspace/browser/index";
 export default async function ProjectsPage(): Promise<JSX.Element> {
   const user = await getAuthenticatedUser(await headers());
   if (!user) redirect("/sign-in");
-  const [projects, archivedProjects] = await withConfiguredCadRuntime(
-    user.id,
-    (runtime) =>
-      Promise.all([
-        runtime.repository.listProjects("active"),
-        runtime.repository.listProjects("archived"),
-      ]),
-  );
+  const { active: projects, archived: archivedProjects } =
+    await withConfiguredCadRuntime(user.id, (runtime) =>
+      runtime.repository.listProjectViews(),
+    );
   return (
     <ProjectLanding
       projects={projects}

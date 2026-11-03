@@ -17,7 +17,11 @@ import type { ModelSourceService } from "../services/modelSource.service.js";
 import { CadDomainError } from "../../../shared/utils/cadDomainError.util.js";
 import { assertArtifactSet } from "../../../shared/utils/renderPolicy.util.js";
 import { VALIDATION_POLICY_VERSION } from "../../../shared/validation.constants.js";
-import type { ProjectState, ProjectSummary } from "../project.types.js";
+import type {
+  ProjectState,
+  ProjectSummary,
+  ProjectViews,
+} from "../project.types.js";
 import type { ProjectPersistence } from "../projectPersistence.port.js";
 import type { ModelProjectStore } from "../projectStore.port.js";
 import type { CandidateValidationService } from "../services/candidateValidation.service.js";
@@ -58,7 +62,11 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
   async listProjects(
     view: "active" | "archived" = "active",
   ): Promise<ProjectSummary[]> {
-    return this.persistence.listProjects(view);
+    return (await this.persistence.listProjectViews(view))[view];
+  }
+
+  listProjectViews(): Promise<ProjectViews> {
+    return this.persistence.listProjectViews();
   }
 
   async getProjectState(projectId: string): Promise<ProjectState> {

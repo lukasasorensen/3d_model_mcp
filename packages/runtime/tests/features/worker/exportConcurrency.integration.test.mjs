@@ -1,4 +1,7 @@
-import { PostgresProjectNotifications } from "@theoryfoundry/model-project";
+import {
+  PostgresProjectNotifications,
+  RemoteRenderJobsRepository,
+} from "@theoryfoundry/model-project";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -14,7 +17,7 @@ const connectionString = process.env.THEORYFOUNDRY_TEST_EXPORT_DATABASE_URL;
 test(
   "real PostgreSQL serializes worker capacity, shared quota and terminal races",
   { skip: !connectionString },
-  async () => {
+  async (t) => {
     const pool = new pg.Pool({ connectionString, max: 8 });
     const notifications = new PostgresProjectNotifications(pool);
     try {
@@ -64,6 +67,65 @@ test(
         [{ is_archived: false, is_deleted: false }],
       );
       const f = await createWorkerExportFixture({ pool, notifications });
+      await t.test(
+        "both render recovery paths skip a project during deletion and recover it after rollback",
+        async () => {
+          const { projectId } = await f.repository.createProject({
+            name: "Recovery race",
+            description: "Lock ordering",
+          });
+          const propose = (id) =>
+            f.repository.proposeModelSource({
+              projectId,
+              parentRevision: null,
+              source: "cube(1);",
+              requestId: id,
+              toolCallId: id,
+            });
+          const expired = await propose("expired"),
+            legacy = await propose("legacy");
+          await pool.query(
+            "INSERT INTO validation_attempts (id,candidate_id,state,deadline) VALUES ('stale',$1,'RUNNING',now()-interval '1 minute')",
+            [expired.candidateId],
+          );
+          await pool.query(
+            `UPDATE candidates SET state='RUNNING',updated_at=now()-interval '3 minutes',
+          active_attempt_id=CASE WHEN id=$2 THEN 'stale' END WHERE project_id=$1`,
+            [projectId, expired.candidateId],
+          );
+          const snapshot = async () =>
+            (
+              await pool.query(
+                `SELECT c.state AS candidate,a.state AS attempt FROM candidates c
+           LEFT JOIN validation_attempts a ON a.candidate_id=c.id
+           WHERE c.id IN ($1,$2) ORDER BY (c.id=$1) DESC`,
+                [expired.candidateId, legacy.candidateId],
+              )
+            ).rows;
+          const jobs = new RemoteRenderJobsRepository(pool, f.ownerId);
+          const deleting = await pool.connect();
+          try {
+            await deleting.query("BEGIN");
+            await deleting.query(
+              "UPDATE projects SET is_deleted=true WHERE id=$1 AND owner_id=$2",
+              [projectId, f.ownerId],
+            );
+            await jobs.recover();
+            assert.deepEqual(await snapshot(), [
+              { candidate: "RUNNING", attempt: "RUNNING" },
+              { candidate: "RUNNING", attempt: null },
+            ]);
+          } finally {
+            await deleting.query("ROLLBACK");
+            deleting.release();
+          }
+          await jobs.recover();
+          assert.deepEqual(await snapshot(), [
+            { candidate: "CREATED", attempt: "FAILED" },
+            { candidate: "CREATED", attempt: null },
+          ]);
+        },
+      );
       const targets = await Promise.all([f.target(), f.target(), f.target()]);
       const admissions = await Promise.allSettled(
         targets.map((target) => f.service.begin(target)),

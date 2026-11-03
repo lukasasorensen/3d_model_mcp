@@ -43,6 +43,8 @@ export class PostgresModelProjectRepository {
     this.lifecycle.deleteProject(...args);
   listProjects: PostgresProjectWorkflow["listProjects"] = (...args) =>
     this.workflow.listProjects(...args);
+  listProjectViews: PostgresProjectWorkflow["listProjectViews"] = () =>
+    this.workflow.listProjectViews();
   getProjectState: PostgresProjectWorkflow["getProjectState"] = (...args) =>
     this.workflow.getProjectState(...args);
   assertProjectAccess: PostgresProjectWorkflow["assertProjectAccess"] = (

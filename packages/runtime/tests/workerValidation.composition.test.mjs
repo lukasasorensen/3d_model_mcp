@@ -383,3 +383,46 @@ test("concurrent callers respect capacity and duplicate completions return the s
     await f.close();
   }
 });
+
+test("deletion settles a worker lease and attempt without reviving an inaccessible candidate", async () => {
+  const f = await fixture();
+  try {
+    const completeLease = await f.begin();
+    await f.service.complete(completion(completeLease));
+    const lease = await f.begin();
+    await f.repository.deleteProject(lease.projectId);
+    await f.repository.deleteProject(lease.projectId);
+    f.advance(WORKER_VALIDATION_LIMITS.leaseMs + 1);
+    await assert.rejects(f.service.status(capability(lease)), {
+      code: "CANDIDATE_NOT_FOUND",
+    });
+    await assert.rejects(f.service.complete(completion(lease)), {
+      code: "CANDIDATE_NOT_FOUND",
+    });
+    const states = await f.pool.query(
+      `SELECT j.state AS job, a.state AS attempt, a.error->>'code' AS reason,
+       c.state AS candidate, c.active_attempt_id AS active FROM worker_validation_jobs j
+       JOIN validation_attempts a ON a.id=j.attempt_id JOIN candidates c ON c.id=j.candidate_id
+       WHERE j.id IN ($1,$2) ORDER BY (j.id=$1) DESC`,
+      [completeLease.jobId, lease.jobId],
+    );
+    assert.deepEqual(states.rows, [
+      {
+        job: "COMPLETED",
+        attempt: "VALID",
+        reason: null,
+        candidate: "VALID",
+        active: null,
+      },
+      {
+        job: "CANCELLED",
+        attempt: "FAILED",
+        reason: "CANCELLED",
+        candidate: "CREATED",
+        active: null,
+      },
+    ]);
+  } finally {
+    await f.close();
+  }
+});

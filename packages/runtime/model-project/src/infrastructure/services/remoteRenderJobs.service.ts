@@ -119,17 +119,20 @@ export class RemoteRenderJobsRepository {
 
   async recover(): Promise<void> {
     await this.expire();
+    // Recovery may skip a busy project. Lock it before changing its candidates.
+    const recoverableProject = `EXISTS (SELECT 1 FROM projects p
+      WHERE p.id=c.project_id AND p.owner_id=$1 AND NOT p.is_deleted FOR SHARE SKIP LOCKED)`;
     await this.pool.query(
       `WITH expired AS (
       UPDATE candidates c SET state='CREATED',active_attempt_id=NULL,updated_at=now()
-      FROM validation_attempts a,projects p WHERE NOT p.is_deleted AND c.project_id=p.id AND p.owner_id=$1 AND c.state='RUNNING'
+      FROM validation_attempts a WHERE ${recoverableProject} AND c.state='RUNNING'
       AND c.active_attempt_id=a.id AND a.deadline<=now() RETURNING a.id
     ) UPDATE validation_attempts SET state='FAILED',error='{"code":"RENDER_FAILED","message":"Validation interrupted; retry the same candidate.","details":{"retryable":true}}'::jsonb,updated_at=now() WHERE id IN (SELECT id FROM expired)`,
       [this.ownerId],
     );
     await this.pool.query(
-      `UPDATE candidates c SET state='CREATED',updated_at=now() FROM projects p
-      WHERE NOT p.is_deleted AND c.project_id=p.id AND p.owner_id=$1 AND c.state='RUNNING' AND c.active_attempt_id IS NULL
+      `UPDATE candidates c SET state='CREATED',updated_at=now()
+      WHERE ${recoverableProject} AND c.state='RUNNING' AND c.active_attempt_id IS NULL
       AND c.updated_at<now()-interval '120 seconds'
       AND NOT EXISTS (SELECT 1 FROM browser_render_jobs j WHERE j.candidate_id=c.id AND j.owner_id=$1 AND j.state='PENDING' AND j.deadline>now())`,
       [this.ownerId],

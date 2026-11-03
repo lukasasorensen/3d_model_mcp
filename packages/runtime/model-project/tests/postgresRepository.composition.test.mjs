@@ -177,6 +177,7 @@ async function migratedMemoryPool() {
     "0002_marvelous_puff_adder.sql",
     "0008_sad_starhawk.sql",
     "0009_clever_spot.sql",
+    "0011_worker-validation-jobs.sql",
     "0013_project_lifecycle.sql",
   ]) {
     const sql = await readFile(
@@ -326,6 +327,52 @@ test("PostgreSQL repository satisfies the project-store contract and isolates ow
         ])
       ).rows[0].source,
       "cube(12);",
+    );
+  } finally {
+    await pool.end();
+  }
+});
+
+test("the dashboard partitions one owned project snapshot even if another tab archives during the read", async () => {
+  const pool = await migratedMemoryPool();
+  try {
+    await pool.query(
+      `INSERT INTO "user" (id,name,email) VALUES ('a','A','a@example.com'),('b','B','b@example.com')`,
+    );
+    await pool.query(`INSERT INTO projects (id,owner_id,is_archived,is_deleted) VALUES
+      ('moving','a',false,false), ('stored','a',true,false), ('removed','a',true,true), ('foreign','b',false,false)`);
+    let reads = 0;
+    const repository = new PostgresModelProjectRepository({
+      ownerId: "a",
+      renderer,
+      acceptRendererProvenance: () => true,
+      pool: {
+        query: async (...args) => {
+          const result = await pool.query(...args);
+          reads++;
+          if (reads === 1)
+            await pool.query(
+              "UPDATE projects SET is_archived=true WHERE id='moving'",
+            );
+          return result;
+        },
+      },
+    });
+    const snapshot = await repository.listProjectViews();
+    assert.equal(reads, 1);
+    assert.deepEqual(
+      snapshot.active.map((p) => p.projectId),
+      ["moving"],
+    );
+    assert.deepEqual(
+      snapshot.archived.map((p) => p.projectId),
+      ["stored"],
+    );
+    const refreshed = await repository.listProjectViews();
+    assert.deepEqual(refreshed.active, []);
+    assert.deepEqual(
+      refreshed.archived.map((p) => p.projectId),
+      ["moving", "stored"],
     );
   } finally {
     await pool.end();

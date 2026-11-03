@@ -26,6 +26,7 @@ import type {
   PersistedCandidate,
   PersistedRevision,
   ProjectSummary,
+  ProjectViews,
 } from "../../domains/project/index.js";
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
@@ -113,24 +114,28 @@ export class PostgresProjectPersistence {
     });
   }
 
-  async listProjects(
-    view: "active" | "archived" = "active",
-  ): Promise<ProjectSummary[]> {
+  async listProjectViews(view?: keyof ProjectViews): Promise<ProjectViews> {
     const result = await this.executor.query<{
       id: string;
       name: string;
       description: string;
+      is_archived: boolean;
     }>(
-      "SELECT id, name, description FROM projects WHERE owner_id = $1 AND NOT is_deleted AND is_archived = $2 ORDER BY id",
-      [this.ownerId, view === "archived"],
+      `SELECT id, name, description, is_archived FROM projects WHERE owner_id=$1 AND NOT is_deleted${view ? " AND is_archived=$2" : ""} ORDER BY id`,
+      view ? [this.ownerId, view === "archived"] : [this.ownerId],
     );
-    return result.rows.map((row) =>
-      projectSummarySchema.parse({
-        projectId: row.id,
-        name: row.name,
-        description: row.description,
-      }),
-    );
+    const views: ProjectViews = { active: [], archived: [] };
+    for (const row of result.rows) {
+      const list = row.is_archived ? views.archived : views.active;
+      list.push(
+        projectSummarySchema.parse({
+          projectId: row.id,
+          name: row.name,
+          description: row.description,
+        }),
+      );
+    }
+    return views;
   }
 
   async readCandidate(
