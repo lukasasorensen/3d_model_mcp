@@ -1,6 +1,7 @@
 import { CadDomainError } from "@theoryfoundry/runtime";
 import assert from "node:assert/strict";
 import test from "node:test";
+import { DELETE, PATCH } from "../src/app/v1/projects/[projectId]/route";
 import { POST as restoreRevision } from "../src/app/v1/projects/[projectId]/revisions/[revisionId]/restore/route";
 import { isCadDomainError } from "../src/shared/errors/cadErrors.util";
 
@@ -38,4 +39,22 @@ void test("project read errors distinguish hidden projects from operational fail
     isCadDomainError(new Error("database unavailable"), "PROJECT_NOT_FOUND"),
     false,
   );
+});
+
+void test("archive and delete require the configured origin before authentication", async () => {
+  for (const [method, handler] of [
+    ["PATCH", PATCH],
+    ["DELETE", DELETE],
+  ] as const) {
+    for (const origin of [undefined, "https://another.invalid"]) {
+      const response = await handler(
+        new Request("http://localhost/v1/projects/example", {
+          method,
+          headers: origin ? { origin } : {},
+        }),
+        { params: Promise.resolve({ projectId: "example" }) },
+      );
+      assert.equal(response.status, 403);
+    }
+  }
 });

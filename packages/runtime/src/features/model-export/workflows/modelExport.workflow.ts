@@ -88,7 +88,7 @@ export class ModelExportWorkflow {
     try {
       await client.query("BEGIN");
       const result = await client.query(
-        "SELECT e.*,p.name FROM model_exports e JOIN projects p ON p.id=e.project_id AND p.owner_id=e.owner_id WHERE e.id=$1 AND e.owner_id=$2 AND e.project_id=$3 AND e.state='PENDING' AND e.session_id=$4 AND e.token_hash=$5 AND e.source_hash=$6 AND e.deadline>now() FOR UPDATE OF e",
+        "SELECT e.*,p.name FROM model_exports e JOIN projects p ON NOT p.is_deleted AND p.id=e.project_id AND p.owner_id=e.owner_id WHERE e.id=$1 AND e.owner_id=$2 AND e.project_id=$3 AND e.state='PENDING' AND e.session_id=$4 AND e.token_hash=$5 AND e.source_hash=$6 AND e.deadline>now() FOR UPDATE OF e FOR SHARE OF p",
         [id, ownerId, projectId, sessionId, sha256(token), sourceHash],
       );
       const row = result.rows[0];
@@ -116,7 +116,7 @@ export class ModelExportWorkflow {
     sourceHash: string,
   ): Promise<void> {
     const result = await this.database.pool.query(
-      "UPDATE model_exports SET state='FAILED',token_hash=NULL,reserved_bytes=0,updated_at=now() WHERE id=$1 AND owner_id=$2 AND project_id=$3 AND session_id=$4 AND token_hash=$5 AND source_hash=$6 AND state='PENDING' AND deadline>now() RETURNING id",
+      "UPDATE model_exports SET state='FAILED',token_hash=NULL,reserved_bytes=0,updated_at=now() WHERE id=$1 AND owner_id=$2 AND project_id=$3 AND session_id=$4 AND token_hash=$5 AND source_hash=$6 AND state='PENDING' AND deadline>now() AND EXISTS (SELECT 1 FROM projects p WHERE p.id=$3 AND p.owner_id=$2 AND NOT p.is_deleted FOR SHARE) RETURNING id",
       [id, ownerId, projectId, sessionId, sha256(token), sourceHash],
     );
     if (!result.rows[0])
@@ -130,7 +130,7 @@ export class ModelExportWorkflow {
     token: string,
   ): ReturnType<ModelExportOperations["download"]> {
     const result = await this.database.pool.query(
-      "SELECT e.metadata FROM export_download_tokens t JOIN model_exports e ON e.id=t.export_id JOIN projects p ON p.id=e.project_id AND p.owner_id=e.owner_id WHERE t.hash=$1 AND e.id=$2 AND t.expires_at>now() AND e.expires_at>now() AND e.state='READY'",
+      "SELECT e.metadata FROM export_download_tokens t JOIN model_exports e ON e.id=t.export_id JOIN projects p ON NOT p.is_deleted AND p.id=e.project_id AND p.owner_id=e.owner_id WHERE t.hash=$1 AND e.id=$2 AND t.expires_at>now() AND e.expires_at>now() AND e.state='READY'",
       [sha256(token), id],
     );
     if (!result.rows[0])

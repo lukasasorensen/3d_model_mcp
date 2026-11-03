@@ -41,7 +41,7 @@ export class BrowserPreviewJobsRepository {
     try {
       const result = await this.pool.query(
         `INSERT INTO browser_preview_jobs (id, owner_id, project_id, metadata, source, delivery_mode, claim_deadline, deadline)
-        SELECT $1, $2, id, $4::jsonb, $5, $6, now() + interval '15 seconds', now() + interval '80 seconds' FROM projects WHERE id = $3 AND owner_id = $2 RETURNING id`,
+        SELECT $1, $2, id, $4::jsonb, $5, $6, now() + interval '15 seconds', now() + interval '80 seconds' FROM projects WHERE id = $3 AND owner_id = $2 AND NOT is_deleted FOR SHARE RETURNING id`,
         [
           id,
           this.ownerId,
@@ -71,22 +71,17 @@ export class BrowserPreviewJobsRepository {
     sessionId: string,
     modes: string[],
   ): Promise<PreviewJob | undefined> {
+    const token = randomBytes(32).toString("hex");
     const result = await this.pool.query<PersistedPreviewJob>(
-      `UPDATE browser_preview_jobs SET session_id = $3, claimed_at = now(), updated_at = now()
-      WHERE id = (SELECT j.id FROM browser_preview_jobs j JOIN projects p ON p.id = j.project_id AND p.owner_id = j.owner_id
+      `UPDATE browser_preview_jobs SET session_id = $3, token_hash = $5, claimed_at = now(), updated_at = now()
+      WHERE id = (SELECT j.id FROM browser_preview_jobs j JOIN projects p ON NOT p.is_deleted AND p.id = j.project_id AND p.owner_id = j.owner_id
         WHERE j.owner_id = $1 AND j.project_id = $2 AND j.delivery_mode::text = ANY($4::text[]) AND j.state = 'PENDING'
-        AND j.claimed_at IS NULL AND j.claim_deadline > now() AND j.deadline > now() FOR UPDATE OF j SKIP LOCKED LIMIT 1)
+        AND j.claimed_at IS NULL AND j.claim_deadline > now() AND j.deadline > now() FOR UPDATE OF j SKIP LOCKED FOR SHARE OF p LIMIT 1)
       AND owner_id = $1 RETURNING *`,
-      [this.ownerId, projectId, sessionId, modes],
+      [this.ownerId, projectId, sessionId, modes, sha256(token)],
     );
     const job = result.rows[0];
     if (!job) return undefined;
-    const token = randomBytes(32).toString("hex");
-    // The job is exclusively claimed; a failed token write leaves it to expire.
-    await this.pool.query(
-      "UPDATE browser_preview_jobs SET token_hash = $3 WHERE id = $1 AND owner_id = $2",
-      [job.id, this.ownerId, sha256(token)],
-    );
     return previewJobSchema.parse({
       ...job.metadata,
       jobId: job.id,
@@ -103,7 +98,7 @@ export class BrowserPreviewJobsRepository {
   ): Promise<"pending" | "completed" | "cancelled"> {
     const result = await this.pool.query<{ state: string }>(
       `SELECT j.state FROM browser_preview_jobs j
-      JOIN projects p ON p.id = j.project_id AND p.owner_id = j.owner_id
+      JOIN projects p ON NOT p.is_deleted AND p.id = j.project_id AND p.owner_id = j.owner_id
       WHERE j.id = $1 AND j.owner_id = $2 AND j.project_id = $3 AND j.session_id = $4 AND j.token_hash = $5
       AND j.deadline > now()`,
       [jobId, this.ownerId, projectId, sessionId, sha256(token)],
@@ -118,7 +113,7 @@ export class BrowserPreviewJobsRepository {
   async outcome(id: string): Promise<PersistedPreviewJob | undefined> {
     return (
       await this.pool.query<PersistedPreviewJob>(
-        "SELECT j.* FROM browser_preview_jobs j JOIN projects p ON p.id = j.project_id AND p.owner_id = j.owner_id WHERE j.id = $1 AND j.owner_id = $2",
+        "SELECT j.* FROM browser_preview_jobs j JOIN projects p ON NOT p.is_deleted AND p.id = j.project_id AND p.owner_id = j.owner_id WHERE j.id = $1 AND j.owner_id = $2",
         [id, this.ownerId],
       )
     ).rows[0];
@@ -139,7 +134,7 @@ export class BrowserPreviewJobsRepository {
       `UPDATE browser_preview_jobs j SET completion = $5::jsonb, state = 'COMPLETED', updated_at = now()
       WHERE j.id = $1 AND j.owner_id = $2 AND j.session_id = $3 AND j.token_hash = $4 AND j.metadata = $6::jsonb
       AND j.state = 'PENDING' AND j.claimed_at IS NOT NULL AND j.deadline > now()
-      AND EXISTS (SELECT 1 FROM projects p WHERE p.id = j.project_id AND p.owner_id = $2) RETURNING j.id`,
+      AND EXISTS (SELECT 1 FROM projects p WHERE p.id = j.project_id AND p.owner_id = $2 AND NOT p.is_deleted FOR SHARE) RETURNING j.id`,
       [
         jobId,
         this.ownerId,

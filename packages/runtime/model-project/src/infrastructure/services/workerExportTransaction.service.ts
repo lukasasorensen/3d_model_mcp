@@ -16,7 +16,7 @@ export class WorkerExportTransaction {
     return Number(
       (
         await this.client.query(
-          "SELECT count(*) AS count FROM worker_export_jobs WHERE owner_id=$1 AND state='PENDING' AND deadline>$2",
+          "SELECT count(*) AS count FROM worker_export_jobs j JOIN projects p ON p.id=j.project_id AND p.owner_id=j.owner_id WHERE j.owner_id=$1 AND NOT p.is_deleted AND j.state='PENDING' AND deadline>$2",
           [this.ownerId, now],
         )
       ).rows[0].count,
@@ -57,9 +57,9 @@ export class WorkerExportTransaction {
   ): Promise<WorkerExportJob> {
     const result = await this.client.query<WorkerExportJob>(
       `SELECT j.* FROM worker_export_jobs j
-      JOIN projects p ON p.id=j.project_id AND p.owner_id=j.owner_id
+      JOIN projects p ON NOT p.is_deleted AND p.id=j.project_id AND p.owner_id=j.owner_id
       WHERE j.id=$1 AND j.owner_id=$2 AND j.project_id=$3 AND j.export_id=$4 AND j.revision_id=$5
-        AND j.source_hash=$6 AND j.format=$7 AND j.token_hash=$8 AND j.retain_until>$9 FOR UPDATE OF j`,
+        AND j.source_hash=$6 AND j.format=$7 AND j.token_hash=$8 AND j.retain_until>$9 FOR UPDATE OF j FOR SHARE OF p`,
       [
         input.jobId,
         this.ownerId,
@@ -86,8 +86,8 @@ export class WorkerExportTransaction {
     return (
       await this.client.query<ExportRow & { name: string }>(
         `SELECT e.*,p.name FROM model_exports e
-      JOIN projects p ON p.id=e.project_id AND p.owner_id=e.owner_id
-      WHERE e.id=$1 AND e.owner_id=$2 AND e.project_id=$3 AND e.revision_id=$4 AND e.source_hash=$5 AND e.format=$6 FOR UPDATE OF e`,
+      JOIN projects p ON NOT p.is_deleted AND p.id=e.project_id AND p.owner_id=e.owner_id
+      WHERE e.id=$1 AND e.owner_id=$2 AND e.project_id=$3 AND e.revision_id=$4 AND e.source_hash=$5 AND e.format=$6 FOR UPDATE OF e FOR SHARE OF p`,
         [
           job.export_id,
           this.ownerId,

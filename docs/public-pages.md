@@ -54,9 +54,10 @@ Before promoting these pages to production:
 6. Only then fill the three production URLs in plugin publication metadata. The review
    recording, directory approval and real-client acceptance remain separate gates.
 
-The site and root versions are 0.3.0 for the new public-page feature. Plugin metadata
-also advances to 0.3.0 to satisfy its existing application-release alignment rule.
-Runtime and the optional npm installer remain 0.2.0; their exact command pins are intact.
+The site and root versions advance from the current integration base 0.4.0 to 0.5.0
+for this public-page feature. Plugin metadata also advances to 0.5.0 to satisfy its
+existing application-release alignment rule. The unchanged runtime remains at 0.4.0
+and the optional npm installer at 0.2.0; its exact command pin is intact.
 
 ## Drafting references
 

@@ -177,6 +177,8 @@ async function migratedMemoryPool() {
     "0002_marvelous_puff_adder.sql",
     "0008_sad_starhawk.sql",
     "0009_clever_spot.sql",
+    "0011_worker-validation-jobs.sql",
+    "0014_project_lifecycle.sql",
   ]) {
     const sql = await readFile(
       new URL(`../drizzle/${migration}`, import.meta.url),
@@ -185,7 +187,7 @@ async function migratedMemoryPool() {
     for (const statement of sql
       .split("--> statement-breakpoint")
       .map((part) => part.trim())
-      .filter(Boolean))
+      .filter((part) => part && !part.startsWith("CREATE TRIGGER")))
       await pool.query(statement);
   }
   return pool;
@@ -277,6 +279,101 @@ test("PostgreSQL repository satisfies the project-store contract and isolates ow
       { code: "PROJECT_NOT_FOUND" },
     );
     assert.deepEqual(await ownerB.listProjects(), []);
+    const hidden = { code: "PROJECT_NOT_FOUND" };
+    await assert.rejects(ownerB.setProjectArchived(projectId, true), hidden);
+    await assert.rejects(ownerB.deleteProject(projectId), hidden);
+    await ownerA.setProjectArchived(projectId, true);
+    assert.deepEqual(await ownerA.listProjects(), []);
+    assert.equal(
+      (await ownerA.listProjects("archived"))[0].projectId,
+      projectId,
+    );
+    assert.deepEqual(await ownerB.listProjects("archived"), []);
+    const state = await ownerA.getProjectState(projectId);
+    await ownerA.updateProject({ projectId, name: "Archived bracket" });
+    const draft = await ownerA.proposeModelSource({
+      projectId,
+      parentRevision: state.currentRevision,
+      source: "cube(12);",
+      requestId: "archived-edit",
+      toolCallId: "archived-edit",
+    });
+    await ownerA.setProjectArchived(projectId, false);
+    assert.equal((await ownerA.listProjects())[0].name, "Archived bracket");
+    await ownerA.deleteProject(projectId);
+    await ownerA.deleteProject(projectId);
+    await assert.rejects(ownerA.getProjectSnapshot(projectId), hidden);
+    await assert.rejects(ownerA.setProjectArchived(projectId, false), hidden);
+    await assert.rejects(
+      ownerA.readModelSource(projectId, state.currentRevision),
+      hidden,
+    );
+    await assert.rejects(
+      ownerA.getCandidate(projectId, draft.candidateId),
+      hidden,
+    );
+    assert.deepEqual(await ownerA.listProjects(), []);
+    const extra = await ownerA.createProject({
+      name: "Second",
+      description: "Archived deletion",
+    });
+    await ownerA.setProjectArchived(extra.projectId, true);
+    await ownerA.deleteProject(extra.projectId);
+    assert.deepEqual(await ownerA.listProjects("archived"), []);
+    assert.equal(
+      (
+        await pool.query("SELECT source FROM candidates WHERE id=$1", [
+          draft.candidateId,
+        ])
+      ).rows[0].source,
+      "cube(12);",
+    );
+  } finally {
+    await pool.end();
+  }
+});
+
+test("the dashboard partitions one owned project snapshot even if another tab archives during the read", async () => {
+  const pool = await migratedMemoryPool();
+  try {
+    await pool.query(
+      `INSERT INTO "user" (id,name,email) VALUES ('a','A','a@example.com'),('b','B','b@example.com')`,
+    );
+    await pool.query(`INSERT INTO projects (id,owner_id,is_archived,is_deleted) VALUES
+      ('moving','a',false,false), ('stored','a',true,false), ('removed','a',true,true), ('foreign','b',false,false)`);
+    let reads = 0;
+    const repository = new PostgresModelProjectRepository({
+      ownerId: "a",
+      renderer,
+      acceptRendererProvenance: () => true,
+      pool: {
+        query: async (...args) => {
+          const result = await pool.query(...args);
+          reads++;
+          if (reads === 1)
+            await pool.query(
+              "UPDATE projects SET is_archived=true WHERE id='moving'",
+            );
+          return result;
+        },
+      },
+    });
+    const snapshot = await repository.listProjectViews();
+    assert.equal(reads, 1);
+    assert.deepEqual(
+      snapshot.active.map((p) => p.projectId),
+      ["moving"],
+    );
+    assert.deepEqual(
+      snapshot.archived.map((p) => p.projectId),
+      ["stored"],
+    );
+    const refreshed = await repository.listProjectViews();
+    assert.deepEqual(refreshed.active, []);
+    assert.deepEqual(
+      refreshed.archived.map((p) => p.projectId),
+      ["moving", "stored"],
+    );
   } finally {
     await pool.end();
   }

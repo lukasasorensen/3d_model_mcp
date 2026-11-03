@@ -140,6 +140,8 @@ cad_compose run --rm --no-deps --pull never \
 unset THEORYFOUNDRY_INITIAL_PASSWORD
 ```
 
+Use the resulting account ID to enable the [system admin invitation panel](system-invitations.md).
+
 For remote MCP, provision the **exact loopback callback URL used by the client**:
 
 ```bash

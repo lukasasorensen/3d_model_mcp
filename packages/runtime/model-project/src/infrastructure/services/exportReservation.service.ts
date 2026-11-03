@@ -26,7 +26,7 @@ export async function reserveExport(
   const target = await client.query(
     `SELECT r.source,r.source_hash FROM projects p
     JOIN revisions r ON r.id=p.current_revision_id AND r.project_id=p.id
-    WHERE p.id=$1 AND p.owner_id=$2 AND r.id=$3 FOR UPDATE OF p`,
+    WHERE NOT p.is_deleted AND p.id=$1 AND p.owner_id=$2 AND r.id=$3 FOR UPDATE OF p`,
     [input.projectId, ownerId, input.revision],
   );
   if (!target.rows[0])

@@ -4,12 +4,17 @@ import {
   PostgresProjectWorkflow,
   VALIDATION_POLICY_VERSION,
 } from "./domains/project/index.js";
-import { PostgresProjectPersistence } from "./infrastructure/index.js";
+import {
+  PostgresProjectPersistence,
+  ProjectLifecycleService,
+} from "./infrastructure/index.js";
 import type { PostgresModelProjectRepositoryOptions } from "./postgresRepository.types.js";
 export class PostgresModelProjectRepository {
   private readonly workflow: PostgresProjectWorkflow;
+  private readonly lifecycle: ProjectLifecycleService;
   constructor(options: PostgresModelProjectRepositoryOptions) {
     if (!options.ownerId) throw new Error("A repository owner is required.");
+    this.lifecycle = new ProjectLifecycleService(options.pool, options.ownerId);
     const validation = new CandidateValidationService({
       clock: options.clock ?? ((): Date => new Date()),
       validationPolicyVersion:
@@ -31,8 +36,15 @@ export class PostgresModelProjectRepository {
     this.workflow.createProject(...args);
   updateProject: PostgresProjectWorkflow["updateProject"] = (...args) =>
     this.workflow.updateProject(...args);
+  setProjectArchived: ProjectLifecycleService["setProjectArchived"] = (
+    ...args
+  ) => this.lifecycle.setProjectArchived(...args);
+  deleteProject: ProjectLifecycleService["deleteProject"] = (...args) =>
+    this.lifecycle.deleteProject(...args);
   listProjects: PostgresProjectWorkflow["listProjects"] = (...args) =>
     this.workflow.listProjects(...args);
+  listProjectViews: PostgresProjectWorkflow["listProjectViews"] = () =>
+    this.workflow.listProjectViews();
   getProjectState: PostgresProjectWorkflow["getProjectState"] = (...args) =>
     this.workflow.getProjectState(...args);
   assertProjectAccess: PostgresProjectWorkflow["assertProjectAccess"] = (

@@ -2,7 +2,7 @@
 import type { JSX } from "react";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { authClient } from "../services/auth.service";
 import { submitOAuthAction } from "../services/oauthNavigation.service";
 
@@ -10,6 +10,8 @@ export function SignInForm(): JSX.Element {
   const router = useRouter();
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   async function submit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setPending(true);
@@ -44,6 +46,7 @@ export function SignInForm(): JSX.Element {
   return (
     <form
       className="auth-form"
+      method="post"
       onSubmit={(event) => {
         void submit(event);
       }}
@@ -67,10 +70,12 @@ export function SignInForm(): JSX.Element {
           {error}
         </p>
       ) : null}
-      <button type="submit" disabled={pending}>
+      <button type="submit" disabled={!ready || pending}>
         {pending ? "Signing in…" : "Sign in"}
       </button>
-      <p>Accounts are invite-only. Ask an administrator to provision access.</p>
+      <p>
+        Accounts are invite-only. Ask an administrator for an invitation link.
+      </p>
     </form>
   );
 }
