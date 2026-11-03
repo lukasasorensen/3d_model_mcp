@@ -10,7 +10,8 @@ shared. Public directory publication and live client acceptance remain release g
 `plugins/theoryfoundry/` owns the shared identity, publisher metadata, logo and setup
 skill. `tooling/mcp-plugin/` builds client packages and local validation catalogs.
 Publisher: Lukas Sorensen. Production origin: `https://3dai.theoryfoundry.com`.
-The plugin version is 0.4.0 and matches the root, site, and runtime manifests.
+Version: 0.5.0, matching the root/site release. The unchanged runtime remains at
+0.4.0 and the optional npm installer at 0.2.0.
 
 ```sh
 pnpm pack:plugins
@@ -59,9 +60,12 @@ disablement, and removes unrelated resource mappings. Do not enable public DCR.
 
 ## Public directory submission
 
-The owner has not supplied public support, privacy or terms URLs. The review recording
-is also pending. Fill `plugins/theoryfoundry/publication.metadata.json` only with real,
-publicly accessible pages and a reviewer-accessible recording. Then run:
+Draft support, privacy and terms pages now exist at `/support`, `/privacy` and `/terms`.
+They are not approved public-release policies yet: see [public page review](public-pages.md),
+including the deletion prerequisite tracked in THE-45. The review recording is also
+pending. Fill `plugins/theoryfoundry/publication.metadata.json` only after the final pages
+are deployed, publicly accessible and verified, using the production origin plus those
+paths, and add a reviewer-accessible recording. Then run:
 
 ```sh
 pnpm pack:plugins --release

@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from "@theoryfoundry/runtime";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignInForm } from "../../features/authentication/browser/index";
+import Link from "next/link";
 
 export default async function SignInPage({
   searchParams,
@@ -18,6 +19,11 @@ export default async function SignInPage({
         <h1>Sign in</h1>
         <p>Access your authoritative CAD projects and revision history.</p>
         <SignInForm />
+        <nav className="auth-policy-links" aria-label="Information pages">
+          <Link href="/support">Support</Link>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+        </nav>
       </section>
     </main>
   );

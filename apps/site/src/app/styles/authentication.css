@@ -54,3 +54,18 @@
   gap: var(--space-3);
   margin-top: var(--space-6);
 }
+
+.auth-policy-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 24px;
+}
+
+.auth-policy-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent-contrast);
+  text-underline-offset: 3px;
+}
