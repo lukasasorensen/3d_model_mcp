@@ -10,11 +10,17 @@ publication date. The public-information layout sets noindex/nofollow while in d
 
 - Operator: Lukas Sorensen personally, Minnesota, United States.
 - Contact for support and privacy: `lukas@theoryfoundry.com`.
-- Adults aged 18 and over; free beta, without payments.
-- TheoryFoundry does not sell personal information or train AI models on users' CAD
-  projects. This is TheoryFoundry's own policy, not a claim about external AI providers.
+- Adults aged 18 and over; free beta, without payments. The age requirement appears
+  only in Terms, not Support or Privacy.
+- TheoryFoundry does not sell personal information or train AI models on user content.
+  This is TheoryFoundry's own policy, not a claim about external AI providers.
 - Write against the intended account/project deletion behavior; the owner will
   implement deletion separately before public release.
+
+Support is contact-only. Privacy uses broad data categories, purposes, sharing,
+functional cookies/storage, retention, user requests and policy updates. It deliberately
+avoids feature inventories, named clients and product-specific instructions. Changes to
+actual data practices still require checking the policy for accuracy.
 
 ## Review and release
 
