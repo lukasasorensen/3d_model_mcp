@@ -22,6 +22,14 @@ async function signIn(page, email, password) {
   await page.getByRole("heading", { name: "Your projects" }).waitFor();
 }
 try {
+  const noScript = await browser.newContext({ javaScriptEnabled: false });
+  const initial = await noScript.newPage();
+  await initial.goto(base + "/sign-in");
+  assert.equal(await initial.locator("form").getAttribute("method"), "post");
+  assert.ok(
+    await initial.getByRole("button", { name: "Sign in" }).isDisabled(),
+  );
+  await noScript.close();
   const admin = await browser.newContext({
     permissions: ["clipboard-read", "clipboard-write"],
   });
@@ -70,7 +78,48 @@ try {
   await adminPage.getByText("Link copied.", { exact: true }).waitFor();
   const link = await adminPage.evaluate(() => navigator.clipboard.readText());
   assert.ok(link.startsWith(base + "/invite#"));
+  // A failed issuance must leave the only copy of the previous link available.
+  await adminPage
+    .getByLabel("Recipient email")
+    .fill(INVITATION_TEST_ADMIN_EMAIL);
+  await adminPage.getByRole("button", { name: "Create invitation" }).click();
+  await adminPage
+    .getByText("An account already exists for this email.")
+    .waitFor();
+  assert.equal(
+    await adminPage.getByLabel(`Invitation link for ${email}`).inputValue(),
+    link,
+  );
+
+  // Simulate opening the link on a shared browser that is already signed in.
+  await signIn(
+    memberPage,
+    INVITATION_TEST_ADMIN_EMAIL,
+    INVITATION_TEST_ADMIN_PASSWORD,
+  );
   await memberPage.goto(link);
+  await memberPage
+    .getByRole("button", { name: "Sign out and continue" })
+    .waitFor();
+  assert.equal(await memberPage.getByLabel("Password").count(), 0);
+  const blocked = await recipient.request.post(redeem, {
+    headers,
+    data: {
+      token: new URL(link).hash.slice(1),
+      name: "Other account",
+      password,
+    },
+  });
+  assert.equal(blocked.status(), 409);
+  assert.equal((await blocked.json()).error.code, "SIGN_OUT_REQUIRED");
+  await memberPage
+    .getByRole("button", { name: "Sign out and continue" })
+    .click();
+  await memberPage.getByLabel("Name", { exact: true }).waitFor();
+  assert.ok(
+    memberPage.url() === link,
+    "Sign-out must preserve the invitation fragment.",
+  );
   const list = await admin.request.get(manage);
   assert.match(list.headers()["cache-control"], /no-store/);
   assert.equal(
@@ -82,7 +131,11 @@ try {
   await memberPage.getByRole("button", { name: "Create account" }).click();
   await memberPage.getByRole("link", { name: "Sign in" }).waitFor();
   assert.equal(new URL(memberPage.url()).hash, "");
-  await signIn(memberPage, email, password);
+  await memberPage.getByRole("link", { name: "Sign in" }).click();
+  await memberPage.getByLabel("Email", { exact: true }).fill(email);
+  await memberPage.getByLabel("Password").fill(password);
+  await memberPage.getByRole("button", { name: "Sign in" }).click();
+  await memberPage.getByText("Signed in as Invited user").waitFor();
   assert.equal(
     await memberPage.getByRole("link", { name: "Invitations" }).count(),
     0,
@@ -95,6 +148,7 @@ try {
       403,
     );
   }
+  await recipient.clearCookies();
   const replay = {
     token: new URL(link).hash.slice(1),
     name: "Replay",

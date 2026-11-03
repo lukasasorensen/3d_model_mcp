@@ -1,5 +1,7 @@
+import { readBoundedJson, RequestBodyTooLargeError } from "./shared/http/index";
 import {
   getAuth,
+  getAuthenticatedUser,
   getProjectDatabase,
   InvitationError,
   isSystemAdmin,
@@ -28,7 +30,14 @@ function failure(error: unknown): Response {
       );
 }
 async function fields(request: Request): Promise<Record<string, unknown>> {
-  const body: unknown = await request.json().catch(() => null);
+  let body: unknown;
+  try {
+    body = await readBoundedJson(request, 8 * 1024);
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError)
+      throw new InvitationError(413, "Invitation request is too large.");
+    throw new InvitationError(400, "Invalid request.");
+  }
   if (!body || typeof body !== "object" || Array.isArray(body))
     throw new InvitationError(400, "Invalid request.");
   return body as Record<string, unknown>;
@@ -61,8 +70,9 @@ export async function handleAdminInvitations(
     )
       throw new InvitationError(400, "Invalid invitation request.");
     const link = new URL("/invite", configuredOrigin());
-    link.hash = await store.issue(user.id, body.email, body.replaceId);
-    return response({ link: link.href });
+    const issued = await store.issue(user.id, body.email, body.replaceId);
+    link.hash = issued.token;
+    return response({ id: issued.id, email: issued.email, link: link.href });
   } catch (error) {
     return failure(error);
   }
@@ -83,6 +93,12 @@ export async function handleInviteAcceptance(
       throw new InvitationError(
         400,
         "Enter your name and password using the invitation link.",
+      );
+    if (await getAuthenticatedUser(request.headers))
+      return jsonError(
+        "SIGN_OUT_REQUIRED",
+        409,
+        "Sign out before accepting this invitation.",
       );
     const policy = (await getAuth().$context).password;
     const email = await invitationStore().accept(token, name, password, policy);

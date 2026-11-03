@@ -38,8 +38,9 @@ test("platform invitations enforce admin access, validity and transactional cred
   await assert.rejects(service.issue("admin", "admin@example.com"), {
     status: 409,
   });
-  const token = await issue();
+  const { token, id } = await issue();
   const [first] = await service.list("admin");
+  assert.equal(first.id, id);
   assert.equal(first.email, email);
   assert.equal(first.creator, "admin@example.com");
   assert.equal(first.status, "pending");
@@ -52,19 +53,19 @@ test("platform invitations enforce admin access, validity and transactional cred
     Math.abs(stored.expiresAt - stored.createdAt - 7 * 86400000) < 1000,
   );
   await assert.rejects(issue(), { status: 409 });
-  const replacement = await service.issue("admin", email, first.id);
+  const { token: replacement } = await service.issue("admin", email, first.id);
   await assert.rejects(accept(token), { status: 410 });
   await assert.rejects(service.issue("admin", email, first.id), {
     status: 409,
   });
   await service.revoke("admin", (await service.list("admin"))[0].id);
   await assert.rejects(accept(replacement), { status: 410 });
-  const expiring = await issue();
+  const { token: expiring } = await issue();
   await fixture.database.exec(
     "update platform_invitation set expires_at = now() - interval '1 second' where revoked_at is null",
   );
   await assert.rejects(accept(expiring), { status: 410 });
-  const fresh = await issue();
+  const { token: fresh } = await issue();
   await assert.rejects(service.accept(fresh, name, "tiny", policy), {
     status: 400,
   });

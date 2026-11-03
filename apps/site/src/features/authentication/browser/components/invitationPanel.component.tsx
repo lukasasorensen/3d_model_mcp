@@ -9,6 +9,12 @@ interface InvitationRow {
   status: string;
 }
 
+interface IssuedInvitation {
+  id: string;
+  email: string;
+  link: string;
+}
+
 export function InvitationPanel({
   invitations,
 }: {
@@ -16,14 +22,15 @@ export function InvitationPanel({
 }): JSX.Element {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [link, setLink] = useState("");
+  const [issued, setIssued] = useState<IssuedInvitation>();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
   useEffect(() => setReady(true), []);
   async function copyLink(): Promise<void> {
+    if (!issued) return;
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(issued.link);
       setMessage("Link copied.");
     } catch {
       setMessage("Select the invitation link and copy it manually.");
@@ -35,7 +42,6 @@ export function InvitationPanel({
   ): Promise<void> {
     setBusy(true);
     setMessage("");
-    setLink("");
     try {
       const res = await fetch("/v1/admin/invitations", {
         method,
@@ -43,6 +49,8 @@ export function InvitationPanel({
         body: JSON.stringify(body),
       });
       const result = (await res.json()) as {
+        id?: string;
+        email?: string;
         link?: string;
         error?: { message?: string };
       };
@@ -50,9 +58,11 @@ export function InvitationPanel({
         setMessage(result.error?.message ?? "Unable to update invitations.");
         return;
       }
-      if (result.link) {
-        setLink(result.link);
+      if (result.link && result.id && result.email) {
+        setIssued({ id: result.id, email: result.email, link: result.link });
         setEmail("");
+      } else if (method === "DELETE" && body.id === issued?.id) {
+        setIssued(undefined);
       }
       setMessage(
         result.link
@@ -96,11 +106,15 @@ export function InvitationPanel({
       <p role="status" className="connected-apps-status">
         {message}
       </p>
-      {link && (
+      {issued && (
         <div className="auth-form">
           <label>
-            Invitation link
-            <input readOnly value={link} onFocus={(e) => e.target.select()} />
+            Invitation link for {issued.email}
+            <input
+              readOnly
+              value={issued.link}
+              onFocus={(e) => e.target.select()}
+            />
           </label>
           <button
             type="button"

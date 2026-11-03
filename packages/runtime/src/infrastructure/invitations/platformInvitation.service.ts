@@ -68,13 +68,13 @@ export class PlatformInvitations {
     actorId: string,
     address: string,
     replaceId?: string,
-  ): Promise<string> {
+  ): Promise<{ id: string; email: string; token: string }> {
     requireAdmin(actorId);
     const email = address.trim().toLowerCase();
     if (email.length > 254 || !z.email().safeParse(email).success)
       throw new InvitationError(400, "Enter a valid email address.");
     const token = randomBytes(32).toString("base64url");
-    await this.db.transaction(async (tx) => {
+    const id = await this.db.transaction(async (tx) => {
       if (replaceId) {
         const replaced = await tx
           .update(invites)
@@ -116,13 +116,15 @@ export class PlatformInvitations {
           409,
           "An account already exists for this email.",
         );
-      if (!inserted.length)
+      const invitation = inserted[0];
+      if (!invitation)
         throw new InvitationError(
           409,
           "An invitation is pending. Use Replace to issue a new link.",
         );
+      return invitation.id;
     });
-    return token;
+    return { id, email, token };
   }
 
   async revoke(actorId: string, id: string): Promise<void> {
@@ -173,7 +175,8 @@ export class PlatformInvitations {
         })
         .onConflictDoNothing()
         .returning({ id: user.id });
-      if (!inserted.length) throw unavailable();
+      const invitation = inserted[0];
+      if (!invitation) throw unavailable();
       await tx.insert(account).values({
         id: randomUUID(),
         userId: id,

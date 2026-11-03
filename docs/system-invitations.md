@@ -16,7 +16,7 @@ The link expires after seven days. Use **Replace** to invalidate the old link
 and copy a fresh one, or **Revoke** to cancel a pending invitation.
 
 The recipient opens the link, chooses their name and password, then signs in
-using the invited email. Opening the link alone leaves it usable. Acceptance
+using the invited email. If the browser is already signed in, choose **Sign out and continue** to stay on the same invitation. Opening the link alone leaves it usable. Acceptance
 creates a regular account and leaves its email verification status unset.
 
 ## Local acceptance
