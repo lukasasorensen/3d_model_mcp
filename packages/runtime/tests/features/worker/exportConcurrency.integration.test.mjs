@@ -40,7 +40,7 @@ test(
         ),
       );
       for (const { tag } of journal.entries) {
-        if (tag === "0013_project_lifecycle") {
+        if (tag === "0014_project_lifecycle") {
           await pool.query(
             "INSERT INTO \"user\" (id,name,email) VALUES ('legacy','Legacy','legacy@example.com')",
           );

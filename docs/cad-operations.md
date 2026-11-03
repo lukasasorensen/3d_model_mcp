@@ -53,7 +53,7 @@ Omitted fields are preserved; the description must remain nonempty. Both tools
 use the authenticated owner's repository. Apply the project-details database
 migration with `pnpm db:migrate` before using the updated PostgreSQL runtime.
 
-Apply migration `0013_project_lifecycle.sql` before serving the updated site or
+Apply migration `0014_project_lifecycle.sql` before serving the updated site or
 MCP runtime. Existing projects appear in **Active**. Owners can move a project
 between **Active** and **Archived** on the Projects page. Its URL and editing
 tools work in either view.

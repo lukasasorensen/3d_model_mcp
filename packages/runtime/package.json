@@ -1,6 +1,6 @@
 {
   "name": "@theoryfoundry/runtime",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
@@ -33,6 +33,7 @@
     "drizzle-orm": "^0.45.2",
     "jose": "6.2.8",
     "pg": "^8.23.0",
+    "zod": "^4.4.3",
     "@theoryfoundry/renderer": "workspace:*"
   },
   "devDependencies": {

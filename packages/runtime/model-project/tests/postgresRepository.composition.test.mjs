@@ -178,7 +178,7 @@ async function migratedMemoryPool() {
     "0008_sad_starhawk.sql",
     "0009_clever_spot.sql",
     "0011_worker-validation-jobs.sql",
-    "0013_project_lifecycle.sql",
+    "0014_project_lifecycle.sql",
   ]) {
     const sql = await readFile(
       new URL(`../drizzle/${migration}`, import.meta.url),
