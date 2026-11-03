@@ -10,10 +10,12 @@ export function ProjectLanding({
   projects,
   userName,
   remoteMcpEnabled = false,
+  canInvite = false,
 }: {
   projects: ProjectSummary[];
   userName: string;
   remoteMcpEnabled?: boolean;
+  canInvite?: boolean;
 }): JSX.Element {
   const router = useRouter();
   const createButton = useRef<HTMLButtonElement>(null);
@@ -75,6 +77,7 @@ export function ProjectLanding({
           <p className="project-account">Signed in as {userName}</p>
         </div>
         <nav className="project-account-actions" aria-label="Account">
+          {canInvite && <a href="/admin/invitations">Invitations</a>}
           {remoteMcpEnabled && (
             <a href="/settings/connected-apps">Connected apps</a>
           )}

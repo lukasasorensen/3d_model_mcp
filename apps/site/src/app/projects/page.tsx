@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import {
   getAuthenticatedUser,
+  isSystemAdmin,
   remoteMcpEnabled,
   withConfiguredCadRuntime,
 } from "@theoryfoundry/runtime";
@@ -16,6 +17,7 @@ export default async function ProjectsPage(): Promise<JSX.Element> {
   );
   return (
     <ProjectLanding
+      canInvite={isSystemAdmin(user.id)}
       projects={projects}
       userName={user.name}
       remoteMcpEnabled={remoteMcpEnabled()}

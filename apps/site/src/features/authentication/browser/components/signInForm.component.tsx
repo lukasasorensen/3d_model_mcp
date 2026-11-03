@@ -70,7 +70,9 @@ export function SignInForm(): JSX.Element {
       <button type="submit" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
       </button>
-      <p>Accounts are invite-only. Ask an administrator to provision access.</p>
+      <p>
+        Accounts are invite-only. Ask an administrator for an invitation link.
+      </p>
     </form>
   );
 }
