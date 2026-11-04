@@ -42,6 +42,7 @@ RUN mkdir -p apps/site/.next/standalone/apps/site/.next \
 
 # Operator image: contains Drizzle migrations, pnpm, and provisioning commands.
 FROM build AS tooling
+RUN mkdir -p /var/lib/theoryfoundry/exports && chown 1001:1001 /var/lib/theoryfoundry/exports
 ENV NODE_ENV=production
 CMD ["pnpm", "db:migrate"]
 

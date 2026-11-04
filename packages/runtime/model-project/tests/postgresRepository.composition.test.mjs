@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { DataType, newDb } from "pg-mem";
+import { PGlite } from "@electric-sql/pglite";
 
 import {
   ModelProjectRepository,
@@ -161,36 +161,21 @@ async function exerciseRepositoryContract(repository) {
 }
 
 async function migratedMemoryPool() {
-  const database = newDb({ autoCreateForeignKeyIndices: true });
-  database.public.registerOperator({
-    operator: "~",
-    left: DataType.text,
-    right: DataType.text,
-    returns: DataType.bool,
-    implementation: (value, pattern) => new RegExp(pattern).test(value),
-  });
-  const adapter = database.adapters.createPg();
-  const pool = new adapter.Pool();
-  for (const migration of [
-    "0000_tough_jetstream.sql",
-    "0001_material_ben_grimm.sql",
-    "0002_marvelous_puff_adder.sql",
-    "0008_sad_starhawk.sql",
-    "0009_clever_spot.sql",
-    "0011_worker-validation-jobs.sql",
-    "0014_project_lifecycle.sql",
-  ]) {
-    const sql = await readFile(
-      new URL(`../drizzle/${migration}`, import.meta.url),
-      "utf8",
+  const database = new PGlite();
+  const migrations = new URL("../drizzle/", import.meta.url);
+  const journal = JSON.parse(
+    await readFile(new URL("meta/_journal.json", migrations), "utf8"),
+  );
+  for (const { tag } of journal.entries)
+    await database.exec(
+      await readFile(new URL(tag + ".sql", migrations), "utf8"),
     );
-    for (const statement of sql
-      .split("--> statement-breakpoint")
-      .map((part) => part.trim())
-      .filter((part) => part && !part.startsWith("CREATE TRIGGER")))
-      await pool.query(statement);
-  }
-  return pool;
+  const query = (sql, params) => database.query(sql, params);
+  return {
+    query,
+    connect: async () => ({ query, release: () => {} }),
+    end: () => database.close(),
+  };
 }
 
 test("filesystem repository satisfies the project-store contract", async () => {
@@ -325,8 +310,8 @@ test("PostgreSQL repository satisfies the project-store contract and isolates ow
         await pool.query("SELECT source FROM candidates WHERE id=$1", [
           draft.candidateId,
         ])
-      ).rows[0].source,
-      "cube(12);",
+      ).rows.length,
+      0,
     );
   } finally {
     await pool.end();

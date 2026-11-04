@@ -45,11 +45,15 @@ export default function PrivacyPage(): JSX.Element {
         <h2 id="retention-heading">Retention and your choices</h2>
         <p>
           We retain information as needed for the purposes above. You can delete
-          your account or contact us to request access, correction, or deletion
-          of personal information. We may verify your identity before acting.
-          Limited records and backup copies may remain as needed for legal,
-          security, or recovery purposes. Deletion does not remove copies held
-          by external services you used.
+          your account from Account settings or delete individual projects from
+          Your projects. You can also contact us to request access, correction,
+          or deletion of personal information. We may verify your identity
+          before acting. Deleted content is removed from active storage. Backup
+          copies may remain until they expire. We retain limited identifiers to
+          reapply deletions before a backup returns to service. Support
+          correspondence and security records may remain while needed for those
+          purposes. Deletion does not remove copies held by external services
+          you used.
         </p>
       </section>
       <section aria-labelledby="changes-heading">

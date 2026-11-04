@@ -21,7 +21,7 @@ The filesystem repository now composes independent capabilities while retaining
 | Durable revision and pointer publication              | `infrastructure/services/filePublication.service.ts` |
 | Candidate rendering and attempt persistence           | `infrastructure/services/fileValidation.service.ts`  |
 | Source, history, artifact and project queries         | `infrastructure/services/fileQueries.service.ts`     |
-| Exclusive durable writes, rename and directory sync   | `infrastructure/services/durableFiles.service.ts`    |
+| Exclusive durable writes, rename and directory sync   | `infrastructure/utils/durableFiles.util.ts`          |
 | Pure path construction and JSON serialization         | `infrastructure/utils/fileLayout.util.ts`            |
 
 The filesystem workflow belongs to infrastructure because it coordinates filesystem

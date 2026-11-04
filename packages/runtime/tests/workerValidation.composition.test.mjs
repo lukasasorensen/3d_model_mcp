@@ -384,7 +384,7 @@ test("concurrent callers respect capacity and duplicate completions return the s
   }
 });
 
-test("deletion settles a worker lease and attempt without reviving an inaccessible candidate", async () => {
+test("deletion erases completed and pending worker leases and attempts", async () => {
   const f = await fixture();
   try {
     const completeLease = await f.begin();
@@ -406,22 +406,7 @@ test("deletion settles a worker lease and attempt without reviving an inaccessib
        WHERE j.id IN ($1,$2) ORDER BY (j.id=$1) DESC`,
       [completeLease.jobId, lease.jobId],
     );
-    assert.deepEqual(states.rows, [
-      {
-        job: "COMPLETED",
-        attempt: "VALID",
-        reason: null,
-        candidate: "VALID",
-        active: null,
-      },
-      {
-        job: "CANCELLED",
-        attempt: "FAILED",
-        reason: "CANCELLED",
-        candidate: "CREATED",
-        active: null,
-      },
-    ]);
+    assert.deepEqual(states.rows, []);
   } finally {
     await f.close();
   }

@@ -59,8 +59,13 @@ test(
       services.migrate.depends_on.postgres.condition,
       "service_healthy",
     );
-    assert.deepEqual(services.migrate.command, ["pnpm", "db:migrate"]);
+    assert.deepEqual(services.migrate.command, [
+      "sh",
+      "-ec",
+      "pnpm db:migrate && node packages/runtime/dist/replayErasures.composition.js",
+    ]);
     assert.equal(services.migrate.restart, "no");
+    assert.deepEqual(services.migrate.volumes, services.app.volumes);
     assert.equal(
       services.app.environment.DATABASE_URL,
       services.migrate.environment.DATABASE_URL,

@@ -1,4 +1,5 @@
 import {
+  createDataErasure,
   PostgresProjectNotifications,
   RemoteRenderJobsRepository,
 } from "@theoryfoundry/model-project";
@@ -223,6 +224,76 @@ test(
           ).rows[0].n,
         ),
         245 * 1024 ** 2,
+      );
+      await t.test(
+        "account erasure serializes concurrent project and authorization-code creation",
+        async () => {
+          const hold = await pool.connect();
+          try {
+            await hold.query("BEGIN");
+            await hold.query("SELECT id FROM projects WHERE id=$1 FOR UPDATE", [
+              left.projectId,
+            ]);
+            const erasing = createDataErasure(pool).erase({
+              ownerId: f.ownerId,
+              projectId: null,
+            });
+            let locked = false;
+            for (let i = 0; i < 100 && !locked; i++) {
+              locked = (
+                await hold.query(
+                  "SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE pg_backend_pid() = ANY(pg_blocking_pids(pid))) AS locked",
+                )
+              ).rows[0].locked;
+              if (!locked)
+                await new Promise((resolve) => setTimeout(resolve, 10));
+            }
+            assert.ok(
+              locked,
+              "erasure must hold the owner lock while waiting for the project",
+            );
+            const lateProject = assert.rejects(
+              pool.query(
+                "INSERT INTO projects(id,owner_id) VALUES ('late-project',$1)",
+                [f.ownerId],
+              ),
+              { code: "23503" },
+            );
+            const lateCode = assert.rejects(
+              pool.query(
+                "INSERT INTO verification(id,identifier,value,expires_at) VALUES ('late-code','digest',$1,now())",
+                [
+                  JSON.stringify({
+                    type: "authorization_code",
+                    userId: f.ownerId,
+                  }),
+                ],
+              ),
+              { code: "23503" },
+            );
+            await hold.query("COMMIT");
+            await Promise.all([erasing, lateProject, lateCode]);
+            assert.equal(
+              (
+                await pool.query("SELECT id FROM projects WHERE owner_id=$1", [
+                  f.ownerId,
+                ])
+              ).rows.length,
+              0,
+            );
+            assert.equal(
+              (
+                await pool.query('SELECT id FROM "user" WHERE id=$1', [
+                  f.otherId,
+                ])
+              ).rows.length,
+              1,
+            );
+          } finally {
+            await hold.query("ROLLBACK");
+            hold.release();
+          }
+        },
       );
     } finally {
       notifications.close();
