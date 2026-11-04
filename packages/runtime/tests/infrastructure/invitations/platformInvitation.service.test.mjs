@@ -1,11 +1,42 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { drizzle } from "drizzle-orm/pglite";
 import { schema } from "@theoryfoundry/model-project";
 import { createConfiguredAuth } from "../../../dist/configuredAuth.composition.js";
 import { PlatformInvitations } from "../../../dist/infrastructure/invitations/platformInvitation.service.js";
 import { createPostgresFixture } from "../../fixtures/postgres.fixture.mjs";
+
+test("invitation fixture isolates inherited deployment settings", async (t) => {
+  for (const mode of ["development", "production"]) {
+    await t.test(`inherited NODE_ENV=${mode}`, () => {
+      const env = {
+        ...process.env,
+        NODE_ENV: mode,
+        BETTER_AUTH_URL: "https://deployment.example.com",
+        THEORYFOUNDRY_ALLOWED_ORIGIN: "https://deployment.example.com",
+        THEORYFOUNDRY_REMOTE_MCP_ENABLED: "1",
+      };
+      // Start a fresh test runner, rather than inheriting its parent's worker context.
+      delete env.NODE_TEST_CONTEXT;
+      const result = spawnSync(
+        process.execPath,
+        [
+          "--test",
+          "--test-reporter=tap",
+          "--test-name-pattern=^platform invitations enforce",
+          fileURLToPath(import.meta.url),
+        ],
+        { env, encoding: "utf8", timeout: 60_000 },
+      );
+      assert.ifError(result.error);
+      assert.equal(result.status, 0, result.stdout + result.stderr);
+      assert.match(result.stdout, /# pass 1\b/);
+    });
+  }
+});
 
 test("platform invitations enforce admin access, validity and transactional credential creation", async (t) => {
   const fixture = await createPostgresFixture();
@@ -15,8 +46,11 @@ test("platform invitations enforce admin access, validity and transactional cred
     await fixture.close();
   });
   Object.assign(process.env, {
+    NODE_ENV: "test",
     BETTER_AUTH_SECRET: "test-only-secret-not-for-production-123456789",
     BETTER_AUTH_URL: "http://localhost:3000",
+    THEORYFOUNDRY_ALLOWED_ORIGIN: "http://localhost:3000",
+    THEORYFOUNDRY_REMOTE_MCP_ENABLED: "1",
     THEORYFOUNDRY_SYSTEM_ADMIN_USER_IDS: "another, admin ",
     THEORYFOUNDRY_AUTH_ALLOW_SIGNUP: "0",
   });
