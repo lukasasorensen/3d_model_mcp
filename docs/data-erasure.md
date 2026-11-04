@@ -8,9 +8,19 @@ Deletion locks the owner and affected projects, then removes revision history, s
 
 A separate journal retains the owner ID, optional project ID and affected export and invitation IDs. It contains no email addresses, credentials, source or model bytes. The application durably writes the authorized record before committing database deletion. Physical file removal follows commit. Retries, replay and the regular orphan-file sweep recover from interrupted cleanup. Replay also converts projects soft-deleted by older releases to physical deletion. The model-project SQL migration adds an owner check for in-flight OAuth authorization codes.
 
+## Release scope decision — November 4, 2026
+
+The owner deferred automatic NAS deletion-journal backups and the full isolated deleted-data recovery drill because this recovery scenario is not currently a priority. Both are future hardening, not current release blockers. Neither is complete, and neither has a deadline. Other release requirements remain tracked in [THE-45](https://linear.app/theoryfoundry/issue/THE-45).
+
+Production commit `6351507d219377d21067ce5e297439c5833e6a0f` is deployed. Local journaling and mandatory startup replay remain active. Existing manual NAS snapshots are retained; daily database backups and export archive transfers are unaffected. No recurring journal backup job is configured.
+
+The latest verified manual journal snapshot at this decision contains nine records: `coolify/erasure-journal-manual/journal-post-oauth-export-smoke-20261104T162132Z.tar.gz` on the NAS, with SHA-256 `8e5f77047fdd7b8db759b5e5d9314204a010731112b12b54d282fc58978646a7`. This is a historical verification, not a guarantee that the snapshot contains later deletions. See the [production backup runbook](https://app.notion.com/p/40eaecc880238135a860dfada127309f).
+
+Losing the application server could lose journal records newer than the latest manual snapshot. Restoring an older database without those records could reintroduce deleted data or access. The recovery instructions below still apply whenever a restore is performed; keep the restored deployment offline if journal completeness cannot be established. Deferring the drill does not establish recovery readiness.
+
 ## Storage and retention
 
-- Production operators must keep the latest erasure journal **outside the database and export backup restore set**, with a restricted, independently protected copy. Never roll the journal back with a database backup. Keep records until every backup or snapshot that could contain the corresponding data has expired or been destroyed. If that inventory is unknown, keep the records.
+- Keep the erasure journal **outside the database and export backup restore set**. Preserve the local journal and restricted independent manual copies; automatic copies are deferred under the release decision above. Never roll the journal back with a database backup. Keep records until every backup or snapshot that could contain the corresponding data has expired or been destroyed. If that inventory is unknown, keep the records.
 - Private database and export backups may contain deleted content until their scheduled expiry. Inventory all locations, expiry rules and recovery copies before enabling public deletion claims. Restorable copies stay access-restricted and offline except for controlled recovery. No verified production expiry period is asserted here.
 - Support correspondence is managed separately. Retain only the minimum correspondence needed for an open request, then remove it when the request and any documented legal or security hold end. Limit security logs to the established operational retention schedule. Exclude passwords, bearer links, journal payloads and model source from logs.
 - Development defaults to a journal adjacent to the temporary export store. For persistent developer instances, configure an absolute private THEORYFOUNDRY_ERASURE_DIRECTORY. Production deletion and the operator replay command always require an explicitly configured journal with a JOURNAL marker.
@@ -28,7 +38,7 @@ docker run --rm -v theoryfoundry-erasure-journal:/journal postgres:18.6-bookworm
 '
 ```
 
-This initialization is only for a new journal. On recovery attach the current existing journal; never initialize an empty replacement. Configure and verify an independent backup of the journal. The migrate service must finish migrations and erasure replay before Coolify starts the app. Failure to read a marker or record, write a receipt, or delete a recorded file fails the gate.
+This initialization is only for a new journal. On recovery attach the current existing journal; never initialize an empty replacement. Preserve independently verified manual snapshots; automatic journal backups are deferred as documented above. The migrate service must finish migrations and erasure replay before Coolify starts the app. Failure to read a marker or record, write a receipt, or delete a recorded file fails the gate.
 
 ## Recovery from backup
 
