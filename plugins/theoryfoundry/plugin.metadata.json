@@ -1,6 +1,6 @@
 {
   "name": "theoryfoundry-cad",
-  "version": "0.6.1",
+  "version": "0.6.3",
   "description": "Connect your AI client to hosted TheoryFoundry CAD projects and browser rendering.",
   "origin": "https://3dai.theoryfoundry.com",
   "author": { "name": "Lukas Sorensen" },
