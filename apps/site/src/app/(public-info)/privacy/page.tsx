@@ -48,9 +48,7 @@ export default function PrivacyPage(): JSX.Element {
           your account from Account settings or delete individual projects from
           Your projects. You can also contact us to request access, correction,
           or deletion of personal information. We may verify your identity
-          before acting. Deleted content is removed from active storage. Backup
-          copies may remain until they expire. We retain limited identifiers to
-          reapply deletions before a backup returns to service. Support
+          before acting. Deleted content is removed from active storage. Support
           correspondence and security records may remain while needed for those
           purposes. Deletion does not remove copies held by external services
           you used.
