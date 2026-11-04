@@ -12,6 +12,8 @@ the browser; no separate renderer service or stdio MCP container is required.
 
 ## Before deployment
 
+Initialize the independent erasure journal before first rollout and follow the [deletion and restore procedure](data-erasure.md) for every backup restore.
+
 For an existing installation, back up its database and record its PostgreSQL
 major version, application revision, and stable `BETTER_AUTH_SECRET` before
 changing anything. Existing volume names are not adopted automatically. The
@@ -47,7 +49,7 @@ has passed acceptance. This guide does not authorize a production cutover.
    Leave automatic deployments disabled until initial acceptance is complete.
 
 The stack deliberately has no host port bindings, fixed container names, absolute
-host build paths, or explicit volume names. Coolify supplies proxy labels and its
+host build paths, or fixed database/export volume names. The independent erasure journal is an explicitly named external volume. Coolify supplies proxy labels and its
 resource-specific Compose project name. Do not enable a raw deployment mode that
 omits Coolify's proxy configuration. The app's `edge` network must be reachable
 by the Coolify proxy; verify Coolify's rendered network attachments after parsing.
@@ -139,6 +141,8 @@ cad_compose run --rm --no-deps --pull never \
   migrate pnpm auth:provision -- you@example.com 'Your Name'
 unset THEORYFOUNDRY_INITIAL_PASSWORD
 ```
+
+Use the resulting account ID to enable the [system admin invitation panel](system-invitations.md).
 
 For remote MCP, provision the **exact loopback callback URL used by the client**:
 

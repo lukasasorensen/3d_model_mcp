@@ -4,7 +4,10 @@ import { useId, type JSX } from "react";
 import dynamic from "next/dynamic";
 import { ChatPane } from "../../../chat/browser/index";
 import { ModelSourcePanel } from "../../../model-preview/browser/index";
-import { ConnectToCodex } from "../../../onboarding/browser/index";
+import {
+  type HostedInstallations,
+  ConnectToCodex,
+} from "../../../onboarding/browser/index";
 import { RevisionHistory } from "./revisionHistory.component";
 import { WorkspaceStatusToast } from "./workspaceStatusToast.component";
 
@@ -32,12 +35,14 @@ export function ModelWorkspace({
   remoteMcpEnabled = false,
   codexOrigin,
   localWorkerAvailable = false,
+  installations,
 }: {
   projectId: string;
   localMcpBridgeEnabled?: boolean;
   remoteMcpEnabled?: boolean;
   codexOrigin?: string | undefined;
   localWorkerAvailable?: boolean;
+  installations?: HostedInstallations | undefined;
 }): JSX.Element {
   const projectSelectorId = useId();
   const {
@@ -108,6 +113,7 @@ export function ModelWorkspace({
               origin={codexOrigin}
               projectId={projectId}
               localWorkerAvailable={localWorkerAvailable}
+              installations={installations}
             />
           )}
           <button

@@ -22,22 +22,17 @@ import type {
   RevisionRow,
 } from "../postgresPersistence.types.js";
 
-import type { ProjectSummary } from "../../domains/project/index.js";
+import type {
+  PersistedCandidate,
+  PersistedRevision,
+  ProjectSummary,
+  ProjectViews,
+} from "../../domains/project/index.js";
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
 
 type QueryExecutor = Pick<Pool, "query"> | Pick<PoolClient, "query">;
-
-export interface PersistedCandidate {
-  candidate: CandidateRecord;
-  source: string;
-}
-
-export interface PersistedRevision {
-  manifest: RevisionManifest;
-  source: string;
-}
 
 export class PostgresProjectPersistence {
   constructor(
@@ -73,7 +68,7 @@ export class PostgresProjectPersistence {
     const result = await this.executor.query<{
       current_revision_id: string | null;
     }>(
-      `SELECT current_revision_id FROM projects WHERE id = $1 AND owner_id = $2${lock ? " FOR UPDATE" : ""}`,
+      `SELECT current_revision_id FROM projects WHERE id = $1 AND owner_id = $2 AND NOT is_deleted${lock ? " FOR UPDATE" : ""}`,
       [projectId, this.ownerId],
     );
     if (!result.rows[0])
@@ -101,7 +96,7 @@ export class PostgresProjectPersistence {
       name: string;
       description: string;
     }>(
-      "UPDATE projects SET name = COALESCE($3, name), description = COALESCE($4, description), updated_at = now() WHERE id = $1 AND owner_id = $2 RETURNING id, name, description",
+      "UPDATE projects SET name = COALESCE($3, name), description = COALESCE($4, description), updated_at = now() WHERE id = $1 AND owner_id = $2 AND NOT is_deleted RETURNING id, name, description",
       [
         input.projectId,
         this.ownerId,
@@ -119,22 +114,28 @@ export class PostgresProjectPersistence {
     });
   }
 
-  async listProjects(): Promise<ProjectSummary[]> {
+  async listProjectViews(view?: keyof ProjectViews): Promise<ProjectViews> {
     const result = await this.executor.query<{
       id: string;
       name: string;
       description: string;
+      is_archived: boolean;
     }>(
-      "SELECT id, name, description FROM projects WHERE owner_id = $1 ORDER BY id",
-      [this.ownerId],
+      `SELECT id, name, description, is_archived FROM projects WHERE owner_id=$1 AND NOT is_deleted${view ? " AND is_archived=$2" : ""} ORDER BY id`,
+      view ? [this.ownerId, view === "archived"] : [this.ownerId],
     );
-    return result.rows.map((row) =>
-      projectSummarySchema.parse({
-        projectId: row.id,
-        name: row.name,
-        description: row.description,
-      }),
-    );
+    const views: ProjectViews = { active: [], archived: [] };
+    for (const row of result.rows) {
+      const list = row.is_archived ? views.archived : views.active;
+      list.push(
+        projectSummarySchema.parse({
+          projectId: row.id,
+          name: row.name,
+          description: row.description,
+        }),
+      );
+    }
+    return views;
   }
 
   async readCandidate(
@@ -142,7 +143,7 @@ export class PostgresProjectPersistence {
     candidateId: string,
     lock = false,
   ): Promise<PersistedCandidate> {
-    await this.requireProject(projectId);
+    await this.requireProject(projectId, lock);
     const result = await this.executor.query<CandidateRow>(
       `SELECT * FROM candidates WHERE id = $1 AND project_id = $2${lock ? " FOR UPDATE" : ""}`,
       [candidateId, projectId],

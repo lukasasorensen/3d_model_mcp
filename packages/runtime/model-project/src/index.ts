@@ -85,3 +85,6 @@ export {
   workerValidationJobs,
 } from "./infrastructure/index.js";
 export type { ProjectDatabase } from "./projectDatabase.types.js";
+
+export { createDataErasure } from "./dataErasure.composition.js";
+export { exportDirectory } from "./infrastructure/index.js";

@@ -37,7 +37,7 @@ export class DirectoryExportFileStore implements ExportFileStore {
   async remove(id: string): Promise<void> {
     await rm(this.path(id), { force: true });
   }
-  async reconcile(retained: Set<string>): Promise<void> {
+  async reconcile(retained: Set<string>, minimumAgeMs = 120000): Promise<void> {
     await mkdir(this.directory, { recursive: true, mode: 0o700 });
     for (const name of await readdir(this.directory)) {
       if (
@@ -46,7 +46,10 @@ export class DirectoryExportFileStore implements ExportFileStore {
       )
         continue;
       const path = join(this.directory, name);
-      if (Date.now() - (await stat(path)).mtimeMs > 120000)
+      if (
+        minimumAgeMs === 0 ||
+        Date.now() - (await stat(path)).mtimeMs > minimumAgeMs
+      )
         await rm(path, { force: true });
     }
   }

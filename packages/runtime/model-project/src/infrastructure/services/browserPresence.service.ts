@@ -14,7 +14,7 @@ export class BrowserPresenceRepository {
     const status = browserPresenceSchema.parse(raw);
     const result = await this.pool.query(
       `INSERT INTO browser_presence (owner_id, project_id, session_id, status, tab_id)
-      SELECT $1, id, $3, $4::jsonb, $5 FROM projects WHERE id = $2 AND owner_id = $1
+      SELECT $1, id, $3, $4::jsonb, $5 FROM projects WHERE id = $2 AND owner_id = $1 AND NOT is_deleted FOR SHARE
       ON CONFLICT (owner_id, project_id, tab_id) DO UPDATE SET status = EXCLUDED.status, session_id = EXCLUDED.session_id, updated_at = now() RETURNING owner_id`,
       [
         this.ownerId,
@@ -39,7 +39,7 @@ export class BrowserPresenceRepository {
       status: BrowserPresence;
       tab_id: string;
     }>(
-      `SELECT b.status, b.tab_id FROM browser_presence b JOIN projects p ON p.id = b.project_id AND p.owner_id = b.owner_id
+      `SELECT b.status, b.tab_id FROM browser_presence b JOIN projects p ON NOT p.is_deleted AND p.id = b.project_id AND p.owner_id = b.owner_id
       WHERE b.owner_id = $1 AND b.project_id = $2 AND b.updated_at > now() - interval '45 seconds'`,
       [this.ownerId, projectId],
     );

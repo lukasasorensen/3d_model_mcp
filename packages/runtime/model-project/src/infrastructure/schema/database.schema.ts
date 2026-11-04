@@ -15,6 +15,7 @@ import { oauthClientResource } from "./oauthClientResource.schema.js";
 import { oauthConsent } from "./oauthConsent.schema.js";
 import { oauthRefreshToken } from "./oauthRefreshToken.schema.js";
 import { oauthResource } from "./oauthResource.schema.js";
+import { platformInvitation } from "./platformInvitation.schema.js";
 import { defineProjectsSchema } from "./project.schema.js";
 import { renderDeliveryMode } from "./renderDeliveryMode.enum.js";
 import { renderJobState } from "./renderJobState.enum.js";
@@ -74,6 +75,7 @@ export {
   exportDownloadTokens,
   jwks,
   modelExports,
+  platformInvitation,
   oauthAccessToken,
   oauthClient,
   oauthClientAssertion,
@@ -104,6 +106,7 @@ export const schema = {
   exportDownloadTokens,
   jwks,
   modelExports,
+  platformInvitation,
   oauthAccessToken,
   oauthClient,
   oauthClientAssertion,

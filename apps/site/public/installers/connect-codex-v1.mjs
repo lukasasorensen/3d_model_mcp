@@ -1084,9 +1084,17 @@ async function runInstaller(args, {
   run = spawnSync,
   log = console.log
 } = {}) {
+  if (args.length === 1 && ["--help", "-h"].includes(args[0])) {
+    log("Usage: connect-codex <application-origin> <global|project>");
+    log(
+      "global: configure your Codex home; project: configure this Git repository."
+    );
+    log("Requires Node.js 24+ and the Codex CLI on PATH.");
+    return;
+  }
   if (args.length !== 2)
     throw new Error(
-      "Usage: node connect-codex-v1.mjs <application-origin> <global|project>"
+      "Usage: connect-codex <application-origin> <global|project>"
     );
   if (Number(process.versions.node.split(".")[0]) < 24)
     throw new Error("Install Node.js 24 or newer, then retry.");

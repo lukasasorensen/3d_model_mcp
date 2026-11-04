@@ -76,3 +76,10 @@ export type { AuthenticatedUser } from "./features/authentication/index.js";
 export type { ConnectedCadMcpClient } from "./features/mcp/index.js";
 
 export { localWorkerEnabled } from "./shared/utils/localWorkerPolicy.util.js";
+
+export { isSystemAdmin } from "./shared/utils/systemAdmin.util.js";
+export {
+  PlatformInvitations,
+  InvitationError,
+} from "./infrastructure/invitations/index.js";
+export { deleteOwnAccount } from "./accountErasure.composition.js";

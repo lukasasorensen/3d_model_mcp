@@ -1,4 +1,4 @@
-import { schema } from "@theoryfoundry/model-project";
+import { createDataErasure, schema } from "@theoryfoundry/model-project";
 import { drizzle } from "drizzle-orm/pglite";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
@@ -14,11 +14,32 @@ import { provisionWorkerClient } from "../../../dist/features/authentication/ser
 const verifier = "a".repeat(64);
 const challenge = createHash("sha256").update(verifier).digest("base64url");
 
-for (const worker of [false, true])
-  test(`real ${worker ? "worker" : "Codex"} OAuth login, PKCE, consent, refresh, token binding, storage, and revocation`, async () => {
-    const callback = worker
-      ? WORKER_OAUTH_CALLBACK
-      : "http://127.0.0.1/callback";
+for (const { worker, profile, callback, erase } of [
+  { worker: false, profile: "codex", callback: "http://127.0.0.1/callback" },
+  {
+    worker: false,
+    profile: "codex",
+    callback: "http://127.0.0.1/callback",
+    erase: true,
+  },
+  { worker: true, profile: "codex", callback: WORKER_OAUTH_CALLBACK },
+  {
+    worker: false,
+    profile: "openai-plugin",
+    callback: "http://127.0.0.1/callback",
+  },
+  {
+    worker: false,
+    profile: "claude-code",
+    callback: "http://localhost/callback",
+  },
+  {
+    worker: false,
+    profile: "openai-plugin",
+    callback: "https://chatgpt.com/connector_platform_oauth_redirect",
+  },
+])
+  test(`real ${worker ? "worker" : profile} ${callback.startsWith("https:") ? "directory" : "native"} OAuth login, PKCE, consent, refresh, token binding, storage, and ${erase ? "account erasure" : "revocation"}`, async () => {
     const fixture = await createPostgresFixture();
     const previous = { ...process.env };
     Object.assign(process.env, {
@@ -38,7 +59,7 @@ for (const worker of [false, true])
       await auth.$context;
       const clientId = worker
         ? await provisionWorkerClient(fixture.pool)
-        : await provisionCodexClient(fixture.pool, callback);
+        : await provisionCodexClient(fixture.pool, callback, { profile });
       if (worker) {
         assert.equal(await provisionWorkerClient(fixture.pool), clientId);
         const client = (
@@ -54,11 +75,11 @@ for (const worker of [false, true])
         assert.deepEqual(client.redirect_uris, [WORKER_OAUTH_CALLBACK]);
       } else {
         assert.equal(
-          await provisionCodexClient(fixture.pool, callback),
+          await provisionCodexClient(fixture.pool, callback, { profile }),
           clientId,
         );
         const legacyCallback = "http://127.0.0.1/callback/legacy";
-        await provisionCodexClient(fixture.pool, legacyCallback);
+        await provisionCodexClient(fixture.pool, legacyCallback, { profile });
         assert.deepEqual(
           (
             await fixture.pool.query(
@@ -70,6 +91,7 @@ for (const worker of [false, true])
         );
         await provisionCodexClient(fixture.pool, callback, {
           replaceCallbacks: true,
+          profile,
         });
         assert.deepEqual(
           (
@@ -252,6 +274,43 @@ for (const worker of [false, true])
       const next = await refreshed.json();
       assert.equal(refreshed.status, 200, JSON.stringify(next));
       assert.notEqual(next.refresh_token, tokens.refresh_token);
+      if (erase) {
+        const started = await authorize();
+        const outstanding = new URL(
+          (await started.json()).url,
+          origin,
+        ).searchParams.get("code");
+        assert.ok(outstanding);
+        assert.equal(await verify(next.access_token), owner);
+        await createDataErasure(fixture.pool).erase({
+          ownerId: owner,
+          projectId: null,
+        });
+        await assert.rejects(verify(next.access_token), {
+          code: "invalid_token",
+        });
+        assert.equal((await exchange(outstanding)).status, 400);
+        assert.equal(
+          (
+            await request(
+              "/oauth2/token",
+              {
+                grant_type: "refresh_token",
+                client_id: clientId,
+                refresh_token: next.refresh_token,
+                resource: origin + "/mcp",
+              },
+              "",
+            )
+          ).status,
+          400,
+        );
+        assert.equal(
+          await auth.api.getSession({ headers: new Headers({ cookie }) }),
+          null,
+        );
+        return;
+      }
       if (worker) {
         const revoked = await request(
           "/oauth2/revoke",

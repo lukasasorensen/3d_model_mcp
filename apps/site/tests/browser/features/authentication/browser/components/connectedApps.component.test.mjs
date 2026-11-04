@@ -122,10 +122,12 @@ for (const width of [1440, 390, 320]) {
         await page.getByRole("radio", { name: /On your Mac/ }).check();
         await expect(page.getByLabel("Client", { exact: true })).toBeVisible();
       } else {
-        await expect(page.getByLabel("Client", { exact: true })).toHaveCount(0);
+        await expect(page.getByLabel("Client", { exact: true })).toBeVisible();
       }
       const command = await page
-        .getByLabel("Setup command", { exact: true })
+        .getByLabel(available ? "Setup command" : "Connection settings", {
+          exact: true,
+        })
         .inputValue();
       expect(command.includes("@tfoundry/local-worker")).toBe(
         Boolean(available),

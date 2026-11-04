@@ -1,7 +1,7 @@
 import { authenticateRequest } from "../../../authentication.composition";
 import {
-  ProjectCreateBodyTooLargeError,
-  readProjectCreateBody,
+  ProjectBodyTooLargeError,
+  readProjectRequestBody,
 } from "../../../features/workspace/index";
 import {
   createProjectInputSchema,
@@ -22,10 +22,13 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request): Promise<Response> {
   const user = await authenticateRequest(request);
   if (isPolicyResponse(user)) return user;
+  const view = new URL(request.url).searchParams.get("view") ?? "active";
+  if (view !== "active" && view !== "archived")
+    return jsonError("INVALID_REQUEST", 400, "Unknown project view.");
   try {
     const response = await withConfiguredCadRuntime(user.id, async (runtime) =>
       projectListSchema.parse({
-        projects: await runtime.repository.listProjects(),
+        projects: await runtime.repository.listProjects(view),
       }),
     );
     return Response.json(response, { headers: NO_STORE_HEADERS });
@@ -45,9 +48,9 @@ export async function POST(request: Request): Promise<Response> {
   if (isPolicyResponse(user)) return user;
   let body: unknown;
   try {
-    body = await readProjectCreateBody(request);
+    body = await readProjectRequestBody(request);
   } catch (error) {
-    return error instanceof ProjectCreateBodyTooLargeError
+    return error instanceof ProjectBodyTooLargeError
       ? jsonError("REQUEST_TOO_LARGE", 413, "The project request is too large.")
       : jsonError("INVALID_REQUEST", 400, "Provide a title and description.");
   }

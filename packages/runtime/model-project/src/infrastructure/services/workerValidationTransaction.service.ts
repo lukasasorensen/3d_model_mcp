@@ -19,7 +19,7 @@ export class WorkerValidationTransaction {
   async expired(now: Date): Promise<WorkerValidationJob[]> {
     return (
       await this.client.query<WorkerValidationJob>(
-        "SELECT * FROM worker_validation_jobs WHERE owner_id=$1 AND state='PENDING' AND deadline<=$2 FOR UPDATE",
+        "SELECT j.* FROM worker_validation_jobs j JOIN projects p ON p.id=j.project_id AND p.owner_id=j.owner_id WHERE j.owner_id=$1 AND NOT p.is_deleted AND j.state='PENDING' AND j.deadline<=$2 FOR UPDATE OF j FOR SHARE OF p",
         [this.ownerId, now],
       )
     ).rows;
@@ -28,7 +28,7 @@ export class WorkerValidationTransaction {
     return Number(
       (
         await this.client.query(
-          "SELECT count(*) AS count FROM worker_validation_jobs WHERE owner_id=$1 AND state='PENDING'",
+          "SELECT count(*) AS count FROM worker_validation_jobs j JOIN projects p ON p.id=j.project_id AND p.owner_id=j.owner_id WHERE j.owner_id=$1 AND NOT p.is_deleted AND j.state='PENDING'",
           [this.ownerId],
         )
       ).rows[0].count,
@@ -64,9 +64,9 @@ export class WorkerValidationTransaction {
   ): Promise<WorkerValidationJob> {
     const result = await this.client.query<WorkerValidationJob>(
       `SELECT j.* FROM worker_validation_jobs j
-      JOIN projects p ON p.id=j.project_id AND p.owner_id=j.owner_id
+      JOIN projects p ON NOT p.is_deleted AND p.id=j.project_id AND p.owner_id=j.owner_id
       JOIN candidates c ON c.id=j.candidate_id AND c.project_id=p.id
-      WHERE j.id=$1 AND j.owner_id=$2 AND j.project_id=$3 AND j.candidate_id=$4 AND j.token_hash=$5 FOR UPDATE OF j`,
+      WHERE j.id=$1 AND j.owner_id=$2 AND j.project_id=$3 AND j.candidate_id=$4 AND j.token_hash=$5 FOR UPDATE OF j FOR SHARE OF p`,
       [
         input.jobId,
         this.ownerId,

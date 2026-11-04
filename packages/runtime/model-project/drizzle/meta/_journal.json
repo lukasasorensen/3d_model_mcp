@@ -92,6 +92,27 @@
       "when": 1793044712785,
       "tag": "0012_worker-export-jobs",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793720910332,
+      "tag": "0013_platform-invitations",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793729883615,
+      "tag": "0014_project_lifecycle",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1793749619289,
+      "tag": "0015_guard_erased_oauth_codes",
+      "breakpoints": true
     }
   ]
 }

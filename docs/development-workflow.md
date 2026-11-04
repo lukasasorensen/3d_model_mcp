@@ -102,3 +102,10 @@ The installable worker uses `pnpm pack:worker` to generate a versioned tarball a
 `pnpm acceptance:worker-package` to exercise it through an isolated registry and
 fresh external dlx store. See [installable worker](installable-worker.md) for the
 artifact boundary, explicit setup, diagnostics and release gates.
+
+The hosted Codex connection uses `pnpm pack:codex-installer` to prepare its npx
+package. `pnpm test:codex-installer` verifies the public bundle and exercises the
+packed executable through offline npx. See [installer release](codex-installer-release.md).
+
+Hosted plugin ZIPs and local catalogs are built with `pnpm pack:plugins`. See
+[plugin release](plugin-release.md) and [client acceptance](plugin-acceptance.md).

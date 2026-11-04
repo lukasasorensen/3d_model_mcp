@@ -296,3 +296,32 @@ test("file and database failures leave retryable leases; uncertain commit preser
     await f.close();
   }
 });
+
+test("archive preserves download access and deletion revokes issued receipts and worker leases", async () => {
+  const f = await createWorkerExportFixture();
+  try {
+    const target = await f.target();
+    const lease = await f.service.begin(target);
+    const result = await f.service.complete(completion(lease), stl());
+    const token = new URL(result.receipt.downloadUrl).searchParams.get("token");
+    await f.repository.setProjectArchived(target.projectId, true);
+    assert.equal(
+      (await f.browser.download(lease.exportId, token)).bytes.byteLength,
+      stl().length,
+    );
+    const waiting = await f.service.begin({ ...target, format: "3mf" });
+    await f.repository.deleteProject(target.projectId);
+    await assert.rejects(f.browser.download(lease.exportId, token), {
+      code: "EXPORT_UNAVAILABLE",
+    });
+    await assert.rejects(f.service.status(capability(waiting)), {
+      code: "EXPORT_UNAVAILABLE",
+    });
+    await assert.rejects(f.service.complete(completion(waiting), stl()), {
+      code: "EXPORT_UNAVAILABLE",
+    });
+    assert.equal(f.writes(), 1);
+  } finally {
+    await f.close();
+  }
+});

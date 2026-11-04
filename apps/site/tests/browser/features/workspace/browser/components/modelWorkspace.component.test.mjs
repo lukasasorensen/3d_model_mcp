@@ -147,7 +147,9 @@ test("workspace focus, responsive sections and integrated connection setup", asy
     if (available)
       await page.getByRole("radio", { name: /On your Mac/ }).check();
     const command = await page
-      .getByLabel("Setup command", { exact: true })
+      .getByLabel(available ? "Setup command" : "Connection settings", {
+        exact: true,
+      })
       .inputValue();
     assert.equal(
       command.includes("@tfoundry/local-worker"),
