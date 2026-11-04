@@ -14,6 +14,15 @@ the browser; no separate renderer service or stdio MCP container is required.
 
 Initialize the independent erasure journal before first rollout and follow the [deletion and restore procedure](data-erasure.md) for every backup restore.
 
+On November 4, 2026, the owner deferred automatic NAS journal backups and the full
+deleted-data recovery drill as future hardening, not current release blockers.
+The production journal and startup replay remain active; existing manual journal
+snapshots and database/export backup automation are retained. Losing the server
+could lose journal entries newer than the latest manual snapshot. See the
+[recorded decision and snapshot evidence](data-erasure.md#release-scope-decision--november-4-2026).
+Any restore still requires a complete journal and isolated verification before
+public traffic resumes.
+
 For an existing installation, back up its database and record its PostgreSQL
 major version, application revision, and stable `BETTER_AUTH_SECRET` before
 changing anything. Existing volume names are not adopted automatically. The
