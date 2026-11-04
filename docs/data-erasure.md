@@ -20,6 +20,14 @@ Losing the application server could lose journal records newer than the latest m
 
 ## Storage and retention
 
+On November 4, the owner confirmed that deletion worked through the production UI.
+This is owner-reported deletion acceptance; the separate browser/client rendering-to-export
+journey remains open. The owner also deferred backup failure and staleness notifications
+to [THE-47](https://linear.app/theoryfoundry/issue/THE-47) in the backlog, without a
+deadline. Notifications are not a deployment or current release prerequisite;
+operators continue to inspect logs and backup timestamps manually. Existing backup
+jobs and retention work are unchanged.
+
 - Keep the erasure journal **outside the database and export backup restore set**. Preserve the local journal and restricted independent manual copies; automatic copies are deferred under the release decision above. Never roll the journal back with a database backup. Keep records until every backup or snapshot that could contain the corresponding data has expired or been destroyed. If that inventory is unknown, keep the records.
 - Private database and export backups may contain deleted content until their scheduled expiry. Inventory all locations, expiry rules and recovery copies before enabling public deletion claims. Restorable copies stay access-restricted and offline except for controlled recovery. No verified production expiry period is asserted here.
 - Support correspondence is managed separately. Retain only the minimum correspondence needed for an open request, then remove it when the request and any documented legal or security hold end. Limit security logs to the established operational retention schedule. Exclude passwords, bearer links, journal payloads and model source from logs.
