@@ -215,3 +215,10 @@ without disabling website chat. Retain the additive schema on rollback. The
 sibling deployment repository’s Proxmox runbook covers Compose, provisioning,
 tunnel acceptance tests, and rollback. No additional network ports or renderer
 service are required.
+
+## Retrying a model proposal
+
+If a response to `propose_model_source` is lost, retry with the same project,
+parent revision, source, `requestId` and `toolCallId`. The server returns the
+original candidate in its current state, including after promotion. To start a
+separate proposal for the same source, use a new tool-call ID.

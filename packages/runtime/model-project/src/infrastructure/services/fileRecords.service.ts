@@ -5,9 +5,10 @@ import {
   type CandidateRecord,
   type RevisionManifest,
 } from "@theoryfoundry/contracts";
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type {
+  ModelProposal,
   ModelProjectRepositoryOptions,
   ProjectSummary,
 } from "../../domains/project/index.js";
@@ -132,6 +133,42 @@ export class FileProjectRecords {
       );
     }
   }
+  async findProposalCandidate(
+    input: ModelProposal,
+  ): Promise<CandidateRecord | undefined> {
+    const root = join(this.paths.controlRoot(input.projectId), "candidates");
+    const sourceHash = sha256(input.source);
+    let first: CandidateRecord | undefined;
+    for (const entry of await readdir(root, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      let candidate: CandidateRecord;
+      try {
+        candidate = await this.readCandidate(input.projectId, entry.name);
+      } catch (error) {
+        // An interrupted proposal may have a directory but no published record.
+        if (
+          error instanceof CadDomainError &&
+          error.code === "CANDIDATE_NOT_FOUND"
+        )
+          continue;
+        throw error;
+      }
+      if (
+        candidate.requestId === input.requestId &&
+        candidate.toolCallId === input.toolCallId &&
+        candidate.parentRevision === input.parentRevision &&
+        candidate.sourceHash === sourceHash &&
+        (!first ||
+          candidate.createdAt < first.createdAt ||
+          (candidate.createdAt === first.createdAt &&
+            candidate.candidateId < first.candidateId))
+      ) {
+        first = candidate;
+      }
+    }
+    return first;
+  }
+
   async readCandidate(
     projectId: string,
     candidateId: string,

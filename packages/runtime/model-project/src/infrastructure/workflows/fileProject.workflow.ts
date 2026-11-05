@@ -15,6 +15,7 @@ import { randomUUID } from "node:crypto";
 import { copyFile, mkdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type {
+  ModelProposal,
   ModelProjectRepositoryOptions,
   ProjectSummary,
 } from "../../domains/project/index.js";
@@ -86,56 +87,61 @@ export class FileProjectWorkflow {
     await this.records.ensureProject(projectId);
     return this.records.readCandidate(projectId, candidateId);
   }
-  async proposeModelSource(input: {
-    projectId: string;
-    parentRevision: string | null;
-    source: string;
-    requestId: string;
-    toolCallId: string;
-  }): Promise<CandidateRecord> {
+  async proposeModelSource(input: ModelProposal): Promise<CandidateRecord> {
     assertSourcePolicy(input.source);
-    await this.records.ensureProject(input.projectId);
-    const current = await this.records.readCurrent(input.projectId);
-    if (input.parentRevision !== current) {
-      throw new CadDomainError(
-        "STALE_REVISION",
-        "Candidate parent is not the current revision.",
-        {
-          expected: current,
-          received: input.parentRevision,
-        },
-      );
-    }
-    if (input.parentRevision)
-      await this.records.readManifest(input.projectId, input.parentRevision);
-    const candidateId = this.createId();
-    const root = this.paths.candidateRoot(input.projectId, candidateId);
-    await mkdir(root, { recursive: false });
-    const sourceBytes = Buffer.byteLength(input.source);
-    const now = this.clock().toISOString();
-    const candidate = candidateRecordSchema.parse({
-      version: CONTRACT_VERSION,
-      projectId: input.projectId,
-      candidateId,
-      parentRevision: input.parentRevision,
-      sourceHash: sha256(input.source),
-      sourceBytes,
-      state: "CREATED",
-      createdAt: now,
-      updatedAt: now,
-      requestId: input.requestId,
-      toolCallId: input.toolCallId,
-      diagnostics: [],
-      artifacts: [],
-    });
-    await this.files.writeDurable(join(root, "model.scad"), input.source);
-    await this.files.writeDurable(
-      join(root, "candidate.json"),
-      safeJson(candidate),
+    return this.locks.withProjectLock(
+      input.projectId,
+      "promotion",
+      async () => {
+        // Recover any committed promotion before returning the candidate's state.
+        const current = await this.records.readCurrent(input.projectId);
+        const existing = await this.records.findProposalCandidate(input);
+        if (existing) return existing;
+        if (input.parentRevision !== current) {
+          throw new CadDomainError(
+            "STALE_REVISION",
+            "Candidate parent is not the current revision.",
+            {
+              expected: current,
+              received: input.parentRevision,
+            },
+          );
+        }
+        if (input.parentRevision)
+          await this.records.readManifest(
+            input.projectId,
+            input.parentRevision,
+          );
+        const candidateId = this.createId();
+        const root = this.paths.candidateRoot(input.projectId, candidateId);
+        await mkdir(root, { recursive: false });
+        const sourceBytes = Buffer.byteLength(input.source);
+        const now = this.clock().toISOString();
+        const candidate = candidateRecordSchema.parse({
+          version: CONTRACT_VERSION,
+          projectId: input.projectId,
+          candidateId,
+          parentRevision: input.parentRevision,
+          sourceHash: sha256(input.source),
+          sourceBytes,
+          state: "CREATED",
+          createdAt: now,
+          updatedAt: now,
+          requestId: input.requestId,
+          toolCallId: input.toolCallId,
+          diagnostics: [],
+          artifacts: [],
+        });
+        await this.files.writeDurable(join(root, "model.scad"), input.source);
+        await this.files.writeAtomic(
+          join(root, "candidate.json"),
+          safeJson(candidate),
+        );
+        await this.files.fsyncDirectory(root);
+        await this.files.fsyncDirectory(dirname(root));
+        return candidate;
+      },
     );
-    await this.files.fsyncDirectory(root);
-    await this.files.fsyncDirectory(dirname(root));
-    return candidate;
   }
   async promoteCandidate(input: {
     projectId: string;

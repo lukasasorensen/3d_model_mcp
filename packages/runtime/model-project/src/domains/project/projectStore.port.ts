@@ -6,6 +6,7 @@ import type {
 } from "@theoryfoundry/contracts";
 
 import type {
+  ModelProposal,
   ProjectState,
   ProjectSummary,
   ProjectViews,
@@ -30,13 +31,7 @@ export interface ModelProjectStore {
     revision?: string,
   ): Promise<{ revision: string; source: string; sourceHash: string }>;
   listRevisions(projectId: string): Promise<RevisionManifest[]>;
-  proposeModelSource(input: {
-    projectId: string;
-    parentRevision: string | null;
-    source: string;
-    requestId: string;
-    toolCallId: string;
-  }): Promise<CandidateRecord>;
+  proposeModelSource(input: ModelProposal): Promise<CandidateRecord>;
   validateAndRender(input: {
     projectId: string;
     candidateId: string;

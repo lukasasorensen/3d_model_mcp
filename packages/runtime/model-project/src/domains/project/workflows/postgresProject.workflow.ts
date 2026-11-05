@@ -18,6 +18,7 @@ import { CadDomainError } from "../../../shared/utils/cadDomainError.util.js";
 import { assertArtifactSet } from "../../../shared/utils/renderPolicy.util.js";
 import { VALIDATION_POLICY_VERSION } from "../../../shared/validation.constants.js";
 import type {
+  ModelProposal,
   ProjectState,
   ProjectSummary,
   ProjectViews,
@@ -160,17 +161,14 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
       : [];
   }
 
-  async proposeModelSource(input: {
-    projectId: string;
-    parentRevision: string | null;
-    source: string;
-    requestId: string;
-    toolCallId: string;
-  }): Promise<CandidateRecord> {
+  async proposeModelSource(input: ModelProposal): Promise<CandidateRecord> {
     assertSourcePolicy(input.source);
-    const candidateId = this.createCandidateId();
-    await this.persistence.transaction(async (transaction) => {
+    return this.persistence.transaction(async (transaction) => {
       const project = await transaction.requireProject(input.projectId, true);
+      const existingId = await transaction.findProposalCandidateId(input);
+      if (existingId)
+        return (await transaction.readCandidate(input.projectId, existingId))
+          .candidate;
       if (project.currentRevision !== input.parentRevision) {
         throw new CadDomainError(
           "STALE_REVISION",
@@ -181,6 +179,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
           },
         );
       }
+      const candidateId = this.createCandidateId();
       await transaction.insertCandidate({
         id: candidateId,
         projectId: input.projectId,
@@ -190,9 +189,9 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         toolCallId: input.toolCallId,
         createdAt: this.clock(),
       });
+      return (await transaction.readCandidate(input.projectId, candidateId))
+        .candidate;
     });
-    return (await this.persistence.readCandidate(input.projectId, candidateId))
-      .candidate;
   }
 
   async validateAndRender(input: {
