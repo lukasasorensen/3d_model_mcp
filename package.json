@@ -1,6 +1,6 @@
 {
   "name": "3d-model-mcp",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "private": true,
   "description": "Local-first conversational CAD using MCP tools and OpenSCAD.",
   "packageManager": "pnpm@11.17.0",

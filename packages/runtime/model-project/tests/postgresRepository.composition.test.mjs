@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -90,13 +90,26 @@ async function exerciseRepositoryContract(repository) {
   await assert.rejects(
     repository.updateProject({ projectId: project.projectId }),
   );
-  const candidate = await repository.proposeModelSource({
+  const proposal = {
     projectId: project.projectId,
     parentRevision: null,
     source: "cube([10,10,10]);",
     requestId: "contract-request-1",
     toolCallId: "contract-tool-1",
-  });
+  };
+  const candidate = await repository.proposeModelSource(proposal);
+  assert.deepEqual(await repository.proposeModelSource(proposal), candidate);
+  for (const change of [
+    { requestId: "another-request" },
+    { toolCallId: "another-call" },
+    { source: "cube(3);" },
+  ]) {
+    assert.notEqual(
+      (await repository.proposeModelSource({ ...proposal, ...change }))
+        .candidateId,
+      candidate.candidateId,
+    );
+  }
   assert.equal(candidate.state, "CREATED");
   await assert.rejects(
     repository.readValidatedCandidateSource(
@@ -127,6 +140,18 @@ async function exerciseRepositoryContract(repository) {
     candidateId: candidate.candidateId,
     expectedParentRevision: null,
   });
+  const replay = await repository.proposeModelSource(proposal);
+  assert.equal(replay.candidateId, candidate.candidateId);
+  assert.equal(replay.state, "PROMOTED");
+  await assert.rejects(
+    repository.proposeModelSource({ ...proposal, toolCallId: "stale-call" }),
+    { code: "STALE_REVISION" },
+  );
+  const next = await repository.proposeModelSource({
+    ...proposal,
+    parentRevision: firstRevision.revisionId,
+  });
+  assert.notEqual(next.candidateId, candidate.candidateId);
   const state = await repository.getProjectState(project.projectId);
   assert.equal(state.currentRevision, firstRevision.revisionId);
   assert.equal(state.source?.hash, firstRevision.sourceHash);
@@ -205,6 +230,23 @@ test("filesystem repository satisfies the project-store contract", async () => {
       name: "Test project",
       description: "Test model",
     });
+    const proposal = {
+      projectId: blank.projectId,
+      parentRevision: null,
+      source: "sphere(4);",
+      requestId: "concurrent-request",
+      toolCallId: "concurrent-call",
+    };
+    const [first, second] = await Promise.all(
+      [repository, reopened].map((store) => store.proposeModelSource(proposal)),
+    );
+    assert.deepEqual(second, first);
+    assert.deepEqual(
+      await readdir(
+        join(workspaceRoot, blank.projectId, ".theoryfoundry", "candidates"),
+      ),
+      [first.candidateId],
+    );
     assert.equal(blank.name, "Test project");
     assert.equal(blank.description, "Test model");
     await Promise.all([
@@ -276,18 +318,21 @@ test("PostgreSQL repository satisfies the project-store contract and isolates ow
     assert.deepEqual(await ownerB.listProjects("archived"), []);
     const state = await ownerA.getProjectState(projectId);
     await ownerA.updateProject({ projectId, name: "Archived bracket" });
-    const draft = await ownerA.proposeModelSource({
+    const archivedProposal = {
       projectId,
       parentRevision: state.currentRevision,
       source: "cube(12);",
       requestId: "archived-edit",
       toolCallId: "archived-edit",
-    });
+    };
+    const draft = await ownerA.proposeModelSource(archivedProposal);
+    await assert.rejects(ownerB.proposeModelSource(archivedProposal), hidden);
     await ownerA.setProjectArchived(projectId, false);
     assert.equal((await ownerA.listProjects())[0].name, "Archived bracket");
     await ownerA.deleteProject(projectId);
     await ownerA.deleteProject(projectId);
     await assert.rejects(ownerA.getProjectSnapshot(projectId), hidden);
+    await assert.rejects(ownerA.proposeModelSource(archivedProposal), hidden);
     await assert.rejects(ownerA.setProjectArchived(projectId, false), hidden);
     await assert.rejects(
       ownerA.readModelSource(projectId, state.currentRevision),

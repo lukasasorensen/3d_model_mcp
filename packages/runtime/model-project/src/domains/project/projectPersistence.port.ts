@@ -7,7 +7,11 @@ import {
   type RevisionManifest,
   type UpdateProjectInput,
 } from "@theoryfoundry/contracts";
-import type { ProjectSummary, ProjectViews } from "./project.types.js";
+import type {
+  ModelProposal,
+  ProjectSummary,
+  ProjectViews,
+} from "./project.types.js";
 export interface PersistedCandidate {
   candidate: CandidateRecord;
   source: string;
@@ -46,6 +50,7 @@ export interface ProjectPersistence {
     projectId: string,
     currentRevision: string,
   ): Promise<RevisionManifest[]>;
+  findProposalCandidateId(input: ModelProposal): Promise<string | undefined>;
   insertCandidate(input: {
     id: string;
     projectId: string;

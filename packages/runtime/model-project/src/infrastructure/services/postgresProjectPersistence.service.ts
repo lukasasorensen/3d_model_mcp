@@ -1,6 +1,5 @@
 import {
   CONTRACT_VERSION,
-  candidateRecordSchema,
   createProjectInputSchema,
   projectIdSchema,
   projectSummarySchema,
@@ -23,6 +22,7 @@ import type {
 } from "../postgresPersistence.types.js";
 
 import type {
+  ModelProposal,
   PersistedCandidate,
   PersistedRevision,
   ProjectSummary,
@@ -31,6 +31,8 @@ import type {
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
+
+import { hydrateCandidate } from "../utils/hydrateCandidate.util.js";
 
 type QueryExecutor = Pick<Pool, "query"> | Pick<PoolClient, "query">;
 
@@ -159,39 +161,7 @@ export class PostgresProjectPersistence {
         [row.id],
       )
     ).rows.map((item) => item.metadata);
-    const candidate = candidateRecordSchema.parse({
-      version: CONTRACT_VERSION,
-      projectId: row.project_id,
-      candidateId: row.id,
-      parentRevision: row.parent_revision_id,
-      sourceHash: row.source_hash,
-      sourceBytes: row.source_bytes,
-      state: row.state,
-      ...(row.active_attempt_id
-        ? { activeAttemptId: row.active_attempt_id }
-        : {}),
-      ...(row.geometry ? { geometry: row.geometry } : {}),
-      createdAt: asIsoTimestamp(row.created_at),
-      updatedAt: asIsoTimestamp(row.updated_at),
-      requestId: row.request_id,
-      toolCallId: row.tool_call_id,
-      ...(row.validation_policy_version
-        ? { validationPolicyVersion: row.validation_policy_version }
-        : {}),
-      diagnostics: row.diagnostics,
-      ...(row.renderer ? { renderer: row.renderer } : {}),
-      artifacts,
-    });
-    if (
-      sha256(row.source) !== candidate.sourceHash ||
-      Buffer.byteLength(row.source) !== candidate.sourceBytes
-    ) {
-      throw new CadDomainError(
-        "CORRUPT_PROJECT",
-        "Candidate source failed integrity validation.",
-      );
-    }
-    return { candidate, source: row.source };
+    return hydrateCandidate(row, artifacts);
   }
 
   async readRevision(
@@ -243,6 +213,27 @@ export class PostgresProjectPersistence {
       revisionId = row.parent_revision_id;
     }
     return revisions;
+  }
+
+  async findProposalCandidateId(
+    input: ModelProposal,
+  ): Promise<string | undefined> {
+    const result = await this.executor.query<{ id: string }>(
+      `SELECT c.id FROM candidates c JOIN projects p ON p.id = c.project_id
+       WHERE p.id = $1 AND p.owner_id = $2 AND NOT p.is_deleted
+         AND c.request_id = $3 AND c.tool_call_id = $4
+         AND c.parent_revision_id IS NOT DISTINCT FROM $5 AND c.source = $6
+       ORDER BY c.created_at, c.id LIMIT 1`,
+      [
+        input.projectId,
+        this.ownerId,
+        input.requestId,
+        input.toolCallId,
+        input.parentRevision,
+        input.source,
+      ],
+    );
+    return result.rows[0]?.id;
   }
 
   async insertCandidate(input: {
