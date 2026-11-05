@@ -162,6 +162,15 @@ test("process death after CURRENT rename reopens authoritatively and reconciles 
       acceptRendererProvenance,
       lockStaleMs: 0,
     });
+    const replay = await reopened.proposeModelSource({
+      projectId: "demo",
+      source: "cube(1);",
+      parentRevision: null,
+      requestId: candidate.requestId,
+      toolCallId: candidate.toolCallId,
+    });
+    assert.equal(replay.candidateId, candidate.candidateId);
+    assert.equal(replay.state, "PROMOTED");
     const recovered = await reopened.getProjectState("demo");
     assert.ok(recovered.currentRevision);
     const persisted = JSON.parse(

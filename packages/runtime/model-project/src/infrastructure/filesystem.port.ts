@@ -2,7 +2,10 @@ import type {
   CandidateRecord,
   RevisionManifest,
 } from "@theoryfoundry/contracts";
-import type { ProjectSummary } from "../domains/project/index.js";
+import type {
+  ModelProposal,
+  ProjectSummary,
+} from "../domains/project/index.js";
 export interface DurableFiles {
   fsyncDirectory(path: string): Promise<void>;
   writeDurable(path: string, contents: string | Uint8Array): Promise<void>;
@@ -19,6 +22,9 @@ export interface FileLocks {
 }
 export interface FileRecords {
   ensureProject(projectId: string): Promise<void>;
+  findProposalCandidate(
+    input: ModelProposal,
+  ): Promise<CandidateRecord | undefined>;
   readProjectDetails(projectId: string): Promise<ProjectSummary>;
   readCurrent(projectId: string): Promise<string | null>;
   readManifest(
