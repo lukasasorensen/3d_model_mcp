@@ -93,9 +93,10 @@ export class FileProjectWorkflow {
       input.projectId,
       "promotion",
       async () => {
+        // Recover any committed promotion before returning the candidate's state.
+        const current = await this.records.readCurrent(input.projectId);
         const existing = await this.records.findProposalCandidate(input);
         if (existing) return existing;
-        const current = await this.records.readCurrent(input.projectId);
         if (input.parentRevision !== current) {
           throw new CadDomainError(
             "STALE_REVISION",
