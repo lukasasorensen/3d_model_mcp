@@ -6,10 +6,12 @@ import type { Dispatch, RefObject, SetStateAction } from "react";
 import type { DownloadFormat } from "../../exports/browser/index";
 import type { PreviewLoadState } from "../../model-preview/browser/index";
 import type { WorkspaceAction, WorkspaceState } from "./workspaceState.types";
+import type { AiChatSelection } from "../../chat/browser/index";
 
 type ExportState = "idle" | "preparing" | "failed" | "complete";
 export interface WorkspaceView {
   router: { push(href: string): void };
+  aiSelection: AiChatSelection;
   isSidebarChatEnabled: boolean;
   state: WorkspaceState;
   dispatch: Dispatch<WorkspaceAction>;
@@ -31,7 +33,7 @@ export interface WorkspaceView {
   sessionId: string;
   isMcpRendering: boolean;
   mcpStatus: string;
-  submit(message: string): Promise<void>;
+  submit(message: string, retry?: boolean): Promise<void>;
   restore(revisionId: string): Promise<void>;
   currentLabel: string;
   selectedLabel: string;

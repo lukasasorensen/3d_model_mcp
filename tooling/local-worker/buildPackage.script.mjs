@@ -48,6 +48,7 @@ const result = await build({
   outdir: join(output, "dist"),
   bundle: true,
   splitting: true,
+  chunkNames: "chunk-[hash]",
   format: "esm",
   platform: "node",
   target: "node24",

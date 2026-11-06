@@ -1,3 +1,6 @@
+import { aiConnection } from "./aiConnection.schema.js";
+import { aiCompanion } from "./aiCompanion.schema.js";
+import { defineAiInferenceJobsSchema } from "./aiInferenceJob.schema.js";
 import { account } from "./account.schema.js";
 import { defineBrowserPresenceSchema } from "./browserPresence.schema.js";
 import { defineBrowserPreviewJobsSchema } from "./browserPreviewJob.schema.js";
@@ -29,6 +32,9 @@ import { defineWorkerExportJobsSchema } from "./workerExportJob.schema.js";
 import { workerExportState } from "./workerExportState.enum.js";
 import { defineWorkerValidationJobsSchema } from "./workerValidationJob.schema.js";
 const projects = defineProjectsSchema({ revisions: () => revisions.id });
+const aiInferenceJobs = defineAiInferenceJobsSchema({
+  projects: () => projects.id,
+});
 const revisions = defineRevisionsSchema({ projects: () => projects.id });
 const browserPresence = defineBrowserPresenceSchema({
   projects: () => projects.id,
@@ -65,6 +71,9 @@ const exportDownloadTokens = defineExportDownloadTokensSchema({
   modelExports: () => modelExports.id,
 });
 export {
+  aiConnection,
+  aiCompanion,
+  aiInferenceJobs,
   account,
   browserPresence,
   browserPreviewJobs,
@@ -97,6 +106,9 @@ export {
   workerValidationJobs,
 };
 export const schema = {
+  aiConnection,
+  aiCompanion,
+  aiInferenceJobs,
   account,
   browserPresence,
   browserPreviewJobs,

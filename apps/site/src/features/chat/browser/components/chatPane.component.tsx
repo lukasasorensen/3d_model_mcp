@@ -2,7 +2,7 @@
 import type { JSX } from "react";
 
 import type { FormEvent, KeyboardEvent, RefObject } from "react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { ChatTurn } from "../chatTurn.types";
 
 const TOOL_LABELS: Record<string, string> = {
@@ -57,6 +57,8 @@ export function ChatPane({
   onCancel,
   onRetry,
   composerRef,
+  connectionPicker,
+  unavailableReason,
 }: {
   turns: ChatTurn[];
   hasCurrentRevision: boolean;
@@ -68,6 +70,8 @@ export function ChatPane({
   onCancel: () => void;
   onRetry: () => void;
   composerRef: RefObject<HTMLTextAreaElement | null>;
+  connectionPicker?: ReactNode;
+  unavailableReason?: string | undefined;
 }): JSX.Element {
   const [message, setMessage] = useState("");
   const submit = (event?: FormEvent): void => {
@@ -123,6 +127,7 @@ export function ChatPane({
         className="chat-content"
         aria-hidden={collapsed}
       >
+        {connectionPicker}
         <div
           className="transcript"
           role="feed"
@@ -220,7 +225,7 @@ export function ChatPane({
             placeholder={
               available
                 ? "Include dimensions and units…"
-                : "Local CAD runtime unavailable"
+                : (unavailableReason ?? "Local CAD runtime unavailable")
             }
           />
           <div className="composer-actions">

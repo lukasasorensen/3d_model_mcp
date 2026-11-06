@@ -14,7 +14,7 @@ Registry publication remains a separate release action.
   SHA-256: 4fb7b58cbeadfe5f8c5a037d9e1392d774117d48423f95f4203aa367d8b1ea88.
 - Three.js 0.179.1 and fflate 0.8.2 are bundled into the renderer. Their license
   texts are included in `licenses/`; generated bundles retain legal comments.
-- Playwright, MCP SDK, Zod, JOSE and the native keyring adapter are installed as
+- Playwright, MCP SDK, Zod, JOSE, LangChain/provider SDKs and the native keyring adapter are installed as
   pinned npm dependencies when used by the generated entry point. Their upstream
   packages retain their own license and notice files.
 

@@ -50,6 +50,9 @@ links are described in [CAD operations](cad-operations.md).
 
 - `mock` provider: credential-free deterministic LangChain model. It still uses the
   real agent, MCP protocol, repository, and configured renderer.
+- Real-AI providers: user-owned encrypted connections for Claude, OpenAI, Gemini,
+  Ollama, and compatible APIs. Local inference uses an outbound companion relay;
+  the hosted LangChain agent retains all CAD tools. See [AI connections](ai-connections.md).
 - `browser-wasm` renderer: the active promotable profile. It binds validation to the
   exact source hash and pinned OpenSCAD/BOSL2 manifest without claiming server attestation.
 - Test-only renderer fixture: emits independently parseable deterministic binary
@@ -58,7 +61,7 @@ links are described in [CAD operations](cad-operations.md).
 
 Opt-in HTTP MCP uses OAuth and the same owner-scoped capabilities; see
 [MCP clients](mcp-clients.md). Sharing/collaboration, arbitrary mesh upload/editing, generic
-shell/file tools, live-provider selection, and engineering/manufacturing approval
+shell/file tools and engineering/manufacturing approval
 are outside this MVP.
 
 ## Engineering alignment

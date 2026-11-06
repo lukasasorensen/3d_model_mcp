@@ -83,6 +83,7 @@ export function ProjectLanding({
         </div>
         <nav className="project-account-actions" aria-label="Account">
           <a href="/settings/account">Account settings</a>
+          <a href="/settings/ai-connections">AI connections</a>
           {canInvite && <a href="/admin/invitations">Invitations</a>}
           {remoteMcpEnabled && (
             <a href="/settings/connected-apps">Connected apps</a>

@@ -124,6 +124,17 @@ try {
   assert.equal(help.code, 0, help.stderr);
   assert.match(help.stdout, /setup/);
   assert.match(help.stdout, /logout/);
+  const aiHelp = await runPacked(["ai", "--help"], {
+    ...options,
+    env: {
+      ...env,
+      PLAYWRIGHT_BROWSERS_PATH: join(directory, "absent-browser"),
+    },
+  });
+  assert.equal(aiHelp.code, 0, aiHelp.stderr);
+  assert.match(aiHelp.stdout, /ai serve\|doctor/);
+  assert.doesNotMatch(aiHelp.stderr, /Chromium|renderer/);
+  checks.push("Packaged AI mode starts without renderer assets or Chromium");
   checks.push(
     `Exact-version pnpm dlx resolution through ${published ? "public npm" : "a disposable registry"} with a fresh external home/cache/store`,
   );
