@@ -154,6 +154,12 @@
   max-width: 56rem;
   width: 100%;
 }
+.ai-settings .connected-apps-list li > div:first-child {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .ai-connection-form fieldset {
   display: grid;
   gap: 0.6rem;
