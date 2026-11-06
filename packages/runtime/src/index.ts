@@ -1,4 +1,5 @@
 export * from "./auth.composition.js";
+export * from "./aiConnections.composition.js";
 export { PostgresBrowserRenderCoordinator } from "./browserRenderer.composition.js";
 export {
   probeSystemReadiness,

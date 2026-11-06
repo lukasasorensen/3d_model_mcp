@@ -1,6 +1,7 @@
 import {
   CAD_LIMITS,
   CHAT_LIMITS,
+  type AiFailureCode,
   exportReceiptSchema,
   type ChatEvent,
   type ChatRequest,
@@ -14,7 +15,13 @@ import {
   toolCallLimitMiddleware,
 } from "langchain";
 import { randomUUID } from "node:crypto";
+import { publicChatFailureMessage } from "../utils/chatFailure.util.js";
 
+import {
+  isLiveProvider,
+  providerFailureCode,
+} from "../utils/providerFailure.util.js";
+import { loadChatContext } from "../services/chatContext.service.js";
 import type { CadMcpToolResult } from "../cadClient.port.js";
 import { type CadChatProvider } from "../chatProvider.port.js";
 
@@ -103,6 +110,13 @@ export async function* streamCadChat(
       const tools = toolSpecs.map((spec) =>
         tool(
           async (rawInput, config) => {
+            combinedSignal.throwIfAborted();
+            const serializedInput = JSON.stringify(rawInput);
+            if (
+              options.provider.redactText &&
+              options.provider.redactText(serializedInput) !== serializedInput
+            )
+              throw new Error("Provider returned a credential in tool input.");
             toolRounds += 1;
             if (toolRounds > CHAT_LIMITS.maxToolRounds)
               throw new ToolCallLimitExceededError(
@@ -353,11 +367,19 @@ export async function* streamCadChat(
       );
 
       const provider = options.provider;
+      const projectContext = isLiveProvider(provider.id)
+        ? await loadChatContext(
+            () => tools[0]!.invoke({ projectId: request.projectId }),
+            (revision) =>
+              tools[1]!.invoke({ projectId: request.projectId, revision }),
+          )
+        : "";
       const agent = createAgent({
         model: provider.createModel(request, requestId),
         tools,
         systemPrompt:
-          "Operate only through the supplied project-scoped CAD tools. Never claim a revision or artifact from prose. Use the authoritative IDs returned by tools.",
+          "Operate only through the supplied project-scoped CAD tools. Never claim a revision or artifact from prose. Use the authoritative IDs returned by tools." +
+          projectContext,
         middleware: [
           toolCallLimitMiddleware({
             runLimit: CHAT_LIMITS.maxToolRounds,
@@ -367,7 +389,11 @@ export async function* streamCadChat(
       });
       const run = await agent.streamEvents(
         { messages: [{ role: "user", content: request.message }] },
-        { version: "v3", signal: combinedSignal },
+        {
+          version: "v3",
+          signal: combinedSignal,
+          recursionLimit: CHAT_LIMITS.maxToolRounds * 4 + 8,
+        },
       );
       const outputPromise = Promise.resolve(run.output);
       void outputPromise.catch(() => undefined);
@@ -387,7 +413,8 @@ export async function* streamCadChat(
           const remaining =
             CHAT_LIMITS.assistantOutputCharacters - assistantOutputBytes;
           const text = safeAssistantText(
-            messageText(output.content),
+            provider.redactText?.(messageText(output.content)) ??
+              messageText(output.content),
             sensitiveValues,
             Math.max(0, remaining),
           );
@@ -404,7 +431,7 @@ export async function* streamCadChat(
       terminal = true;
     } catch (error) {
       const isToolLimit =
-        toolRounds === CHAT_LIMITS.maxToolRounds ||
+        toolRounds > CHAT_LIMITS.maxToolRounds ||
         error instanceof ToolCallLimitExceededError ||
         (error instanceof Error &&
           (error.name === "ToolCallLimitExceededError" ||
@@ -416,7 +443,8 @@ export async function* streamCadChat(
         | "REPAIR_LIMIT_EXCEEDED"
         | "TOOL_RESULT_TOO_LARGE"
         | "MCP_FAILURE"
-        | "PROVIDER_FAILURE";
+        | "PROVIDER_FAILURE"
+        | AiFailureCode;
       if (signal?.aborted) code = "CANCELLED";
       else if (terminalFailure) code = terminalFailure;
       else if (timeout.aborted) code = "REQUEST_TIMEOUT";
@@ -428,32 +456,9 @@ export async function* streamCadChat(
         code = "REPAIR_LIMIT_EXCEEDED";
       else if (error instanceof Error && error.message === "MCP_FAILURE")
         code = "MCP_FAILURE";
-      else code = "PROVIDER_FAILURE";
+      else code = providerFailureCode(error, options.provider.id);
 
-      let message: string;
-      switch (code) {
-        case "CANCELLED":
-          message = "The request was cancelled.";
-          break;
-        case "REQUEST_TIMEOUT":
-          message = "The request exceeded its time limit.";
-          break;
-        case "TOOL_LIMIT_EXCEEDED":
-          message = "The CAD tool-call limit was reached.";
-          break;
-        case "REPAIR_LIMIT_EXCEEDED":
-          message = "The candidate repair limit was reached.";
-          break;
-        case "TOOL_RESULT_TOO_LARGE":
-          message = "The CAD tool result exceeded its safe size limit.";
-          break;
-        case "MCP_FAILURE":
-          message = "The CAD service is temporarily unavailable.";
-          break;
-        case "PROVIDER_FAILURE":
-          message = "The chat provider failed safely.";
-          break;
-      }
+      const message = publicChatFailureMessage(code, error);
       emit({ type: "error", code, message, recoverable: code !== "CANCELLED" });
       emit({
         type: "done",

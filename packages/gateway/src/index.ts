@@ -1,4 +1,6 @@
 export * from "./chat.composition.js";
+export * from "./aiProvider.composition.js";
+export type { ProviderConnection } from "./domains/models/index.js";
 export {
   CAD_TOOL_NAMES,
   DeterministicMockCadProvider,

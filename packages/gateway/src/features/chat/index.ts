@@ -9,3 +9,5 @@ export { createChatRouteHandler as createChatController } from "./controllers/ch
 export { DeterministicMockCadProvider } from "./services/mockCadProvider.service.js";
 export { normalizeCadPrompt } from "./utils/deterministicPrompt.util.js";
 export { streamCadChat as streamChatWorkflow } from "./workflows/cadChat.workflow.js";
+export { createHostedModel } from "./services/providerModel.service.js";
+export { RelayChatModel } from "./services/relayChatModel.service.js";

@@ -14,4 +14,11 @@ export const chatErrorCodeSchema = z.enum([
   "REQUEST_TIMEOUT",
   "CANCELLED",
   "INTERNAL_ERROR",
+  "AI_AUTHENTICATION",
+  "AI_QUOTA",
+  "AI_MODEL_UNSUPPORTED",
+  "AI_OFFLINE",
+  "AI_TIMEOUT",
+  "AI_CONFIGURATION",
+  "AI_PROVIDER_FAILURE",
 ]);

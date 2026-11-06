@@ -9,10 +9,13 @@ ${command} login --server https://your-server.example
 ${command} serve --server https://your-server.example --account <account-id>
 ${command} logout --server https://your-server.example --account <account-id>
 ${command} doctor [--json] [--server <origin> --account <account-id>]
+${command} ai serve --server <origin> --account <account-id> [--provider ollama|openai-compatible] [--endpoint <local-url>]
+${command} ai doctor --server <origin> --account <account-id>
 
 setup explicitly installs verified renderer assets and pinned Chromium. With a server/client it also authenticates and configures the client. serve never installs or opens login.
 Loopback development requires --allow-loopback-http. Login prints the account ID.
 Doctor checks assets, rendering and native bindings; account checks may refresh credentials.
+AI commands run independently of rendering; use ai --help for local model options.
 Tokens are never accepted as arguments or printed. Registry publication is a separate release step.
 `;
 }

@@ -3,6 +3,7 @@ import {
   type ProjectDatabase,
 } from "@theoryfoundry/model-project";
 import { createModelExportService } from "./cadWorkflow.composition.js";
+import { AiCompanionRelayRepository } from "./infrastructure/ai/index.js";
 
 let database: ProjectDatabase | undefined;
 
@@ -23,14 +24,20 @@ export function getProjectDatabase(): ProjectDatabase {
   });
   const current = database;
   const exports = createModelExportService(current);
+  const aiRelay = new AiCompanionRelayRepository(current.pool);
   let cleaning = false;
   const cleanup = async (): Promise<void> => {
     if (cleaning) return;
     cleaning = true;
     try {
-      await exports.cleanup();
+      const results = await Promise.allSettled([
+        exports.cleanup(),
+        aiRelay.cleanup(),
+      ]);
+      if (results.some((result) => result.status === "rejected"))
+        throw new Error("Temporary storage cleanup unavailable.");
     } catch {
-      process.stderr.write("Temporary export cleanup unavailable.\n");
+      process.stderr.write("Temporary storage cleanup unavailable.\n");
     } finally {
       cleaning = false;
     }

@@ -5,6 +5,7 @@ export function createSidebarChatHandler(dependencies: {
   authenticate(request: Request): Promise<AuthenticatedUser | Response>;
   getFlags(userId: string): Promise<SidebarChatFlags>;
   runMockChat(request: Request, userId: string): Promise<Response>;
+  runRealChat?(request: Request, userId: string): Promise<Response>;
 }) {
   return async (request: Request): Promise<Response> => {
     const user = await dependencies.authenticate(request);
@@ -21,7 +22,8 @@ export function createSidebarChatHandler(dependencies: {
     }
     if (!flags.isSidebarChatEnabled)
       return jsonError("CHAT_DISABLED", 404, "Sidebar chat is disabled.");
-    // Never silently run mock in real mode before an explicit adapter exists.
+    if (flags.isRealAiEnabled && dependencies.runRealChat)
+      return dependencies.runRealChat(request, user.id);
     if (flags.isRealAiEnabled)
       return jsonError(
         "CHAT_PROVIDER_UNAVAILABLE",

@@ -1,3 +1,4 @@
+import { LOCAL_WORKER_PACKAGE_VERSION } from "@theoryfoundry/contracts";
 export function localWorkerCommand(
   origin: string,
   client: "codex" | "claude",
@@ -21,7 +22,7 @@ export function localWorkerCommand(
     "pnpm",
     "--silent",
     "dlx",
-    "@tfoundry/local-worker@0.1.0",
+    `@tfoundry/local-worker@${LOCAL_WORKER_PACKAGE_VERSION}`,
     "setup",
     "--server",
     origin,
