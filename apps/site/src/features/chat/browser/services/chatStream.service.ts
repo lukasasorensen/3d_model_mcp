@@ -88,6 +88,17 @@ export async function streamChat(
     signal,
   });
   if (!response.ok || !response.body) {
+    const failure: unknown = await response.json().catch(() => undefined);
+    if (
+      failure &&
+      typeof failure === "object" &&
+      "error" in failure &&
+      failure.error &&
+      typeof failure.error === "object" &&
+      "message" in failure.error &&
+      typeof failure.error.message === "string"
+    )
+      throw new Error(failure.error.message.slice(0, 500));
     const unavailable = response.status === 503;
     throw new Error(
       unavailable

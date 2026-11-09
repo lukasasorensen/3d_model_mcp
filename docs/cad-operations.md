@@ -10,8 +10,9 @@ and the renderer.
 
 The credential-free default is `THEORYFOUNDRY_CHAT_PROVIDER=mock`. It is deterministic
 and supports the canonical blank bracket, 100 mm width edit, gusset edit, and
-3MF export prompts for local demos and tests. No live-provider adapter or
-default model is selected; that remains behind the provider evaluation gate.
+3MF export prompts for local demos and tests. Real-AI mode resolves the signed-in
+user's saved connection and optional per-turn connection/model selection. See
+[user-owned AI connections](ai-connections.md) for hosted tokens and local inference.
 The chat route pauses candidate validation until the originating browser reports the result
 of rendering the exact candidate source hash. Invalid code never replaces the current revision.
 
@@ -125,10 +126,10 @@ to `THEORYFOUNDRY_ACCEPTANCE_DIRECTORY` (default `/tmp/cad-workflow-evidence`), 
 
 The Unleash project `default` owns two independent operational flags for TheoryFoundry CAD:
 
-| Flag                   | Off                                                        | On                                                                               |
-| ---------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| `sidebar-chat-enabled` | Entire conversation sidebar hidden; `/v1/chat` returns 404 | Sidebar shown; chat requests admitted                                            |
-| `sidebar-chat-real-ai` | Deterministic mock provider                                | Real AI requested; currently returns 503 because no real provider adapter exists |
+| Flag                   | Off                                                        | On                                                                           |
+| ---------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `sidebar-chat-enabled` | Entire conversation sidebar hidden; `/v1/chat` returns 404 | Sidebar shown; chat requests admitted                                        |
+| `sidebar-chat-real-ai` | Deterministic mock provider                                | User-owned AI connection; explicit error if no usable connection is selected |
 
 Set `UNLEASH_FRONTEND_API_URL` to the Unleash `/api/frontend` endpoint and
 `UNLEASH_FRONTEND_API_TOKEN` to a **frontend** token scoped to this project and the
@@ -142,7 +143,7 @@ already executing on the server are not retroactively revoked by a flag change.
 With both settings absent, chat defaults to hidden/mock. Partial configuration,
 Unleash failures, and invalid responses produce a 503 and hide the sidebar rather
 than allowing chat. Real mode never falls back silently to mock. The real-AI
-adapter remains a separate integration; leave that flag off until it exists.
+mode requires a configured user connection; it does not use server provider keys.
 The existing `THEORYFOUNDRY_CHAT_PROVIDER=mock` setting remains valid for runtime
 initialization; provider mode for website chat is selected per request by the flag.
 MCP connections, model inspection, source, history, and exports stay available.

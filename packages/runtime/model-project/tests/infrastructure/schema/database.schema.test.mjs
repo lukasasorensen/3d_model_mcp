@@ -8,6 +8,9 @@ import { schema } from "../../../dist/infrastructure/schema/index.js";
 test("split schema modules assemble the complete database schema", () => {
   assert.deepEqual(Object.values(schema).map(getTableName).sort(), [
     "account",
+    "ai_companions",
+    "ai_connections",
+    "ai_inference_jobs",
     "browser_presence",
     "browser_preview_jobs",
     "browser_render_jobs",

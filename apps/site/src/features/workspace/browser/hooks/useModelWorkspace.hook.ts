@@ -16,7 +16,12 @@ import {
   useBrowserPresence,
   useBrowserRenderer,
 } from "../../../browser-rendering/browser/index";
-import { streamChat, useSidebarChat } from "../../../chat/browser/index";
+import {
+  streamChat,
+  useSidebarChat,
+  useAiChatSelection,
+  type ChatModelSelection,
+} from "../../../chat/browser/index";
 import type { PreviewLoadState } from "../../../model-preview/browser/index";
 import { useProjectEvents } from "../../../project-events/browser/index";
 import { useComposerFocus } from "./useComposerFocus.hook";
@@ -47,6 +52,8 @@ export function useModelWorkspace({
   const { renderPreview, generateDownload } = useBrowserRenderer();
   const router = useRouter();
   const isSidebarChatEnabled = useSidebarChat();
+  const aiSelection = useAiChatSelection(isSidebarChatEnabled);
+  const lastSelection = useRef<ChatModelSelection>({});
   const [state, dispatch] = useReducer(workspaceReducer, initialWorkspaceState);
   const [readiness, setReadiness] = useState<
     "checking" | "ready" | "unavailable"
@@ -159,18 +166,33 @@ export function useModelWorkspace({
   });
 
   const submit = useCallback(
-    async (message: string) => {
-      if (!isSidebarChatEnabled || !sessionId || !(await acquireRenderer()))
+    async (message: string, retry = false) => {
+      if (
+        !isSidebarChatEnabled ||
+        !aiSelection.available ||
+        !sessionId ||
+        !(await acquireRenderer())
+      )
         return;
       releaseRenderer();
       lastMessage.current = message;
+      if (!retry)
+        lastSelection.current = aiSelection.real
+          ? { ...aiSelection.selection }
+          : {};
       const requestId = newOpaqueId("turn");
       dispatch({ type: "submit", id: requestId, text: message });
       const controller = new AbortController();
       abortRef.current = controller;
       try {
         await streamChat(
-          { version: "3", projectId, sessionId, message },
+          {
+            version: "3",
+            projectId,
+            sessionId,
+            message,
+            ...lastSelection.current,
+          },
           controller.signal,
           async (event: ChatEvent) => {
             if (
@@ -205,7 +227,7 @@ export function useModelWorkspace({
           dispatch({
             type: "local_error",
             message:
-              "The request was cancelled. The current revision is unchanged.",
+              "The request was cancelled. Checking the current saved revision.",
           });
         } else
           dispatch({
@@ -217,10 +239,12 @@ export function useModelWorkspace({
           });
       } finally {
         abortRef.current = undefined;
+        await refreshProject();
       }
     },
     [
       isSidebarChatEnabled,
+      aiSelection,
       projectId,
       refreshProject,
       sessionId,
@@ -328,6 +352,7 @@ export function useModelWorkspace({
 
   return {
     router,
+    aiSelection,
     isSidebarChatEnabled,
     state,
     dispatch,

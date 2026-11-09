@@ -1,3 +1,4 @@
+import { LOCAL_WORKER_PACKAGE_VERSION } from "@theoryfoundry/contracts";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import { dirname, join, sep } from "node:path";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -17,7 +18,7 @@ export async function serveWorker(
   assets: URL = pathToFileURL(
     join(dirname(fileURLToPath(import.meta.url)), "assets") + sep,
   ),
-  version = "0.1.0",
+  version = LOCAL_WORKER_PACKAGE_VERSION,
   renderer: WorkerRenderer = createWorkerRenderer(assets),
 ): Promise<void> {
   signal.throwIfAborted();
