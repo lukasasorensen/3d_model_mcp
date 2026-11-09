@@ -4,6 +4,7 @@ export const AI_LIMITS = Object.freeze({
   outputTokens: 8192,
   invocationBytes: 8 * 1024 * 1024,
   resultBytes: 512 * 1024,
+  providerStreamBytes: 8 * 1024 * 1024,
   heartbeatMs: 10_000,
   offlineMs: 35_000,
   leaseMs: 30_000,
@@ -125,6 +126,7 @@ export const aiFailureCodeSchema = z.enum([
   "AI_TIMEOUT",
   "AI_CONFIGURATION",
   "AI_PROVIDER_FAILURE",
+  "AI_RESPONSE_TOO_LARGE",
 ]);
 export const companionJobInputSchema = z.union([
   inferenceInputSchema,

@@ -45,20 +45,24 @@ export function createLocalAiModels(
   endpoint: CompanionEndpoint,
   request: typeof fetch = fetch,
 ): LocalAiModels {
-  const localFetch: typeof fetch = async (input, init) => {
-    const outbound = new Request(input, init);
-    const url = new URL(outbound.url);
-    if (url.origin !== new URL(endpoint.endpoint).origin)
-      throw new Error("Invalid local endpoint.");
-    if (!endpoint.token) outbound.headers.delete("authorization");
-    return request(outbound, { redirect: "error" });
-  };
   return {
     async execute(
       input: CompanionJobInput,
       signal: AbortSignal,
     ): Promise<CompanionJobResult> {
       try {
+        signal.throwIfAborted();
+        const localFetch: typeof fetch = async (input, init) => {
+          const outbound = new Request(input, init);
+          const url = new URL(outbound.url);
+          if (url.origin !== new URL(endpoint.endpoint).origin)
+            throw new Error("Invalid local endpoint.");
+          if (!endpoint.token) outbound.headers.delete("authorization");
+          return request(outbound, {
+            redirect: "error",
+            signal: AbortSignal.any([signal, outbound.signal]),
+          });
+        };
         if (input.operation === "models") {
           const url = new URL(
             endpoint.provider === "ollama"

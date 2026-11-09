@@ -1,17 +1,22 @@
 # AI connections implementation verification
 
-Verified November 6, 2026 using Node 24.21.0 and pnpm 11.17.0.
+Verified November 9, 2026 using Node 24.21.0 and pnpm 11.17.0.
 
 ## Automated evidence
 
 - `pnpm verify` passed: formatting, conventions, architecture, package/browser
   boundaries, lint, workspace type checking, Node tests, browser tests, and the
   production Next.js build. Architecture/convention baselines remain empty.
-- The Node runner discovered 406 tests: 403 passed and the three existing optional
+- The Node runner discovered 418 tests: 415 passed and the three existing optional
   runtime checks remained skipped. Installer and boundary checks also passed.
-- All 62 Playwright checks passed across Chromium and forced-colors/reduced-motion
+- All 64 Playwright checks passed across Chromium and forced-colors/reduced-motion
   configurations, including connection CRUD/default/testing, manual model selection,
   missing configuration, offline feedback, and active-turn selection locking.
+- Review regressions cover cancellation before Ollama response headers and during a
+  stalled body, followed by a usable next job. Provider response tests reject an
+  oversized SDK completion, stop decoded JSON/SSE streams before EOF, and release
+  upstream resources on overflow, cancellation, and graceful-close failure. Generated
+  companion commands include the HTTP loopback opt-in for localhost, IPv4 and IPv6.
 - Controlled HTTP fixtures exercised OpenAI, Anthropic, Gemini, Ollama, and compatible
   adapters without real provider traffic. Tests verified explicit credentials,
   structured tool calls/results, sanitized provider errors, and no environment-key

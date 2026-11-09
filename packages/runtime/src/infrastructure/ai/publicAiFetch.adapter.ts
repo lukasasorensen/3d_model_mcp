@@ -1,5 +1,5 @@
 import { Agent, fetch as request } from "undici";
-import { AiConnectionError } from "@theoryfoundry/contracts";
+import { AI_LIMITS, AiConnectionError } from "@theoryfoundry/contracts";
 import { resolvePublicAiEndpoint } from "../../shared/utils/publicAiEndpoint.util.js";
 
 export function createPublicAiFetch(endpoint: string): typeof fetch {
@@ -35,36 +35,82 @@ export function createPublicAiFetch(endpoint: string): typeof fetch {
         await response.body?.cancel();
         throw new AiConnectionError("AI_CONFIGURATION");
       }
-      // Keep streaming and its cancellation tied to the per-request dispatcher.
-      const reader = response.body?.getReader();
-      const body = reader
-        ? new ReadableStream<Uint8Array>({
-            async pull(controller): Promise<void> {
-              try {
-                const part = await reader.read();
-                if (part.done) {
-                  controller.close();
-                  await agent.close();
-                } else controller.enqueue(part.value);
-              } catch (error) {
-                controller.error(error);
-                await agent.destroy();
-              }
-            },
-            async cancel(): Promise<void> {
-              await reader.cancel();
-              await agent.destroy();
-            },
-          })
-        : null;
-      if (!reader) await agent.close();
-      return new Response(body, {
-        status: response.status,
-        headers: Object.fromEntries(response.headers.entries()),
-      });
+      // undici has decoded compression before the bounded reader counts bytes.
+      return await boundedAiResponse(
+        new Response(response.body, {
+          status: response.status,
+          headers: Object.fromEntries(response.headers.entries()),
+        }),
+        { complete: () => agent.close(), abort: () => agent.destroy() },
+      );
     } catch (error) {
       await agent.destroy();
       throw error;
     }
   }) as typeof fetch;
+}
+
+export async function boundedAiResponse(
+  response: Response,
+  lifetime: { complete(): Promise<void>; abort(): Promise<void> },
+): Promise<Response> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    await lifetime.complete();
+    return response;
+  }
+  // SSE framing has overhead beyond model content; both limits count decoded bytes.
+  const limit =
+    response.headers
+      .get("content-type")
+      ?.split(";")[0]
+      ?.trim()
+      .toLowerCase() === "text/event-stream"
+      ? AI_LIMITS.providerStreamBytes
+      : AI_LIMITS.resultBytes;
+  let bytes = 0;
+  let released = false;
+  const dispose = async (aborted: boolean): Promise<void> => {
+    if (released) return;
+    released = true;
+    if (aborted) {
+      try {
+        await reader.cancel();
+      } finally {
+        await lifetime.abort();
+      }
+    } else {
+      try {
+        await lifetime.complete();
+      } catch (error) {
+        await lifetime.abort();
+        throw error;
+      }
+    }
+  };
+  const body = new ReadableStream<Uint8Array>({
+    async pull(controller): Promise<void> {
+      try {
+        const part = await reader.read();
+        if (part.done) {
+          controller.close();
+          await dispose(false);
+          return;
+        }
+        bytes += part.value.byteLength;
+        if (bytes > limit) throw new AiConnectionError("AI_RESPONSE_TOO_LARGE");
+        controller.enqueue(part.value);
+      } catch (error) {
+        controller.error(error);
+        await dispose(true);
+      }
+    },
+    async cancel(): Promise<void> {
+      await dispose(true);
+    },
+  });
+  return new Response(body, {
+    status: response.status,
+    headers: response.headers,
+  });
 }

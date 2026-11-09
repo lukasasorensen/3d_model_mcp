@@ -21,4 +21,5 @@ export const chatErrorCodeSchema = z.enum([
   "AI_TIMEOUT",
   "AI_CONFIGURATION",
   "AI_PROVIDER_FAILURE",
+  "AI_RESPONSE_TOO_LARGE",
 ]);

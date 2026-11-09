@@ -117,3 +117,99 @@ test("AI help starts without renderer assets or Chromium initialization", () => 
   assert.match(result.stdout, /ai serve\|doctor/);
   assert.doesNotMatch(result.stderr, /Chromium|renderer/);
 });
+
+const input = {
+  operation: "invoke",
+  model: "fixture",
+  messages: [{ role: "user", content: "check" }],
+  tools: [],
+};
+const finished = () =>
+  new Response(
+    JSON.stringify({
+      model: "fixture",
+      done: true,
+      message: { role: "assistant", content: "ready" },
+    }) + "\n",
+  );
+
+test("Ollama cancellation aborts a request before headers and leaves later jobs usable", async (t) => {
+  let requests = 0;
+  let outbound;
+  let ready;
+  const started = new Promise((resolve) => {
+    ready = resolve;
+  });
+  const adapter = createLocalAiModels(
+    { provider: "ollama", endpoint: "http://127.0.0.1:11434" },
+    async (url, options) => {
+      requests++;
+      if (requests > 1) return finished();
+      outbound = new Request(url, options);
+      return new Promise((_resolve, reject) => {
+        const watchdog = setTimeout(
+          () => reject(new Error("HTTP request was not cancelled")),
+          500,
+        );
+        t.after(() => clearTimeout(watchdog));
+        outbound.signal.addEventListener(
+          "abort",
+          () => {
+            clearTimeout(watchdog);
+            reject(outbound.signal.reason);
+          },
+          { once: true },
+        );
+        ready();
+      });
+    },
+  );
+  const abort = new AbortController();
+  const pending = adapter.execute(input, abort.signal);
+  await started;
+  abort.abort();
+  assert.deepEqual(await pending, { error: "AI_TIMEOUT" });
+  assert.equal(outbound.signal.aborted, true);
+  const next = await adapter.execute(input, new AbortController().signal);
+  assert.equal(next.result.content, "ready");
+});
+
+test("Ollama cancellation aborts a stalled response body without waiting for a chunk", async (t) => {
+  let ready;
+  let outbound;
+  const started = new Promise((resolve) => {
+    ready = resolve;
+  });
+  const adapter = createLocalAiModels(
+    { provider: "ollama", endpoint: "http://127.0.0.1:11434" },
+    async (url, options) => {
+      outbound = new Request(url, options);
+      return new Response(
+        new ReadableStream({
+          start(controller) {
+            const watchdog = setTimeout(
+              () => controller.error(new Error("HTTP body was not cancelled")),
+              500,
+            );
+            t.after(() => clearTimeout(watchdog));
+            outbound.signal.addEventListener(
+              "abort",
+              () => {
+                clearTimeout(watchdog);
+                controller.error(outbound.signal.reason);
+              },
+              { once: true },
+            );
+            ready();
+          },
+        }),
+      );
+    },
+  );
+  const abort = new AbortController();
+  const pending = adapter.execute(input, abort.signal);
+  await started;
+  abort.abort();
+  assert.deepEqual(await pending, { error: "AI_TIMEOUT" });
+  assert.equal(outbound.signal.aborted, true);
+});

@@ -3,12 +3,12 @@ import { build } from "esbuild";
 import { root, applicationStyles } from "../../../../browser.fixture.mjs";
 
 const id = "f29202c1-35d7-4d8a-9b51-504c964f3b91";
-async function mount(page, picker = false) {
+async function mount(page, picker = false, origin = "https://example.test") {
   const bundle = await build({
     stdin: {
       contents: picker
         ? `import React from 'react';import {createRoot} from 'react-dom/client';import {ChatModelPicker,useAiChatSelection} from './src/features/chat/browser/index';function Harness(){const ai=useAiChatSelection(true);const [active,setActive]=React.useState(false);return <><ChatModelPicker ai={ai} disabled={active}/><button onClick={()=>setActive(!active)}>Toggle active</button><span data-testid="available">{String(ai.available)}</span></>};createRoot(document.querySelector('main')).render(<Harness/>);`
-        : `import React from 'react';import {createRoot} from 'react-dom/client';import {AiConnections} from './src/features/chat/browser/index';createRoot(document.querySelector('main')).render(<AiConnections origin="https://example.test" account="owner" workerVersion="0.2.0"/>);`,
+        : `import React from 'react';import {createRoot} from 'react-dom/client';import {AiConnections} from './src/features/chat/browser/index';createRoot(document.querySelector('main')).render(<AiConnections origin=${JSON.stringify(origin)} account="owner" workerVersion="0.2.0"/>);`,
       resolveDir: root + "/apps/site",
       loader: "tsx",
     },
@@ -83,6 +83,22 @@ function assertNoToken(value) {
   expect(value).not.toHaveProperty("token");
   expect(value).not.toHaveProperty("hasCredential");
 }
+
+test("local companion setup includes the required HTTP loopback opt-in", async ({
+  page,
+}) => {
+  await page.route("**/v1/ai/connections", (route) =>
+    route.fulfill({ json: { connections: [], companions: [] } }),
+  );
+  await mount(page, false, "http://localhost:3000");
+  await page.getByText("Set up a local AI companion", { exact: true }).click();
+  const commands = (
+    await page.locator(".ai-companion-setup pre code").innerText()
+  ).split("\n");
+  expect(commands).toHaveLength(2);
+  for (const command of commands)
+    expect(command).toContain(" --allow-loopback-http");
+});
 
 test("missing real-AI configuration offers a settings path and prevents submission", async ({
   page,

@@ -99,7 +99,12 @@ and jobs; project erasure removes its bound jobs.
 
 Turns retain the 120-second timeout, eight CAD tool rounds, and two repair attempts.
 Each model call is capped at 8,192 output tokens; relay inputs are capped at 8 MiB
-and results at 512 KiB. A cold/slow local model may require warming before retry.
+and results at 512 KiB. Hosted compatible-provider responses are bounded before SDK
+accumulation: 512 KiB for ordinary responses and 8 MiB for SSE framing, counted after
+HTTP decompression. Overflow cancels the upstream response and reports an explicit
+size-limit error. Cancelling a local turn aborts its HTTP request, including while
+Ollama is waiting for its first response chunk. A cold/slow local model may require
+warming before retry.
 Provider authentication, quota, unsupported-model, offline, and timeout failures
 return sanitized messages without upstream error bodies. Cancellation stops further
 work and refreshes canonical state; it does not undo an already committed promotion.

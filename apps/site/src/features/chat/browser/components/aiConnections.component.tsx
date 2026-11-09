@@ -17,6 +17,7 @@ import {
   readAiConnections,
   saveAiConnection,
 } from "../services/aiConnections.service";
+import { aiCompanionCommands } from "../utils/aiCompanionCommands.util";
 
 const blank: AiConnectionInput = {
   name: "",
@@ -362,7 +363,7 @@ export function AiConnections({
           in, then keep the companion running while using chat.
         </p>
         <pre>
-          <code>{`pnpm --silent dlx @tfoundry/local-worker@${workerVersion} login --server ${origin}\npnpm --silent dlx @tfoundry/local-worker@${workerVersion} ai serve --server ${origin} --account ${account}`}</code>
+          <code>{aiCompanionCommands(origin, account, workerVersion)}</code>
         </pre>
         <p>
           For LM Studio or vLLM, add{" "}

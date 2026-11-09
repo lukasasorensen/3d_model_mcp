@@ -15,6 +15,8 @@ const messages: Record<AiFailureCode, string> = {
     "This AI connection is unavailable. Check AI connections and server encryption configuration.",
   AI_PROVIDER_FAILURE:
     "The AI provider is temporarily unavailable. Retry the request.",
+  AI_RESPONSE_TOO_LARGE:
+    "The AI provider response exceeded its size limit. Try a smaller request or another model.",
 };
 export class AiConnectionError extends Error {
   constructor(readonly code: AiFailureCode) {
