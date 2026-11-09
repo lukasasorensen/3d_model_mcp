@@ -24,6 +24,9 @@ See [alignment plan](docs/alignment-plan.md) for the staged migration and
   sync. Bump once per PR relative to its integration base, not per review commit;
   recheck after rebasing. Promotion PRs carry the tested versions from `develop`
   without another bump. State the version change in the PR description.
+- For PR updates, push the changes and update the PR without waiting for hosted CI
+  to finish. Report any checks still running in the handoff; wait for CI only when
+  explicitly requested or when preparing an authorized merge.
 - Merge only when explicitly requested, after rechecking the PR head and required checks.
   Mark Done only when completion criteria are verified. Track implementation,
   deployment, and live acceptance separately; a passing build is not live acceptance.
