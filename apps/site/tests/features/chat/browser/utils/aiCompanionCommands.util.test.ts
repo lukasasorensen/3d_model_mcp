@@ -10,8 +10,11 @@ for (const origin of [
   void test(`AI setup opts into loopback HTTP for ${origin}`, () => {
     const commands = aiCompanionCommands(origin, "owner", "0.2.0").split("\n");
     assert.equal(commands.length, 2);
-    for (const command of commands)
+    for (const command of commands) {
       assert.ok(command.endsWith(" --allow-loopback-http"));
+      assert.ok(command.includes(`--server '${origin}'`));
+    }
+    assert.ok(commands[1]!.includes("--account 'owner'"));
     assert.ok(commands[0]!.includes(" login --server "));
     assert.ok(commands[1]!.includes(" ai serve --server "));
   });
