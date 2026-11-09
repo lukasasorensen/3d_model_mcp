@@ -24,6 +24,12 @@ See [alignment plan](docs/alignment-plan.md) for the staged migration and
   sync. Bump once per PR relative to its integration base, not per review commit;
   recheck after rebasing. Promotion PRs carry the tested versions from `develop`
   without another bump. State the version change in the PR description.
+- Maintain the [Notion release changelog](https://app.notion.com/p/413aecc8802381e6bdc9c8c94ed48ea7)
+  under the project wiki. For each release or promotion, update that existing page
+  newest first with versions, user-visible changes, PR links, and migration/setup
+  requirements. Record CI, deployment, and live acceptance separately as verified
+  or pending; do not wait for CI to update it. Fetch saved changes to verify them.
+  If Notion is unavailable, report the pending changelog update.
 - For PR updates, push the changes and update the PR without waiting for hosted CI
   to finish. Report any checks still running in the handoff; wait for CI only when
   explicitly requested or when preparing an authorized merge.
