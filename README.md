@@ -50,7 +50,7 @@ Existing VM deployments require a separate data and traffic migration plan.
 
 ## Chat orchestration
 
-[Chat contracts, mock provider and feature flags](docs/cad-operations.md#chat-orchestration).
+[Chat contracts, providers and feature flags](docs/cad-operations.md#chat-orchestration).
 
 ## Release status
 
@@ -75,6 +75,11 @@ release gates; [earlier harness evidence](docs/g006-verification-evidence.json) 
 ## Recoverable validation and downloadable MCP exports
 
 [Validation recovery, export receipts, quotas and acceptance](docs/cad-operations.md#recoverable-validation-and-downloadable-mcp-exports).
+
+### User-owned AI connections
+
+[Connect Claude, OpenAI, Gemini, Ollama, or compatible APIs](docs/ai-connections.md).
+Tokens are encrypted per account; local inference uses the AI companion.
 
 ### Sidebar chat feature flags
 

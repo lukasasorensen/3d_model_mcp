@@ -1,5 +1,6 @@
 import {
   CHAT_LIMITS,
+  AiConnectionError,
   chatRequestSchema,
   type ChatRequest,
 } from "@theoryfoundry/contracts";
@@ -107,9 +108,13 @@ export function createChatRouteHandler(
         "SESSION_MISMATCH",
         "The chat session does not match.",
       );
-    const orchestrator = await options
-      .getOrchestrator(parsed.data)
-      .catch(() => undefined);
+    let orchestrator: ChatOrchestratorOptions | undefined;
+    try {
+      orchestrator = await options.getOrchestrator(parsed.data);
+    } catch (error) {
+      if (error instanceof AiConnectionError)
+        return jsonError(503, error.code, error.message);
+    }
     if (!orchestrator)
       return jsonError(
         503,

@@ -22,6 +22,8 @@ export const chatRequestSchema = z
     projectId: projectIdSchema,
     sessionId: sessionIdSchema,
     message: z.string().trim().min(1).max(CHAT_LIMITS.messageCharacters),
+    connectionId: z.string().uuid().optional(),
+    model: z.string().trim().min(1).max(200).optional(),
   })
   .strict();
 

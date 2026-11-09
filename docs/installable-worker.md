@@ -3,7 +3,7 @@
 Hosted UI/API enablement and the browser-only launch are described in
 [local worker availability](local-worker-availability.md).
 
-THE-15 packages the existing stdio worker as `@tfoundry/local-worker@0.1.0`.
+THE-15 packages the existing stdio worker as `@tfoundry/local-worker@0.2.0`.
 The CLI provides `setup`, `serve`, `login`, `logout`, `doctor`, `--help` and
 `--version`. See the [package README](../packages/local-worker/README.md) for
 version-pinned client configuration and commands after registry publication.
@@ -73,7 +73,7 @@ contents, then serves that name/version through a disposable loopback npm regist
 Dependency metadata is proxied read-only to npm; no registry credentials are used.
 Each run creates an external working directory, HOME, npm configuration, dlx cache
 and pnpm store. The worker is launched as
-`pnpm --silent dlx @tfoundry/local-worker@0.1.0`, without workspace imports.
+`pnpm --silent dlx @tfoundry/local-worker@0.2.0`, without workspace imports.
 The fixture registry and temporary directories are cleaned up afterward.
 
 The full check covers help/version, missing-browser diagnostics, repeated setup,

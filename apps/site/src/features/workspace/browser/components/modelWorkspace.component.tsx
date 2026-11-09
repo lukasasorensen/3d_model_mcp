@@ -2,7 +2,7 @@
 import { useId, type JSX } from "react";
 
 import dynamic from "next/dynamic";
-import { ChatPane } from "../../../chat/browser/index";
+import { ChatPane, ChatModelPicker } from "../../../chat/browser/index";
 import { ModelSourcePanel } from "../../../model-preview/browser/index";
 import {
   type HostedInstallations,
@@ -47,6 +47,7 @@ export function ModelWorkspace({
   const projectSelectorId = useId();
   const {
     router,
+    aiSelection,
     isSidebarChatEnabled,
     state,
     dispatch,
@@ -388,6 +389,14 @@ export function ModelWorkspace({
 
         {isSidebarChatEnabled && (
           <ChatPane
+            unavailableReason={
+              aiSelection.real && !aiSelection.available
+                ? "Choose an available AI connection and model."
+                : undefined
+            }
+            connectionPicker={
+              <ChatModelPicker ai={aiSelection} disabled={state.active} />
+            }
             turns={state.turns}
             hasCurrentRevision={Boolean(state.currentRevision)}
             active={state.active}
@@ -396,13 +405,14 @@ export function ModelWorkspace({
               !restorePending &&
               exportState !== "preparing" &&
               readiness === "ready" &&
+              aiSelection.available &&
               Boolean(sessionId)
             }
             collapsed={chatCollapsed && !mobile}
             onToggleCollapsed={() => setChatCollapsed((value) => !value)}
             onSubmit={(message) => void submit(message)}
             onCancel={() => abortRef.current?.abort()}
-            onRetry={() => void submit(lastMessage.current)}
+            onRetry={() => void submit(lastMessage.current, true)}
             composerRef={composerRef}
           />
         )}

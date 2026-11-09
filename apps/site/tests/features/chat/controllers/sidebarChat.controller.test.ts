@@ -6,6 +6,31 @@ import { createSidebarChatHandler } from "../../../../src/features/chat/controll
 const user = { id: "owner-1" } as AuthenticatedUser;
 const request = new Request("http://localhost/v1/chat", { method: "POST" });
 
+void test("real mode selects the signed-in user's real handler and preserves explicit failures", async () => {
+  let realCalls = 0;
+  const handler = createSidebarChatHandler({
+    authenticate: async () => user,
+    getFlags: async () => ({
+      isSidebarChatEnabled: true,
+      isRealAiEnabled: true,
+    }),
+    runMockChat: async () => {
+      throw new Error("must not fall back to mock");
+    },
+    runRealChat: async (received, owner) => {
+      assert.equal(received, request);
+      assert.equal(owner, user.id);
+      realCalls++;
+      return Response.json(
+        { error: { code: "AI_CONFIGURATION" } },
+        { status: 503 },
+      );
+    },
+  });
+  assert.equal((await handler(request)).status, 503);
+  assert.equal(realCalls, 1);
+});
+
 for (const visible of [false, true])
   for (const real of [false, true]) {
     void test(`chat admission visible=${visible}, real=${real}`, async () => {

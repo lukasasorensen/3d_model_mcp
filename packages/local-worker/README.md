@@ -8,17 +8,17 @@ is needed by the installed package.
 After this version has been published to your configured registry:
 
 ```sh
-pnpm --silent dlx @tfoundry/local-worker@0.1.0 setup
-pnpm --silent dlx @tfoundry/local-worker@0.1.0 login --server https://your-server.example
-pnpm --silent dlx @tfoundry/local-worker@0.1.0 serve --server https://your-server.example --account <account-id>
-pnpm --silent dlx @tfoundry/local-worker@0.1.0 doctor --json
-pnpm --silent dlx @tfoundry/local-worker@0.1.0 logout --server https://your-server.example --account <account-id>
+pnpm --silent dlx @tfoundry/local-worker@0.2.0 setup
+pnpm --silent dlx @tfoundry/local-worker@0.2.0 login --server https://your-server.example
+pnpm --silent dlx @tfoundry/local-worker@0.2.0 serve --server https://your-server.example --account <account-id>
+pnpm --silent dlx @tfoundry/local-worker@0.2.0 doctor --json
+pnpm --silent dlx @tfoundry/local-worker@0.2.0 logout --server https://your-server.example --account <account-id>
 ```
 
 For guided registration, run:
 
 ```sh
-pnpm --silent dlx @tfoundry/local-worker@0.1.0 setup --server https://your-server.example --client codex --scope global
+pnpm --silent dlx @tfoundry/local-worker@0.2.0 setup --server https://your-server.example --client codex --scope global
 ```
 
 Use `--client claude` for Claude Code, or `--scope project` from a Git repository root.
@@ -32,7 +32,7 @@ available for retry. Project files include the account ID; review before sharing
 
 Login prints the account ID. Use the exact same server/account for serve and logout.
 For MCP configuration, command is `pnpm`, args are `--silent`, `dlx`,
-`@tfoundry/local-worker@0.1.0`, `serve`, `--server`, your origin, `--account`,
+`@tfoundry/local-worker@0.2.0`, `serve`, `--server`, your origin, `--account`,
 your account ID. Pin the package version; do not use `latest` in a client config.
 `serve` writes only protocol messages to stdout and never installs software or
 opens a login prompt. Setup and login are separate terminal commands.
@@ -73,3 +73,22 @@ This package has not been published by the packaging PR. The first release targe
 Public distribution uses the tfoundry npm organization and needs no downloader npm
 login. Publication, distribution licensing and real Codex/Claude acceptance remain
 release gates. Runtime checks are not production acceptance.
+
+## Local AI companion
+
+The `ai serve` and `ai doctor` commands use the existing login and OS credential
+store, independently of rendering. They do not initialize Chromium or renderer
+assets. After login, run:
+
+```sh
+pnpm --silent dlx @tfoundry/local-worker@0.2.0 ai serve --server https://your-server.example --account <account-id>
+```
+
+Ollama defaults to `http://127.0.0.1:11434`. For LM Studio/vLLM add
+`--provider openai-compatible --endpoint http://127.0.0.1:1234/v1`. Use
+`--configure-token` for a hidden optional local-token prompt, and `--name` to
+distinguish endpoints. `ai doctor` with the same options lists local models and
+checks hosted authentication. Configure a local AI connection in the website after
+starting the companion. Inference is local; project context still traverses the
+hosted app. See [AI connections](../../docs/ai-connections.md) for server setup,
+limits, key rotation, and acceptance. Publication is a separate release action.
