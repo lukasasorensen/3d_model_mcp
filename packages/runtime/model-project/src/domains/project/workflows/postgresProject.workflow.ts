@@ -1,5 +1,6 @@
 import {
   artifactManifestSchema,
+  parameterSnapshotFields,
   candidateRecordSchema,
   createProjectInputSchema,
   revisionManifestSchema,
@@ -9,6 +10,7 @@ import {
   type RevisionManifest,
   type UpdateProjectInput,
 } from "@theoryfoundry/contracts";
+import { checkedParameterSnapshot } from "../../../shared/utils/parameterSnapshot.util.js";
 import { randomUUID } from "node:crypto";
 import { assertSourcePolicy } from "../../../shared/utils/sourcePolicy.util.js";
 import type { ProjectWorkflowOptions } from "../projectRepository.types.js";
@@ -90,6 +92,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
       source: { hash: manifest.sourceHash, byteSize: manifest.sourceBytes },
       artifacts: manifest.artifacts,
       diagnostics: manifest.diagnostics,
+      ...parameterSnapshotFields(manifest.parameters),
     };
   }
 
@@ -120,6 +123,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
               },
               artifacts: current.artifacts,
               diagnostics: current.diagnostics,
+              ...parameterSnapshotFields(current.parameters),
             }
           : {
               projectId,
@@ -165,7 +169,29 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
     assertSourcePolicy(input.source);
     return this.persistence.transaction(async (transaction) => {
       const project = await transaction.requireProject(input.projectId, true);
-      const existingId = await transaction.findProposalCandidateId(input);
+      const parent = input.parentRevision
+        ? await transaction
+            .readRevision(input.projectId, input.parentRevision)
+            .catch((error: unknown) => {
+              if (
+                error instanceof CadDomainError &&
+                error.code === "REVISION_NOT_FOUND" &&
+                project.currentRevision !== input.parentRevision
+              )
+                throw new CadDomainError(
+                  "STALE_REVISION",
+                  "Candidate parent is not the current revision.",
+                );
+              throw error;
+            })
+        : undefined;
+      const parentParameters = parent?.manifest.parameters;
+      const parameters = checkedParameterSnapshot(
+        input.source,
+        input.parameters === undefined ? parentParameters : input.parameters,
+      );
+      const proposal = { ...input, parameters };
+      const existingId = await transaction.findProposalCandidateId(proposal);
       if (existingId)
         return (await transaction.readCandidate(input.projectId, existingId))
           .candidate;
@@ -185,6 +211,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         projectId: input.projectId,
         parentRevision: input.parentRevision,
         source: input.source,
+        parameters,
         requestId: input.requestId,
         toolCallId: input.toolCallId,
         createdAt: this.clock(),
@@ -288,6 +315,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         projectId: input.projectId,
         parentRevision: project.currentRevision,
         source: persistedCandidate.source,
+        parameters: candidate.parameters,
         sourceHash: candidate.sourceHash,
         sourceBytes: candidate.sourceBytes,
         requestId: candidate.requestId,
@@ -381,6 +409,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         parentRevision: project.currentRevision,
         restoredFromRevision: input.revision,
         source: target.source,
+        parameters: target.manifest.parameters,
         sourceHash: target.manifest.sourceHash,
         sourceBytes: target.manifest.sourceBytes,
         requestId: input.requestId,

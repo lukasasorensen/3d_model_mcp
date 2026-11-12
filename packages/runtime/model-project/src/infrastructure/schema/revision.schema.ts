@@ -37,6 +37,7 @@ export const defineRevisionsSchema = defineTableFactory(
           { onDelete: "restrict" },
         ),
         ...sourceDocumentColumns(),
+        parameterSnapshot: jsonb("parameter_snapshot").notNull().default([]),
         ...requestTraceColumns(),
         candidateId: text("candidate_id").notNull(),
         validationPolicyVersion: text("validation_policy_version").notNull(),

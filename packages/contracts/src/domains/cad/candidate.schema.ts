@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { parameterSnapshotSchema } from "./parameter.schema.js";
 import { CONTRACT_VERSION } from "../../shared/version.constants.js";
 import {
   projectIdSchema,
@@ -19,6 +20,7 @@ export const candidateRecordSchema = z
     projectId: projectIdSchema,
     candidateId: candidateIdSchema,
     parentRevision: revisionIdSchema.nullable(),
+    parameters: parameterSnapshotSchema.optional(),
     sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
     sourceBytes: z.number().int().positive().max(CAD_LIMITS.sourceBytes),
     state: candidateStateSchema,

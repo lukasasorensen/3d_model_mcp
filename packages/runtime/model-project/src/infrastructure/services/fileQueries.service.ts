@@ -1,5 +1,6 @@
 import {
   projectIdSchema,
+  parameterSnapshotFields,
   type ArtifactManifest,
   type RevisionManifest,
 } from "@theoryfoundry/contracts";
@@ -61,6 +62,7 @@ export class FileProjectQueries {
       source: { hash: manifest.sourceHash, byteSize: manifest.sourceBytes },
       artifacts: manifest.artifacts,
       diagnostics: manifest.diagnostics,
+      ...parameterSnapshotFields(manifest.parameters),
     };
   }
   async listProjects(): Promise<ProjectSummary[]> {

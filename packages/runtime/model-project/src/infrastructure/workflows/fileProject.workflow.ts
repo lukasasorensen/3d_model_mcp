@@ -1,5 +1,6 @@
 import {
   CONTRACT_VERSION,
+  parameterSnapshotFields,
   candidateRecordSchema,
   createProjectInputSchema,
   isBrowserRendererProvenance,
@@ -22,6 +23,7 @@ import type {
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
+import { checkedParameterSnapshot } from "../../shared/utils/parameterSnapshot.util.js";
 import { assertSourcePolicy } from "../../shared/utils/sourcePolicy.util.js";
 import { VALIDATION_POLICY_VERSION } from "../../shared/validation.constants.js";
 import type {
@@ -95,7 +97,31 @@ export class FileProjectWorkflow {
       async () => {
         // Recover any committed promotion before returning the candidate's state.
         const current = await this.records.readCurrent(input.projectId);
-        const existing = await this.records.findProposalCandidate(input);
+        const parent = input.parentRevision
+          ? await this.records
+              .readManifest(input.projectId, input.parentRevision)
+              .catch((error: unknown) => {
+                if (
+                  error instanceof CadDomainError &&
+                  error.code === "REVISION_NOT_FOUND" &&
+                  current !== input.parentRevision
+                )
+                  throw new CadDomainError(
+                    "STALE_REVISION",
+                    "Candidate parent is not the current revision.",
+                  );
+                throw error;
+              })
+          : undefined;
+        const parentParameters = parent?.parameters;
+        const parameters = checkedParameterSnapshot(
+          input.source,
+          input.parameters === undefined ? parentParameters : input.parameters,
+        );
+        const existing = await this.records.findProposalCandidate({
+          ...input,
+          parameters,
+        });
         if (existing) return existing;
         if (input.parentRevision !== current) {
           throw new CadDomainError(
@@ -122,6 +148,7 @@ export class FileProjectWorkflow {
           projectId: input.projectId,
           candidateId,
           parentRevision: input.parentRevision,
+          ...parameterSnapshotFields(parameters),
           sourceHash: sha256(input.source),
           sourceBytes,
           state: "CREATED",
@@ -224,6 +251,7 @@ export class FileProjectWorkflow {
           parentRevision: current,
           candidateId: candidate.candidateId,
           source,
+          ...parameterSnapshotFields(candidate.parameters),
           sourceHash: candidate.sourceHash,
           requestId: candidate.requestId,
           toolCallId: candidate.toolCallId,
@@ -319,6 +347,7 @@ export class FileProjectWorkflow {
           restoredFrom: input.revision,
           candidateId,
           source,
+          ...parameterSnapshotFields(target.parameters),
           sourceHash: target.sourceHash,
           requestId: input.requestId,
           toolCallId: input.toolCallId,

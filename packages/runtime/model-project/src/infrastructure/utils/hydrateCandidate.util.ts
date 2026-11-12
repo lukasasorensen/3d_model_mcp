@@ -1,9 +1,11 @@
 import {
   CONTRACT_VERSION,
+  parameterSnapshotFields,
   candidateRecordSchema,
 } from "@theoryfoundry/contracts";
 import type { PersistedCandidate } from "../../domains/project/index.js";
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
+import { checkedParameterSnapshot } from "../../shared/utils/parameterSnapshot.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { asIsoTimestamp } from "../../shared/utils/timestamp.util.js";
 import type { CandidateRow } from "../postgresPersistence.types.js";
@@ -17,6 +19,9 @@ export function hydrateCandidate(
     projectId: row.project_id,
     candidateId: row.id,
     parentRevision: row.parent_revision_id,
+    ...parameterSnapshotFields(
+      checkedParameterSnapshot(row.source, row.parameter_snapshot),
+    ),
     sourceHash: row.source_hash,
     sourceBytes: row.source_bytes,
     state: row.state,
