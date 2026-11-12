@@ -35,12 +35,13 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
       - run: pnpm verify
       - name: Build plugin submission candidates
-        run: pnpm pack:plugins
+        run: pnpm pack:plugins && pnpm pack:local-plugin
       - name: Upload plugin packages and publication readiness
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: theoryfoundry-plugin-candidates
           path: |
+            dist/local-plugin/*.zip
             dist/mcp-plugins/*.zip
             dist/mcp-plugins/release-readiness.json
           if-no-files-found: error

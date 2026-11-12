@@ -1,5 +1,6 @@
 import type * as z from "zod/v4";
 export type CadToolName =
+  | "list_projects"
   | "create_project"
   | "update_project"
   | "get_project_state"

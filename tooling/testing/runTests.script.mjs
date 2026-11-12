@@ -42,5 +42,11 @@ if (argumentsList.includes("--list")) {
   console.log(
     `Running ${groups.reduce((sum, group) => sum + group.files.length, 0)} test files across ${groups.length} workspace projects.`,
   );
-  process.exitCode = runTestGroups(groups, spawnSync);
+  process.exitCode = runTestGroups(
+    groups,
+    spawnSync,
+    process.env.THEORYFOUNDRY_TEST_CONCURRENCY === undefined
+      ? undefined
+      : Number(process.env.THEORYFOUNDRY_TEST_CONCURRENCY),
+  );
 }

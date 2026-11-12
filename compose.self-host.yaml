@@ -1,0 +1,101 @@
+x-environment: &environment
+  DATABASE_URL: postgresql://theoryfoundry:${TF_LOCAL_DATABASE_PASSWORD:?Required}@postgres:5432/theoryfoundry
+  BETTER_AUTH_SECRET: ${TF_LOCAL_AUTH_SECRET:?Required}
+  BETTER_AUTH_URL: http://127.0.0.1:${TF_LOCAL_PORT:?Required}
+  THEORYFOUNDRY_ALLOWED_ORIGIN: http://127.0.0.1:${TF_LOCAL_PORT:?Required}
+  THEORYFOUNDRY_LOCAL_EDITION: "1"
+  THEORYFOUNDRY_LOCAL_INSTANCE_ID: ${TF_LOCAL_INSTANCE_ID:?Required}
+  THEORYFOUNDRY_LOCAL_SETUP_TOKEN: ${TF_LOCAL_SETUP_TOKEN:?Required}
+  THEORYFOUNDRY_REMOTE_MCP_ENABLED: "1"
+  THEORYFOUNDRY_LOCAL_WORKER_ENABLED: "1"
+  THEORYFOUNDRY_AUTH_ALLOW_SIGNUP: "0"
+  NEXT_TELEMETRY_DISABLED: "1"
+  THEORYFOUNDRY_CHAT_PROVIDER: mock
+  THEORYFOUNDRY_EXPORT_DIRECTORY: /var/lib/theoryfoundry/exports
+  THEORYFOUNDRY_ERASURE_DIRECTORY: /var/lib/theoryfoundry/erasures
+  THEORYFOUNDRY_AI_ENCRYPTION_KEY_ID: local
+  THEORYFOUNDRY_AI_ENCRYPTION_KEYS: ${TF_LOCAL_AI_KEYS:?Required}
+services:
+  postgres:
+    image: postgres:18.6-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: theoryfoundry
+      POSTGRES_DB: theoryfoundry
+      POSTGRES_PASSWORD: ${TF_LOCAL_DATABASE_PASSWORD:?Required}
+    volumes: [database:/var/lib/postgresql]
+    networks: [private]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U theoryfoundry -d theoryfoundry"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  migrate:
+    image: ${TF_LOCAL_TOOLING_IMAGE:?Required}
+    pull_policy: never
+    restart: "no"
+    environment: *environment
+    command:
+      [
+        sh,
+        -ec,
+        "pnpm db:migrate && node packages/runtime/dist/replayErasures.composition.js && node packages/runtime/dist/provisionOAuthClient.composition.js --worker",
+      ]
+    volumes:
+      - exports:/var/lib/theoryfoundry/exports
+      - erasures:/var/lib/theoryfoundry/erasures
+    networks: [private]
+    depends_on:
+      postgres: { condition: service_healthy }
+  app:
+    image: ${TF_LOCAL_APP_IMAGE:?Required}
+    pull_policy: never
+    restart: unless-stopped
+    environment: *environment
+    volumes:
+      - exports:/var/lib/theoryfoundry/exports
+      - erasures:/var/lib/theoryfoundry/erasures
+    networks: [private]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3000/v1/readiness').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+  proxy:
+    image: ${TF_LOCAL_APP_IMAGE:?Required}
+    pull_policy: never
+    restart: unless-stopped
+    entrypoint: [node, /app/local-proxy.mjs]
+    read_only: true
+    environment:
+      THEORYFOUNDRY_LOCAL_PROXY_ORIGIN: http://127.0.0.1:${TF_LOCAL_PORT:?Required}
+    ports: ["127.0.0.1:${TF_LOCAL_PORT:?Required}:3000"]
+    networks: [frontend, private]
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "require('node:http').get({hostname:'127.0.0.1',port:3000,path:'/v1/readiness',headers:{host:new URL(process.env.THEORYFOUNDRY_LOCAL_PROXY_ORIGIN).host}},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))",
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    depends_on:
+      app: { condition: service_healthy }
+volumes:
+  database:
+  exports:
+  erasures:
+networks:
+  private: { internal: true }
+  frontend: {}

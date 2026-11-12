@@ -52,7 +52,7 @@ Private endpoints belong behind the local companion.
 
 ## Local companion
 
-The AI companion is an independent mode of `@tfoundry/local-worker@0.2.0`. It needs
+The AI companion is an independent mode of `@tfoundry/local-worker@0.3.0`. It needs
 Node 24, OS credential storage, and a running model server. It does not initialize
 Chromium, download renderer assets, configure an MCP client, or pull models.
 
@@ -61,8 +61,8 @@ if it is not already provisioned. Hosted OAuth must be enabled; the rendering-wo
 availability flag does not control AI companion endpoints. Authenticate first:
 
 ```sh
-pnpm --silent dlx @tfoundry/local-worker@0.2.0 login --server https://your-server.example
-pnpm --silent dlx @tfoundry/local-worker@0.2.0 ai serve --server https://your-server.example --account <account-id>
+pnpm --silent dlx @tfoundry/local-worker@0.3.0 login --server https://your-server.example
+pnpm --silent dlx @tfoundry/local-worker@0.3.0 ai serve --server https://your-server.example --account <account-id>
 ```
 
 Ollama defaults to `http://127.0.0.1:11434`. For LM Studio/vLLM, add

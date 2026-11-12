@@ -36,6 +36,7 @@ const repository = new Proxy(
 test("exposes exactly the approved transport-neutral CAD tool allowlist", () => {
   const registry = createCadToolRegistry(repository);
   assert.deepEqual(Object.keys(registry), [
+    "list_projects",
     "create_project",
     "update_project",
     "get_project_state",
@@ -248,4 +249,29 @@ test("failed stdio server startup closes the server and preserves the startup er
     (error) => error === startupError,
   );
   assert.equal(closed, true);
+});
+
+test("project discovery uses the already owner-scoped repository and configured project URLs", async () => {
+  const registry = createCadToolRegistry(
+    {
+      listProjects: async () => [
+        {
+          projectId: "owned",
+          name: "Local part",
+          description: "Owned project",
+        },
+      ],
+    },
+    { projectUrl: (id) => `http://127.0.0.1:43100/projects/${id}` },
+  );
+  const result = await registry.list_projects.execute({});
+  assert.deepEqual(result.projects, [
+    {
+      projectId: "owned",
+      name: "Local part",
+      description: "Owned project",
+      projectUrl: "http://127.0.0.1:43100/projects/owned",
+    },
+  ]);
+  await assert.rejects(registry.list_projects.execute({ ownerId: "other" }));
 });
