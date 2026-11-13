@@ -88,7 +88,7 @@ async function fixture(mode, extra = {}) {
     worker,
     `import {writeFileSync} from 'node:fs';
 const version=process.argv.includes('--version');
-if(version&&!process.env.HOLD_VERSION){console.log('0.3.0');process.exit(0)}
+if(version&&!process.env.HOLD_VERSION){console.log('0.3.1');process.exit(0)}
 if(process.env.CHILD_EXIT){
  console.log(JSON.stringify({cwd:process.cwd(),caller:process.env.THEORYFOUNDRY_CALLER_DIRECTORY}));
  console.error('fixture diagnostic');process.exit(Number(process.env.CHILD_EXIT));
@@ -184,7 +184,7 @@ for (const mode of ["candidate", "npx"]) {
             assert.equal(await stopped(wrapper.pid), true);
             assert.deepEqual(wrapper.args, [
               "--yes",
-              "@tfoundry/local-worker@0.3.0",
+              "@tfoundry/local-worker@0.3.1",
               "local",
               "start",
               "--json",

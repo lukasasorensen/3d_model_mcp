@@ -75,6 +75,13 @@ with its full snapshot; internal repository history retains all snapshots. This
 keeps ordinary history reads below the response limit as parameterized revisions
 accumulate. Parameter validation error details are bounded to the public contract.
 
+Local-worker JSON tools apply the 512 KiB limit to the logical payload, matching
+the hosted server. The MCP envelope has a separate bound of three payloads plus
+1 KiB for framing: structured data and its escaped text copy both fit without
+dropping source or metadata. Text-only results use the same logical limit; error
+responses keep their existing limit. Preview images retain their separate 3 MiB
+full-envelope limit.
+
 The contract version remains 1, and renderer requests/pins and source/artifact
 hashes remain unchanged. Values are baked into canonical source, not supplied as
 runtime render overrides.
@@ -93,10 +100,12 @@ code. It adds non-null JSONB columns with an empty-array default; it does not
 modify existing source, ownership, leases, artifacts or accepted revision pointers.
 No new environment variables or renderer assets are required.
 
-Relative to develop, root/hosted-plugin versions advance 0.7.1 → 0.8.0,
-contracts 0.2.0 → 0.3.0, model-project 0.5.0 → 0.6.0 and MCP 0.1.0 → 0.2.0. The separate unmerged
-THE-50 branch also proposes root 0.8.0; recheck versions against develop when
-rebasing either PR. Public worker/installer command pins are unaffected.
+Relative to develop after THE-50, root/hosted/local-plugin versions advance
+0.8.0 → 0.9.0, contracts 0.3.0 → 0.4.0, model-project 0.5.0 → 0.6.0 and MCP
+0.2.0 → 0.3.0. Local-worker advances 0.3.0 → 0.3.1 for the response-budget fix;
+the site advances 0.8.0 → 0.8.1 for updated setup commands. Worker command pins
+advance to the fixed version; publish and verify it before users install it.
+Installer command pins and renderer assets are unaffected.
 
 ## Verification
 
