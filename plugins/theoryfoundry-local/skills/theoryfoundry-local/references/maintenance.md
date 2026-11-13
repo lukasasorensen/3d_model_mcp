@@ -4,6 +4,13 @@
 returns a bounded diagnostic tail. Do not paste raw logs into issues. `local stop`
 stops containers while preserving database, exports and the erasure journal.
 
+Run `local start` to repair an unhealthy installation. It verifies Docker ownership
+of an occupied port before stopping its own app/gateway and restarting the stack.
+`PORT_BUSY` means ownership could not be established; never stop the unrelated
+listener or change an existing origin to work around it. Cancelled startup attempts
+stop local services with a separate cleanup deadline. If `CLEANUP_PENDING` appears,
+run `local stop` before retrying.
+
 The default instance is under `~/.theoryfoundry/local`; `THEORYFOUNDRY_LOCAL_HOME`
 selects another installation. Its port is fixed after creation. Choose an unused
 `--port` on the first `local start`; changing an existing origin requires restoring

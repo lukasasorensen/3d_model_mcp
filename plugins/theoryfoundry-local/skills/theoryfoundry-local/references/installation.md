@@ -9,6 +9,12 @@ The worker package and local images are release candidates. Public npm/image/plu
 publication and renderer distribution clearance are separate release gates. Do not
 claim a public download exists or replace a missing pin with `latest`.
 
+Released workers include immutable image digests. `local start` downloads missing
+app, tooling and PostgreSQL images automatically; the first start requires network
+access. Cached starts reuse those exact images without contacting the registry.
+For `IMAGE_PULL_FAILED`, check connectivity and release/platform availability, then
+retry the same command. Existing installation secrets and volumes are preserved.
+
 Before publication, an operator can load the inspected release images with
 `docker load`, or build from an explicitly selected repository checkout:
 

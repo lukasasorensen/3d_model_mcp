@@ -39,6 +39,14 @@ runtime **0.7.0**, MCP **0.2.0**, PostgreSQL **18**. Packaged image names are
 loaded from reviewed image archives or built from the explicit checkout with
 `--source`. Nothing publishes images, npm packages or plugins automatically.
 
+Published worker packages instead carry digest-pinned GHCR app/tooling images and
+a digest-pinned PostgreSQL image. `local start` inspects all three locally, pulls
+missing images and verifies availability before creating services. Cached starts
+stay offline. Failed downloads leave existing installation data/secrets intact and
+can be retried. Development manifests retain buildable tags and require an explicit
+checkout or preloaded archive. Source builds record local image overrides separately
+from the release's published references; legacy installations/backups remain readable.
+
 ## Skill and artifacts
 
 ```sh
@@ -56,6 +64,42 @@ external directory and set `THEORYFOUNDRY_LOCAL_CLI` to its absolute `dist/cli.j
 The plugin checks that candidate's version. Otherwise it requests the exact npm
 release, never `latest`. Invoke `$theoryfoundry-local` after installing/reloading
 the plugin in the client. It contains no bundled MCP registration or lifecycle hooks.
+
+### Preparing registry-backed releases
+
+The manually dispatched `local-edition-release.yml` workflow publishes the two
+images under `ghcr.io/lukasasorensen/theoryfoundry-local-{app,tooling}`, captures
+their exact digests, resolves PostgreSQL's digest, and packages the matching worker
+and plugin as candidate artifacts. Its initial image platform is `linux/arm64`,
+matching the Apple Silicon target. It does not publish npm packages/plugins.
+
+Before dispatch, record THE-15 distribution clearance and configure the protected
+`local-edition-release` GitHub environment with
+`LOCAL_EDITION_DISTRIBUTION_CLEARED=true`. Public image access must be enabled by
+the package owner; new GHCR packages default to private. The workflow refuses to
+finish a candidate until anonymous digest pulls succeed. A first attempt may
+require enabling visibility and rerunning. No clearance or publication is claimed
+by adding this workflow.
+
+`THEORYFOUNDRY_LOCAL_RELEASE_MANIFEST=/absolute/local-release.json pnpm pack:worker`
+embeds the resolved manifest. Packaging rejects mismatched application/worker
+versions, unexpected repositories and mutable image references. Do not publish a
+development worker with build-only image tags as the public local edition.
+
+### Startup recovery
+
+`local start` reuses a healthy installation. If its gateway still occupies the
+origin while readiness fails, the CLI checks running containers' Compose labels
+and exact loopback binding, stops only its own app/gateway, reruns migrations and
+starts the services. An unrelated listener remains untouched and yields `PORT_BUSY`.
+The existing origin, credentials and volumes are preserved.
+
+Startup cancellation uses an independent 30-second cleanup signal and a 10-second
+container shutdown grace period. The CLI waits for the cancelled Docker subprocess
+to close before attempting cleanup. It also stops owned one-off migration containers,
+which Compose's regular service stop excludes. `LOCAL_CANCELLED` preserves the cancellation;
+`CLEANUP_PENDING` means shutdown could not be verified, so run `local stop` before
+retrying. The operation lock is released after the cleanup attempt.
 
 The same-chat CLI uses the existing stdio worker through the official MCP SDK:
 

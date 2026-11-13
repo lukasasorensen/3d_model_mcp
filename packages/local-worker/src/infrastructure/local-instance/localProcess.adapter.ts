@@ -15,45 +15,61 @@ export function localProcess(
   );
   const execute: RunLocalProcess = (args, options = {}) =>
     new Promise<ProcessResult>((resolve, reject) => {
+      const operationSignal = options.signal ?? signal;
+      operationSignal.throwIfAborted();
       const child = spawn("docker", args, {
         shell: false,
-        signal: options.signal ?? signal,
+        signal: operationSignal,
         env: { ...env, ...options.environment },
         stdio: [options.input ? "pipe" : "ignore", "pipe", "ignore"],
       });
       const chunks: Buffer[] = [];
       let size = 0;
+      let failure: Error | undefined;
+      let killTimer: ReturnType<typeof setTimeout> | undefined;
+      const abort = (): void => {
+        if (!child.killed) child.kill();
+        killTimer ??= setTimeout(() => child.kill("SIGKILL"), 5000);
+        killTimer.unref();
+      };
+      operationSignal.addEventListener("abort", abort, { once: true });
       child.stdout!.on("data", (chunk: Buffer) => {
         size += chunk.length;
         if (size > (options.limit ?? 4 * 1024 * 1024)) {
-          child.kill();
-          reject(new Error("PROCESS_LIMIT: Docker output exceeded its limit."));
+          abort();
+          failure = new Error(
+            "PROCESS_LIMIT: Docker output exceeded its limit.",
+          );
         } else chunks.push(chunk);
       });
-      child.once("error", () =>
-        reject(
-          new Error(
-            "DOCKER_UNAVAILABLE: Install/start Docker Desktop with Compose v2 and retry.",
-          ),
-        ),
-      );
-      child.once("close", (code) =>
-        resolve({ stdout: Buffer.concat(chunks), code: code ?? 1 }),
-      );
+      child.once("error", (error) => {
+        failure = operationSignal.aborted
+          ? error
+          : new Error(
+              "DOCKER_UNAVAILABLE: Install/start Docker Desktop with Compose v2 and retry.",
+            );
+      });
+      child.once("close", (code) => {
+        operationSignal.removeEventListener("abort", abort);
+        clearTimeout(killTimer);
+        if (operationSignal.aborted) reject(operationSignal.reason);
+        else if (failure) reject(failure);
+        else resolve({ stdout: Buffer.concat(chunks), code: code ?? 1 });
+      });
       child.stdin?.on("error", () => undefined);
       if (options.input) child.stdin!.end(options.input);
     });
   let endpoint: Promise<string> | undefined;
-  const localEndpoint = async (): Promise<string> => {
+  const localEndpoint = async (
+    operationSignal: AbortSignal,
+  ): Promise<string> => {
     const configured = environment.DOCKER_HOST;
     const context = configured
       ? undefined
-      : await execute([
-          "context",
-          "inspect",
-          "--format",
-          "{{json .Endpoints.docker.Host}}",
-        ]);
+      : await execute(
+          ["context", "inspect", "--format", "{{json .Endpoints.docker.Host}}"],
+          { signal: operationSignal },
+        );
     if (context && context.code !== 0)
       throw new Error(
         "DOCKER_UNAVAILABLE: Cannot inspect the active Docker context.",
@@ -67,9 +83,17 @@ export function localProcess(
     return host;
   };
   return async (args, options) => {
-    endpoint ??= localEndpoint();
+    const operationSignal = options?.signal ?? signal;
+    operationSignal.throwIfAborted();
+    endpoint ??= localEndpoint(operationSignal);
     // Pin the inspected local socket for every operation, including secret-bearing starts.
-    const host = await endpoint;
+    let host: string;
+    try {
+      host = await endpoint;
+    } catch (error) {
+      endpoint = undefined;
+      throw error;
+    }
     const clean = { ...env };
     delete clean.DOCKER_CONTEXT;
     delete clean.DOCKER_HOST;

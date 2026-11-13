@@ -1,5 +1,4 @@
 import { join } from "node:path";
-import { readFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import type {
   LocalInstallation,
@@ -10,6 +9,7 @@ import {
   localEnvironment,
   localOrigin,
   localProject,
+  localImages,
 } from "../utils/localConfiguration.util.js";
 export function composeArguments(
   capabilities: Pick<LocalInstanceCapabilities, "assets">,
@@ -35,7 +35,10 @@ export async function runCompose(
 ): Promise<Buffer> {
   const result = await capabilities.run(
     [...composeArguments(capabilities, state), ...args],
-    { environment: localEnvironment(state, secrets) },
+    {
+      environment: localEnvironment(state, secrets),
+      signal: capabilities.signal,
+    },
   );
   if (result.code !== 0)
     throw new Error(
@@ -43,43 +46,43 @@ export async function runCompose(
     );
   return result.stdout;
 }
-export async function prepareLocalImages(
+export async function stopLocalContainers(
   capabilities: LocalInstanceCapabilities,
   state: LocalInstallation,
-  source?: string,
+  service?: "migrate",
 ): Promise<void> {
-  if (source) {
-    const application = JSON.parse(
-      await readFile(join(source, "package.json"), "utf8"),
-    ) as { version?: unknown };
-    if (application.version !== state.release.version)
-      throw new Error(
-        "SOURCE_VERSION: The selected checkout does not match this release manifest.",
-      );
-  }
-  for (const [target, image] of [
-    ["runtime", state.release.appImage],
-    ["tooling", state.release.toolingImage],
-  ] as const) {
-    const exists = await capabilities.run(["image", "inspect", image]);
-    if (exists.code === 0) continue;
-    if (!source)
-      throw new Error(
-        "IMAGES_REQUIRED: Load the pinned local release images, or run local start --source /path/to/3d_model_mcp to build them. Images are not published by this PR.",
-      );
-    const result = await capabilities.run([
-      "build",
-      "--target",
-      target,
-      "--tag",
-      image,
-      source,
-    ]);
-    if (result.code !== 0)
-      throw new Error(
-        "IMAGE_BUILD_FAILED: Review the source build prerequisites. No existing data was removed.",
-      );
-  }
+  const options = { signal: capabilities.signal };
+  const containers = await capabilities.run(
+    [
+      "ps",
+      "--quiet",
+      "--filter",
+      `label=com.docker.compose.project=${localProject(state)}`,
+      ...(service
+        ? ["--filter", `label=com.docker.compose.service=${service}`]
+        : []),
+    ],
+    options,
+  );
+  if (containers.code !== 0)
+    throw new Error(
+      "CLEANUP_FAILED: Cannot identify this installation's remaining containers.",
+    );
+  const ids = containers.stdout
+    .toString("utf8")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!ids.length) return;
+  // Compose stop excludes one-off run containers, including interrupted migrations.
+  const stopped = await capabilities.run(
+    ["stop", "--timeout", "10", ...ids],
+    options,
+  );
+  if (stopped.code !== 0)
+    throw new Error(
+      "CLEANUP_FAILED: Could not stop all of this installation's containers. Run local stop.",
+    );
 }
 export async function requireFreePort(port: number): Promise<void> {
   await new Promise<void>((resolve, reject) => {
@@ -120,18 +123,21 @@ export async function initializeLocalJournal(
   state: LocalInstallation,
 ): Promise<void> {
   const script = `const fs=require('node:fs');const directory='/journal';const marker=directory+'/JOURNAL';if(fs.existsSync(marker)){if(fs.readFileSync(marker,'utf8').trim()!=='theoryfoundry-erasure-v1')throw Error('Invalid journal')}else{if(fs.readdirSync(directory).length)throw Error('Nonempty journal without marker');const fd=fs.openSync(marker,'wx',0o600);try{fs.writeFileSync(fd,'theoryfoundry-erasure-v1\\n');fs.fsyncSync(fd)}finally{fs.closeSync(fd)}fs.chownSync(marker,1001,1001);fs.chownSync(directory,1001,1001);fs.chmodSync(directory,0o700);const fd2=fs.openSync(directory,'r');try{fs.fsyncSync(fd2)}finally{fs.closeSync(fd2)}}`;
-  const result = await capabilities.run([
-    "run",
-    "--rm",
-    "--network",
-    "none",
-    "--mount",
-    `type=volume,src=${localProject(state)}_erasures,dst=/journal`,
-    state.release.toolingImage,
-    "node",
-    "-e",
-    script,
-  ]);
+  const result = await capabilities.run(
+    [
+      "run",
+      "--rm",
+      "--network",
+      "none",
+      "--mount",
+      `type=volume,src=${localProject(state)}_erasures,dst=/journal`,
+      localImages(state).toolingImage,
+      "node",
+      "-e",
+      script,
+    ],
+    { signal: capabilities.signal },
+  );
   if (result.code !== 0)
     throw new Error(
       "JOURNAL_INVALID: Initial journal setup failed. Never replace a missing journal for an existing installation.",

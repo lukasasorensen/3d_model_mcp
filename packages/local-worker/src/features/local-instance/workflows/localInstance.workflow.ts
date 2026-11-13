@@ -14,11 +14,13 @@ import {
 } from "../services/localInstallation.service.js";
 import {
   runCompose,
-  prepareLocalImages,
+  stopLocalContainers,
   requireFreePort,
   localReadiness,
   initializeLocalJournal,
 } from "../services/localCompose.service.js";
+import { prepareLocalImages } from "../services/localImages.service.js";
+import { ownsLocalPort } from "../services/localOwnership.service.js";
 import {
   writeLocalBackup,
   readLocalBackup,
@@ -71,11 +73,12 @@ export async function runLocalInstance(
       };
       requireCompatible(state.release, workerVersion);
       await requireFreePort(state.port);
-      await prepareLocalImages(capabilities, state);
+      state.localImages = await prepareLocalImages(capabilities, state);
       await capabilities.secrets(state.id, backup.secrets);
       await saveInstallation(capabilities.home, state);
       const restored = await capabilities.run(snapshotArguments(state, true), {
         input: backup.archive,
+        signal: capabilities.signal,
       });
       if (restored.code !== 0)
         throw new Error(
@@ -108,6 +111,7 @@ export async function runLocalInstance(
         ai: Buffer.alloc(32).toString("base64"),
       };
       await runCompose(capabilities, state, placeholders, ["stop"]);
+      await stopLocalContainers(capabilities, state);
       return { stopped: true, dataPreserved: true };
     }
     const secrets = await requireLocalSecrets(capabilities, state);
@@ -159,6 +163,7 @@ export async function runLocalInstance(
           "BACKUP_PASSWORD: Passphrases must match and contain at least 12 characters.",
         );
       let release = state.release;
+      let localImages = state.localImages;
       if (command.command === "upgrade") {
         release = localReleaseSchema.parse(
           JSON.parse(await readFile(command.release!, "utf8")),
@@ -173,14 +178,15 @@ export async function runLocalInstance(
           throw new Error(
             "UPGRADE_VERSION: Select a newer immutable release; restore a backup to downgrade.",
           );
-        await prepareLocalImages(
+        localImages = await prepareLocalImages(
           capabilities,
-          { ...state, release },
+          { ...state, release, localImages: undefined },
           command.source,
         );
       }
       // Cold physical snapshots keep database, exports and erasure journal consistent.
       await runCompose(capabilities, state, secrets, ["stop"]);
+      await stopLocalContainers(capabilities, state);
       await writeLocalBackup(
         capabilities,
         state,
@@ -194,10 +200,15 @@ export async function runLocalInstance(
           stopped: true,
           next: "Run local start to resume.",
         };
-      state = { ...state, release, upgradePending: true };
+      state = { ...state, release, localImages, upgradePending: true };
       await saveInstallation(capabilities.home, state);
     }
-    await prepareLocalImages(capabilities, state, command.source);
+    state.localImages = await prepareLocalImages(
+      capabilities,
+      state,
+      command.source,
+    );
+    await saveInstallation(capabilities.home, state);
     if (!state.journalInitialized) {
       await initializeLocalJournal(capabilities, state);
       state.journalInitialized = true;
@@ -205,8 +216,22 @@ export async function runLocalInstance(
     }
     const ready = await localReadiness(state, capabilities.signal);
     if (!ready) {
-      await requireFreePort(state.port);
+      let owned = false;
       try {
+        await requireFreePort(state.port);
+      } catch (error) {
+        if (!(await ownsLocalPort(capabilities, state))) throw error;
+        owned = true;
+      }
+      try {
+        // Quiesce this installation before running migrations during a repair.
+        await runCompose(capabilities, state, secrets, [
+          "stop",
+          "proxy",
+          "app",
+        ]);
+        await stopLocalContainers(capabilities, state, "migrate");
+        if (owned) await requireFreePort(state.port);
         // A fresh one-shot migration container is required on every start/upgrade.
         await runCompose(capabilities, state, secrets, [
           "up",
@@ -245,12 +270,28 @@ export async function runLocalInstance(
             "READINESS_FAILED: Application did not become ready.",
           );
       } catch (error) {
-        await runCompose(
-          { ...capabilities, signal: AbortSignal.timeout(10000) },
-          state,
-          secrets,
-          ["stop"],
-        ).catch(() => undefined);
+        try {
+          const cleanup = {
+            ...capabilities,
+            signal: AbortSignal.timeout(30000),
+          };
+          await runCompose(cleanup, state, secrets, [
+            "stop",
+            "--timeout",
+            "10",
+          ]);
+          await stopLocalContainers(cleanup, state);
+        } catch {
+          throw new Error(
+            `${capabilities.signal.aborted ? "LOCAL_CANCELLED: Startup was cancelled." : error instanceof Error && /^[A-Z_]+:/.test(error.message) ? error.message : "LOCAL_FAILED: Startup failed."} CLEANUP_PENDING: Containers may remain running. Run local stop.`,
+            { cause: error },
+          );
+        }
+        if (capabilities.signal.aborted)
+          throw new Error(
+            "LOCAL_CANCELLED: Startup was cancelled; local services were stopped.",
+            { cause: error },
+          );
         throw error;
       }
     }

@@ -17,7 +17,8 @@ x-environment: &environment
   THEORYFOUNDRY_AI_ENCRYPTION_KEYS: ${TF_LOCAL_AI_KEYS:?Required}
 services:
   postgres:
-    image: postgres:18.6-bookworm
+    image: ${TF_LOCAL_POSTGRES_IMAGE:-postgres:18.6-bookworm}
+    pull_policy: never
     restart: unless-stopped
     environment:
       POSTGRES_USER: theoryfoundry

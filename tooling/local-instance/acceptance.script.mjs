@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { randomBytes, createHash } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 import {
   parseBinaryStl,
   parseThreeMf,
@@ -269,6 +270,79 @@ try {
     prompt: async () => passphrase,
     open: async () => undefined,
   };
+  phase = "unhealthy gateway recovery";
+  assert.equal(
+    (await docker(["stop", container.stdout.toString().trim()])).code,
+    0,
+  );
+  assert.equal((await fetch(`${origin}/v1/readiness`)).status, 502);
+  assert.equal((await command(["local", "start"])).ready, true);
+  assert.equal(
+    (await call("get_project_state", { projectId: project.projectId })).state
+      .currentRevision,
+    revision.revisionId,
+  );
+  checks.push(
+    "occupied unhealthy gateway recovery preserves project revision and origin",
+  );
+  phase = "cancelled startup cleanup";
+  await command(["local", "stop"]);
+  const cancellation = new AbortController();
+  let cancelledMigration = false;
+  const cancelledRun = async (args, options) => {
+    if (args.includes("run") && args.at(-1) === "migrate") {
+      const running = docker([...args, "sleep", "120"], options).then(
+        (result) => ({ result }),
+        (error) => ({ error }),
+      );
+      try {
+        for (let attempt = 0; attempt < 100; attempt++) {
+          const active = await docker([
+            "ps",
+            "--quiet",
+            "--filter",
+            `label=com.docker.compose.project=${projectName}`,
+            "--filter",
+            "label=com.docker.compose.service=migrate",
+          ]);
+          if (active.stdout.toString().trim()) {
+            cancelledMigration = true;
+            break;
+          }
+          await delay(100);
+        }
+      } finally {
+        cancellation.abort();
+      }
+      const completed = await running;
+      if ("error" in completed) throw completed.error;
+      return completed.result;
+    }
+    return docker(args, options);
+  };
+  await assert.rejects(
+    runLocalInstance(
+      { command: "start", open: false },
+      { ...capabilities, signal: cancellation.signal, run: cancelledRun },
+      state.release.workerVersion,
+    ),
+    /LOCAL_CANCELLED/,
+  );
+  phase = "cancelled migration was observed";
+  assert.equal(cancelledMigration, true);
+  const remaining = await docker([
+    "ps",
+    "--quiet",
+    "--filter",
+    `label=com.docker.compose.project=${projectName}`,
+  ]);
+  phase = "cancelled containers are stopped";
+  assert.equal(remaining.stdout.toString().trim(), "");
+  assert.equal((await command(["local", "start"])).ready, true);
+  checks.push(
+    "actual migration cancellation stops all owned containers and permits retry",
+  );
+  phase = "cold backup and restore";
   const backup = join(root, "snapshot.tfbackup");
   await runLocalInstance(
     { command: "backup", open: false, output: backup },
@@ -378,6 +452,8 @@ try {
         TF_LOCAL_AI_KEYS: JSON.stringify({ local: credentials.ai }),
         TF_LOCAL_APP_IMAGE: installation.release.appImage,
         TF_LOCAL_TOOLING_IMAGE: installation.release.toolingImage,
+        TF_LOCAL_POSTGRES_IMAGE:
+          installation.release.postgresImage ?? "postgres:18.6-bookworm",
       };
       const cleaned = await docker(
         [

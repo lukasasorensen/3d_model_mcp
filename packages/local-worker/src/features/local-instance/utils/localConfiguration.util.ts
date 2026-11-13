@@ -19,6 +19,7 @@ export const localReleaseSchema = z
     postgresMajor: z.literal(18),
     appImage: image,
     toolingImage: image,
+    postgresImage: image.optional(),
   })
   .strict();
 export const localInstallationSchema = z
@@ -27,6 +28,10 @@ export const localInstallationSchema = z
     id: z.string().regex(/^[a-f0-9]{16}$/),
     port: z.number().int().min(1024).max(65535),
     release: localReleaseSchema,
+    localImages: z
+      .object({ appImage: image, toolingImage: image })
+      .strict()
+      .optional(),
     upgradePending: z.boolean().optional(),
     journalInitialized: z.boolean().optional(),
   })
@@ -45,6 +50,17 @@ export function localOrigin(state: LocalInstallation): string {
 export function localProject(state: LocalInstallation): string {
   return `theoryfoundry-local-${state.id}`;
 }
+export function localImages(state: LocalInstallation): {
+  appImage: string;
+  toolingImage: string;
+  postgresImage: string;
+} {
+  return {
+    appImage: state.localImages?.appImage ?? state.release.appImage,
+    toolingImage: state.localImages?.toolingImage ?? state.release.toolingImage,
+    postgresImage: state.release.postgresImage ?? "postgres:18.6-bookworm",
+  };
+}
 export function localEnvironment(
   state: LocalInstallation,
   secrets: LocalSecrets,
@@ -56,8 +72,9 @@ export function localEnvironment(
     TF_LOCAL_AUTH_SECRET: secrets.auth,
     TF_LOCAL_SETUP_TOKEN: secrets.setup,
     TF_LOCAL_AI_KEYS: JSON.stringify({ local: secrets.ai }),
-    TF_LOCAL_APP_IMAGE: state.release.appImage,
-    TF_LOCAL_TOOLING_IMAGE: state.release.toolingImage,
+    TF_LOCAL_APP_IMAGE: localImages(state).appImage,
+    TF_LOCAL_TOOLING_IMAGE: localImages(state).toolingImage,
+    TF_LOCAL_POSTGRES_IMAGE: localImages(state).postgresImage,
   };
 }
 export function requireCompatible(

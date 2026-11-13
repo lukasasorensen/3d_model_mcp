@@ -12,6 +12,7 @@ import type {
 } from "../../../domains/local-instance/index.js";
 import {
   localProject,
+  localImages,
   localInstallationSchema,
   localSecretsSchema,
 } from "../utils/localConfiguration.util.js";
@@ -75,7 +76,7 @@ export function snapshotArguments(
       "--mount",
       `type=volume,src=${localProject(state)}_${name},dst=/snapshot/${name}${restore ? "" : ",readonly"}`,
     ]),
-    state.release.toolingImage,
+    localImages(state).toolingImage,
     "tar",
     ...(restore
       ? ["-xzf", "-", "-C", "/snapshot"]
@@ -89,7 +90,10 @@ export async function writeLocalBackup(
   output: string,
   passphrase: string,
 ): Promise<void> {
-  const snapshot = await capabilities.run(snapshotArguments(state), { limit });
+  const snapshot = await capabilities.run(snapshotArguments(state), {
+    limit,
+    signal: capabilities.signal,
+  });
   if (snapshot.code !== 0)
     throw new Error(
       "BACKUP_FAILED: Snapshot failed. Services remain stopped and data is preserved.",

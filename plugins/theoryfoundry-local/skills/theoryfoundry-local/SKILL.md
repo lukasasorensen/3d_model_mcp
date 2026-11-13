@@ -17,7 +17,8 @@ nonzero exit or `isError: true` is failure, even when a result file exists.
 ## Connect
 
 1. Run `local status --json`. If absent or stopped, run `local start --json`.
-   Prerequisites are Node 24 and Docker Desktop/Compose v2. If pinned images are
+   Prerequisites are Node 24 and Docker Desktop/Compose v2. Released workers pull
+   missing digest-pinned images automatically. If pinned images are
    unavailable, read [installation](references/installation.md). Do not substitute
    another release or download unreviewed images.
 2. On first use, run `local setup`. The browser opens an account setup page; let the

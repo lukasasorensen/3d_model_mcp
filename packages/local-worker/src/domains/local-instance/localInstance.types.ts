@@ -4,12 +4,18 @@ export interface LocalRelease {
   postgresMajor: 18;
   appImage: string;
   toolingImage: string;
+  postgresImage?: string | undefined;
+}
+export interface LocalImages {
+  appImage: string;
+  toolingImage: string;
 }
 export interface LocalInstallation {
   format: 1;
   id: string;
   port: number;
   release: LocalRelease;
+  localImages?: LocalImages | undefined;
   upgradePending?: boolean | undefined;
   journalInitialized?: boolean | undefined;
 }

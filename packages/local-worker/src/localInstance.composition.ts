@@ -44,7 +44,9 @@ try {
   const message =
     error instanceof Error && /^[A-Z_]+:/.test(error.message)
       ? error.message
-      : "LOCAL_FAILED: Local operation failed. Check Docker, installation files and OS credentials.";
+      : abort.signal.aborted
+        ? "LOCAL_CANCELLED: Local operation was cancelled. Run local status before retrying."
+        : "LOCAL_FAILED: Local operation failed. Check Docker, installation files and OS credentials.";
   process.stderr.write(message + "\n");
   process.exitCode = 1;
 } finally {

@@ -7,7 +7,7 @@ MCP 0.2.0. No new database migration or renderer pin change.
 ## Automated checks
 
 - Node 24.21.0 and pnpm 11.17.0 on Apple Silicon macOS.
-- Final full `pnpm verify`: passed. It ran 434 Node tests (431 passed, three
+- Final full `pnpm verify`: passed. It ran 444 Node tests (441 passed, three
   existing PostgreSQL/performance skips), all 64 browser checks, formatting,
   conventions, architecture, package boundaries, lint, type checks and production build.
 - Focused checks cover encrypted backup authentication/tampering, isolated restore,
@@ -53,6 +53,43 @@ The encrypted cold snapshot restored successfully into fresh volume names and a
 new origin. The restored app started, its database retained the project, and its
 stable authentication secret matched the backed-up instance. The source instance
 was preserved until fixture cleanup.
+
+## Review-fix acceptance
+
+The updated packed worker, installed outside the checkout, passed the full harness
+again using the existing 0.8.0 app/tooling images. The app implementation and renderer
+pins did not change in these fixes.
+
+- Stopped the app while its gateway retained the published origin; readiness returned 502. `local start` repaired that installation without changing its origin, identity
+  or authoritative project revision.
+- Cancelled a real long-running one-off migration after PostgreSQL started. Every
+  owned container stopped, the operation lock was released, and the next start succeeded.
+- Repeated actual browser account setup, local OAuth/native Keychain, packed CAD calls,
+  PNG, verified STL/3MF, restart/egress checks and encrypted backup/isolated restore.
+- An isolated local Docker registry served three uncached digest references. The
+  actual image preparation service pulled all three, then reused them after the
+  registry stopped. This verifies transport/cache behavior, not public GHCR delivery.
+- Regression tests cover unrelated listeners, failed pulls, unavailable post-pull
+  images, legacy metadata, local source overrides, cleanup failure diagnostics and
+  per-operation cancellation during Docker context discovery.
+- The updated skill passed the bundled skill-creator validator. The release manifest
+  validator rejects mutable references, wrong versions and unexpected repositories.
+
+Run the registry fixture independently after building packages:
+
+```sh
+node tooling/local-instance/imageAcceptance.script.mjs
+```
+
+Docker acceptance exposed that Compose's regular `stop` excludes one-off `run`
+containers. Cleanup, explicit stop and cold backup now also stop containers selected
+by this installation's exact Compose project label. Before that correction, the
+probe left a running migration; the same probe passed with none remaining afterward.
+
+The registry-release workflow was not dispatched. Protected-environment setup,
+distribution clearance, public package visibility and anonymous pulls of the actual
+GHCR release remain pending. Development package builds retain local image tags;
+public worker candidates must be built with the generated digest manifest.
 
 ## Findings corrected during acceptance
 
