@@ -99,6 +99,7 @@ export const readModelSourceOutputSchema = z
       .object({
         revision: revisionIdSchema,
         source: z.string(),
+        parameters: parameterSnapshotSchema.optional(),
         sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
       })
       .strict(),

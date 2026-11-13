@@ -47,7 +47,7 @@ export function createCadMcpServer(
 ): McpServer {
   const registry = createCadToolRegistry(repository, options.workflowService);
   const server = new McpServer(
-    { name: "theoryfoundry-cad", version: "0.1.0" },
+    { name: "theoryfoundry-cad", version: "0.2.0" },
     {
       instructions: cadToolInstructions(),
     },

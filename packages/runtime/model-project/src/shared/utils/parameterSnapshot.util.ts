@@ -23,7 +23,7 @@ export function checkedParameterSnapshot(
     throw new CadDomainError(
       "INVALID_PARAMETERS",
       "Invalid parameter definitions or values.",
-      { reason: parsed.error.message },
+      { reason: parsed.error.message.slice(0, 200) },
     );
   const parameters = parsed.data.sort((left, right) =>
     left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
@@ -128,7 +128,9 @@ export function checkedParameterSnapshot(
       "Parameter header does not match the snapshot.",
       {
         reason:
-          error instanceof Error ? error.message : "Invalid parameter header.",
+          error instanceof Error
+            ? error.message.slice(0, 200)
+            : "Invalid parameter header.",
       },
     );
   }

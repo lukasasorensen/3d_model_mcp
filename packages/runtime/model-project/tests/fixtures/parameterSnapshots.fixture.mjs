@@ -75,6 +75,10 @@ export async function exerciseSnapshots(makeRepository) {
   assert.notEqual(relabeled.candidateId, candidate.candidateId);
   const first = await accept(repository, candidate);
   assert.deepEqual(first.parameters, [width]);
+  assert.deepEqual(
+    (await repository.readModelSource(projectId, first.revisionId)).parameters,
+    [width],
+  );
   assert.equal(
     (await repository.getProjectState(projectId)).parameters[0].defaultValue,
     10,

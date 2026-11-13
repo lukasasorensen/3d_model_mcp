@@ -1,4 +1,5 @@
 import type * as z from "zod/v4";
+import type { readModelSourceOutputSchema } from "./modelOperations.schema.js";
 import { type candidateStateSchema } from "./candidateState.enum.js";
 import { type diagnosticSchema } from "./diagnostic.schema.js";
 import { type cadErrorSchema } from "./cadError.schema.js";
@@ -18,6 +19,10 @@ import {
 } from "./browserRender.schema.js";
 import { type geometrySummarySchema } from "./geometry.schema.js";
 import { type exportReceiptSchema } from "./export.schema.js";
+
+export type ModelSourceDocument = z.infer<
+  typeof readModelSourceOutputSchema
+>["model"];
 
 export type CandidateState = z.infer<typeof candidateStateSchema>;
 

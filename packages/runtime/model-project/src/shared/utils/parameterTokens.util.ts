@@ -38,8 +38,7 @@ export function parameterTokens(source: string): ParameterToken[] {
           closed = true;
           break;
         }
-        if (character === "\n" || character === "\r")
-          throw new Error("Unterminated source string.");
+        if (character === "\n" || character === "\r") validLiteral = false;
         if (character === "\\") {
           const escaped = source[position++] ?? "";
           text += escaped;

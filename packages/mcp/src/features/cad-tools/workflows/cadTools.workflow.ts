@@ -177,7 +177,12 @@ export function createCadToolRegistry(
       execute: async (raw): Promise<Record<string, unknown>> => {
         const input = listRevisionsInputSchema.parse(raw);
         return boundedResult({
-          revisions: await repository.listRevisions(input.projectId),
+          revisions: (await repository.listRevisions(input.projectId)).map(
+            ({ parameters, ...revision }) => {
+              void parameters;
+              return revision;
+            },
+          ),
         });
       },
     },

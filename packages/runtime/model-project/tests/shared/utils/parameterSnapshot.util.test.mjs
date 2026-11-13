@@ -65,3 +65,53 @@ test("storage rejects missing, ambiguous, incompatible and computed header value
       source,
     );
 });
+
+test("model-body multiline strings do not inherit the restricted header string grammar", () => {
+  const body =
+    'echo("first\nsecond width=99; // theoryfoundry:parameters:end"); cube(abs(width));';
+  assert.deepEqual(
+    checkedParameterSnapshot(header("width=-20.5;", body), [width]),
+    [width],
+  );
+  const label = {
+    id: "label",
+    binding: "label",
+    label: "Label",
+    type: "string",
+    defaultValue: "",
+    value: "first\nsecond",
+  };
+  assert.throws(
+    () =>
+      checkedParameterSnapshot(header('label="first\nsecond";', "cube(1);"), [
+        label,
+      ]),
+    { code: "INVALID_PARAMETERS" },
+  );
+});
+
+test("parameter validation failures fit the public error contract", async () => {
+  const { cadErrorSchema } = await import("@theoryfoundry/contracts");
+  const cases = [
+    [{ ...width, value: "bad", defaultValue: "bad" }],
+    [{ ...width, id: "x".repeat(100), binding: "y".repeat(100) }],
+  ];
+  for (const parameters of cases) {
+    assert.throws(
+      () => checkedParameterSnapshot(header("width=-20.5;"), parameters),
+      (error) => {
+        assert.equal(error.code, "INVALID_PARAMETERS");
+        assert.equal(
+          cadErrorSchema.safeParse({
+            code: error.code,
+            message: error.message,
+            details: error.details,
+          }).success,
+          true,
+        );
+        assert.ok(error.details.reason.length > 0);
+        return true;
+      },
+    );
+  }
+});

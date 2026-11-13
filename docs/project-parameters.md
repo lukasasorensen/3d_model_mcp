@@ -43,7 +43,9 @@ cube([width, 10, 5]);
 Only comments, whitespace and scalar literal assignments are allowed inside it.
 Markers must match exactly, including version, on their own comment lines.
 Strings support escaped quote/backslash and `\n`, `\r`, `\t`; Unicode text may
-appear directly. Signed finite decimal/exponent numbers and booleans are supported.
+appear directly. Raw multiline strings in the model body remain valid, while header
+strings use escapes for line breaks. Signed finite decimal/exponent numbers and
+booleans are supported.
 Repeated/missing markers, duplicate declarations, unsupported content, mismatched
 values and conflicting assignments outside the header are rejected.
 
@@ -67,6 +69,12 @@ Old records and projects have an empty snapshot and require no header or automat
 source migration. Empty snapshots are omitted from outputs to preserve existing
 wire shapes. Parameterized candidates, revisions and project state expose
 `parameters`; older strict clients must be upgraded before using such projects.
+MCP `list_revisions` returns revision summaries without repeating parameter
+snapshots. `read_model_source` returns the selected current/historical revision
+with its full snapshot; internal repository history retains all snapshots. This
+keeps ordinary history reads below the response limit as parameterized revisions
+accumulate. Parameter validation error details are bounded to the public contract.
+
 The contract version remains 1, and renderer requests/pins and source/artifact
 hashes remain unchanged. Values are baked into canonical source, not supplied as
 runtime render overrides.
@@ -86,7 +94,7 @@ modify existing source, ownership, leases, artifacts or accepted revision pointe
 No new environment variables or renderer assets are required.
 
 Relative to develop, root/hosted-plugin versions advance 0.7.1 → 0.8.0,
-contracts 0.2.0 → 0.3.0 and model-project 0.5.0 → 0.6.0. The separate unmerged
+contracts 0.2.0 → 0.3.0, model-project 0.5.0 → 0.6.0 and MCP 0.1.0 → 0.2.0. The separate unmerged
 THE-50 branch also proposes root 0.8.0; recheck versions against develop when
 rebasing either PR. Public worker/installer command pins are unaffected.
 

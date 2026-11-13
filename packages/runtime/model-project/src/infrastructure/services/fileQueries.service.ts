@@ -2,6 +2,7 @@ import {
   projectIdSchema,
   parameterSnapshotFields,
   type ArtifactManifest,
+  type ModelSourceDocument,
   type RevisionManifest,
 } from "@theoryfoundry/contracts";
 import { readFile, readdir } from "node:fs/promises";
@@ -110,7 +111,7 @@ export class FileProjectQueries {
   async readModelSource(
     projectId: string,
     revision?: string,
-  ): Promise<{ revision: string; source: string; sourceHash: string }> {
+  ): Promise<ModelSourceDocument> {
     const selected = revision ?? (await this.records.readCurrent(projectId));
     if (!selected)
       throw new CadDomainError(
@@ -125,6 +126,7 @@ export class FileProjectQueries {
         "utf8",
       ),
       sourceHash: manifest.sourceHash,
+      ...parameterSnapshotFields(manifest.parameters),
     };
   }
   async listRevisions(projectId: string): Promise<RevisionManifest[]> {

@@ -6,6 +6,7 @@ import {
   revisionManifestSchema,
   updateProjectInputSchema,
   type CandidateRecord,
+  type ModelSourceDocument,
   type CreateProjectInput,
   type RevisionManifest,
   type UpdateProjectInput,
@@ -154,7 +155,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
   async readModelSource(
     projectId: string,
     revision?: string,
-  ): Promise<{ revision: string; source: string; sourceHash: string }> {
+  ): Promise<ModelSourceDocument> {
     return this.sources.readModelSource(projectId, revision);
   }
 
@@ -376,7 +377,13 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         { current: project.currentRevision },
       );
     }
-    return { ...(await this.readModelSource(projectId, revision)), format };
+    const model = await this.readModelSource(projectId, revision);
+    return {
+      revision: model.revision,
+      source: model.source,
+      sourceHash: model.sourceHash,
+      format,
+    };
   }
 
   async restoreRevision(input: {
