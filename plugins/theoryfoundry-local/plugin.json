@@ -1,6 +1,6 @@
 {
   "name": "theoryfoundry-local",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Run TheoryFoundry CAD entirely on your computer with local projects, history, rendering and exports.",
   "skills": "./skills/",
   "extensions": {

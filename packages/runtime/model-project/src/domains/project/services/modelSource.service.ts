@@ -1,3 +1,7 @@
+import {
+  parameterSnapshotFields,
+  type ModelSourceDocument,
+} from "@theoryfoundry/contracts";
 import { CadDomainError } from "../../../shared/utils/cadDomainError.util.js";
 import type { ProjectPersistence } from "../projectPersistence.port.js";
 
@@ -28,7 +32,7 @@ export class ModelSourceService {
   async readModelSource(
     projectId: string,
     revision?: string,
-  ): Promise<{ revision: string; source: string; sourceHash: string }> {
+  ): Promise<ModelSourceDocument> {
     const project = await this.persistence.requireProject(projectId);
     const selectedRevision = revision ?? project.currentRevision;
     if (!selectedRevision)
@@ -44,6 +48,7 @@ export class ModelSourceService {
       revision: selectedRevision,
       source: persistedRevision.source,
       sourceHash: persistedRevision.manifest.sourceHash,
+      ...parameterSnapshotFields(persistedRevision.manifest.parameters),
     };
   }
 }

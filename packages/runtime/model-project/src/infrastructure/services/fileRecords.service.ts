@@ -1,5 +1,6 @@
 import {
   candidateRecordSchema,
+  parameterSnapshotsEqual,
   projectSummarySchema,
   revisionManifestSchema,
   type CandidateRecord,
@@ -13,6 +14,7 @@ import type {
   ProjectSummary,
 } from "../../domains/project/index.js";
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
+import { checkedParameterSnapshot } from "../../shared/utils/parameterSnapshot.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
 import type { DurableFiles, FileLocks } from "../filesystem.port.js";
@@ -98,6 +100,7 @@ export class FileProjectRecords {
         source.byteLength !== manifest.sourceBytes
       )
         throw new Error("source mismatch");
+      checkedParameterSnapshot(source.toString("utf8"), manifest.parameters);
       assertArtifactSet(
         manifest.artifacts,
         manifest.sourceHash,
@@ -158,6 +161,7 @@ export class FileProjectRecords {
         candidate.toolCallId === input.toolCallId &&
         candidate.parentRevision === input.parentRevision &&
         candidate.sourceHash === sourceHash &&
+        parameterSnapshotsEqual(candidate.parameters, input.parameters) &&
         (!first ||
           candidate.createdAt < first.createdAt ||
           (candidate.createdAt === first.createdAt &&
@@ -189,6 +193,11 @@ export class FileProjectRecords {
         candidate.candidateId !== candidateId
       )
         throw new Error("binding mismatch");
+      const source = await readFile(
+        join(this.paths.candidateRoot(projectId, candidateId), "model.scad"),
+        "utf8",
+      );
+      checkedParameterSnapshot(source, candidate.parameters);
       return candidate;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {
@@ -226,7 +235,10 @@ export class FileProjectRecords {
             return;
           throw error;
         }
-        if (candidate.sourceHash !== manifest.sourceHash) {
+        if (
+          candidate.sourceHash !== manifest.sourceHash ||
+          !parameterSnapshotsEqual(candidate.parameters, manifest.parameters)
+        ) {
           throw new CadDomainError(
             "CORRUPT_PROJECT",
             "Current revision and originating candidate disagree.",

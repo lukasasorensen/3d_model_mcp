@@ -120,6 +120,13 @@
       "when": 1793977805165,
       "tag": "0016_ai-connections",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794525215630,
+      "tag": "0017_parameter-snapshots",
+      "breakpoints": true
     }
   ]
 }

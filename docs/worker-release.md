@@ -26,12 +26,12 @@ explicit authorization before merging release PRs. Keep publication manual.
 
 ```sh
 pnpm verify
-WORKER_RELEASE_VERSION=0.3.0-rc.1 pnpm pack:worker
+WORKER_RELEASE_VERSION=0.3.1-rc.1 pnpm pack:worker
 node tooling/local-worker/inspectRelease.script.mjs \
-  dist/packages/tfoundry-local-worker-0.3.0-rc.1.tgz \
+  dist/packages/tfoundry-local-worker-0.3.1-rc.1.tgz \
   > dist/worker-release-inventory.json
 node tooling/local-worker/packedAcceptance.script.mjs \
-  dist/packages/tfoundry-local-worker-0.3.0-rc.1.tgz
+  dist/packages/tfoundry-local-worker-0.3.1-rc.1.tgz
 ```
 
 The build records commit and dirty-checkout state in the tarball. Inspection rejects
@@ -103,10 +103,10 @@ Only after distribution and candidate acceptance gates pass, publish the inspect
 tarball using the owner's local npm session and MFA:
 
 ```sh
-npm publish dist/packages/tfoundry-local-worker-0.3.0-rc.1.tgz \
+npm publish dist/packages/tfoundry-local-worker-0.3.1-rc.1.tgz \
   --registry=https://registry.npmjs.org/ --access public --tag next
 node tooling/local-worker/packedAcceptance.script.mjs \
-  dist/packages/tfoundry-local-worker-0.3.0-rc.1.tgz --published
+  dist/packages/tfoundry-local-worker-0.3.1-rc.1.tgz --published
 ```
 
 `--published` checks unauthenticated npm metadata and exact downloaded tarball bytes
@@ -116,7 +116,7 @@ plan's unauthenticated-denial criterion no longer applies. Separately verify the
 owner's authenticated install and repeat the Codex journey using the
 registry-delivered command registered by setup.
 
-After prerelease acceptance, build without WORKER_RELEASE_VERSION for `0.3.0`,
+After prerelease acceptance, build without WORKER_RELEASE_VERSION for `0.3.1`,
 inspect and test that exact tarball, publish with `--tag latest`, and repeat public
 download/registry/client verification. Keep versions immutable. On a faulty release,
 deprecate it and publish a new version; removing a dlx cache does not revoke OAuth.

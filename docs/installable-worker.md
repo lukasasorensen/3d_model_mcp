@@ -3,7 +3,7 @@
 Hosted UI/API enablement and the browser-only launch are described in
 [local worker availability](local-worker-availability.md).
 
-THE-15 packages the existing stdio worker as `@tfoundry/local-worker@0.3.0`.
+THE-15 packages the existing stdio worker as `@tfoundry/local-worker@0.3.1`.
 The CLI provides `setup`, `serve`, `login`, `logout`, `doctor`, `--help` and
 `--version`. See the [package README](../packages/local-worker/README.md) for
 version-pinned client configuration and commands after registry publication.
@@ -20,8 +20,8 @@ pnpm acceptance:worker-package
 
 `pack:worker` builds workspace packages and the pinned renderer assets, generates
 `dist/local-worker-package`, then writes
-`dist/packages/tfoundry-local-worker-0.3.0.tgz`. The workspace package version
-is the stable release version. `WORKER_RELEASE_VERSION=0.3.0-rc.1 pnpm pack:worker`
+`dist/packages/tfoundry-local-worker-0.3.1.tgz`. The workspace package version
+is the stable release version. `WORKER_RELEASE_VERSION=0.3.1-rc.1 pnpm pack:worker`
 builds an explicit prerelease of that same base version. Update the workspace version
 and documented examples together for the next stable release. This command does not
 publish anything. See [release procedure](worker-release.md) for artifact inventory,
@@ -73,7 +73,7 @@ contents, then serves that name/version through a disposable loopback npm regist
 Dependency metadata is proxied read-only to npm; no registry credentials are used.
 Each run creates an external working directory, HOME, npm configuration, dlx cache
 and pnpm store. The worker is launched as
-`pnpm --silent dlx @tfoundry/local-worker@0.3.0`, without workspace imports.
+`pnpm --silent dlx @tfoundry/local-worker@0.3.1`, without workspace imports.
 The fixture registry and temporary directories are cleaned up afterward.
 
 The full check covers help/version, missing-browser diagnostics, repeated setup,

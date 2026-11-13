@@ -10,6 +10,15 @@ import {
 import { WorkerAuthError } from "@theoryfoundry/worker-auth/errors";
 import { LocalWorkerError } from "../../../shared/utils/workerError.util.js";
 import type { LocalToolOperations } from "../tools.port.js";
+
+function assertResultSize(value: unknown, limit: number): void {
+  if (Buffer.byteLength(JSON.stringify(value)) > limit)
+    throw new LocalWorkerError(
+      "RESULT_TOO_LARGE",
+      "Tool response exceeds its byte limit.",
+    );
+}
+
 export function registerLocalTools(
   server: McpServer,
   operations: LocalToolOperations,
@@ -40,22 +49,30 @@ export function registerLocalTools(
             ? await operations.compute(name, input, signal)
             : await operations.callHosted(name, input, signal);
           signal.throwIfAborted();
-          const limit =
-            name === "get_model_preview"
+          const preview = name === "get_model_preview";
+          // JSON payloads appear once as structured data and again as escaped text.
+          assertResultSize(
+            result,
+            preview
               ? PREVIEW_LIMITS.payloadBytes
-              : CAD_LIMITS.toolResultBytes;
-          if (Buffer.byteLength(JSON.stringify(result)) > limit)
-            throw new LocalWorkerError(
-              "RESULT_TOO_LARGE",
-              "Tool response exceeds its byte limit.",
+              : CAD_LIMITS.toolResultBytes * 3 + 1024,
+          );
+          if (result.isError) {
+            assertResultSize(
+              result,
+              preview
+                ? PREVIEW_LIMITS.payloadBytes
+                : CAD_LIMITS.toolResultBytes,
             );
-          if (result.isError) return result;
+            return result;
+          }
           const value: unknown =
             result.structuredContent ??
             JSON.parse(
               result.content.find((part) => part.type === "text")?.text ??
                 "null",
             );
+          if (!preview) assertResultSize(value, CAD_LIMITS.toolResultBytes);
           const parsed = metadata.outputSchema.parse(value);
           if (name === "get_project_state") {
             const state = getProjectStateOutputSchema.parse(parsed);

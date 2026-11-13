@@ -1,9 +1,8 @@
 import {
-  CONTRACT_VERSION,
+  type ProjectParameter,
   createProjectInputSchema,
   projectIdSchema,
   projectSummarySchema,
-  revisionManifestSchema,
   updateProjectInputSchema,
   type CandidateRecord,
   type CreateProjectInput,
@@ -14,7 +13,6 @@ import {
   type UpdateProjectInput,
 } from "@theoryfoundry/contracts";
 import type { Pool, PoolClient } from "pg";
-import { asIsoTimestamp } from "../../shared/utils/timestamp.util.js";
 import type {
   ArtifactRow,
   CandidateRow,
@@ -30,8 +28,8 @@ import type {
 } from "../../domains/project/index.js";
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
-import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
 
+import { hydrateRevision } from "../utils/hydrateRevision.util.js";
 import { hydrateCandidate } from "../utils/hydrateCandidate.util.js";
 
 type QueryExecutor = Pick<Pool, "query"> | Pick<PoolClient, "query">;
@@ -186,6 +184,7 @@ export class PostgresProjectPersistence {
     projectId: string,
     currentRevision: string,
   ): Promise<RevisionManifest[]> {
+    await this.requireProject(projectId);
     const rows = (
       await this.executor.query<RevisionRow>(
         "SELECT * FROM revisions WHERE project_id = $1",
@@ -223,6 +222,7 @@ export class PostgresProjectPersistence {
        WHERE p.id = $1 AND p.owner_id = $2 AND NOT p.is_deleted
          AND c.request_id = $3 AND c.tool_call_id = $4
          AND c.parent_revision_id IS NOT DISTINCT FROM $5 AND c.source = $6
+         AND c.parameter_snapshot = $7::jsonb
        ORDER BY c.created_at, c.id LIMIT 1`,
       [
         input.projectId,
@@ -231,6 +231,7 @@ export class PostgresProjectPersistence {
         input.toolCallId,
         input.parentRevision,
         input.source,
+        JSON.stringify(input.parameters ?? []),
       ],
     );
     return result.rows[0]?.id;
@@ -241,13 +242,14 @@ export class PostgresProjectPersistence {
     projectId: string;
     parentRevision: string | null;
     source: string;
+    parameters?: ProjectParameter[] | undefined;
     requestId: string;
     toolCallId: string;
     createdAt: Date;
   }): Promise<void> {
     await this.executor.query(
-      `INSERT INTO candidates (id, project_id, parent_revision_id, source, source_hash, source_bytes, state, request_id, tool_call_id, diagnostics, created_at, updated_at)
-       VALUES ($1,$2,$3,$4,$5,$6,'CREATED',$7,$8,'[]'::jsonb,$9,$9)`,
+      `INSERT INTO candidates (id, project_id, parent_revision_id, source, source_hash, source_bytes, state, request_id, tool_call_id, diagnostics, created_at, updated_at, parameter_snapshot)
+       VALUES ($1,$2,$3,$4,$5,$6,'CREATED',$7,$8,'[]'::jsonb,$9,$9,$10)`,
       [
         input.id,
         input.projectId,
@@ -258,6 +260,7 @@ export class PostgresProjectPersistence {
         input.requestId,
         input.toolCallId,
         input.createdAt,
+        JSON.stringify(input.parameters ?? []),
       ],
     );
   }
@@ -352,6 +355,7 @@ export class PostgresProjectPersistence {
     parentRevision: string | null;
     restoredFromRevision?: string;
     source: string;
+    parameters?: ProjectParameter[] | undefined;
     sourceHash: string;
     sourceBytes: number;
     requestId: string;
@@ -364,8 +368,8 @@ export class PostgresProjectPersistence {
     createdAt: Date;
   }): Promise<void> {
     await this.executor.query(
-      `INSERT INTO revisions (id, project_id, parent_revision_id, restored_from_revision_id, source, source_hash, source_bytes, request_id, tool_call_id, candidate_id, validation_policy_version, diagnostics, renderer, created_at, geometry)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+      `INSERT INTO revisions (id, project_id, parent_revision_id, restored_from_revision_id, source, source_hash, source_bytes, request_id, tool_call_id, candidate_id, validation_policy_version, diagnostics, renderer, created_at, geometry, parameter_snapshot)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
       [
         input.id,
         input.projectId,
@@ -382,6 +386,7 @@ export class PostgresProjectPersistence {
         JSON.stringify(input.renderer),
         input.createdAt,
         input.geometry ? JSON.stringify(input.geometry) : null,
+        JSON.stringify(input.parameters ?? []),
       ],
     );
   }
@@ -449,43 +454,6 @@ export class PostgresProjectPersistence {
         [row.id],
       )
     ).rows.map((item) => item.metadata);
-    const manifest = revisionManifestSchema.parse({
-      version: CONTRACT_VERSION,
-      projectId: row.project_id,
-      revisionId: row.id,
-      parentRevision: row.parent_revision_id,
-      ...(row.restored_from_revision_id
-        ? { restoredFrom: row.restored_from_revision_id }
-        : {}),
-      sourceHash: row.source_hash,
-      sourceBytes: row.source_bytes,
-      createdAt: asIsoTimestamp(row.created_at),
-      requestId: row.request_id,
-      toolCallId: row.tool_call_id,
-      candidateId: row.candidate_id,
-      validationPolicyVersion: row.validation_policy_version,
-      validationResult: "VALID",
-      diagnostics: row.diagnostics,
-      artifacts,
-      renderer: row.renderer,
-      ...(row.geometry ? { geometry: row.geometry } : {}),
-    });
-    if (
-      sha256(row.source) !== manifest.sourceHash ||
-      Buffer.byteLength(row.source) !== manifest.sourceBytes
-    ) {
-      throw new CadDomainError(
-        "CORRUPT_PROJECT",
-        "Revision source failed integrity validation.",
-        { revisionId: row.id },
-      );
-    }
-    assertArtifactSet(
-      manifest.artifacts,
-      manifest.sourceHash,
-      manifest.renderer,
-      manifest.revisionId,
-    );
-    return { manifest, source: row.source };
+    return hydrateRevision(row, artifacts);
   }
 }

@@ -33,9 +33,10 @@ fixed afterward. `THEORYFOUNDRY_LOCAL_HOME` selects a separate installation.
 `THEORYFOUNDRY_CONNECTION_HOME` can separately select the CLI connection profile.
 The CLI refuses remote Docker contexts and pins the inspected local Unix socket.
 
-The current release set is application/plugin **0.8.0**, worker/contracts/gateway **0.3.0**,
-runtime **0.7.0**, MCP **0.2.0**, PostgreSQL **18**. Packaged image names are
-`theoryfoundry/local-app:0.8.0` and `theoryfoundry/local-tooling:0.8.0`. They can be
+The current release set is application/plugin **0.9.0**, worker **0.3.1**,
+contracts **0.4.0**, gateway **0.3.0**, runtime **0.7.0**, MCP **0.3.0**,
+site **0.8.1**, PostgreSQL **18**. Packaged image names are
+`theoryfoundry/local-app:0.9.0` and `theoryfoundry/local-tooling:0.9.0`. They can be
 loaded from reviewed image archives or built from the explicit checkout with
 `--source`. Nothing publishes images, npm packages or plugins automatically.
 

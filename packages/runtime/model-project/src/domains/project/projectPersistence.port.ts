@@ -1,5 +1,6 @@
 import {
   type CandidateRecord,
+  type ProjectParameter,
   type CreateProjectInput,
   type Diagnostic,
   type GeometrySummary,
@@ -56,6 +57,7 @@ export interface ProjectPersistence {
     projectId: string;
     parentRevision: string | null;
     source: string;
+    parameters?: ProjectParameter[] | undefined;
     requestId: string;
     toolCallId: string;
     createdAt: Date;
@@ -92,6 +94,7 @@ export interface ProjectPersistence {
     parentRevision: string | null;
     restoredFromRevision?: string;
     source: string;
+    parameters?: ProjectParameter[] | undefined;
     sourceHash: string;
     sourceBytes: number;
     requestId: string;

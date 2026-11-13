@@ -62,7 +62,7 @@ const baseCatalog = {
   read_model_source: {
     title: "Read model source",
     description:
-      "Read canonical OpenSCAD source for the current or a historical opaque revision ID.",
+      "Read canonical OpenSCAD source and its full parameter snapshot for the current or a historical opaque revision ID.",
     inputSchema: readModelSourceInputSchema,
     outputSchema: readModelSourceOutputSchema,
     readOnly: true,
@@ -102,7 +102,7 @@ const baseCatalog = {
   list_revisions: {
     title: "List revisions",
     description:
-      "List the authoritative revision chain from current to genesis.",
+      "List the authoritative revision chain from current to genesis without repeating parameter snapshots. Use read_model_source with a revision ID to inspect its full snapshot.",
     inputSchema: listRevisionsInputSchema,
     outputSchema: listRevisionsOutputSchema,
     readOnly: true,

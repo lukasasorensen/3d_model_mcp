@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { parameterSnapshotSchema } from "./parameter.schema.js";
 import {
   projectIdSchema,
   revisionIdSchema,
@@ -25,6 +26,7 @@ export const proposeModelSourceInputSchema = z
     projectId: projectIdSchema,
     parentRevision: revisionIdSchema.nullable(),
     source: z.string().min(1).max(CAD_LIMITS.sourceBytes),
+    parameters: parameterSnapshotSchema.optional(),
     requestId: opaqueIdSchema,
     toolCallId: opaqueIdSchema,
   })
@@ -83,6 +85,7 @@ export const projectStateSchema = z
       .nullable(),
     artifacts: z.array(artifactManifestSchema).max(8),
     diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
+    parameters: parameterSnapshotSchema.optional(),
   })
   .strict();
 
@@ -96,6 +99,7 @@ export const readModelSourceOutputSchema = z
       .object({
         revision: revisionIdSchema,
         source: z.string(),
+        parameters: parameterSnapshotSchema.optional(),
         sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
       })
       .strict(),
