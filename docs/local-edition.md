@@ -101,6 +101,12 @@ which Compose's regular service stop excludes. `LOCAL_CANCELLED` preserves the c
 `CLEANUP_PENDING` means shutdown could not be verified, so run `local stop` before
 retrying. The operation lock is released after the cleanup attempt.
 
+The skill launcher forwards SIGINT/SIGTERM through its npm/worker process group
+and waits for inherited output pipes to close, so an exiting npm wrapper cannot
+skip worker cleanup. Candidate version checks are cancellable too. Cancellation
+exits with 130 (SIGINT) or 143 (SIGTERM). After 45 seconds, an unresponsive process
+group is terminated and the launcher reports that `local stop` is required.
+
 The same-chat CLI uses the existing stdio worker through the official MCP SDK:
 
 ```sh

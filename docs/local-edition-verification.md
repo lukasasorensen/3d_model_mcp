@@ -7,7 +7,7 @@ MCP 0.2.0. No new database migration or renderer pin change.
 ## Automated checks
 
 - Node 24.21.0 and pnpm 11.17.0 on Apple Silicon macOS.
-- Final full `pnpm verify`: passed. It ran 444 Node tests (441 passed, three
+- Final full `pnpm verify`: passed. It ran 450 Node tests (447 passed, three
   existing PostgreSQL/performance skips), all 64 browser checks, formatting,
   conventions, architecture, package boundaries, lint, type checks and production build.
 - Focused checks cover encrypted backup authentication/tampering, isolated restore,
@@ -90,6 +90,15 @@ The registry-release workflow was not dispatched. Protected-environment setup,
 distribution clearance, public package visibility and anonymous pulls of the actual
 GHCR release remain pending. Development package builds retain local image tags;
 public worker candidates must be built with the generated digest manifest.
+
+Launcher regressions execute the actual bundled skill entrypoint with disposable
+worker and npm-wrapper fixtures. SIGINT/SIGTERM reach both direct candidates and
+workers behind a wrapper that exits immediately; cleanup completes before the
+launcher exits, with no fixture worker left running. Candidate version-check
+cancellation, stdout/stderr forwarding, caller-directory preservation and nonzero
+child status are also covered. The five cancellation cases failed with the old
+launcher and passed after asynchronous signal forwarding. These are process-lifecycle
+fixtures, not a new real-agent CAD acceptance claim.
 
 ## Findings corrected during acceptance
 

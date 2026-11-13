@@ -11,6 +11,10 @@ listener or change an existing origin to work around it. Cancelled startup attem
 stop local services with a separate cleanup deadline. If `CLEANUP_PENDING` appears,
 run `local stop` before retrying.
 
+The skill launcher forwards interruption/termination and waits for worker cleanup,
+including when npm exits first. Cancellation returns exit code 130 or 143. If the
+launcher reports that cleanup timed out, run `local stop` before another start.
+
 The default instance is under `~/.theoryfoundry/local`; `THEORYFOUNDRY_LOCAL_HOME`
 selects another installation. Its port is fixed after creation. Choose an unused
 `--port` on the first `local start`; changing an existing origin requires restoring
