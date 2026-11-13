@@ -1,5 +1,9 @@
 # TheoryFoundry local worker
 
+For a completely self-hosted website, database, projects and rendering, use the
+[local edition](../../docs/local-edition.md). The `local`, `connect`, `tools` and
+`call` commands add a same-chat skill workflow without hosted TheoryFoundry.
+
 Use Node 24 and an enabled TheoryFoundry hosted server. The worker stores refresh
 credentials in the OS credential store and runs CAD computation locally in
 sandboxed Chromium. No repository, Docker, local database or visible project tab
@@ -8,17 +12,17 @@ is needed by the installed package.
 After this version has been published to your configured registry:
 
 ```sh
-pnpm --silent dlx @tfoundry/local-worker@0.2.0 setup
-pnpm --silent dlx @tfoundry/local-worker@0.2.0 login --server https://your-server.example
-pnpm --silent dlx @tfoundry/local-worker@0.2.0 serve --server https://your-server.example --account <account-id>
-pnpm --silent dlx @tfoundry/local-worker@0.2.0 doctor --json
-pnpm --silent dlx @tfoundry/local-worker@0.2.0 logout --server https://your-server.example --account <account-id>
+pnpm --silent dlx @tfoundry/local-worker@0.3.0 setup
+pnpm --silent dlx @tfoundry/local-worker@0.3.0 login --server https://your-server.example
+pnpm --silent dlx @tfoundry/local-worker@0.3.0 serve --server https://your-server.example --account <account-id>
+pnpm --silent dlx @tfoundry/local-worker@0.3.0 doctor --json
+pnpm --silent dlx @tfoundry/local-worker@0.3.0 logout --server https://your-server.example --account <account-id>
 ```
 
 For guided registration, run:
 
 ```sh
-pnpm --silent dlx @tfoundry/local-worker@0.2.0 setup --server https://your-server.example --client codex --scope global
+pnpm --silent dlx @tfoundry/local-worker@0.3.0 setup --server https://your-server.example --client codex --scope global
 ```
 
 Use `--client claude` for Claude Code, or `--scope project` from a Git repository root.
@@ -32,7 +36,7 @@ available for retry. Project files include the account ID; review before sharing
 
 Login prints the account ID. Use the exact same server/account for serve and logout.
 For MCP configuration, command is `pnpm`, args are `--silent`, `dlx`,
-`@tfoundry/local-worker@0.2.0`, `serve`, `--server`, your origin, `--account`,
+`@tfoundry/local-worker@0.3.0`, `serve`, `--server`, your origin, `--account`,
 your account ID. Pin the package version; do not use `latest` in a client config.
 `serve` writes only protocol messages to stdout and never installs software or
 opens a login prompt. Setup and login are separate terminal commands.
@@ -81,7 +85,7 @@ store, independently of rendering. They do not initialize Chromium or renderer
 assets. After login, run:
 
 ```sh
-pnpm --silent dlx @tfoundry/local-worker@0.2.0 ai serve --server https://your-server.example --account <account-id>
+pnpm --silent dlx @tfoundry/local-worker@0.3.0 ai serve --server https://your-server.example --account <account-id>
 ```
 
 Ollama defaults to `http://127.0.0.1:11434`. For LM Studio/vLLM add

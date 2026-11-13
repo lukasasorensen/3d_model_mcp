@@ -12,6 +12,7 @@ import type { CadToolName } from "@theoryfoundry/mcp";
 import type * as z from "zod/v4";
 
 export const CAD_TOOL_NAMES = [
+  "list_projects",
   "create_project",
   "update_project",
   "get_project_state",

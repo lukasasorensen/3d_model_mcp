@@ -2,7 +2,10 @@
 
 ## Run everything locally
 
-Prerequisites: Node.js 22.9 or newer, pnpm 11.17.0, and Docker Desktop (or Docker
+For the packaged, managed self-hosting flow, see [local edition](local-edition.md).
+The checkout workflow below remains available for development.
+
+Prerequisites: Node.js 24.21.0, pnpm 11.17.0, and Docker Desktop (or Docker
 Engine with Docker Compose v2). Start Docker before running the database commands.
 Run the following commands from the repository root.
 

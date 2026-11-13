@@ -30,7 +30,7 @@ void test("public worker onboarding executes pinned setup with exact client/scop
       assert.deepEqual((await readFile(trace, "utf8")).trim().split("\n"), [
         "--silent",
         "dlx",
-        "@tfoundry/local-worker@0.2.0",
+        "@tfoundry/local-worker@0.3.0",
         "setup",
         "--server",
         "http://localhost:3000",

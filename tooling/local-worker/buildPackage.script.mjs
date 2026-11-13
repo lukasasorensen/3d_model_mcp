@@ -115,6 +115,15 @@ await cp(
   { recursive: true },
 );
 await cp(
+  join(root, "packages/local-worker/dist/local"),
+  join(output, "dist/local"),
+  { recursive: true },
+);
+const localReleasePath = join(output, "dist/local/local-release.json");
+const localRelease = JSON.parse(await readFile(localReleasePath, "utf8"));
+localRelease.workerVersion = version;
+await writeFile(localReleasePath, JSON.stringify(localRelease, null, 2) + "\n");
+await cp(
   join(root, "packages/local-worker/README.md"),
   join(output, "README.md"),
 );

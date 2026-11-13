@@ -127,3 +127,30 @@ test("routes site browser integration tests exclusively to Playwright", () => {
     false,
   );
 });
+
+test("bounded test concurrency limits fixture processes and rejects invalid budgets", () => {
+  const groups = [{ path: "/workspace", files: ["a.test.mjs", "b.test.mjs"] }];
+  let args;
+  assert.equal(
+    runTestGroups(
+      groups,
+      (_command, options) => {
+        args = options;
+        return { status: 0 };
+      },
+      2,
+    ),
+    0,
+  );
+  assert.deepEqual(args, [
+    "--test",
+    "--test-concurrency=2",
+    "a.test.mjs",
+    "b.test.mjs",
+  ]);
+  for (const value of [0, -1, 1.5, NaN, 65])
+    assert.throws(
+      () => runTestGroups(groups, () => ({ status: 0 }), value),
+      /concurrency/,
+    );
+});

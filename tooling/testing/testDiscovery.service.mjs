@@ -58,13 +58,21 @@ export function groupTests(root, files, projects) {
   return [...groups.values()].sort((a, b) => a.path.localeCompare(b.path));
 }
 
-export function runTestGroups(groups, execute) {
+export function runTestGroups(groups, execute, concurrency) {
+  if (
+    concurrency !== undefined &&
+    (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 64)
+  )
+    throw new Error("Test concurrency must be an integer between 1 and 64.");
   for (const group of groups) {
     const args = [
       ...(group.files.some((file) => /\.tsx?$/.test(file))
         ? ["--import", "tsx"]
         : []),
       "--test",
+      ...(concurrency === undefined
+        ? []
+        : [`--test-concurrency=${concurrency}`]),
       ...group.files,
     ];
     const result = execute(process.execPath, args, {

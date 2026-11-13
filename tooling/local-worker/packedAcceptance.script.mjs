@@ -52,7 +52,7 @@ for (const [name, value] of Object.entries(manifest.dependencies)) {
 for (const file of files)
   assert.match(
     file,
-    /^package\/(?:dist\/(?:[a-zA-Z0-9_-]+\.js|assets\/(?:integrity\.json|index\.html|proof\.js|openscad-worker\.js|vendor\/openscad\/(?:openscad\.js|openscad\.wasm|bosl2\.zip|manifest\.json)))|licenses\/[a-zA-Z0-9.-]+|package\.json|README\.md|THIRD_PARTY_NOTICES\.md)$/,
+    /^package\/(?:dist\/(?:[a-zA-Z0-9_-]+\.js|local\/(?:compose\.self-host\.yaml|local-release\.json)|assets\/(?:integrity\.json|index\.html|proof\.js|openscad-worker\.js|vendor\/openscad\/(?:openscad\.js|openscad\.wasm|bosl2\.zip|manifest\.json)))|licenses\/[a-zA-Z0-9.-]+|package\.json|README\.md|THIRD_PARTY_NOTICES\.md)$/,
   );
 const directory = await realpath(
   await mkdtemp(join(tmpdir(), "theoryfoundry-packed-")),
@@ -270,11 +270,11 @@ try {
     .map((line) => JSON.parse(line));
   assert.equal(
     messages.find((value) => value.id === 2).result.tools.length,
-    11,
+    12,
   );
   assert.equal(served.stderr, "");
   checks.push(
-    "Packed stdio initializes/lists eleven tools offline, emits only JSON-RPC and exits on EOF",
+    "Packed stdio initializes/lists twelve tools offline, emits only JSON-RPC and exits on EOF",
   );
   console.log(
     JSON.stringify(

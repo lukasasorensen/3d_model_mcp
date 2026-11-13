@@ -82,6 +82,7 @@ test("official MCP client negotiates remote transport, preserves tools, and clos
       "create_project",
       "export_model",
       "get_project_state",
+      "list_projects",
       "list_revisions",
       "promote_candidate",
       "propose_model_source",

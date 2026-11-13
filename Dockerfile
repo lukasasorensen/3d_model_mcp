@@ -21,6 +21,8 @@ COPY patches/ patches/
 RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS build
+# Bound concurrent PGlite/WASM fixtures for local Docker memory limits.
+ENV THEORYFOUNDRY_TEST_CONCURRENCY=2
 # Project-scoped worker setup tests create and inspect temporary Git repositories.
 RUN apt-get update \
   && apt-get install -y --no-install-recommends git \
@@ -54,6 +56,7 @@ WORKDIR /app
 RUN groupadd --system --gid 1001 nodejs \
   && useradd --system --uid 1001 --gid nodejs nextjs
 COPY --from=build --chown=nextjs:nodejs /workspace/apps/site/.next/standalone/ ./
+COPY --from=build --chown=nextjs:nodejs /workspace/tooling/local-instance/browserProxy.script.mjs /app/local-proxy.mjs
 RUN mkdir -p /var/lib/theoryfoundry/exports \
   && chown nextjs:nodejs /var/lib/theoryfoundry/exports
 USER nextjs

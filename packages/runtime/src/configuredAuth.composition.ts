@@ -4,6 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { betterAuth } from "better-auth/minimal";
 import { createOAuthPlugins } from "./oauthPlugins.composition.js";
 import { remoteMcpEnabled } from "./shared/utils/remoteMcpPolicy.util.js";
+import { localEditionOrigin } from "./shared/utils/localEditionPolicy.util.js";
 type ConfiguredAuthOptions = {
   database: ReturnType<typeof drizzleAdapter>;
   secret: string;
@@ -17,7 +18,9 @@ type ConfiguredAuthOptions = {
 };
 export function createConfiguredAuth(
   database: Pick<ProjectDatabase, "pool" | "db">,
+  options: { bootstrap?: boolean } = {},
 ): Auth<ConfiguredAuthOptions> {
+  const local = localEditionOrigin();
   const secret = process.env.BETTER_AUTH_SECRET;
   if (!secret || secret.length < 32)
     throw new Error("BETTER_AUTH_SECRET must contain at least 32 characters.");
@@ -35,9 +38,13 @@ export function createConfiguredAuth(
     ],
     emailAndPassword: {
       enabled: true,
-      disableSignUp: process.env.THEORYFOUNDRY_AUTH_ALLOW_SIGNUP !== "1",
+      disableSignUp:
+        !(local && options.bootstrap) &&
+        process.env.THEORYFOUNDRY_AUTH_ALLOW_SIGNUP !== "1",
     },
     session: { cookieCache: { enabled: false } },
-    advanced: { useSecureCookies: process.env.NODE_ENV === "production" },
+    advanced: {
+      useSecureCookies: !local && process.env.NODE_ENV === "production",
+    },
   });
 }

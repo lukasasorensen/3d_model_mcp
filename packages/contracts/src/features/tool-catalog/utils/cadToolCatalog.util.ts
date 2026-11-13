@@ -7,6 +7,8 @@ import {
   getProjectStateOutputSchema,
   listRevisionsInputSchema,
   listRevisionsOutputSchema,
+  listProjectsInputSchema,
+  projectListSchema,
   promoteCandidateInputSchema,
   promoteCandidateOutputSchema,
   proposeModelSourceInputSchema,
@@ -25,6 +27,14 @@ import {
   previewMetadataSchema,
 } from "../../../domains/preview/index.js";
 const baseCatalog = {
+  list_projects: {
+    title: "List projects",
+    description:
+      "List active CAD projects belonging to the authenticated owner. Select by project ID; ask when names are ambiguous.",
+    inputSchema: listProjectsInputSchema,
+    outputSchema: projectListSchema,
+    readOnly: true,
+  },
   create_project: {
     title: "Create project",
     description:

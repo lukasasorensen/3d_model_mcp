@@ -6,6 +6,7 @@ import {
   exportModelInputSchema,
   getProjectStateInputSchema,
   listRevisionsInputSchema,
+  listProjectsInputSchema,
   promoteCandidateInputSchema,
   proposeModelSourceInputSchema,
   readModelSourceInputSchema,
@@ -38,6 +39,20 @@ export function createCadToolRegistry(
 ): CadToolRegistry {
   const catalog = createCadToolCatalog();
   return {
+    list_projects: {
+      ...catalog.list_projects,
+      execute: async (raw): Promise<Record<string, unknown>> => {
+        listProjectsInputSchema.parse(raw);
+        return boundedResult({
+          projects: (await repository.listProjects()).map((project) => ({
+            ...project,
+            ...(workflow
+              ? { projectUrl: workflow.projectUrl(project.projectId) }
+              : {}),
+          })),
+        });
+      },
+    },
     create_project: {
       ...catalog.create_project,
       execute: async (raw): Promise<Record<string, unknown>> => {
