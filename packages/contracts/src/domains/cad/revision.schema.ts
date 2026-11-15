@@ -21,6 +21,7 @@ export const revisionManifestSchema = z
     parentRevision: revisionIdSchema.nullable(),
     restoredFrom: revisionIdSchema.optional(),
     parameters: parameterSnapshotSchema.optional(),
+    modelBody: z.string().max(CAD_LIMITS.sourceBytes).optional(),
     sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
     sourceBytes: z.number().int().nonnegative().max(CAD_LIMITS.sourceBytes),
     createdAt: z.string().datetime({ offset: true }),

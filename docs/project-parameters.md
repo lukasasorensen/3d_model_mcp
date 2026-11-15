@@ -1,118 +1,164 @@
-# Project parameter snapshots (THE-52)
+# Generated parameter documents (THE-52)
 
-Parameters belong to immutable candidates and accepted revisions. PostgreSQL stores
-`parameter_snapshot` JSONB on each row; filesystem storage puts the same optional
-`parameters` field in candidate/revision manifests. Promotion advances source and
-parameters through the existing transaction or durable CURRENT pointer. Restore
-copies the historical snapshot into a new child revision.
+Parameter JSON owns declarations. Each immutable candidate/revision stores the
+editable model body separately from the complete generated OpenSCAD source and its
+parameter snapshot. The header is generated during proposal creation, before
+validation, rather than patched with regex or injected at render time. Renderers,
+previews and exports use that exact stored source and its existing source hash.
 
-## Contract
+## Proposal contract
 
-`propose_model_source` accepts an optional `parameters` array. Each entry has a
-stable project-scoped `id`, an OpenSCAD `binding`, `label`, optional `description`,
-`type`, `defaultValue` and current `value`. The supported discriminants are:
+Supply exactly one of `modelBody` or legacy `source`:
 
-- `number` / `integer`: optional `min`, `max`, positive `step`, `unit` and `control`
-  (`input` or `slider`). Integer values/bounds/steps must be safe integers.
-- `boolean`: optional `control: "checkbox"`.
-- `string`: optional `maxLength` and `control: "input"`.
-- `enum`: homogeneous string or finite-number `options` with separate labels;
-  optional `control: "select"`.
+```json
+{
+  "projectId": "example",
+  "parentRevision": null,
+  "modelBody": "cube([width, 10, 5]);",
+  "parameters": [
+    {
+      "id": "width-id",
+      "binding": "width",
+      "label": "Width",
+      "type": "number",
+      "defaultValue": 10,
+      "value": 30
+    }
+  ],
+  "requestId": "request-1",
+  "toolCallId": "tool-1"
+}
+```
 
-Both default and current values must satisfy constraints. Steps are based at
-`min`, or zero when no minimum is specified; quotient error tolerance is 1e-8.
-Sliders require increasing finite bounds and an explicit step. Snapshots contain
-at most 100 definitions with unique IDs and bindings. Metadata is bounded and
-unknown properties/types are rejected without coercion.
-
-The current value must match its source header literal. The default is separate
-and is not changed when accepting a new value. Snapshot identity is canonicalized
-by ID and parsed property order; enum option order remains meaningful.
-
-## Dedicated header
-
-Registered parameters require this header before model code:
+This generates and persists:
 
 ```scad
 // theoryfoundry:parameters:start v1
-width = 20;
+width = 30;
 // theoryfoundry:parameters:end
 cube([width, 10, 5]);
 ```
 
-Only comments, whitespace and scalar literal assignments are allowed inside it.
-Markers must match exactly, including version, on their own comment lines.
-Strings support escaped quote/backslash and `\n`, `\r`, `\t`; Unicode text may
-appear directly. Raw multiline strings in the model body remain valid, while header
-strings use escapes for line breaks. Signed finite decimal/exponent numbers and
-booleans are supported.
-Repeated/missing markers, duplicate declarations, unsupported content, mismatched
-values and conflicting assignments outside the header are rejected.
+A value-only proposal changes JSON and regenerates the whole header. It preserves
+the body byte-for-byte. Defaults remain separate from accepted values. Definitions
+are canonicalized by stable ID; enum option order is significant. Labels and other
+metadata are not interpolated into source. Binding identifiers and scalar values
+are validated before an OpenSCAD-specific encoder writes declarations. Strings
+escape quotes, backslashes, newline, carriage return and tab; unsupported control
+characters and unpaired surrogates are rejected. Raw expressions/code are not values.
 
-The storage guard lexes comments and strings rather than searching source text.
-Its conflict check is deliberately conservative: same-name local assignments and
-named arguments are rejected for registered bindings. It does not interpret
-OpenSCAD data flow, library scope or whether a variable influences geometry. The
-exact source still passes through the existing pinned-renderer validation before
-promotion. THE-53 owns safe RHS editing, richer source diagnostics and broader
-binding/conflict handling; THE-54/55 own dedicated AI tools and user controls.
+Supported types are finite numbers, safe integers, booleans, strings and homogeneous
+string/number enums. Both current/default values satisfy bounds, step, membership
+and length constraints. Sliders require increasing finite bounds and a positive
+explicit step. Snapshots allow at most 100 unique IDs/bindings and 128 KiB of JSON.
+OpenSCAD keyword bindings, unknown fields and coercion are rejected.
 
-## Omission, removal and compatibility
+The generated header plus body must satisfy the existing source byte/reference
+policy. Generating a header cannot bypass the complete-source size limit.
+
+## Body ownership and conflicts
+
+The generated header is read-only. `modelBody` contains modeling code, derived
+expressions and permitted includes, without managed header declarations. The server
+does not parse the generated header or search/replace literals. Stored generated
+documents are checked by deterministic reassembly from body and JSON.
+
+A separate conservative token scan still checks the body for conflicting assignments
+to registered names, ignoring comments and strings. It also rejects managed header
+markers in parameterized bodies. Same-name local assignments, module defaults and
+named arguments are currently rejected. This scan is not scope analysis, does not
+resolve included libraries and cannot prove that a variable affects geometry.
+THE-53 owns broader diagnostics, explicit legacy adoption and refinement of this
+conflict policy. The exact assembled source still needs pinned-renderer validation
+before promotion. A successful render is not proof of geometric influence.
+
+Removing or renaming a definition removes or renames its generated declaration.
+Coordinate body edits explicitly when references need changing; the server does
+not silently preserve an untracked literal or rewrite references. Failed renders
+and stale parents retain the previous accepted source, body and values.
+
+## Inheritance, retry and restore
 
 Omitting `parameters` inherits the explicitly named parent's snapshot, including
-when replaying a proposal after current has advanced. It never silently drops
-registrations. An incompatible source edit must supply an updated matching
-snapshot or explicitly remove registrations with `parameters: []`. Removing a
-registration does not edit its source literal.
+when replaying a proposal after current has advanced. Supplying `[]` removes all
+generated declarations; assembled source then equals the exact body. Parameterized
+proposals require `modelBody`; legacy `source` is accepted only with an empty
+resolved snapshot. Both fields together, or neither, are rejected.
 
-Old records and projects have an empty snapshot and require no header or automatic
-source migration. Empty snapshots are omitted from outputs to preserve existing
-wire shapes. Parameterized candidates, revisions and project state expose
-`parameters`; older strict clients must be upgraded before using such projects.
-MCP `list_revisions` returns revision summaries without repeating parameter
-snapshots. `read_model_source` returns the selected current/historical revision
-with its full snapshot; internal repository history retains all snapshots. This
-keeps ordinary history reads below the response limit as parameterized revisions
-accumulate. Parameter validation error details are bounded to the public contract.
+Retry identity includes named parent, exact assembled source, separate body/mode,
+canonical parameter snapshot and request/tool IDs. Equal rendered source with
+different metadata or legacy/generated modes cannot reuse the wrong candidate.
+Identical retries return the original candidate and current state.
 
-Local-worker JSON tools apply the 512 KiB limit to the logical payload, matching
-the hosted server. The MCP envelope has a separate bound of three payloads plus
-1 KiB for framing: structured data and its escaped text copy both fit without
-dropping source or metadata. Text-only results use the same logical limit; error
-responses keep their existing limit. Preview images retain their separate 3 MiB
-full-envelope limit.
+Promotion advances source, body, parameters and artifact references together using
+PostgreSQL transactions/locks or a durable filesystem revision and atomic `CURRENT`
+pointer. Restore copies the historical body, source and snapshot into a new child
+revision. It does not regenerate historical source using a newer generation policy.
+PostgreSQL operations remain owner-scoped; filesystem storage is a trusted local
+workspace boundary. No new mutable project-level parameter authority is introduced.
 
-The contract version remains 1, and renderer requests/pins and source/artifact
-hashes remain unchanged. Values are baked into canonical source, not supplied as
-runtime render overrides.
+## Reads and compatibility
 
-Proposal retries compare parent, exact source, request/tool IDs and canonical
-parameter snapshot. Equal source with different metadata produces a distinct
-candidate, preserving the existing behavior for different source payloads under
-the same request IDs. Identical retries return the original candidate/state.
-PostgreSQL reads and writes continue through owner-scoped project access. The
-filesystem adapter remains a trusted local-workspace boundary.
+MCP `read_model_source` returns `modelBody` and the full snapshot for generated
+documents, or `source` for legacy documents. It avoids duplicating the assembled
+source alongside a large body. `sourceHash` always identifies the complete stored
+render source, not the body alone. Internal repository reads retain complete source
+for preview/export, alongside the body for editable generated documents.
+
+Candidate/revision manifests include the separate body for generated records.
+MCP `list_revisions` omits bodies and snapshots, returning compact revision metadata.
+Current project state exposes accepted parameters without repeating body text.
+Local-worker JSON results retain the server's 512 KiB logical-payload budget and a
+separate MCP envelope bound of three payloads plus 1 KiB. Preview images retain the
+existing 3 MiB envelope limit.
+
+Existing source-only records have no body and an empty snapshot; their wire shape
+and source stay unchanged. Existing prerelease records from the earlier editable
+header design remain historical source/snapshot records without automatic splitting
+or header parsing; adoption into generated documents is explicit. New generated
+records verify that reassembly agrees exactly with persisted source. Older strict
+clients must upgrade before using generated/parameterized documents.
 
 ## Migration and delivery
 
-Apply additive migration `0017_parameter-snapshots` before starting updated server
-code. It adds non-null JSONB columns with an empty-array default; it does not
-modify existing source, ownership, leases, artifacts or accepted revision pointers.
-No new environment variables or renderer assets are required.
+Apply both additive migrations before starting updated server code:
 
-Relative to develop after THE-50, root/hosted/local-plugin versions advance
-0.8.0 → 0.9.0, contracts 0.3.0 → 0.4.0, model-project 0.5.0 → 0.6.0 and MCP
-0.2.0 → 0.3.0. Local-worker advances 0.3.0 → 0.3.1 for the response-budget fix;
-the site advances 0.8.0 → 0.8.1 for updated setup commands. Worker command pins
-advance to the fixed version; publish and verify it before users install it.
-Installer command pins and renderer assets are unaffected.
+- `0017_parameter-snapshots`: non-null JSONB `parameter_snapshot` on candidates and
+  revisions, defaulting to an empty array.
+- `0018_generated-parameter-headers`: nullable `model_body` text on both tables.
+  Existing source, snapshots, hashes and accepted pointers are untouched.
+
+Filesystem manifests carry optional `modelBody` alongside `parameters`; complete
+source remains in `model.scad`. There are no new tables, environment variables,
+renderer assets or runtime render overrides. Contract version remains 1.
+
+Versions relative to develop after THE-50: root/hosted/local plugins 0.8.0 → 0.9.0,
+contracts 0.3.0 → 0.4.0, model-project 0.5.0 → 0.6.0, MCP 0.2.0 → 0.3.0,
+gateway/local-worker 0.3.0 → 0.4.0 and site 0.8.0 → 0.8.1. These are once-per-PR changes;
+worker pins/setup/release examples are synchronized. Publish and verify worker
+0.4.0 before end users install it. Installer pins and renderer assets are unchanged.
+
+THE-54/55 add dedicated AI management tools and controls using body plus JSON.
+They must not introduce independently editable generated declarations.
 
 ## Verification
 
-Focused tests cover schema constraints, header literal agreement, metadata-aware
-retry identity, inherited/removed snapshots, reload and historical restore for
-both adapters, cross-owner access, additive legacy migration, transactional and
-filesystem publication failures, and JSON Schema generation for MCP input.
-PGlite and deterministic renderer fixtures prove storage/protocol behavior; they
-do not establish live PostgreSQL, real-renderer or authenticated UI acceptance.
-Full repository verification and hosted CI are recorded separately in the PR.
+Focused tests cover deterministic scalar encoding, injection/escaping, unchanged
+body text, inheritance/removal, mode-aware retries, assembled source policies,
+legacy migration, owner isolation, reopen/restore, corruption detection and atomic
+publication failures in both adapters. MCP checks cover bounded generated-body
+reads, historical snapshots and compact history. PGlite and deterministic renderer
+fixtures do not establish live PostgreSQL or authenticated UI acceptance. Full
+verification and hosted CI evidence are recorded separately in the PR.
+
+A local pinned-renderer check on November 15, 2026 compiled generated numeric,
+boolean, string and numeric-enum declarations with the body unchanged. OpenSCAD
+assertions verified quote, backslash, newline, carriage-return and tab encoding;
+Unicode and source-like string content compiled safely. JSON widths 30 and 40
+produced independently parsed STL and 3MF bounds of 30 × 10 × 5 and 40 × 10 × 5.
+The renderer reported the pinned OpenSCAD 2026.07.20/BOSL2 v2.0.741 provenance,
+Chromium 149.0.7827.55 with sandbox enabled and no blocked external requests. This
+is local renderer evidence, not live database, deployment or authenticated UI
+acceptance. Reproduction/report: `/private/tmp/generated-header-acceptance.mjs`
+and `/private/tmp/generated-header-acceptance.json`; the findings above do not
+require those temporary artifacts to remain available.

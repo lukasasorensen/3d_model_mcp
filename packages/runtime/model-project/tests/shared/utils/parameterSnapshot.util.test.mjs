@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { CAD_LIMITS, cadErrorSchema } from "@theoryfoundry/contracts";
 import {
-  checkedParameterSnapshot,
+  resolveModelDocument,
+  checkedStoredModelDocument,
   PARAMETER_HEADER_START as start,
   PARAMETER_HEADER_END as end,
 } from "../../../dist/shared/utils/parameterSnapshot.util.js";
@@ -14,104 +16,215 @@ const width = {
   defaultValue: 10,
   value: -20.5,
 };
-const header = (content, body = "cube(abs(width));") =>
-  `${start}\n${content}\n${end}\n${body}`;
+const modelBody = "/* unchanged */\ncube([abs(width), 2, 3]);\n";
+const header = (declarations, body = modelBody) =>
+  `${start}\n${declarations}\n${end}\n${body}`;
 
-test("storage validates actual header literals without treating quoted/commented names as assignments", () => {
-  assert.deepEqual(
-    checkedParameterSnapshot(
-      header(
-        "/* note */ width = -20.5; // units",
-        'echo("width=30; // theoryfoundry:parameters:end"); cube(abs(width));',
-      ),
-      [width],
-    ),
-    [width],
-  );
-  const label = {
-    id: "label",
-    binding: "label",
-    type: "string",
-    label: "Label",
-    value: 'A"B\nC',
-    defaultValue: "",
-  };
-  assert.deepEqual(
-    checkedParameterSnapshot(header('label="A\\"B\\nC";', "cube(1);"), [label]),
-    [label],
-  );
-  assert.deepEqual(checkedParameterSnapshot("cube(1);", undefined), []);
+test("JSON values generate canonical declarations without editing the body", () => {
+  const document = resolveModelDocument({ modelBody, parameters: [width] });
+  assert.equal(document.source, header("width = -20.5;"));
+  assert.equal(document.modelBody, modelBody);
+  const changed = resolveModelDocument({
+    modelBody,
+    parameters: [{ ...width, value: 30 }],
+  });
+  assert.equal(changed.source, header("width = 30;"));
+  assert.equal(changed.modelBody, modelBody);
+  assert.equal(changed.parameters[0].defaultValue, 10);
 });
 
-test("storage rejects missing, ambiguous, incompatible and computed header values", () => {
-  for (const source of [
-    "width=-20.5; cube(1);",
-    header("width=20;"),
-    header("other=-20.5;"),
-    header("width=-20.5; width=30;"),
-    header("width=-20.5 + 0;"),
-    header('width="-20.5";'),
-    header("width=-20.5;", "width=99; cube(width);"),
-    header("width=-20.5;", "module x(){width=10;} cube(1);"),
-    header("width=-20.5;").replace("start v1", "start v2"),
-    header("width=-20.5;") + `\n${end}`,
-    `cube(1);\n${header("width=-20.5;")}`,
-    header("width=-20.5;").replace(end, ""),
-    header("include <BOSL2/std.scad> width=-20.5;"),
+test("generation escapes scalar literals and keeps source-like strings inside quotes", () => {
+  const parameters = [
+    {
+      id: "z",
+      binding: "text",
+      type: "string",
+      label: "Text",
+      defaultValue: "",
+      value: 'A"B\\C\nD\rE\t雪; width=99; // comment',
+    },
+    {
+      id: "a",
+      binding: "enabled",
+      type: "boolean",
+      label: "Enabled",
+      defaultValue: false,
+      value: true,
+    },
+    {
+      id: "b",
+      binding: "mode",
+      type: "enum",
+      label: "Mode",
+      defaultValue: 1,
+      value: 2,
+      options: [
+        { label: "One", value: 1 },
+        { label: "Two", value: 2 },
+      ],
+    },
+  ];
+  const result = resolveModelDocument({ modelBody, parameters });
+  assert.equal(
+    result.source,
+    header(
+      'enabled = true;\nmode = 2;\ntext = "A\\"B\\\\C\\nD\\rE\\t雪; width=99; // comment";',
+    ),
+  );
+  assert.deepEqual(
+    result.parameters.map((p) => p.id),
+    ["a", "b", "z"],
+  );
+  assert.equal(
+    result.source,
+    resolveModelDocument({ modelBody, parameters: parameters.toReversed() })
+      .source,
+  );
+});
+
+test("omission inherits the named parent snapshot; [] removes generated declarations", () => {
+  assert.equal(
+    resolveModelDocument({ modelBody }, [width]).source,
+    header("width = -20.5;"),
+  );
+  assert.equal(
+    resolveModelDocument({ modelBody, parameters: [] }, [width]).source,
+    modelBody,
+  );
+  assert.deepEqual(resolveModelDocument({ source: "cube(1);" }), {
+    source: "cube(1);",
+    parameters: [],
+  });
+  assert.throws(() => resolveModelDocument({ source: "cube(1);" }, [width]), {
+    code: "INVALID_PARAMETERS",
+  });
+  assert.equal(
+    resolveModelDocument({ source: "cube(1);", parameters: [] }, [width])
+      .source,
+    "cube(1);",
+  );
+});
+
+test("generated headers are not accepted as editable bodies and bindings cannot be overwritten", () => {
+  for (const body of [
+    header("width = -20.5;"),
+    "width=99; cube(width);",
+    "module x(width=10) {cube(width);}",
+    "echo(width=10);",
   ])
     assert.throws(
-      () => checkedParameterSnapshot(source, [width]),
+      () => resolveModelDocument({ modelBody: body, parameters: [width] }),
       { code: "INVALID_PARAMETERS" },
-      source,
     );
+  const body =
+    'echo("first\nsecond width=99; // theoryfoundry:parameters:end"); /* width=2; */ cube(abs(width));';
+  assert.equal(
+    resolveModelDocument({ modelBody: body, parameters: [width] }).modelBody,
+    body,
+  );
 });
 
-test("model-body multiline strings do not inherit the restricted header string grammar", () => {
-  const body =
-    'echo("first\nsecond width=99; // theoryfoundry:parameters:end"); cube(abs(width));';
-  assert.deepEqual(
-    checkedParameterSnapshot(header("width=-20.5;", body), [width]),
-    [width],
-  );
-  const label = {
-    id: "label",
-    binding: "label",
-    label: "Label",
-    type: "string",
-    defaultValue: "",
-    value: "first\nsecond",
-  };
+test("invalid metadata, code injection and ambiguous inputs are rejected before persistence", () => {
+  for (const input of [
+    {},
+    { source: "cube(1);", modelBody },
+    { modelBody: "" },
+    { source: "width=20; cube(width);", parameters: [width] },
+    ...[
+      null,
+      [width, width],
+      [{ ...width, value: "bad" }],
+      [{ ...width, binding: "width; cube(99)" }],
+      [{ ...width, binding: "module" }],
+      [
+        {
+          id: "text",
+          binding: "text",
+          type: "string",
+          label: "Text",
+          value: "bad\u0000",
+          defaultValue: "",
+        },
+      ],
+      [
+        {
+          id: "text",
+          binding: "text",
+          type: "string",
+          label: "Text",
+          value: "valid",
+          defaultValue: "bad\ud800",
+        },
+      ],
+    ].map((parameters) => ({ modelBody, parameters })),
+  ])
+    assert.throws(() => resolveModelDocument(input), {
+      code: "INVALID_PARAMETERS",
+    });
+});
+
+test("assembled source byte limit and external-reference policy apply after generation", () => {
   assert.throws(
     () =>
-      checkedParameterSnapshot(header('label="first\nsecond";', "cube(1);"), [
-        label,
-      ]),
-    { code: "INVALID_PARAMETERS" },
+      resolveModelDocument({
+        modelBody: "x".repeat(CAD_LIMITS.sourceBytes),
+        parameters: [width],
+      }),
+    { code: "SOURCE_TOO_LARGE" },
+  );
+  assert.throws(
+    () =>
+      resolveModelDocument({
+        modelBody: "include <../secret.scad>",
+        parameters: [width],
+      }),
+    { code: "FORBIDDEN_SOURCE_REFERENCE" },
   );
 });
 
-test("parameter validation failures fit the public error contract", async () => {
-  const { cadErrorSchema } = await import("@theoryfoundry/contracts");
-  const cases = [
-    [{ ...width, value: "bad", defaultValue: "bad" }],
-    [{ ...width, id: "x".repeat(100), binding: "y".repeat(100) }],
-  ];
-  for (const parameters of cases) {
-    assert.throws(
-      () => checkedParameterSnapshot(header("width=-20.5;"), parameters),
-      (error) => {
-        assert.equal(error.code, "INVALID_PARAMETERS");
-        assert.equal(
-          cadErrorSchema.safeParse({
-            code: error.code,
-            message: error.message,
-            details: error.details,
-          }).success,
-          true,
-        );
-        assert.ok(error.details.reason.length > 0);
-        return true;
-      },
-    );
-  }
+test("stored documents are verified by deterministic reassembly, with legacy records unchanged", () => {
+  const document = resolveModelDocument({ modelBody, parameters: [width] });
+  assert.deepEqual(
+    checkedStoredModelDocument(document.source, modelBody, [width]),
+    [width],
+  );
+  assert.throws(
+    () =>
+      checkedStoredModelDocument(document.source, modelBody, [
+        { ...width, value: 30 },
+      ]),
+    { code: "CORRUPT_PROJECT" },
+  );
+  assert.throws(
+    () => checkedStoredModelDocument(document.source, "cube(99);", [width]),
+    { code: "CORRUPT_PROJECT" },
+  );
+  assert.deepEqual(
+    checkedStoredModelDocument("cube(1);", undefined, undefined),
+    [],
+  );
+});
+
+test("parameter validation failures fit the public error contract", () => {
+  assert.throws(
+    () =>
+      resolveModelDocument({
+        modelBody,
+        parameters: [{ ...width, value: "bad" }],
+      }),
+    (error) => {
+      assert.equal(
+        cadErrorSchema.safeParse({
+          code: error.code,
+          message: error.message,
+          details: error.details,
+        }).success,
+        true,
+      );
+      assert.ok(
+        error.details.reason.length > 0 && error.details.reason.length <= 200,
+      );
+      return true;
+    },
+  );
 });

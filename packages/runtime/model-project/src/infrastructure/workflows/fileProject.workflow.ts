@@ -23,8 +23,7 @@ import type {
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
-import { checkedParameterSnapshot } from "../../shared/utils/parameterSnapshot.util.js";
-import { assertSourcePolicy } from "../../shared/utils/sourcePolicy.util.js";
+import { resolveModelDocument } from "../../shared/utils/parameterSnapshot.util.js";
 import { VALIDATION_POLICY_VERSION } from "../../shared/validation.constants.js";
 import type {
   DurableFiles,
@@ -90,7 +89,6 @@ export class FileProjectWorkflow {
     return this.records.readCandidate(projectId, candidateId);
   }
   async proposeModelSource(input: ModelProposal): Promise<CandidateRecord> {
-    assertSourcePolicy(input.source);
     return this.locks.withProjectLock(
       input.projectId,
       "promotion",
@@ -114,13 +112,11 @@ export class FileProjectWorkflow {
               })
           : undefined;
         const parentParameters = parent?.parameters;
-        const parameters = checkedParameterSnapshot(
-          input.source,
-          input.parameters === undefined ? parentParameters : input.parameters,
-        );
+        const document = resolveModelDocument(input, parentParameters);
+        const { source, parameters } = document;
         const existing = await this.records.findProposalCandidate({
           ...input,
-          parameters,
+          ...document,
         });
         if (existing) return existing;
         if (input.parentRevision !== current) {
@@ -141,7 +137,7 @@ export class FileProjectWorkflow {
         const candidateId = this.createId();
         const root = this.paths.candidateRoot(input.projectId, candidateId);
         await mkdir(root, { recursive: false });
-        const sourceBytes = Buffer.byteLength(input.source);
+        const sourceBytes = Buffer.byteLength(source);
         const now = this.clock().toISOString();
         const candidate = candidateRecordSchema.parse({
           version: CONTRACT_VERSION,
@@ -149,7 +145,10 @@ export class FileProjectWorkflow {
           candidateId,
           parentRevision: input.parentRevision,
           ...parameterSnapshotFields(parameters),
-          sourceHash: sha256(input.source),
+          ...(document.modelBody !== undefined
+            ? { modelBody: document.modelBody }
+            : {}),
+          sourceHash: sha256(source),
           sourceBytes,
           state: "CREATED",
           createdAt: now,
@@ -159,7 +158,7 @@ export class FileProjectWorkflow {
           diagnostics: [],
           artifacts: [],
         });
-        await this.files.writeDurable(join(root, "model.scad"), input.source);
+        await this.files.writeDurable(join(root, "model.scad"), source);
         await this.files.writeAtomic(
           join(root, "candidate.json"),
           safeJson(candidate),
@@ -252,6 +251,7 @@ export class FileProjectWorkflow {
           candidateId: candidate.candidateId,
           source,
           ...parameterSnapshotFields(candidate.parameters),
+          modelBody: candidate.modelBody,
           sourceHash: candidate.sourceHash,
           requestId: candidate.requestId,
           toolCallId: candidate.toolCallId,
@@ -348,6 +348,7 @@ export class FileProjectWorkflow {
           candidateId,
           source,
           ...parameterSnapshotFields(target.parameters),
+          modelBody: target.modelBody,
           sourceHash: target.sourceHash,
           requestId: input.requestId,
           toolCallId: input.toolCallId,

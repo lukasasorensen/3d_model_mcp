@@ -134,3 +134,34 @@ test("snapshot identity is deterministic without changing JSON Schema generation
   );
   assert.equal(parameterSnapshotSchema.safeParse(null).success, false);
 });
+
+test("proposals distinguish generated bodies from legacy complete source", () => {
+  const base = {
+    projectId: "demo",
+    parentRevision: null,
+    requestId: "request",
+    toolCallId: "tool",
+  };
+  assert.equal(
+    proposeModelSourceInputSchema.safeParse({
+      ...base,
+      modelBody: "cube(width);",
+      parameters: [width],
+    }).success,
+    true,
+  );
+  assert.equal(
+    proposeModelSourceInputSchema.safeParse({ ...base, source: "cube(1);" })
+      .success,
+    true,
+  );
+  assert.equal(proposeModelSourceInputSchema.safeParse(base).success, false);
+  assert.equal(
+    proposeModelSourceInputSchema.safeParse({
+      ...base,
+      source: "cube(1);",
+      modelBody: "cube(1);",
+    }).success,
+    false,
+  );
+});

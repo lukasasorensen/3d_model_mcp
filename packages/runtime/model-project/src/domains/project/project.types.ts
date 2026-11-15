@@ -8,7 +8,8 @@ import type {
 export interface ModelProposal {
   projectId: string;
   parentRevision: string | null;
-  source: string;
+  source?: string | undefined;
+  modelBody?: string | undefined;
   parameters?: ProjectParameter[] | undefined;
   requestId: string;
   toolCallId: string;

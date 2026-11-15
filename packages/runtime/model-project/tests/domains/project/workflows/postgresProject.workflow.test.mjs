@@ -6,7 +6,7 @@ import {
   memoryPool,
   exerciseSnapshots,
   width,
-  source,
+  modelBody,
   accept,
 } from "../../../fixtures/parameterSnapshots.fixture.mjs";
 
@@ -33,7 +33,7 @@ test("PostgreSQL persists and atomically restores owner-scoped header parameter 
         other.proposeModelSource({
           projectId,
           parentRevision: first.revisionId,
-          source: source(),
+          modelBody,
           parameters: [width],
           requestId: "foreign",
           toolCallId: "foreign",
@@ -50,7 +50,7 @@ test("PostgreSQL persists and atomically restores owner-scoped header parameter 
     assert.deepEqual(
       (
         await pool.query(
-          "SELECT parameter_snapshot FROM revisions WHERE id=$1",
+          "SELECT parameter_snapshot, model_body FROM revisions WHERE id=$1",
           [first.revisionId],
         )
       ).rows[0].parameter_snapshot,
@@ -61,7 +61,7 @@ test("PostgreSQL persists and atomically restores owner-scoped header parameter 
     const candidate2 = await make().proposeModelSource({
       projectId,
       parentRevision: state.currentRevision,
-      source: source(40),
+      modelBody,
       parameters: [{ ...width, value: 40 }],
       requestId: "rollback",
       toolCallId: "rollback",
@@ -106,10 +106,11 @@ test("additive migration preserves legacy candidate rows and defaults snapshots 
   });
   try {
     const result = await pool.query(
-      "SELECT source, parameter_snapshot FROM candidates WHERE id='legacy-candidate'",
+      "SELECT source, parameter_snapshot, model_body FROM candidates WHERE id='legacy-candidate'",
     );
     assert.equal(result.rows[0].source, "cube(1);");
     assert.deepEqual(result.rows[0].parameter_snapshot, []);
+    assert.equal(result.rows[0].model_body, null);
   } finally {
     await pool.end();
   }

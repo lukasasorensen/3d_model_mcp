@@ -101,3 +101,25 @@ test("MCP source reads expose the full snapshot for a selected historical revisi
   assert.equal(result.value.model.source, source);
   assert.deepEqual(result.value.model.parameters, parameters);
 });
+
+test("generated source reads expose body and JSON once while retaining the assembled source hash", async () => {
+  const body = "//" + "x".repeat(180 * 1024) + "\ncube(p0);";
+  const generatedRegistry = createCadToolRegistry({
+    readModelSource: async () => ({
+      revision: "generated",
+      source: source + body,
+      modelBody: body,
+      parameters,
+      sourceHash: "2".repeat(64),
+    }),
+  });
+  const result = await invokeCadTool(generatedRegistry, "read_model_source", {
+    projectId: "demo",
+    revision: "generated",
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.value.model.modelBody, body);
+  assert.equal(result.value.model.source, undefined);
+  assert.equal(result.value.model.sourceHash, "2".repeat(64));
+  assert.deepEqual(result.value.model.parameters, parameters);
+});

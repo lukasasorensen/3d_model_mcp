@@ -6,7 +6,7 @@ import {
 import type { PersistedRevision } from "../../domains/project/index.js";
 import type { RevisionRow } from "../postgresPersistence.types.js";
 import { asIsoTimestamp } from "../../shared/utils/timestamp.util.js";
-import { checkedParameterSnapshot } from "../../shared/utils/parameterSnapshot.util.js";
+import { checkedStoredModelDocument } from "../../shared/utils/parameterSnapshot.util.js";
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
@@ -24,8 +24,15 @@ export function hydrateRevision(
       ? { restoredFrom: row.restored_from_revision_id }
       : {}),
     ...parameterSnapshotFields(
-      checkedParameterSnapshot(row.source, row.parameter_snapshot),
+      checkedStoredModelDocument(
+        row.source,
+        row.model_body ?? undefined,
+        row.parameter_snapshot,
+      ),
     ),
+    ...(row.model_body !== null && row.model_body !== undefined
+      ? { modelBody: row.model_body }
+      : {}),
     sourceHash: row.source_hash,
     sourceBytes: row.source_bytes,
     createdAt: asIsoTimestamp(row.created_at),

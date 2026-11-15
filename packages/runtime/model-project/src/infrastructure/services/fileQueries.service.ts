@@ -121,6 +121,9 @@ export class FileProjectQueries {
     const manifest = await this.records.readManifest(projectId, selected);
     return {
       revision: selected,
+      ...(manifest.modelBody !== undefined
+        ? { modelBody: manifest.modelBody }
+        : {}),
       source: await readFile(
         join(this.paths.versionRoot(projectId, selected), "model.scad"),
         "utf8",

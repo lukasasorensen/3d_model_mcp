@@ -99,11 +99,15 @@ export function createCadToolRegistry(
       ...catalog.read_model_source,
       execute: async (raw): Promise<Record<string, unknown>> => {
         const input = readModelSourceInputSchema.parse(raw);
+        const model = await repository.readModelSource(
+          input.projectId,
+          input.revision,
+        );
+        // Generated documents expose editable body + JSON once, not a duplicate assembled source.
+        const { source, ...editable } = model;
+        void source;
         return boundedResult({
-          model: await repository.readModelSource(
-            input.projectId,
-            input.revision,
-          ),
+          model: model.modelBody === undefined ? model : editable,
         });
       },
     },
@@ -178,8 +182,9 @@ export function createCadToolRegistry(
         const input = listRevisionsInputSchema.parse(raw);
         return boundedResult({
           revisions: (await repository.listRevisions(input.projectId)).map(
-            ({ parameters, ...revision }) => {
+            ({ parameters, modelBody, ...revision }) => {
               void parameters;
+              void modelBody;
               return revision;
             },
           ),

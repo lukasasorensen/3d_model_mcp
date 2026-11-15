@@ -51,12 +51,15 @@ export interface ProjectPersistence {
     projectId: string,
     currentRevision: string,
   ): Promise<RevisionManifest[]>;
-  findProposalCandidateId(input: ModelProposal): Promise<string | undefined>;
+  findProposalCandidateId(
+    input: ModelProposal & { source: string },
+  ): Promise<string | undefined>;
   insertCandidate(input: {
     id: string;
     projectId: string;
     parentRevision: string | null;
     source: string;
+    modelBody?: string | undefined;
     parameters?: ProjectParameter[] | undefined;
     requestId: string;
     toolCallId: string;
@@ -94,6 +97,7 @@ export interface ProjectPersistence {
     parentRevision: string | null;
     restoredFromRevision?: string;
     source: string;
+    modelBody?: string | undefined;
     parameters?: ProjectParameter[] | undefined;
     sourceHash: string;
     sourceBytes: number;

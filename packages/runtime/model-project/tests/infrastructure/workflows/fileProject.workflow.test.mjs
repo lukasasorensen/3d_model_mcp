@@ -10,7 +10,7 @@ import {
 import {
   exerciseSnapshots,
   width,
-  source,
+  modelBody,
   accept,
 } from "../../fixtures/parameterSnapshots.fixture.mjs";
 
@@ -38,7 +38,7 @@ test("filesystem candidates and revisions retain parameter snapshots across reop
     const proposal = await make().proposeModelSource({
       projectId,
       parentRevision: state.currentRevision,
-      source: source(50),
+      modelBody,
       parameters: [{ ...width, value: 50 }],
       requestId: "durability",
       toolCallId: "durability",
@@ -66,7 +66,7 @@ test("filesystem candidates and revisions retain parameter snapshots across reop
         requestId: "corrupt",
         toolCallId: "corrupt",
       }),
-      { code: "INVALID_PARAMETERS" },
+      { code: "CORRUPT_PROJECT" },
     );
   });
 });

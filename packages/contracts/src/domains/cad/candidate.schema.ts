@@ -21,6 +21,7 @@ export const candidateRecordSchema = z
     candidateId: candidateIdSchema,
     parentRevision: revisionIdSchema.nullable(),
     parameters: parameterSnapshotSchema.optional(),
+    modelBody: z.string().max(CAD_LIMITS.sourceBytes).optional(),
     sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
     sourceBytes: z.number().int().positive().max(CAD_LIMITS.sourceBytes),
     state: candidateStateSchema,

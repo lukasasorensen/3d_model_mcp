@@ -215,7 +215,7 @@ export class PostgresProjectPersistence {
   }
 
   async findProposalCandidateId(
-    input: ModelProposal,
+    input: ModelProposal & { source: string },
   ): Promise<string | undefined> {
     const result = await this.executor.query<{ id: string }>(
       `SELECT c.id FROM candidates c JOIN projects p ON p.id = c.project_id
@@ -223,6 +223,7 @@ export class PostgresProjectPersistence {
          AND c.request_id = $3 AND c.tool_call_id = $4
          AND c.parent_revision_id IS NOT DISTINCT FROM $5 AND c.source = $6
          AND c.parameter_snapshot = $7::jsonb
+         AND c.model_body IS NOT DISTINCT FROM $8
        ORDER BY c.created_at, c.id LIMIT 1`,
       [
         input.projectId,
@@ -232,6 +233,7 @@ export class PostgresProjectPersistence {
         input.parentRevision,
         input.source,
         JSON.stringify(input.parameters ?? []),
+        input.modelBody ?? null,
       ],
     );
     return result.rows[0]?.id;
@@ -242,14 +244,15 @@ export class PostgresProjectPersistence {
     projectId: string;
     parentRevision: string | null;
     source: string;
+    modelBody?: string | undefined;
     parameters?: ProjectParameter[] | undefined;
     requestId: string;
     toolCallId: string;
     createdAt: Date;
   }): Promise<void> {
     await this.executor.query(
-      `INSERT INTO candidates (id, project_id, parent_revision_id, source, source_hash, source_bytes, state, request_id, tool_call_id, diagnostics, created_at, updated_at, parameter_snapshot)
-       VALUES ($1,$2,$3,$4,$5,$6,'CREATED',$7,$8,'[]'::jsonb,$9,$9,$10)`,
+      `INSERT INTO candidates (id, project_id, parent_revision_id, source, source_hash, source_bytes, state, request_id, tool_call_id, diagnostics, created_at, updated_at, parameter_snapshot, model_body)
+       VALUES ($1,$2,$3,$4,$5,$6,'CREATED',$7,$8,'[]'::jsonb,$9,$9,$10,$11)`,
       [
         input.id,
         input.projectId,
@@ -261,6 +264,7 @@ export class PostgresProjectPersistence {
         input.toolCallId,
         input.createdAt,
         JSON.stringify(input.parameters ?? []),
+        input.modelBody ?? null,
       ],
     );
   }
@@ -355,6 +359,7 @@ export class PostgresProjectPersistence {
     parentRevision: string | null;
     restoredFromRevision?: string;
     source: string;
+    modelBody?: string | undefined;
     parameters?: ProjectParameter[] | undefined;
     sourceHash: string;
     sourceBytes: number;
@@ -368,8 +373,8 @@ export class PostgresProjectPersistence {
     createdAt: Date;
   }): Promise<void> {
     await this.executor.query(
-      `INSERT INTO revisions (id, project_id, parent_revision_id, restored_from_revision_id, source, source_hash, source_bytes, request_id, tool_call_id, candidate_id, validation_policy_version, diagnostics, renderer, created_at, geometry, parameter_snapshot)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
+      `INSERT INTO revisions (id, project_id, parent_revision_id, restored_from_revision_id, source, source_hash, source_bytes, request_id, tool_call_id, candidate_id, validation_policy_version, diagnostics, renderer, created_at, geometry, parameter_snapshot, model_body)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
       [
         input.id,
         input.projectId,
@@ -387,6 +392,7 @@ export class PostgresProjectPersistence {
         input.createdAt,
         input.geometry ? JSON.stringify(input.geometry) : null,
         JSON.stringify(input.parameters ?? []),
+        input.modelBody ?? null,
       ],
     );
   }

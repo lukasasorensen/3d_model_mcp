@@ -6,6 +6,7 @@ export interface CandidateRow extends QueryResultRow {
   parent_revision_id: string | null;
   source: string;
   parameter_snapshot: unknown;
+  model_body: string | null;
   source_hash: string;
   source_bytes: number;
   state: CandidateRecord["state"];
@@ -26,6 +27,7 @@ export interface RevisionRow extends QueryResultRow {
   restored_from_revision_id: string | null;
   source: string;
   parameter_snapshot: unknown;
+  model_body: string | null;
   source_hash: string;
   source_bytes: number;
   request_id: string;

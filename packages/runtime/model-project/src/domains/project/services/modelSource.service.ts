@@ -46,6 +46,9 @@ export class ModelSourceService {
     );
     return {
       revision: selectedRevision,
+      ...(persistedRevision.manifest.modelBody !== undefined
+        ? { modelBody: persistedRevision.manifest.modelBody }
+        : {}),
       source: persistedRevision.source,
       sourceHash: persistedRevision.manifest.sourceHash,
       ...parameterSnapshotFields(persistedRevision.manifest.parameters),

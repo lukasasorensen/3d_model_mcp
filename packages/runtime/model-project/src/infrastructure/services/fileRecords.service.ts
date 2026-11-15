@@ -14,7 +14,7 @@ import type {
   ProjectSummary,
 } from "../../domains/project/index.js";
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
-import { checkedParameterSnapshot } from "../../shared/utils/parameterSnapshot.util.js";
+import { checkedStoredModelDocument } from "../../shared/utils/parameterSnapshot.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
 import type { DurableFiles, FileLocks } from "../filesystem.port.js";
@@ -100,7 +100,11 @@ export class FileProjectRecords {
         source.byteLength !== manifest.sourceBytes
       )
         throw new Error("source mismatch");
-      checkedParameterSnapshot(source.toString("utf8"), manifest.parameters);
+      checkedStoredModelDocument(
+        source.toString("utf8"),
+        manifest.modelBody,
+        manifest.parameters,
+      );
       assertArtifactSet(
         manifest.artifacts,
         manifest.sourceHash,
@@ -137,7 +141,7 @@ export class FileProjectRecords {
     }
   }
   async findProposalCandidate(
-    input: ModelProposal,
+    input: ModelProposal & { source: string },
   ): Promise<CandidateRecord | undefined> {
     const root = join(this.paths.controlRoot(input.projectId), "candidates");
     const sourceHash = sha256(input.source);
@@ -162,6 +166,7 @@ export class FileProjectRecords {
         candidate.parentRevision === input.parentRevision &&
         candidate.sourceHash === sourceHash &&
         parameterSnapshotsEqual(candidate.parameters, input.parameters) &&
+        candidate.modelBody === input.modelBody &&
         (!first ||
           candidate.createdAt < first.createdAt ||
           (candidate.createdAt === first.createdAt &&
@@ -197,7 +202,11 @@ export class FileProjectRecords {
         join(this.paths.candidateRoot(projectId, candidateId), "model.scad"),
         "utf8",
       );
-      checkedParameterSnapshot(source, candidate.parameters);
+      checkedStoredModelDocument(
+        source,
+        candidate.modelBody,
+        candidate.parameters,
+      );
       return candidate;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {
@@ -237,6 +246,7 @@ export class FileProjectRecords {
         }
         if (
           candidate.sourceHash !== manifest.sourceHash ||
+          candidate.modelBody !== manifest.modelBody ||
           !parameterSnapshotsEqual(candidate.parameters, manifest.parameters)
         ) {
           throw new CadDomainError(

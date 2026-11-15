@@ -161,3 +161,23 @@ void test("preview images keep their separate full-envelope byte limit", async (
     }
   }
 });
+
+void test("generated model reads retain editable body and parameters without an assembled-source copy", async () => {
+  const { source, ...metadata } = sourceDocument("x");
+  const value = {
+    model: {
+      ...metadata,
+      modelBody: source.slice(source.indexOf("cube(p0);")),
+    },
+  };
+  for (const structured of [true, false]) {
+    const result: CallToolResult = {
+      content: [{ type: "text", text: JSON.stringify(value) }],
+      ...(structured ? { structuredContent: value } : {}),
+    };
+    const actual = await callToolWithResult(result);
+    assert.equal(actual.isError, undefined, JSON.stringify(actual.content));
+    assert.deepEqual(actual.structuredContent, value);
+    assert.deepEqual(actual.content, result.content);
+  }
+});

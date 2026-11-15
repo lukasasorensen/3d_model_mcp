@@ -11,9 +11,8 @@ import {
   type RevisionManifest,
   type UpdateProjectInput,
 } from "@theoryfoundry/contracts";
-import { checkedParameterSnapshot } from "../../../shared/utils/parameterSnapshot.util.js";
+import { resolveModelDocument } from "../../../shared/utils/parameterSnapshot.util.js";
 import { randomUUID } from "node:crypto";
-import { assertSourcePolicy } from "../../../shared/utils/sourcePolicy.util.js";
 import type { ProjectWorkflowOptions } from "../projectRepository.types.js";
 import type { ModelSourceService } from "../services/modelSource.service.js";
 
@@ -167,7 +166,6 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
   }
 
   async proposeModelSource(input: ModelProposal): Promise<CandidateRecord> {
-    assertSourcePolicy(input.source);
     return this.persistence.transaction(async (transaction) => {
       const project = await transaction.requireProject(input.projectId, true);
       const parent = input.parentRevision
@@ -187,11 +185,8 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
             })
         : undefined;
       const parentParameters = parent?.manifest.parameters;
-      const parameters = checkedParameterSnapshot(
-        input.source,
-        input.parameters === undefined ? parentParameters : input.parameters,
-      );
-      const proposal = { ...input, parameters };
+      const document = resolveModelDocument(input, parentParameters);
+      const proposal = { ...input, ...document };
       const existingId = await transaction.findProposalCandidateId(proposal);
       if (existingId)
         return (await transaction.readCandidate(input.projectId, existingId))
@@ -211,8 +206,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         id: candidateId,
         projectId: input.projectId,
         parentRevision: input.parentRevision,
-        source: input.source,
-        parameters,
+        ...document,
         requestId: input.requestId,
         toolCallId: input.toolCallId,
         createdAt: this.clock(),
@@ -317,6 +311,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         parentRevision: project.currentRevision,
         source: persistedCandidate.source,
         parameters: candidate.parameters,
+        modelBody: candidate.modelBody,
         sourceHash: candidate.sourceHash,
         sourceBytes: candidate.sourceBytes,
         requestId: candidate.requestId,
@@ -417,6 +412,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         restoredFromRevision: input.revision,
         source: target.source,
         parameters: target.manifest.parameters,
+        modelBody: target.manifest.modelBody,
         sourceHash: target.manifest.sourceHash,
         sourceBytes: target.manifest.sourceBytes,
         requestId: input.requestId,

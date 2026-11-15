@@ -1,9 +1,44 @@
 import * as z from "zod/v4";
 
-const scalar = z.union([z.string().max(1024), z.number().finite()]);
+const literalString = z
+  .string()
+  .max(1024)
+  .refine(
+    (value) =>
+      [...value].every((character) => {
+        const code = character.charCodeAt(0);
+        return (
+          (code >= 32 || "\n\r\t".includes(character)) &&
+          !(character.length === 1 && code >= 0xd800 && code <= 0xdfff)
+        );
+      }),
+    { message: "String must be representable as an OpenSCAD literal." },
+  );
+const reservedBindings = new Set([
+  "true",
+  "false",
+  "undef",
+  "module",
+  "function",
+  "if",
+  "else",
+  "for",
+  "let",
+  "assert",
+  "echo",
+  "each",
+  "include",
+  "use",
+]);
+const scalar = z.union([literalString, z.number().finite()]);
 const common = {
   id: z.string().regex(/^[A-Za-z0-9_-]{1,100}$/),
-  binding: z.string().regex(/^[A-Za-z_][A-Za-z0-9_]{0,99}$/),
+  binding: z
+    .string()
+    .regex(/^[A-Za-z_][A-Za-z0-9_]{0,99}$/)
+    .refine((name) => !reservedBindings.has(name), {
+      message: "Binding must not be an OpenSCAD keyword.",
+    }),
   label: z.string().trim().min(1).max(200),
   description: z.string().max(2000).optional(),
 };
@@ -35,8 +70,8 @@ export const projectParameterSchema = z
       .object({
         ...common,
         type: z.literal("string"),
-        defaultValue: z.string().max(1024),
-        value: z.string().max(1024),
+        defaultValue: literalString,
+        value: literalString,
         maxLength: z.number().int().min(0).max(1024).optional(),
         control: z.literal("input").optional(),
       })

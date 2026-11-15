@@ -21,16 +21,27 @@ export const readModelSourceInputSchema = z
   .object({ projectId: projectIdSchema, revision: revisionIdSchema.optional() })
   .strict();
 
-export const proposeModelSourceInputSchema = z
+export const modelProposalContentSchema = z
   .object({
     projectId: projectIdSchema,
     parentRevision: revisionIdSchema.nullable(),
-    source: z.string().min(1).max(CAD_LIMITS.sourceBytes),
+    source: z.string().min(1).max(CAD_LIMITS.sourceBytes).optional(),
+    modelBody: z.string().min(1).max(CAD_LIMITS.sourceBytes).optional(),
     parameters: parameterSnapshotSchema.optional(),
+  })
+  .strict()
+  .refine(
+    (input) => (input.source === undefined) !== (input.modelBody === undefined),
+    {
+      message: "Supply exactly one of source or modelBody.",
+    },
+  );
+
+export const proposeModelSourceInputSchema =
+  modelProposalContentSchema.safeExtend({
     requestId: opaqueIdSchema,
     toolCallId: opaqueIdSchema,
-  })
-  .strict();
+  });
 
 export const validateAndRenderInputSchema = z
   .object({
@@ -98,11 +109,19 @@ export const readModelSourceOutputSchema = z
     model: z
       .object({
         revision: revisionIdSchema,
-        source: z.string(),
+        source: z.string().optional(),
+        modelBody: z.string().optional(),
         parameters: parameterSnapshotSchema.optional(),
         sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
       })
-      .strict(),
+      .strict()
+      .refine(
+        (model) =>
+          (model.source === undefined) !== (model.modelBody === undefined),
+        {
+          message: "Model reads contain either source or modelBody.",
+        },
+      ),
   })
   .strict();
 

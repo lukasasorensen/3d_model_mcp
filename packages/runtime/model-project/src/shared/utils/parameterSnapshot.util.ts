@@ -1,137 +1,143 @@
 import {
-  parameterSnapshotSchema,
+  canonicalParameterSnapshot,
   type ProjectParameter,
 } from "@theoryfoundry/contracts";
 import { CadDomainError } from "./cadDomainError.util.js";
-import {
-  parameterTokens,
-  type ParameterToken,
-} from "./parameterTokens.util.js";
+import { parameterTokens } from "./parameterTokens.util.js";
+import { assertSourcePolicy } from "./sourcePolicy.util.js";
 
 export const PARAMETER_HEADER_START = "// theoryfoundry:parameters:start v1";
 export const PARAMETER_HEADER_END = "// theoryfoundry:parameters:end";
 
-/** Storage guard: registered values must agree with literal header declarations. */
-export function checkedParameterSnapshot(
-  source: string,
-  raw: unknown,
-): ProjectParameter[] {
-  const parsed = parameterSnapshotSchema.safeParse(
-    raw === undefined ? [] : raw,
-  );
-  if (!parsed.success)
-    throw new CadDomainError(
-      "INVALID_PARAMETERS",
-      "Invalid parameter definitions or values.",
-      { reason: parsed.error.message.slice(0, 200) },
-    );
-  const parameters = parsed.data.sort((left, right) =>
-    left.id < right.id ? -1 : left.id > right.id ? 1 : 0,
-  );
-  if (!parameters.length) return parameters;
+export function checkedParameterSnapshot(raw: unknown): ProjectParameter[] {
   try {
-    const tokens = parameterTokens(source);
-    const markers = tokens
-      .map((token, index) => ({ token, index }))
-      .filter(
-        ({ token }) =>
-          token.kind === "comment" &&
-          /^\/\/ theoryfoundry:parameters:/.test(token.text),
-      );
-    if (
-      markers.length !== 2 ||
-      markers[0]?.token.text !== PARAMETER_HEADER_START ||
-      markers[1]?.token.text !== PARAMETER_HEADER_END
-    )
-      throw new Error(
-        "Registered parameters require one dedicated v1 parameter header.",
-      );
-    for (const { token } of markers) {
-      const lineStart =
-        Math.max(
-          source.lastIndexOf("\n", token.offset - 1),
-          source.lastIndexOf("\r", token.offset - 1),
-        ) + 1;
-      if (source.slice(lineStart, token.offset).trim())
-        throw new Error("Header markers must occupy their own lines.");
-    }
-    const start = markers[0].index;
-    const end = markers[1].index;
-    if (tokens.slice(0, start).some((token) => token.kind !== "comment"))
-      throw new Error("Parameter header must precede model code.");
-    const header = tokens
-      .slice(start + 1, end)
-      .filter((token) => token.kind !== "comment");
-    const values = new Map<string, string | number | boolean>();
-    let cursor = 0;
-    const take = (): ParameterToken => {
-      const token = header[cursor++];
-      if (!token) throw new Error("Incomplete parameter declaration.");
-      return token;
-    };
-    while (cursor < header.length) {
-      const name = take();
-      if (
-        name.kind !== "identifier" ||
-        !/^[A-Za-z_][A-Za-z0-9_]*$/.test(name.text) ||
-        ["true", "false", "undef"].includes(name.text) ||
-        take().text !== "="
-      )
-        throw new Error("Header must contain scalar literal assignments only.");
-      let literal = take();
-      let sign = 1;
-      if (literal.text === "-" || literal.text === "+") {
-        sign = literal.text === "-" ? -1 : 1;
-        literal = take();
-        if (literal.kind !== "number")
-          throw new Error("Expected a numeric literal after sign.");
-      }
-      let value: string | number | boolean;
-      if (literal.kind === "number") value = sign * Number(literal.text);
-      else if (literal.kind === "string" && literal.validLiteral)
-        value = literal.value!;
-      else if (literal.text === "true" || literal.text === "false")
-        value = literal.text === "true";
-      else throw new Error("Header value must be a scalar literal.");
-      if (typeof value === "number" && !Number.isFinite(value))
-        throw new Error("Header number must be finite.");
-      if (take().text !== ";" || values.has(name.text))
-        throw new Error("Incomplete or duplicate parameter declaration.");
-      values.set(name.text, value);
-    }
-    const body = tokens
-      .slice(end + 1)
-      .filter((token) => token.kind !== "comment");
-    for (const parameter of parameters) {
-      if (
-        !values.has(parameter.binding) ||
-        values.get(parameter.binding) !== parameter.value
-      )
-        throw new Error(
-          `Parameter ${parameter.id} does not match header binding ${parameter.binding}.`,
-        );
-      for (let index = 0; index < body.length; index++)
-        if (
-          body[index]?.text === parameter.binding &&
-          body[index]?.kind === "identifier" &&
-          body[index + 1]?.text === "=" &&
-          body[index + 2]?.text !== "="
-        )
-          throw new Error(
-            `Conflicting assignment to ${parameter.binding} outside the header.`,
-          );
-    }
-    return parameters;
+    return canonicalParameterSnapshot(raw);
   } catch (error) {
-    throw new CadDomainError(
-      "INVALID_PARAMETERS",
-      "Parameter header does not match the snapshot.",
-      {
-        reason:
-          error instanceof Error
-            ? error.message.slice(0, 200)
-            : "Invalid parameter header.",
-      },
+    throw invalidParameters(
+      error instanceof Error ? error.message : "Invalid parameter snapshot.",
     );
   }
+}
+
+/** Structured parameters own declarations; the editable body is never rewritten. */
+export function assembleModelSource(
+  modelBody: string,
+  parameters: ProjectParameter[],
+): string {
+  const declarations = parameters.map(
+    (parameter) => `${parameter.binding} = ${encodeLiteral(parameter.value)};`,
+  );
+  return declarations.length
+    ? `${PARAMETER_HEADER_START}\n${declarations.join("\n")}\n${PARAMETER_HEADER_END}\n${modelBody}`
+    : modelBody;
+}
+
+export function resolveModelDocument(
+  input: {
+    source?: string | undefined;
+    modelBody?: string | undefined;
+    parameters?: unknown;
+  },
+  inherited: unknown,
+): { source: string; modelBody?: string; parameters: ProjectParameter[] } {
+  if ((input.source === undefined) === (input.modelBody === undefined))
+    throw invalidParameters("Supply exactly one of source or modelBody.");
+  const parameters = checkedParameterSnapshot(
+    input.parameters === undefined ? inherited : input.parameters,
+  );
+  if (input.modelBody === undefined) {
+    if (parameters.length)
+      throw invalidParameters(
+        "Parameterized proposals require a separate modelBody.",
+      );
+    assertSourcePolicy(input.source!);
+    return { source: input.source!, parameters };
+  }
+  if (typeof input.modelBody !== "string" || !input.modelBody.length)
+    throw invalidParameters("modelBody must be a nonempty string.");
+  assertBodyBindings(input.modelBody, parameters);
+  const source = assembleModelSource(input.modelBody, parameters);
+  assertSourcePolicy(source);
+  return { source, modelBody: input.modelBody, parameters };
+}
+
+/** Reassembly verifies persisted body/metadata without parsing generated headers. */
+export function checkedStoredModelDocument(
+  source: string,
+  modelBody: string | undefined,
+  raw: unknown,
+): ProjectParameter[] {
+  const parameters = checkedParameterSnapshot(raw);
+  if (
+    modelBody !== undefined &&
+    assembleModelSource(modelBody, parameters) !== source
+  )
+    throw new CadDomainError(
+      "CORRUPT_PROJECT",
+      "Stored source disagrees with its body and parameters.",
+    );
+  return parameters;
+}
+
+function assertBodyBindings(
+  body: string,
+  parameters: ProjectParameter[],
+): void {
+  // Conservative body conflict guard, not a parser/editor for generated headers.
+  if (!parameters.length) return;
+  try {
+    const tokens = parameterTokens(body);
+    if (
+      tokens.some(
+        (token) =>
+          token.kind === "comment" &&
+          token.text.startsWith("// theoryfoundry:parameters:"),
+      )
+    )
+      throw new Error("modelBody must not contain a managed parameter header.");
+    const code = tokens.filter((token) => token.kind !== "comment");
+    const bindings = new Set(parameters.map((parameter) => parameter.binding));
+    for (let index = 0; index < code.length; index++)
+      if (
+        code[index]?.kind === "identifier" &&
+        bindings.has(code[index]!.text) &&
+        code[index + 1]?.text === "=" &&
+        code[index + 2]?.text !== "="
+      )
+        throw new Error(
+          `Conflicting assignment to ${code[index]!.text} in modelBody.`,
+        );
+  } catch (error) {
+    throw invalidParameters(
+      error instanceof Error ? error.message : "Invalid model body.",
+    );
+  }
+}
+
+function encodeLiteral(value: string | number | boolean): string {
+  if (typeof value !== "string") return String(value);
+  let encoded = '"';
+  const escapes: Record<string, string> = {
+    '"': '\\"',
+    "\\": "\\\\",
+    "\n": "\\n",
+    "\r": "\\r",
+    "\t": "\\t",
+  };
+  for (const character of value) {
+    if (character.charCodeAt(0) < 32 && !(character in escapes))
+      throw invalidParameters(
+        "String values contain an unsupported control character.",
+      );
+    encoded += escapes[character] ?? character;
+  }
+  return `${encoded}"`;
+}
+
+function invalidParameters(reason: string): CadDomainError {
+  return new CadDomainError(
+    "INVALID_PARAMETERS",
+    "Invalid parameters or model body.",
+    { reason: reason.slice(0, 200) },
+  );
 }

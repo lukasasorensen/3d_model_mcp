@@ -22,7 +22,7 @@ import { type exportReceiptSchema } from "./export.schema.js";
 
 export type ModelSourceDocument = z.infer<
   typeof readModelSourceOutputSchema
->["model"];
+>["model"] & { source: string };
 
 export type CandidateState = z.infer<typeof candidateStateSchema>;
 

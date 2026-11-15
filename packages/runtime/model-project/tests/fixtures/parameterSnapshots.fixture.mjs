@@ -15,6 +15,7 @@ export const width = {
   control: "slider",
   unit: "mm",
 };
+export const modelBody = "cube([width,10,5]);";
 export const source = (value = 20) =>
   `// theoryfoundry:parameters:start v1\nwidth = ${value};\n// theoryfoundry:parameters:end\ncube([width,10,5]);`;
 
@@ -25,7 +26,8 @@ export async function memoryPool(beforeLastMigration) {
     await readFile(new URL("meta/_journal.json", directory), "utf8"),
   );
   for (const entry of entries) {
-    if (entry === entries.at(-1)) await beforeLastMigration?.(database);
+    if (entry.tag === "0017_parameter-snapshots")
+      await beforeLastMigration?.(database);
     await database.exec(
       await readFile(new URL(`${entry.tag}.sql`, directory), "utf8"),
     );
@@ -60,19 +62,27 @@ export async function exerciseSnapshots(makeRepository) {
   const input = {
     projectId,
     parentRevision: null,
-    source: source(),
+    modelBody,
     parameters: [width],
     requestId: "first",
     toolCallId: "first",
   };
   const candidate = await repository.proposeModelSource(input);
   assert.deepEqual(candidate.parameters, [width]);
+  assert.equal(candidate.modelBody, modelBody);
   assert.deepEqual(await repository.proposeModelSource(input), candidate);
   const relabeled = await repository.proposeModelSource({
     ...input,
     parameters: [{ ...width, label: "Bracket width" }],
   });
   assert.notEqual(relabeled.candidateId, candidate.candidateId);
+  // A value change regenerates source while preserving the exact editable body.
+  const changedValue = await repository.proposeModelSource({
+    ...input,
+    parameters: [{ ...width, value: 30 }],
+  });
+  assert.notEqual(changedValue.sourceHash, candidate.sourceHash);
+  assert.equal(changedValue.modelBody, modelBody);
   const first = await accept(repository, candidate);
   assert.deepEqual(first.parameters, [width]);
   assert.deepEqual(
@@ -103,14 +113,13 @@ export async function exerciseSnapshots(makeRepository) {
       ...input,
       parentRevision: first.revisionId,
       parameters: undefined,
-      source: source(30),
+      modelBody: "width=30; cube(width);",
       requestId: "bad-inherit",
     }),
     { code: "INVALID_PARAMETERS" },
   );
   for (const parameters of [
     null,
-    [{ ...width, value: 30 }],
     [{ ...width, value: "20" }],
     [{ ...width, defaultValue: 200 }],
     [width, width],
@@ -131,7 +140,7 @@ export async function exerciseSnapshots(makeRepository) {
   const changed = await repository.proposeModelSource({
     ...input,
     parentRevision: first.revisionId,
-    source: source(30),
+    modelBody,
     parameters: [{ ...width, value: 30 }],
     requestId: "changed",
   });
@@ -164,10 +173,15 @@ export async function exerciseSnapshots(makeRepository) {
   assert.deepEqual(restored.parameters, [width]);
   assert.equal(restored.parentRevision, second.revisionId);
   assert.equal((await repository.readModelSource(projectId)).source, source());
+  assert.equal(
+    (await repository.readModelSource(projectId)).modelBody,
+    modelBody,
+  );
   const clear = await repository.proposeModelSource({
     ...input,
     parentRevision: restored.revisionId,
     parameters: [],
+    modelBody: "cube([30,10,5]);",
     requestId: "remove",
   });
   const cleared = await accept(repository, clear);
@@ -176,6 +190,29 @@ export async function exerciseSnapshots(makeRepository) {
     (await repository.getProjectState(projectId)).parameters,
     undefined,
   );
-  assert.equal((await repository.readModelSource(projectId)).source, source());
+  assert.equal(
+    (await repository.readModelSource(projectId)).source,
+    "cube([30,10,5]);",
+  );
+  assert.equal(
+    (await repository.readModelSource(projectId)).modelBody,
+    "cube([30,10,5]);",
+  );
+  const plain = {
+    projectId,
+    parentRevision: cleared.revisionId,
+    source: "cube(1);",
+    parameters: [],
+    requestId: "mode",
+    toolCallId: "mode",
+  };
+  const legacyCandidate = await repository.proposeModelSource(plain);
+  const generatedCandidate = await repository.proposeModelSource({
+    ...plain,
+    source: undefined,
+    modelBody: "cube(1);",
+  });
+  assert.notEqual(legacyCandidate.candidateId, generatedCandidate.candidateId);
+  assert.equal(legacyCandidate.sourceHash, generatedCandidate.sourceHash);
   return { projectId, first, candidate };
 }
