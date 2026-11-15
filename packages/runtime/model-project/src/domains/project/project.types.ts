@@ -1,5 +1,6 @@
 import type {
   ArtifactManifest,
+  ProjectParameter,
   Diagnostic,
   ProjectSummary,
 } from "@theoryfoundry/contracts";
@@ -7,7 +8,9 @@ import type {
 export interface ModelProposal {
   projectId: string;
   parentRevision: string | null;
-  source: string;
+  source?: string | undefined;
+  modelBody?: string | undefined;
+  parameters?: ProjectParameter[] | undefined;
   requestId: string;
   toolCallId: string;
 }
@@ -21,6 +24,7 @@ export interface ProjectState {
   projectId: string;
   currentRevision: string | null;
   source: { hash: string; byteSize: number } | null;
+  parameters?: ProjectParameter[] | undefined;
   artifacts: ArtifactManifest[];
   diagnostics: Diagnostic[];
 }

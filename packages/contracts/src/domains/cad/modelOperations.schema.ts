@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { parameterSnapshotSchema } from "./parameter.schema.js";
 import {
   projectIdSchema,
   revisionIdSchema,
@@ -20,15 +21,27 @@ export const readModelSourceInputSchema = z
   .object({ projectId: projectIdSchema, revision: revisionIdSchema.optional() })
   .strict();
 
-export const proposeModelSourceInputSchema = z
+export const modelProposalContentSchema = z
   .object({
     projectId: projectIdSchema,
     parentRevision: revisionIdSchema.nullable(),
-    source: z.string().min(1).max(CAD_LIMITS.sourceBytes),
+    source: z.string().min(1).max(CAD_LIMITS.sourceBytes).optional(),
+    modelBody: z.string().min(1).max(CAD_LIMITS.sourceBytes).optional(),
+    parameters: parameterSnapshotSchema.optional(),
+  })
+  .strict()
+  .refine(
+    (input) => (input.source === undefined) !== (input.modelBody === undefined),
+    {
+      message: "Supply exactly one of source or modelBody.",
+    },
+  );
+
+export const proposeModelSourceInputSchema =
+  modelProposalContentSchema.safeExtend({
     requestId: opaqueIdSchema,
     toolCallId: opaqueIdSchema,
-  })
-  .strict();
+  });
 
 export const validateAndRenderInputSchema = z
   .object({
@@ -83,6 +96,7 @@ export const projectStateSchema = z
       .nullable(),
     artifacts: z.array(artifactManifestSchema).max(8),
     diagnostics: z.array(diagnosticSchema).max(CAD_LIMITS.diagnosticCount),
+    parameters: parameterSnapshotSchema.optional(),
   })
   .strict();
 
@@ -95,23 +109,32 @@ export const readModelSourceOutputSchema = z
     model: z
       .object({
         revision: revisionIdSchema,
-        source: z.string(),
+        source: z.string().optional(),
+        modelBody: z.string().optional(),
+        parameters: parameterSnapshotSchema.optional(),
         sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
       })
-      .strict(),
+      .strict()
+      .refine(
+        (model) =>
+          (model.source === undefined) !== (model.modelBody === undefined),
+        {
+          message: "Model reads contain either source or modelBody.",
+        },
+      ),
   })
   .strict();
 
 export const proposeModelSourceOutputSchema = z
-  .object({ candidate: candidateRecordSchema })
+  .object({ candidate: candidateRecordSchema.omit({ modelBody: true }) })
   .strict();
 
 export const validateAndRenderOutputSchema = z
-  .object({ candidate: candidateRecordSchema })
+  .object({ candidate: candidateRecordSchema.omit({ modelBody: true }) })
   .strict();
 
 export const promoteCandidateOutputSchema = z
-  .object({ revision: revisionManifestSchema })
+  .object({ revision: revisionManifestSchema.omit({ modelBody: true }) })
   .strict();
 
 export const exportModelOutputSchema = z
@@ -125,5 +148,5 @@ export const listRevisionsOutputSchema = z
   .strict();
 
 export const restoreRevisionOutputSchema = z
-  .object({ revision: revisionManifestSchema })
+  .object({ revision: revisionManifestSchema.omit({ modelBody: true }) })
   .strict();

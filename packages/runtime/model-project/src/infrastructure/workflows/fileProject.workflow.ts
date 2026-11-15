@@ -1,5 +1,6 @@
 import {
   CONTRACT_VERSION,
+  parameterSnapshotFields,
   candidateRecordSchema,
   createProjectInputSchema,
   isBrowserRendererProvenance,
@@ -22,7 +23,7 @@ import type {
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
-import { assertSourcePolicy } from "../../shared/utils/sourcePolicy.util.js";
+import { resolveModelDocument } from "../../shared/utils/parameterSnapshot.util.js";
 import { VALIDATION_POLICY_VERSION } from "../../shared/validation.constants.js";
 import type {
   DurableFiles,
@@ -88,14 +89,35 @@ export class FileProjectWorkflow {
     return this.records.readCandidate(projectId, candidateId);
   }
   async proposeModelSource(input: ModelProposal): Promise<CandidateRecord> {
-    assertSourcePolicy(input.source);
     return this.locks.withProjectLock(
       input.projectId,
       "promotion",
       async () => {
         // Recover any committed promotion before returning the candidate's state.
         const current = await this.records.readCurrent(input.projectId);
-        const existing = await this.records.findProposalCandidate(input);
+        const parent = input.parentRevision
+          ? await this.records
+              .readManifest(input.projectId, input.parentRevision)
+              .catch((error: unknown) => {
+                if (
+                  error instanceof CadDomainError &&
+                  error.code === "REVISION_NOT_FOUND" &&
+                  current !== input.parentRevision
+                )
+                  throw new CadDomainError(
+                    "STALE_REVISION",
+                    "Candidate parent is not the current revision.",
+                  );
+                throw error;
+              })
+          : undefined;
+        const parentParameters = parent?.parameters;
+        const document = resolveModelDocument(input, parentParameters);
+        const { source, parameters } = document;
+        const existing = await this.records.findProposalCandidate({
+          ...input,
+          ...document,
+        });
         if (existing) return existing;
         if (input.parentRevision !== current) {
           throw new CadDomainError(
@@ -115,14 +137,18 @@ export class FileProjectWorkflow {
         const candidateId = this.createId();
         const root = this.paths.candidateRoot(input.projectId, candidateId);
         await mkdir(root, { recursive: false });
-        const sourceBytes = Buffer.byteLength(input.source);
+        const sourceBytes = Buffer.byteLength(source);
         const now = this.clock().toISOString();
         const candidate = candidateRecordSchema.parse({
           version: CONTRACT_VERSION,
           projectId: input.projectId,
           candidateId,
           parentRevision: input.parentRevision,
-          sourceHash: sha256(input.source),
+          ...parameterSnapshotFields(parameters),
+          ...(document.modelBody !== undefined
+            ? { modelBody: document.modelBody }
+            : {}),
+          sourceHash: sha256(source),
           sourceBytes,
           state: "CREATED",
           createdAt: now,
@@ -132,7 +158,7 @@ export class FileProjectWorkflow {
           diagnostics: [],
           artifacts: [],
         });
-        await this.files.writeDurable(join(root, "model.scad"), input.source);
+        await this.files.writeDurable(join(root, "model.scad"), source);
         await this.files.writeAtomic(
           join(root, "candidate.json"),
           safeJson(candidate),
@@ -224,6 +250,8 @@ export class FileProjectWorkflow {
           parentRevision: current,
           candidateId: candidate.candidateId,
           source,
+          ...parameterSnapshotFields(candidate.parameters),
+          modelBody: candidate.modelBody,
           sourceHash: candidate.sourceHash,
           requestId: candidate.requestId,
           toolCallId: candidate.toolCallId,
@@ -319,6 +347,8 @@ export class FileProjectWorkflow {
           restoredFrom: input.revision,
           candidateId,
           source,
+          ...parameterSnapshotFields(target.parameters),
+          modelBody: target.modelBody,
           sourceHash: target.sourceHash,
           requestId: input.requestId,
           toolCallId: input.toolCallId,

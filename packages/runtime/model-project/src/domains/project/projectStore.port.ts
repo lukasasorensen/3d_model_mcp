@@ -1,5 +1,6 @@
 import type {
   CandidateRecord,
+  ModelSourceDocument,
   CreateProjectInput,
   RevisionManifest,
   UpdateProjectInput,
@@ -29,7 +30,7 @@ export interface ModelProjectStore {
   readModelSource(
     projectId: string,
     revision?: string,
-  ): Promise<{ revision: string; source: string; sourceHash: string }>;
+  ): Promise<ModelSourceDocument>;
   listRevisions(projectId: string): Promise<RevisionManifest[]>;
   proposeModelSource(input: ModelProposal): Promise<CandidateRecord>;
   validateAndRender(input: {

@@ -3,7 +3,7 @@ import {
   getProjectStateInputSchema,
   listRevisionsInputSchema,
   promoteCandidateInputSchema,
-  proposeModelSourceInputSchema,
+  modelProposalContentSchema,
   readModelSourceInputSchema,
   restoreRevisionInputSchema,
   validateAndRenderInputSchema,
@@ -33,16 +33,15 @@ export const toolSpecs = [
   },
   {
     name: "read_model_source",
-    description: "Read canonical source for a revision.",
+    description:
+      "Read editable modelBody plus parameters for generated documents, or legacy source, at a revision. sourceHash identifies assembled render source.",
     schema: readModelSourceInputSchema,
   },
   {
     name: "propose_model_source",
-    description: "Propose bounded OpenSCAD source against a parent revision.",
-    schema: proposeModelSourceInputSchema.omit({
-      requestId: true,
-      toolCallId: true,
-    }),
+    description:
+      "Propose against the exact parent. Supply modelBody plus structured parameters for a generated read-only header, or legacy source for an unparameterized model. Supply exactly one of source/modelBody; omitted parameters inherit the named parent, [] removes declarations. Never edit generated literals; coordinate body changes for removal/rename.",
+    schema: modelProposalContentSchema,
   },
   {
     name: "validate_and_render",

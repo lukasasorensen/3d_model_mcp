@@ -139,8 +139,9 @@ export async function* streamCadChat(
               ...(rawInput as Record<string, unknown>),
               projectId: request.projectId,
             };
-            if (typeof input.source === "string")
-              sensitiveValues.add(input.source);
+            for (const key of ["source", "modelBody"] as const)
+              if (typeof input[key] === "string")
+                sensitiveValues.add(input[key]);
             if (
               spec.name === "propose_model_source" ||
               spec.name === "restore_revision"
@@ -338,11 +339,10 @@ export async function* streamCadChat(
                   },
                 });
             }
-            const modelSource = (
-              result.structuredContent.model as { source?: unknown } | undefined
-            )?.source;
-            if (typeof modelSource === "string")
-              sensitiveValues.add(modelSource);
+            const model = result.structuredContent.model as
+              { source?: unknown; modelBody?: unknown } | undefined;
+            for (const value of [model?.source, model?.modelBody])
+              if (typeof value === "string") sensitiveValues.add(value);
             if (spec.name === "export_model") {
               const receipt = exportReceiptSchema.parse(
                 result.structuredContent.export,
