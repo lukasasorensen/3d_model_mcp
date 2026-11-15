@@ -88,8 +88,9 @@ test("omission inherits the named parent snapshot; [] removes generated declarat
     header("width = -20.5;"),
   );
   assert.equal(
-    resolveModelDocument({ modelBody, parameters: [] }, [width]).source,
-    modelBody,
+    resolveModelDocument({ modelBody: "cube(20);", parameters: [] }, [width])
+      .source,
+    "cube(20);",
   );
   assert.deepEqual(resolveModelDocument({ source: "cube(1);" }), {
     source: "cube(1);",
@@ -224,6 +225,81 @@ test("parameter validation failures fit the public error contract", () => {
       assert.ok(
         error.details.reason.length > 0 && error.details.reason.length <= 200,
       );
+      return true;
+    },
+  );
+});
+
+test("generation v1 canonicalizes finite numeric extremes and leaves metadata out of source", () => {
+  for (const value of [
+    -0,
+    -2.5,
+    1e-7,
+    1e21,
+    2.2250738585072014e-308,
+    Number.MAX_VALUE,
+  ]) {
+    const input = { modelBody, parameters: [{ ...width, value }] };
+    const document = resolveModelDocument(input);
+    assert.equal(document.source, header(`width = ${String(value)};`));
+    assert.equal(
+      resolveModelDocument({
+        ...input,
+        parameters: [
+          { ...width, value, label: "New label", description: "ignored" },
+        ],
+      }).source,
+      document.source,
+    );
+    assert.equal(document.modelBody, modelBody);
+  }
+});
+
+test("subnormal proposal values fail with a field path while historical v1 documents remain readable", () => {
+  for (const value of [Number.MIN_VALUE, -1e-308]) {
+    for (const key of ["value", "defaultValue"])
+      assert.throws(
+        () =>
+          resolveModelDocument({
+            modelBody,
+            parameters: [{ ...width, [key]: value }],
+          }),
+        (error) => {
+          assert.match(
+            error.details.reason,
+            new RegExp(`parameters\\.0\\.${key}: Nonzero`),
+          );
+          return true;
+        },
+      );
+    assert.deepEqual(
+      checkedStoredModelDocument(header(`width = ${value};`), modelBody, [
+        { ...width, value },
+      ]),
+      [{ ...width, value }],
+    );
+  }
+  assert.throws(
+    () =>
+      resolveModelDocument({
+        modelBody,
+        parameters: [
+          {
+            id: "mode",
+            binding: "mode",
+            label: "Mode",
+            type: "enum",
+            value: 1,
+            defaultValue: 1,
+            options: [
+              { label: "One", value: 1 },
+              { label: "Tiny", value: 1e-308 },
+            ],
+          },
+        ],
+      }),
+    (error) => {
+      assert.match(error.details.reason, /parameters\.0\.options\.1\.value/);
       return true;
     },
   );

@@ -1,5 +1,11 @@
 export interface ParameterToken {
-  kind: "comment" | "string" | "number" | "identifier" | "punctuation";
+  kind:
+    | "comment"
+    | "string"
+    | "number"
+    | "identifier"
+    | "punctuation"
+    | "reference";
   text: string;
   offset: number;
   value?: string;
@@ -24,6 +30,18 @@ export function parameterTokens(source: string): ParameterToken[] {
       continue;
     }
     if (rest.startsWith("/*")) throw new Error("Unterminated source comment.");
+    const reference = /^(include|use)[ \t\r\n]*<[^>]*>/.exec(rest);
+    if (reference) {
+      const keyword = reference[1]!;
+      tokens.push({ kind: "identifier", text: keyword, offset: position });
+      tokens.push({
+        kind: "reference",
+        text: reference[0].slice(keyword.length),
+        offset: position + keyword.length,
+      });
+      position += reference[0].length;
+      continue;
+    }
     if (rest[0] === '"') {
       const offset = position;
       let text = '"';

@@ -115,3 +115,25 @@ test("additive migration preserves legacy candidate rows and defaults snapshots 
     await pool.end();
   }
 });
+
+test("PostgreSQL adoption, binding changes and unsuccessful renders preserve the accepted document", async () => {
+  const pool = await memoryPool();
+  try {
+    await pool.query(
+      `INSERT INTO "user" (id,name,email) VALUES ('bindings-owner','Bindings','bindings@example.test')`,
+    );
+    const { exerciseParameterValidation } =
+      await import("../../../fixtures/parameterValidation.fixture.mjs");
+    await exerciseParameterValidation(
+      (renderer) =>
+        new PostgresModelProjectRepository({
+          pool,
+          ownerId: "bindings-owner",
+          renderer,
+          acceptRendererProvenance: () => true,
+        }),
+    );
+  } finally {
+    await pool.end();
+  }
+});

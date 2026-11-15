@@ -1,4 +1,4 @@
-# Generated parameter documents (THE-52)
+# Generated parameter documents (THE-52 / THE-53)
 
 Parameter JSON owns declarations. Each immutable candidate/revision stores the
 editable model body separately from the complete generated OpenSCAD source and its
@@ -59,23 +59,45 @@ policy. Generating a header cannot bypass the complete-source size limit.
 ## Body ownership and conflicts
 
 The generated header is read-only. `modelBody` contains modeling code, derived
-expressions and permitted includes, without managed header declarations. The server
+expressions and permitted library imports, without managed header declarations. The server
 does not parse the generated header or search/replace literals. Stored generated
 documents are checked by deterministic reassembly from body and JSON.
 
-A separate conservative token scan still checks the body for conflicting assignments
-to registered names, ignoring comments and strings. It also rejects managed header
-markers in parameterized bodies. Same-name local assignments, module defaults and
-named arguments are currently rejected. This scan is not scope analysis, does not
-resolve included libraries and cannot prove that a variable affects geometry.
-THE-53 owns broader diagnostics, explicit legacy adoption and refinement of this
-conflict policy. The exact assembled source still needs pinned-renderer validation
-before promotion. A successful render is not proof of geometric influence.
+THE-53 applies a conservative lexical policy to every proposal, including inherited
+snapshots. It does not resolve scopes or discover arbitrary model variables:
 
-Removing or renaming a definition removes or renames its generated declaration.
-Coordinate body edits explicitly when references need changing; the server does
-not silently preserve an untracked literal or rewrite references. Failed renders
-and stale parents retain the previous accepted source, body and values.
+- Reject assignments to managed names anywhere, including local scopes, `let`,
+  loops, comprehensions, defaults and named call arguments. Use distinct local
+  names or positional call arguments. Equality comparisons remain allowed.
+- Reject managed names in module/function formal arguments, including arguments
+  without defaults and anonymous functions. Other locals and derived expressions
+  remain allowed.
+- Reject `include` while parameters exist because included declarations can
+  overwrite generated values. Use a permitted `use <BOSL2/...>` import when only
+  module/function definitions are needed, or supply a self-contained body.
+  Libraries that require `include` initialization are not supported in managed
+  documents under this policy. Legacy source-only models remain usable.
+- Reject managed header markers even with an empty snapshot or legacy `source`
+  input. Adoption is explicit: supply `modelBody` without the header or conflicting
+  declarations and parameter JSON; nothing is automatically stripped or registered.
+- Removing or renaming a binding rejects any remaining identifier with that old
+  name in the body, even local arguments or explicit unmanaged assignments. Update
+  those names/references explicitly in the same proposal. Strings, comments and
+  import paths do not count. No literals or references are silently preserved or
+  rewritten. Renaming an ID while retaining its binding does not remove a binding.
+
+`INVALID_PARAMETERS` includes a concise JSON path for invalid metadata/values.
+Body conflicts include a diagnostic code, binding when applicable, and one-based
+body line/column (UTF-16 code units; LF advances lines). Lexical errors identify
+unterminated strings/comments. OpenSCAD compile/assertion diagnostics refer to the
+exact assembled source: with N definitions, body line 1 is assembled line N + 3.
+The generation policy does not claim that a successfully rendered parameter
+influences geometry, nor that library internals have been analyzed.
+
+The pinned renderer validates the exact assembled source before promotion. Failed,
+rejected or cancelled renders and stale parents retain the previous accepted source,
+body and values together. Historical restore copies stored source rather than
+applying newer proposal restrictions to old revisions.
 
 ## Inheritance, retry and restore
 
@@ -128,6 +150,32 @@ or header parsing; adoption into generated documents is explicit. New generated
 records verify that reassembly agrees exactly with persisted source. Older strict
 clients must upgrade before using generated/parameterized documents.
 
+## Generation version 1
+
+The persisted header marker is `// theoryfoundry:parameters:start v1`. Definitions
+are sorted by stable ID using code-unit order. Each binding uses ASCII
+`[A-Za-z_][A-Za-z0-9_]{0,99}`, excluding OpenSCAD keywords; special `$` variables
+cannot be managed. Declarations use one space on either side of `=`, a semicolon
+and LF separators. The end marker and one LF precede the unchanged body. Empty
+snapshots produce the body alone. Labels/defaults do not enter source.
+
+Numbers use JavaScript's deterministic finite-number string representation,
+including signed decimals and exponents; negative zero canonicalizes to `0`.
+New proposals reject nonzero magnitudes below `2.2250738585072014e-308` in
+current/default values and numeric enum options: the pinned OpenSCAD lexer rejects
+subnormal literals. Historical snapshots retain their original bytes and readability.
+Booleans use `true`/`false`. String literals escape quotes, backslashes, newline,
+carriage return and tab; Unicode scalar values are retained without normalization.
+Other C0 controls and lone surrogates are rejected. The schema and exact generated
+source both remain subject to their existing bounds and source policy.
+
+Version 1 byte generation is frozen: changes to emitted bytes require an explicit
+version/migration design that preserves historical reads, hashes and restore. The
+THE-53 proposal checks do not change generation bytes or the render policy version.
+OpenSCAD's [lexer](https://github.com/openscad/openscad/blob/master/src/core/lexer.l)
+is supporting syntax reference; acceptance against the pinned renderer is the
+compatibility check, independent of changes on upstream master.
+
 ## Migration and delivery
 
 Apply both additive migrations before starting updated server code:
@@ -175,3 +223,30 @@ is local renderer evidence, not live database, deployment or authenticated UI
 acceptance. Reproduction/report: `/private/tmp/generated-header-acceptance.mjs`
 and `/private/tmp/generated-header-acceptance.json`; the findings above do not
 require those temporary artifacts to remain available.
+
+## THE-53 delivery and repeatable acceptance
+
+Versions relative to develop: root/hosted/local plugins 0.9.0 → 0.10.0 and
+model-project 0.6.0 → 0.7.0. No new migration, renderer pin, environment variable,
+or worker version is needed; THE-52's migrations remain prerequisites.
+
+Run `pnpm acceptance:parameters` with the pinned Node version and installed
+Playwright Chromium. The checked-in harness exercises the real filesystem
+proposal/validation/promotion path with pinned OpenSCAD WASM and independently
+parses STL/3MF geometry. It checks scalar encoding (including Unicode and finite
+numeric extremes), unchanged bodies, assertion/syntax diagnostics, cancellation,
+stale promotion and unused parameters. It writes provenance and observations to
+`dist/parameter-acceptance/report.json` and cleans up its disposable workspace.
+This command is separate from `pnpm verify`; it needs a sandboxed Chromium process
+and a loopback server. Ordinary regressions cover both filesystem and PGlite
+adapters, including explicit legacy adoption, removal/rename and atomic failures.
+
+Local THE-53 acceptance passed on November 15, 2026 with OpenSCAD 2026.07.20,
+BOSL2 v2.0.741 and Chromium 149.0.7827.55 (sandbox enabled, zero external requests).
+Widths 30 and 40 produced independently parsed 30 × 10 × 5 and 40 × 10 × 5
+STL/3MF bounds. Unicode/escape assertions, normal numeric extremes, allowed `use`,
+removal/rename, assertion/syntax rejection, in-flight cancellation, stale promotion
+and unused-parameter rendering all passed. Subnormal values reproduced the pinned
+lexer failure and are now rejected before persistence. These are local renderer and
+fixture results; real PostgreSQL, deployment and authenticated live acceptance
+remain separate. Full verification and hosted CI are recorded in the PR.

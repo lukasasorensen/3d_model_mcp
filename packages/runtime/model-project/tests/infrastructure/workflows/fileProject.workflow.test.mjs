@@ -70,3 +70,18 @@ test("filesystem candidates and revisions retain parameter snapshots across reop
     );
   });
 });
+
+test("filesystem adoption, binding changes and unsuccessful renders preserve the accepted document", async () => {
+  await withWorkspace(async (workspaceRoot) => {
+    const { exerciseParameterValidation } =
+      await import("../../fixtures/parameterValidation.fixture.mjs");
+    await exerciseParameterValidation(
+      (renderer) =>
+        new ModelProjectRepository({
+          workspaceRoot,
+          renderer,
+          acceptRendererProvenance: () => true,
+        }),
+    );
+  });
+});
