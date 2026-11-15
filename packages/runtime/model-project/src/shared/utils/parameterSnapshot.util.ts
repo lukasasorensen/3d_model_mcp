@@ -36,6 +36,7 @@ export function assembleModelSource(
     : modelBody;
 }
 
+/** Resolve immutable retry identity; validate new proposals after retry lookup. */
 export function resolveModelDocument(
   input: {
     source?: string | undefined;
@@ -51,22 +52,30 @@ export function resolveModelDocument(
     input.parameters === undefined
       ? previous
       : checkedParameterSnapshot(input.parameters);
-  assertRenderableParameters(parameters);
   if (input.modelBody === undefined) {
     if (parameters.length)
       throw invalidParameters(
         "Parameterized proposals require a separate modelBody.",
       );
-    assertSourcePolicy(input.source!);
-    assertParameterBody(input.source!, parameters, previous);
     return { source: input.source!, parameters };
   }
   if (typeof input.modelBody !== "string" || !input.modelBody.length)
     throw invalidParameters("modelBody must be a nonempty string.");
   const source = assembleModelSource(input.modelBody, parameters);
-  assertSourcePolicy(source);
-  assertParameterBody(input.modelBody, parameters, previous);
   return { source, modelBody: input.modelBody, parameters };
+}
+
+export function assertNewModelDocument(
+  document: ReturnType<typeof resolveModelDocument>,
+  inherited: unknown,
+): void {
+  assertRenderableParameters(document.parameters);
+  assertSourcePolicy(document.source);
+  assertParameterBody(
+    document.modelBody ?? document.source,
+    document.parameters,
+    checkedParameterSnapshot(inherited),
+  );
 }
 
 /** Reassembly verifies persisted body/metadata without parsing generated headers. */
@@ -90,7 +99,7 @@ export function checkedStoredModelDocument(
 // The pinned OpenSCAD lexer rejects subnormal literals. Apply this only to new
 // proposals: historical documents retain their v1 bytes and remain readable.
 function assertRenderableParameters(parameters: ProjectParameter[]): void {
-  parameters.forEach((parameter, index) => {
+  parameters.forEach((parameter) => {
     const values: [string, unknown][] = [
       ["value", parameter.value],
       ["defaultValue", parameter.defaultValue],
@@ -106,7 +115,12 @@ function assertRenderableParameters(parameters: ProjectParameter[]): void {
         Math.abs(value) < 2.2250738585072014e-308
       )
         throw invalidParameters(
-          `parameters.${index}.${path}: Nonzero magnitudes below 2.2250738585072014e-308 are unsupported by the pinned OpenSCAD lexer.`,
+          `${path}: Nonzero magnitudes below 2.2250738585072014e-308 are unsupported by the pinned OpenSCAD lexer.`,
+          {
+            parameterId: parameter.id,
+            binding: parameter.binding,
+            field: path,
+          },
         );
   });
 }
@@ -131,10 +145,13 @@ function encodeLiteral(value: string | number | boolean): string {
   return `${encoded}"`;
 }
 
-function invalidParameters(reason: string): CadDomainError {
+function invalidParameters(
+  reason: string,
+  details: Record<string, string> = {},
+): CadDomainError {
   return new CadDomainError(
     "INVALID_PARAMETERS",
     "Invalid parameters or model body.",
-    { reason: reason.slice(0, 200) },
+    { reason: reason.slice(0, 200), ...details },
   );
 }

@@ -2,11 +2,18 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CAD_LIMITS, cadErrorSchema } from "@theoryfoundry/contracts";
 import {
-  resolveModelDocument,
+  resolveModelDocument as resolveIdentity,
+  assertNewModelDocument,
   checkedStoredModelDocument,
   PARAMETER_HEADER_START as start,
   PARAMETER_HEADER_END as end,
 } from "../../../dist/shared/utils/parameterSnapshot.util.js";
+
+function resolveModelDocument(input, inherited) {
+  const document = resolveIdentity(input, inherited);
+  assertNewModelDocument(document, inherited);
+  return document;
+}
 
 const width = {
   id: "width",
@@ -265,10 +272,7 @@ test("subnormal proposal values fail with a field path while historical v1 docum
             parameters: [{ ...width, [key]: value }],
           }),
         (error) => {
-          assert.match(
-            error.details.reason,
-            new RegExp(`parameters\\.0\\.${key}: Nonzero`),
-          );
+          assert.match(error.details.reason, new RegExp(`${key}: Nonzero`));
           return true;
         },
       );
@@ -299,7 +303,62 @@ test("subnormal proposal values fail with a field path while historical v1 docum
         ],
       }),
     (error) => {
-      assert.match(error.details.reason, /parameters\.0\.options\.1\.value/);
+      assert.equal(error.details.field, "options.1.value");
+      assert.equal(error.details.parameterId, "mode");
+      return true;
+    },
+  );
+});
+
+test("numeric diagnostics identify stable IDs, bindings and fields regardless of input order", () => {
+  const valid = { ...width, id: "z", binding: "valid", value: 20 };
+  for (const field of ["value", "defaultValue"]) {
+    const invalid = { ...width, id: "a", binding: "tiny", [field]: 1e-308 };
+    for (const parameters of [
+      [valid, invalid],
+      [invalid, valid],
+    ])
+      assert.throws(
+        () => resolveModelDocument({ modelBody: "cube(valid);", parameters }),
+        (error) => {
+          assert.equal(error.details.parameterId, "a");
+          assert.equal(error.details.binding, "tiny");
+          assert.equal(error.details.field, field);
+          assert.doesNotMatch(error.details.reason, /parameters\.\d/);
+          assert.equal(
+            cadErrorSchema.safeParse({
+              code: error.code,
+              message: error.message,
+              details: error.details,
+            }).success,
+            true,
+          );
+          return true;
+        },
+      );
+  }
+  const invalidEnum = {
+    id: "a",
+    binding: "choice",
+    label: "Choice",
+    type: "enum",
+    value: 1,
+    defaultValue: 1,
+    options: [
+      { label: "Normal", value: 1 },
+      { label: "Subnormal", value: 1e-308 },
+    ],
+  };
+  assert.throws(
+    () =>
+      resolveModelDocument({
+        modelBody: "cube(valid);",
+        parameters: [valid, invalidEnum],
+      }),
+    (error) => {
+      assert.equal(error.details.parameterId, "a");
+      assert.equal(error.details.binding, "choice");
+      assert.equal(error.details.field, "options.1.value");
       return true;
     },
   );

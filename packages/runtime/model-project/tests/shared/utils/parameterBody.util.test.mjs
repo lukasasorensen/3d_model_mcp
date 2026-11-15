@@ -1,7 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { cadErrorSchema } from "@theoryfoundry/contracts";
-import { resolveModelDocument } from "../../../dist/shared/utils/parameterSnapshot.util.js";
+import {
+  resolveModelDocument as resolveIdentity,
+  assertNewModelDocument,
+} from "../../../dist/shared/utils/parameterSnapshot.util.js";
+
+function resolveModelDocument(input, inherited) {
+  const document = resolveIdentity(input, inherited);
+  assertNewModelDocument(document, inherited);
+  return document;
+}
 
 const width = {
   id: "width",

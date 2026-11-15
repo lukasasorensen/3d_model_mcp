@@ -23,7 +23,10 @@ import type {
 import { CadDomainError } from "../../shared/utils/cadDomainError.util.js";
 import { sha256 } from "../../shared/utils/hash.util.js";
 import { assertArtifactSet } from "../../shared/utils/renderPolicy.util.js";
-import { resolveModelDocument } from "../../shared/utils/parameterSnapshot.util.js";
+import {
+  assertNewModelDocument,
+  resolveModelDocument,
+} from "../../shared/utils/parameterSnapshot.util.js";
 import { VALIDATION_POLICY_VERSION } from "../../shared/validation.constants.js";
 import type {
   DurableFiles,
@@ -119,6 +122,7 @@ export class FileProjectWorkflow {
           ...document,
         });
         if (existing) return existing;
+        assertNewModelDocument(document, parentParameters);
         if (input.parentRevision !== current) {
           throw new CadDomainError(
             "STALE_REVISION",

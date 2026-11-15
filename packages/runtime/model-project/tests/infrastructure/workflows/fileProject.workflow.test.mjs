@@ -85,3 +85,32 @@ test("filesystem adoption, binding changes and unsuccessful renders preserve the
     );
   });
 });
+
+test("filesystem returns exact historical retries before applying the new proposal policy", async () => {
+  await withWorkspace(async (workspaceRoot) => {
+    const { exerciseHistoricalParameterRetries } =
+      await import("../../fixtures/parameterRetries.fixture.mjs");
+    const repository = new ModelProjectRepository({
+      workspaceRoot,
+      renderer,
+      acceptRendererProvenance: () => true,
+    });
+    await exerciseHistoricalParameterRetries(
+      repository,
+      async (candidate, source) => {
+        const directory = join(
+          workspaceRoot,
+          candidate.projectId,
+          ".theoryfoundry",
+          "candidates",
+          candidate.candidateId,
+        );
+        await writeFile(join(directory, "model.scad"), source);
+        await writeFile(
+          join(directory, "candidate.json"),
+          JSON.stringify(candidate),
+        );
+      },
+    );
+  });
+});

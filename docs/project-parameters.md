@@ -63,8 +63,8 @@ expressions and permitted library imports, without managed header declarations. 
 does not parse the generated header or search/replace literals. Stored generated
 documents are checked by deterministic reassembly from body and JSON.
 
-THE-53 applies a conservative lexical policy to every proposal, including inherited
-snapshots. It does not resolve scopes or discover arbitrary model variables:
+THE-53 applies a conservative lexical policy to every new proposal, including
+inherited snapshots. It does not resolve scopes or discover arbitrary model variables:
 
 - Reject assignments to managed names anywhere, including local scopes, `let`,
   loops, comprehensions, defaults and named call arguments. Use distinct local
@@ -86,7 +86,9 @@ snapshots. It does not resolve scopes or discover arbitrary model variables:
   import paths do not count. No literals or references are silently preserved or
   rewritten. Renaming an ID while retaining its binding does not remove a binding.
 
-`INVALID_PARAMETERS` includes a concise JSON path for invalid metadata/values.
+`INVALID_PARAMETERS` includes a concise input JSON path for schema failures.
+Renderer-incompatible numeric values identify `parameterId`, `binding` and `field`
+(`value`, `defaultValue` or `options.N.value`), independent of canonical ID ordering.
 Body conflicts include a diagnostic code, binding when applicable, and one-based
 body line/column (UTF-16 code units; LF advances lines). Lexical errors identify
 unterminated strings/comments. OpenSCAD compile/assertion diagnostics refer to the
@@ -110,7 +112,12 @@ resolved snapshot. Both fields together, or neither, are rejected.
 Retry identity includes named parent, exact assembled source, separate body/mode,
 canonical parameter snapshot and request/tool IDs. Equal rendered source with
 different metadata or legacy/generated modes cannot reuse the wrong candidate.
-Identical retries return the original candidate and current state.
+Identical retries return the original candidate and current state. Both adapters
+resolve the immutable identity and look up an exact persisted match before applying
+the current proposal policy. This preserves retries across policy upgrades, even
+after current advances. Changed body, metadata, mode, parent or request/tool IDs
+cannot reuse a historical candidate to bypass new-proposal validation. Ownership
+checks and project locking/transactions still precede lookup.
 
 Promotion advances source, body, parameters and artifact references together using
 PostgreSQL transactions/locks or a durable filesystem revision and atomic `CURRENT`
@@ -250,3 +257,11 @@ and unused-parameter rendering all passed. Subnormal values reproduced the pinne
 lexer failure and are now rejected before persistence. These are local renderer and
 fixture results; real PostgreSQL, deployment and authenticated live acceptance
 remain separate. Full verification and hosted CI are recorded in the PR.
+
+PR #66 review fixes preserve exact retries of v1 candidates created before the
+THE-53 restrictions. Filesystem and PGlite regressions seed historical include,
+shadowing, subnormal, removed-binding and embedded-header records, replay their
+current states after current advances, reject changed proposals and verify owner
+isolation. Numeric diagnostics now use stable IDs/bindings plus field paths; tests
+cover reordered input, current/default values and enum options. The once-per-PR
+versions above are unchanged.
