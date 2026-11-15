@@ -11,7 +11,10 @@ import {
   type RevisionManifest,
   type UpdateProjectInput,
 } from "@theoryfoundry/contracts";
-import { resolveModelDocument } from "../../../shared/utils/parameterSnapshot.util.js";
+import {
+  assertNewModelDocument,
+  resolveModelDocument,
+} from "../../../shared/utils/parameterSnapshot.util.js";
 import { randomUUID } from "node:crypto";
 import type { ProjectWorkflowOptions } from "../projectRepository.types.js";
 import type { ModelSourceService } from "../services/modelSource.service.js";
@@ -191,6 +194,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
       if (existingId)
         return (await transaction.readCandidate(input.projectId, existingId))
           .candidate;
+      assertNewModelDocument(document, parentParameters);
       if (project.currentRevision !== input.parentRevision) {
         throw new CadDomainError(
           "STALE_REVISION",

@@ -115,3 +115,70 @@ test("additive migration preserves legacy candidate rows and defaults snapshots 
     await pool.end();
   }
 });
+
+test("PostgreSQL adoption, binding changes and unsuccessful renders preserve the accepted document", async () => {
+  const pool = await memoryPool();
+  try {
+    await pool.query(
+      `INSERT INTO "user" (id,name,email) VALUES ('bindings-owner','Bindings','bindings@example.test')`,
+    );
+    const { exerciseParameterValidation } =
+      await import("../../../fixtures/parameterValidation.fixture.mjs");
+    await exerciseParameterValidation(
+      (renderer) =>
+        new PostgresModelProjectRepository({
+          pool,
+          ownerId: "bindings-owner",
+          renderer,
+          acceptRendererProvenance: () => true,
+        }),
+    );
+  } finally {
+    await pool.end();
+  }
+});
+
+test("PostgreSQL returns exact historical retries while preserving ownership and current policy for new proposals", async () => {
+  const pool = await memoryPool();
+  try {
+    await pool.query(
+      `INSERT INTO "user" (id,name,email) VALUES ('retry-owner','Retries','retry@example.test'),('retry-other','Other','other@example.test')`,
+    );
+    const { exerciseHistoricalParameterRetries } =
+      await import("../../../fixtures/parameterRetries.fixture.mjs");
+    const repository = new PostgresModelProjectRepository({
+      pool,
+      ownerId: "retry-owner",
+      renderer,
+      acceptRendererProvenance: () => true,
+    });
+    const { input } = await exerciseHistoricalParameterRetries(
+      repository,
+      async (candidate, source) => {
+        await pool.query(
+          "UPDATE candidates SET source=$1, model_body=$2, parameter_snapshot=$3::jsonb, source_hash=$4, source_bytes=$5 WHERE id=$6 AND project_id=$7",
+          [
+            source,
+            candidate.modelBody,
+            JSON.stringify(candidate.parameters),
+            candidate.sourceHash,
+            candidate.sourceBytes,
+            candidate.candidateId,
+            candidate.projectId,
+          ],
+        );
+      },
+    );
+    const other = new PostgresModelProjectRepository({
+      pool,
+      ownerId: "retry-other",
+      renderer,
+      acceptRendererProvenance: () => true,
+    });
+    await assert.rejects(other.proposeModelSource(input), {
+      code: "PROJECT_NOT_FOUND",
+    });
+  } finally {
+    await pool.end();
+  }
+});
