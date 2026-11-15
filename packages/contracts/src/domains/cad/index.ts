@@ -1,6 +1,7 @@
 export * from "./cad.constants.js";
 export * from "./parameter.schema.js";
 export * from "./utils/parameterSnapshot.util.js";
+export * from "./utils/modelRecordMetadata.util.js";
 export * from "./identity.schema.js";
 export * from "./candidateState.enum.js";
 export * from "./cad.types.js";

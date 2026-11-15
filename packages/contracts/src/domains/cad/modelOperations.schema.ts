@@ -126,15 +126,15 @@ export const readModelSourceOutputSchema = z
   .strict();
 
 export const proposeModelSourceOutputSchema = z
-  .object({ candidate: candidateRecordSchema })
+  .object({ candidate: candidateRecordSchema.omit({ modelBody: true }) })
   .strict();
 
 export const validateAndRenderOutputSchema = z
-  .object({ candidate: candidateRecordSchema })
+  .object({ candidate: candidateRecordSchema.omit({ modelBody: true }) })
   .strict();
 
 export const promoteCandidateOutputSchema = z
-  .object({ revision: revisionManifestSchema })
+  .object({ revision: revisionManifestSchema.omit({ modelBody: true }) })
   .strict();
 
 export const exportModelOutputSchema = z
@@ -148,5 +148,5 @@ export const listRevisionsOutputSchema = z
   .strict();
 
 export const restoreRevisionOutputSchema = z
-  .object({ revision: revisionManifestSchema })
+  .object({ revision: revisionManifestSchema.omit({ modelBody: true }) })
   .strict();

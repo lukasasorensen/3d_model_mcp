@@ -1,5 +1,6 @@
 import {
   CAD_LIMITS,
+  modelRecordMetadata,
   createCadToolCatalog,
   type CadWorkflowService,
   createProjectInputSchema,
@@ -115,8 +116,10 @@ export function createCadToolRegistry(
       ...catalog.propose_model_source,
       execute: async (raw): Promise<Record<string, unknown>> =>
         boundedResult({
-          candidate: await repository.proposeModelSource(
-            proposeModelSourceInputSchema.parse(raw),
+          candidate: modelRecordMetadata(
+            await repository.proposeModelSource(
+              proposeModelSourceInputSchema.parse(raw),
+            ),
           ),
         }),
     },
@@ -132,10 +135,12 @@ export function createCadToolRegistry(
           await workflow.requireReady(input.projectId);
         try {
           return boundedResult({
-            candidate: await repository.validateAndRender({
-              ...input,
-              signal: context.signal,
-            }),
+            candidate: modelRecordMetadata(
+              await repository.validateAndRender({
+                ...input,
+                signal: context.signal,
+              }),
+            ),
           });
         } catch (error) {
           if (workflow && error instanceof CadDomainError)
@@ -152,10 +157,12 @@ export function createCadToolRegistry(
       execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = promoteCandidateInputSchema.parse(raw);
         return boundedResult({
-          revision: await repository.promoteCandidate({
-            ...input,
-            signal: context.signal,
-          }),
+          revision: modelRecordMetadata(
+            await repository.promoteCandidate({
+              ...input,
+              signal: context.signal,
+            }),
+          ),
         });
       },
     },
@@ -196,10 +203,12 @@ export function createCadToolRegistry(
       execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = restoreRevisionInputSchema.parse(raw);
         return boundedResult({
-          revision: await repository.restoreRevision({
-            ...input,
-            signal: context.signal,
-          }),
+          revision: modelRecordMetadata(
+            await repository.restoreRevision({
+              ...input,
+              signal: context.signal,
+            }),
+          ),
         });
       },
     },

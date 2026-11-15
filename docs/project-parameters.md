@@ -106,8 +106,17 @@ render source, not the body alone. Internal repository reads retain complete sou
 for preview/export, alongside the body for editable generated documents.
 
 Candidate/revision manifests include the separate body for generated records.
+MCP proposal, validation, promotion and restore replies omit body text while keeping
+IDs, state, source hashes, accepted parameters and other bounded metadata. The local
+worker applies the same projection to its locally computed validation reply before
+MCP serialization. This prevents large stored bodies from causing an error response
+after an operation has committed; persisted bodies and snapshots are unchanged.
 MCP `list_revisions` omits bodies and snapshots, returning compact revision metadata.
 Current project state exposes accepted parameters without repeating body text.
+Live chat validates the same source-read contract, accepts both body/JSON and legacy
+source documents, and checks the selected revision against current state before
+sending context to the provider. Generated bodies retain the existing assistant-text
+redaction policy. Context instructs JSON-only value edits to preserve the body.
 Local-worker JSON results retain the server's 512 KiB logical-payload budget and a
 separate MCP envelope bound of three payloads plus 1 KiB. Preview images retain the
 existing 3 MiB envelope limit.
@@ -147,7 +156,11 @@ Focused tests cover deterministic scalar encoding, injection/escaping, unchanged
 body text, inheritance/removal, mode-aware retries, assembled source policies,
 legacy migration, owner isolation, reopen/restore, corruption detection and atomic
 publication failures in both adapters. MCP checks cover bounded generated-body
-reads, historical snapshots and compact history. PGlite and deterministic renderer
+reads, historical snapshots and compact history. Regression cases also drive a
+connected-model value change from generated context through promotion, reject
+malformed/stale context, and complete large-body proposal, validation, promotion and
+restore with compact replies. The local-worker regression exercises the actual
+in-memory MCP client/server and checks both text and structured metadata. PGlite and deterministic renderer
 fixtures do not establish live PostgreSQL or authenticated UI acceptance. Full
 verification and hosted CI evidence are recorded separately in the PR.
 

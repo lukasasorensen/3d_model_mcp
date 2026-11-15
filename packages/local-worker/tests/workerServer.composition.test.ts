@@ -1,3 +1,4 @@
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -154,6 +155,77 @@ void test("hosted tool errors remain actionable and are not relabeled as success
     });
     assert.equal(result.isError, true);
     assert.match(JSON.stringify(result), /NOT_FOUND/);
+  } finally {
+    await worker.close();
+    await client.close();
+  }
+});
+
+void test("local validation returns compact MCP metadata for a large stored generated body", async () => {
+  const f = fixture();
+  const { CAD_LIMITS, parameterSnapshotSchema } =
+    await import("@theoryfoundry/contracts");
+  const { createHash } = await import("node:crypto");
+  const modelBody = "/*" + '"'.repeat(220 * 1024) + "*/ cube([3,4,5]);";
+  const parameters = parameterSnapshotSchema.parse(
+    Array.from({ length: 50 }, (_, index) => ({
+      id: `p${index}`,
+      binding: `p${index}`,
+      type: "number",
+      label: `Parameter ${index}`,
+      description: "x".repeat(2000),
+      defaultValue: 20,
+      value: 20,
+    })),
+  );
+  f.lease.source = `// theoryfoundry:parameters:start v1\n${parameters.map((p) => `${p.binding} = ${p.value};`).join("\n")}\n// theoryfoundry:parameters:end\n${modelBody}`;
+  f.lease.sourceHash = createHash("sha256")
+    .update(f.lease.source)
+    .digest("hex");
+  Object.assign(f.candidate, {
+    modelBody,
+    parameters,
+    sourceHash: f.lease.sourceHash,
+    sourceBytes: Buffer.byteLength(f.lease.source),
+  });
+  assert.ok(
+    Buffer.byteLength(JSON.stringify({ candidate: f.candidate })) >
+      CAD_LIMITS.toolResultBytes,
+  );
+  const worker = createLocalWorkerServer({
+    ...f.deps,
+    callHosted: async () => {
+      throw new Error("Validation must remain local");
+    },
+  });
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+  const client = new Client({ name: "large-generated-worker", version: "1" });
+  try {
+    await worker.server.connect(serverTransport);
+    await client.connect(clientTransport);
+    const result = (await client.callTool({
+      name: "validate_and_render",
+      arguments: validationInput,
+    })) as CallToolResult;
+    assert.equal(result.isError, undefined, JSON.stringify(result.content));
+    const payload = result.structuredContent as {
+      candidate: { modelBody?: string; parameters?: unknown; state: string };
+    };
+    assert.equal(Object.hasOwn(payload.candidate, "modelBody"), false);
+    assert.deepEqual(payload.candidate.parameters, parameters);
+    assert.equal(payload.candidate.state, "VALID");
+    assert.ok(
+      Buffer.byteLength(JSON.stringify(payload)) < CAD_LIMITS.toolResultBytes,
+    );
+    const text = result.content.find((part) => part.type === "text");
+    assert.equal(text?.type, "text");
+    assert.deepEqual(JSON.parse(text!.text), payload);
+    assert.equal(f.candidate.modelBody, modelBody);
+    assert.deepEqual(
+      f.calls.map((call) => call.path),
+      ["validation/begin", "validation/complete"],
+    );
   } finally {
     await worker.close();
     await client.close();
