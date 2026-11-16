@@ -60,3 +60,48 @@ test("pinned browser OpenSCAD ZIP64 3MF exports retain geometry and reject corru
   assert.throws(() => parseThreeMf(corrupt));
   assert.throws(() => parseThreeMf(bytes.subarray(0, bytes.length - 1)));
 });
+
+test("repeated 3MF build items do not multiply the vertex table in memory", async () => {
+  const entries = unzipSync(
+    await readFile(
+      new URL("../../../fixtures/openscad-cube.3mf", import.meta.url),
+    ),
+  );
+  const modelPath = Object.keys(entries).find((path) =>
+    path.endsWith(".model"),
+  );
+  const xml = strFromU8(entries[modelPath]);
+  entries[modelPath] = strToU8(
+    xml
+      .replace(
+        "</vertices>",
+        `${'<vertex x="0" y="0" z="0"/>'.repeat(10_000)}</vertices>`,
+      )
+      .replace(/<item\b[^>]*\/>/, (item) => item.repeat(2_000)),
+  );
+  const parserUrl = new URL("../../../../dist/index.js", import.meta.url).href;
+  const result = spawnSync(
+    process.execPath,
+    [
+      "--max-old-space-size=96",
+      "--input-type=module",
+      "-e",
+      `
+    import { readFileSync } from "node:fs";
+    import { parseThreeMf } from ${JSON.stringify(parserUrl)};
+    console.log(JSON.stringify(parseThreeMf(readFileSync(0))));
+  `,
+    ],
+    {
+      input: zipSync(entries),
+      encoding: "utf8",
+      timeout: 10_000,
+      maxBuffer: 64 * 1024,
+    },
+  );
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), {
+    triangleCount: 24_000,
+    boundingBox: { min: [0, 0, 0], max: [20, 30, 10] },
+  });
+});

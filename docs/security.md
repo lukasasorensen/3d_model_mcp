@@ -3,14 +3,26 @@
 LLM-authored OpenSCAD is untrusted input. The agent cannot choose the WASM module,
 backend, library bundle, command flags, virtual paths, or output format. Tool IDs are opaque and strict schemas reject paths. Source is
 limited to 256 KiB; only `BOSL2/...` include/use references are allowed; import and
-surface file references are rejected.
+surface file references are rejected. Source-policy scanning advances once through
+comments, strings and reference tokens; malformed call prefixes cannot trigger
+repeated scans of the remaining source. Comments between a reference name and its
+argument do not bypass the policy.
 
 Each job uses a fresh Web Worker and in-memory Emscripten filesystem. The worker is
 terminated on completion, cancellation, or the 60-second deadline. Preview limits
 are 10 MiB and 250,000 triangles; 3MF is limited to 25 MiB. One-time completion
 tokens bind browser results to the session, candidate, source hash, renderer pins,
 owner, project, and deadline, and cannot be replayed. PostgreSQL stores only the
-token hash and bounded completion metadata.
+token hash and bounded completion metadata. Hosted and local bridge completion
+handlers enforce 128 KiB while reading the stream, including absent or understated
+Content-Length, and cancel oversized streams before JSON/schema parsing.
+
+3MF validation retains each validated object's bounds and triangle count. Repeated
+identity-transform build items add triangle counts but do not duplicate vertex
+tables. Mesh topology, source linkage and object-reference checks still apply.
+Both hosted and local-worker MCP servers cap input trees at 65,536 elements before
+tool schema validation. This accommodates 200 parameter edits with 100 enum options
+each while bounding schema-error amplification; transport byte limits still apply.
 
 Browser parsers and source hashes defend against malformed or substituted responses.
 PostgreSQL row locks, conditional state updates, and transactional parent CAS defend

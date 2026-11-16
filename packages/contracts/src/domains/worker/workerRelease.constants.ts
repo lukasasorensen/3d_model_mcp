@@ -1,1 +1,1 @@
-export const LOCAL_WORKER_PACKAGE_VERSION = "0.5.0";
+export const LOCAL_WORKER_PACKAGE_VERSION = "0.5.1";

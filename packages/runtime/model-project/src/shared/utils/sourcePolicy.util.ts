@@ -1,48 +1,81 @@
 import { CAD_LIMITS } from "@theoryfoundry/contracts";
 import { CadDomainError } from "./cadDomainError.util.js";
-const includeReferencePattern = /\b(?:include|use)\s*<([^>]+)>/g;
-const fileFunctionPattern = /\b(import|surface)\s*\(([^;]*)\)/g;
+
 export function assertSourcePolicy(source: string): void {
   const byteSize = Buffer.byteLength(source);
   if (byteSize > CAD_LIMITS.sourceBytes) {
     throw new CadDomainError(
       "SOURCE_TOO_LARGE",
       "Model source exceeds the configured byte limit.",
-      {
-        byteSize,
-        limit: CAD_LIMITS.sourceBytes,
-      },
+      { byteSize, limit: CAD_LIMITS.sourceBytes },
     );
   }
-  includeReferencePattern.lastIndex = 0;
-  for (const match of source.matchAll(includeReferencePattern)) {
-    const reference = match[1] ?? "";
-    if (
-      !reference.startsWith("BOSL2/") ||
-      reference.includes("..") ||
-      reference.includes("\\")
-    ) {
-      throw new CadDomainError(
-        "FORBIDDEN_SOURCE_REFERENCE",
-        "Model source contains a forbidden external reference.",
-      );
+  let offset = 0;
+  const skipTrivia = (): void => {
+    while (offset < source.length) {
+      if (/\s/.test(source[offset]!)) offset++;
+      else if (source.startsWith("//", offset)) {
+        offset += 2;
+        while (
+          offset < source.length &&
+          source[offset] !== "\n" &&
+          source[offset] !== "\r"
+        )
+          offset++;
+      } else if (source.startsWith("/*", offset)) {
+        const end = source.indexOf("*/", offset + 2);
+        offset = end < 0 ? source.length : end + 2;
+      } else break;
     }
-  }
-  fileFunctionPattern.lastIndex = 0;
-  for (const match of source.matchAll(fileFunctionPattern)) {
-    const argumentsText = match[2] ?? "";
-    const reference =
-      argumentsText.match(/\bfile\s*=\s*["']([^"']+)["']/)?.[1] ??
-      argumentsText.match(/^\s*["']([^"']+)["']/)?.[1];
+  };
+  const forbidden = (): never => {
+    throw new CadDomainError(
+      "FORBIDDEN_SOURCE_REFERENCE",
+      "Model source contains a forbidden external reference.",
+    );
+  };
+  // Advance monotonically: malformed calls must never rescan the source suffix.
+  while (offset < source.length) {
+    skipTrivia();
+    if (source[offset] === '"') {
+      offset++;
+      while (offset < source.length) {
+        const character = source[offset++];
+        if (character === "\\") offset++;
+        else if (character === '"') break;
+      }
+      continue;
+    }
+    if (!/[A-Za-z_$]/.test(source[offset] ?? "")) {
+      offset++;
+      continue;
+    }
+    const start = offset++;
+    while (/[A-Za-z0-9_$]/.test(source[offset] ?? "")) offset++;
+    const identifier = source.slice(start, offset);
+    skipTrivia();
     if (
-      reference ||
-      /\bfile\s*=/.test(argumentsText) ||
-      /^\s*[^,)]/.test(argumentsText)
+      (identifier === "include" || identifier === "use") &&
+      source[offset] === "<"
     ) {
-      throw new CadDomainError(
-        "FORBIDDEN_SOURCE_REFERENCE",
-        "Model source contains a forbidden external file reference.",
-      );
+      const end = source.indexOf(">", offset + 1);
+      if (end < 0) forbidden();
+      const reference = source.slice(offset + 1, end);
+      if (
+        !reference.startsWith("BOSL2/") ||
+        reference.includes("..") ||
+        reference.includes("\\")
+      )
+        forbidden();
+      offset = end + 1;
+    } else if (
+      (identifier === "import" || identifier === "surface") &&
+      source[offset] === "("
+    ) {
+      offset++;
+      skipTrivia();
+      if (source[offset] !== ")") forbidden();
+      offset++;
     }
   }
 }

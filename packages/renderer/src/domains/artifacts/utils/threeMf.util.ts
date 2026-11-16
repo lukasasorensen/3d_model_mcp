@@ -147,7 +147,7 @@ export function parseThreeMf(
   }
   const objects = new Map<
     number,
-    { vertices: Array<[number, number, number]>; triangleCount: number }
+    { boundingBox: ParsedMesh["boundingBox"]; triangleCount: number }
   >();
   for (const objectMatch of xml.matchAll(
     /<object\b([^>]*)>([\s\S]*?)<\/object\s*>/gi,
@@ -177,7 +177,7 @@ export function parseThreeMf(
         );
       vertices.push([coordinate("x"), coordinate("y"), coordinate("z")]);
     }
-    checkedBounds(vertices);
+    const boundingBox = checkedBounds(vertices);
     const triangles: Triangle[] = [];
     for (const match of body.matchAll(/<triangle\b([^>]*)\/?\s*>/gi)) {
       const triangleAttributes = match[1] ?? "";
@@ -202,7 +202,7 @@ export function parseThreeMf(
         "3MF object contains no triangles.",
       );
     assertClosedOrientedManifold(vertices, triangles);
-    objects.set(id, { vertices, triangleCount: triangles.length });
+    objects.set(id, { boundingBox, triangleCount: triangles.length });
   }
   if (objects.size === 0)
     throw new RendererError(
@@ -235,8 +235,10 @@ export function parseThreeMf(
         "INVALID_ARTIFACT",
         "3MF build item references an invalid object.",
       );
-    referenced.add(objectId);
-    for (const vertex of object.vertices) builtVertices.push(vertex);
+    if (!referenced.has(objectId)) {
+      builtVertices.push(object.boundingBox.min, object.boundingBox.max);
+      referenced.add(objectId);
+    }
     triangleCount += object.triangleCount;
   }
   if (referenced.size !== objects.size)

@@ -231,3 +231,39 @@ void test("local validation returns compact MCP metadata for a large stored gene
     await client.close();
   }
 });
+
+void test("worker MCP input budget rejects oversized argument trees before forwarding", async () => {
+  const f = fixture();
+  let forwarded = false;
+  const worker = createLocalWorkerServer({
+    ...f.deps,
+    callHosted: async () => {
+      forwarded = true;
+      throw new Error("Unexpected forwarding");
+    },
+  });
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+  const client = new Client({ name: "input-budget-test", version: "1" });
+  try {
+    await worker.server.connect(serverTransport);
+    await client.connect(clientTransport);
+    const result = await client.callTool({
+      name: "edit_parameters",
+      arguments: {
+        operations: Array.from({ length: 20_000 }, () => ({
+          op: "set_value",
+          id: "x",
+          value: [],
+        })),
+      },
+    });
+    assert.equal(result.isError, true);
+    assert.match(JSON.stringify(result.content), /maximum of 65536 elements/);
+    assert.ok(JSON.stringify(result).length < 1024);
+    assert.equal(forwarded, false);
+  } finally {
+    await client.close();
+    await worker.close();
+  }
+});

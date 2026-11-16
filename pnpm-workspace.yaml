@@ -10,3 +10,13 @@ allowBuilds:
 patchedDependencies:
   "@langchain/core@1.2.4": patches/@langchain__core@1.2.4.patch
   better-call@1.4.0: patches/better-call@1.4.0.patch
+
+# Upstream exact pins/major ranges still select vulnerable transitive releases.
+overrides:
+  "next>postcss": 8.5.23
+  "next>sharp": 0.35.5
+  "@esbuild-kit/core-utils>esbuild": 0.25.12
+  "glob@<14.0.2": 14.0.2
+  "minimatch@<11.0.1": 11.0.1
+  # Keep the OAuth provider peer on the same release as its auth implementation.
+  "@better-auth/core": 1.7.7

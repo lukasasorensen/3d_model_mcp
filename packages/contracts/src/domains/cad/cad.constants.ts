@@ -20,6 +20,8 @@ export const CAD_LIMITS = Object.freeze({
   exportBytes: 25 * 1024 * 1024,
   diagnosticCount: 50,
   diagnosticMessageCharacters: 2_000,
+  // Fits 200 parameter edits with 100 enum options each.
+  toolInputElements: 65_536,
   toolResultBytes: 512 * 1024,
 });
 

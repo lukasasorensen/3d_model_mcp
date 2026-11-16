@@ -1,6 +1,6 @@
 {
   "name": "@theoryfoundry/browser-renderer",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@theoryfoundry/contracts": "workspace:*",
-    "fflate": "0.8.2",
+    "fflate": "0.8.3",
     "three": "0.179.1"
   },
   "devDependencies": {

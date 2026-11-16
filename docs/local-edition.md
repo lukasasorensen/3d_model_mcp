@@ -33,12 +33,17 @@ fixed afterward. `THEORYFOUNDRY_LOCAL_HOME` selects a separate installation.
 `THEORYFOUNDRY_CONNECTION_HOME` can separately select the CLI connection profile.
 The CLI refuses remote Docker contexts and pins the inspected local Unix socket.
 
-The current release set is application/plugin **0.12.0**, worker **0.5.0**,
-contracts **0.6.0**, gateway **0.5.0**, runtime **0.8.0**, MCP **0.4.0**,
-site **0.10.0**, PostgreSQL **18**. Packaged image names are
-`theoryfoundry/local-app:0.12.0` and `theoryfoundry/local-tooling:0.12.0`. They can be
+The current release set is application/plugin **0.12.1**, worker **0.5.1**,
+contracts **0.6.1**, gateway **0.5.1**, runtime **0.8.1**, MCP **0.4.1**,
+site **0.10.1**, PostgreSQL **18**. Packaged image names are
+`theoryfoundry/local-app:0.12.1` and `theoryfoundry/local-tooling:0.12.1`. They can be
 loaded from reviewed image archives or built from the explicit checkout with
 `--source`. Nothing publishes images, npm packages or plugins automatically.
+
+Application 0.12.1 requires migration `0019_auth-provider-account-key` for the
+patched authentication library. The local lifecycle runs migrations before readiness;
+[check duplicate account keys](dependencies-and-licenses.md#better-auth-database-upgrade)
+before upgrading an existing database. Historical credentials are retained.
 
 Published worker packages instead carry digest-pinned GHCR app/tooling images and
 a digest-pinned PostgreSQL image. `local start` inspects all three locally, pulls
