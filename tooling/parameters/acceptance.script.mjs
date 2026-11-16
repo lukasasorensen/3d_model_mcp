@@ -11,6 +11,7 @@ import {
 } from "@theoryfoundry/model-project";
 import { parseBinaryStl, parseThreeMf } from "@theoryfoundry/renderer";
 import { startChromiumRenderer } from "../headless-renderer/node/renderer/chromium.renderer.mjs";
+import { exerciseControlAcceptance } from "./controlsAcceptance.script.mjs";
 
 const root = new URL("../../", import.meta.url);
 const renderer = await startChromiumRenderer(
@@ -221,6 +222,11 @@ try {
       formats: ["stl", "3mf"],
     });
   }
+  evidence.push(
+    await exerciseControlAcceptance(repository, renderer, projectId),
+  );
+  parentRevision = (await repository.getProjectState(projectId))
+    .currentRevision;
   const accepted = await repository.readModelSource(projectId);
   for (const invalidBody of [
     'assert(width < 0, "width must be negative"); cube(width);',

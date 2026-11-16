@@ -2,6 +2,7 @@ export * from "./cad.constants.js";
 export * from "./parameter.schema.js";
 export * from "./parameterOperations.schema.js";
 export * from "./parameterToolError.schema.js";
+export * from "./parameterControls.schema.js";
 export * from "./utils/applyParameterOperations.util.js";
 export * from "./utils/parameterSnapshot.util.js";
 export * from "./utils/modelRecordMetadata.util.js";
