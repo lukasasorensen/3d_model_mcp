@@ -8,6 +8,8 @@
     "node": ">=24 <25"
   },
   "scripts": {
+    "generate:release-metadata": "node tooling/releases/generateMcpMetadata.script.mjs",
+    "check:release-metadata": "node tooling/releases/generateMcpMetadata.script.mjs --check",
     "prepare:browser-renderer": "node tooling/browser-renderer/prepareAssets.script.mjs",
     "dev": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/site dev",
     "dev:site": "pnpm prepare:browser-renderer && pnpm --filter @theoryfoundry/site dev",
@@ -28,7 +30,7 @@
     "test:boundaries": "node --test tests/tooling/architecture/checkPackageBoundaries.script.test.mjs",
     "check:leaks": "node tooling/conventions/checkTemplateLeaks.script.mjs",
     "clean": "pnpm --recursive --if-present run clean",
-    "verify": "pnpm format:check && pnpm check:conventions && pnpm check:architecture && pnpm test:codex-installer && pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm test:browser && pnpm build && pnpm check:leaks && pnpm check:boundaries",
+    "verify": "pnpm check:release-metadata && pnpm format:check && pnpm check:conventions && pnpm check:architecture && pnpm test:codex-installer && pnpm check:leaks && pnpm check:boundaries && pnpm test:boundaries && pnpm lint && pnpm typecheck && pnpm test && pnpm test:browser && pnpm build && pnpm check:leaks && pnpm check:boundaries",
     "oauth:provision": "pnpm build:packages && dotenv --no-expand -e apps/site/.env.local -- pnpm --filter @theoryfoundry/runtime oauth:provision",
     "build:codex-installer": "node tooling/codex-connect/buildInstaller.script.mjs",
     "pack:codex-installer": "pnpm build:codex-installer && node tooling/codex-connect/buildPackage.script.mjs && pnpm --dir dist/codex-connect-package pack --pack-destination ../packages",

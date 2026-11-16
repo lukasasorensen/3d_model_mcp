@@ -1,5 +1,8 @@
 import { CAD_LIMITS } from "@theoryfoundry/contracts";
-import { LOCAL_WORKER_PACKAGE_VERSION } from "@theoryfoundry/contracts";
+import {
+  LOCAL_WORKER_PACKAGE_VERSION,
+  LOCAL_WORKER_MCP_NAME,
+} from "@theoryfoundry/contracts";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { cadToolInstructions } from "@theoryfoundry/contracts";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
@@ -21,7 +24,7 @@ export function createLocalWorkerServer(
   const shutdown = new AbortController();
   const queue = new WorkQueue();
   const server = new McpServer(
-    { name: "theoryfoundry-local-worker", version },
+    { name: LOCAL_WORKER_MCP_NAME, version },
     {
       maxToolInputElements: CAD_LIMITS.toolInputElements,
       instructions: cadToolInstructions("local-worker"),

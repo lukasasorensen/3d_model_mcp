@@ -1,10 +1,11 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createLocalWorkerServer } from "../src/index.js";
-import { createCadToolCatalog } from "@theoryfoundry/contracts";
+import { CAD_LIMITS, createCadToolCatalog } from "@theoryfoundry/contracts";
 import { fixture, validationInput } from "./fixtures/compute.fixture.js";
 void test("MCP handshake is offline, catalog is shared, project tools forward, compute stays local", async () => {
   const f = fixture();
@@ -36,6 +37,13 @@ void test("MCP handshake is offline, catalog is shared, project tools forward, c
   try {
     await worker.server.connect(serverTransport);
     await client.connect(clientTransport);
+    const metadata = JSON.parse(
+      await readFile(new URL("../package.json", import.meta.url), "utf8"),
+    );
+    assert.deepEqual(client.getServerVersion(), {
+      name: metadata.mcpServerName,
+      version: metadata.version,
+    });
     const listed = await client.listTools();
     assert.deepEqual(
       listed.tools.map((tool) => tool.name).sort(),
@@ -259,7 +267,11 @@ void test("worker MCP input budget rejects oversized argument trees before forwa
       },
     });
     assert.equal(result.isError, true);
-    assert.match(JSON.stringify(result.content), /maximum of 65536 elements/);
+    assert.ok(
+      JSON.stringify(result.content).includes(
+        `maximum of ${CAD_LIMITS.toolInputElements} elements`,
+      ),
+    );
     assert.ok(JSON.stringify(result).length < 1024);
     assert.equal(forwarded, false);
   } finally {

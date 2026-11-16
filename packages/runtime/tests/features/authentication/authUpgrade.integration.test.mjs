@@ -49,7 +49,7 @@ test("auth upgrade preserves credentials, rejects ambiguous provider keys, and a
       "utf8",
     );
     await database.exec("BEGIN");
-    await assert.rejects(database.exec(migration), /unique|duplicate/i);
+    await assert.rejects(database.exec(migration), isUniqueConstraintViolation);
     await database.exec("ROLLBACK");
     assert.equal(
       (await database.query("SELECT count(*)::int AS count FROM account"))
@@ -97,7 +97,7 @@ test("auth upgrade preserves credentials, rejects ambiguous provider keys, and a
       database.exec(
         "INSERT INTO account (id, account_id, provider_id, user_id) VALUES ('duplicate', 'existing', 'credential', 'existing')",
       ),
-      /unique|duplicate/i,
+      isUniqueConstraintViolation,
     );
     await database.exec(
       "INSERT INTO account (id, account_id, provider_id, user_id) VALUES ('other-provider', 'existing', 'other-provider', 'existing')",
@@ -107,3 +107,7 @@ test("auth upgrade preserves credentials, rejects ambiguous provider keys, and a
     await database.close();
   }
 });
+
+function isUniqueConstraintViolation(error) {
+  return error.code === "23505";
+}

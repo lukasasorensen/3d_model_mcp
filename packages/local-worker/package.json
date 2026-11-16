@@ -1,6 +1,7 @@
 {
   "name": "@theoryfoundry/local-worker",
   "version": "0.5.1",
+  "mcpServerName": "theoryfoundry-local-worker",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",

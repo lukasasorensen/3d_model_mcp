@@ -28,15 +28,15 @@ test("hosted completions stop oversized streams before parsing or persistence", 
           name: "authentication-and-runtime",
           setup(builder) {
             builder.onResolve(
-              { filter: /^@\/authentication.composition$/ },
+              { filter: authenticationModulePattern() },
               () => ({ path: "auth", namespace: "fixture" }),
             );
-            builder.onResolve({ filter: /^@theoryfoundry\/runtime$/ }, () => ({
+            builder.onResolve({ filter: runtimeModulePattern() }, () => ({
               path: "runtime",
               namespace: "fixture",
             }));
             builder.onLoad(
-              { filter: /.*/, namespace: "fixture" },
+              { filter: anyFixtureModulePattern(), namespace: "fixture" },
               ({ path }) => ({
                 contents:
                   path === "auth"
@@ -88,3 +88,15 @@ test("hosted completions stop oversized streams before parsing or persistence", 
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+function authenticationModulePattern() {
+  return /^@\/authentication.composition$/;
+}
+
+function runtimeModulePattern() {
+  return /^@theoryfoundry\/runtime$/;
+}
+
+function anyFixtureModulePattern() {
+  return /.*/;
+}

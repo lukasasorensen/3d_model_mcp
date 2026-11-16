@@ -62,6 +62,9 @@ test("pinned browser OpenSCAD ZIP64 3MF exports retain geometry and reject corru
 });
 
 test("repeated 3MF build items do not multiply the vertex table in memory", async () => {
+  // A compact archive can reference the same large vertex table thousands of times.
+  // The capped child heap catches per-item vertex copies; counts and bounds must
+  // still describe every built instance without retaining duplicate geometry.
   const entries = unzipSync(
     await readFile(
       new URL("../../../fixtures/openscad-cube.3mf", import.meta.url),
@@ -72,12 +75,13 @@ test("repeated 3MF build items do not multiply the vertex table in memory", asyn
   );
   const xml = strFromU8(entries[modelPath]);
   entries[modelPath] = strToU8(
-    xml
-      .replace(
+    repeatBuildItem(
+      xml.replace(
         "</vertices>",
         `${'<vertex x="0" y="0" z="0"/>'.repeat(10_000)}</vertices>`,
-      )
-      .replace(/<item\b[^>]*\/>/, (item) => item.repeat(2_000)),
+      ),
+      2_000,
+    ),
   );
   const parserUrl = new URL("../../../../dist/index.js", import.meta.url).href;
   const result = spawnSync(
@@ -120,33 +124,22 @@ test("malformed 3MF XML cannot repeatedly scan the remaining document", async ()
   const cases = [
     [
       modelPath,
-      xml.replace(
-        /<resources\b[^>]*>[\s\S]*?<\/resources>/,
+      replaceSection(
+        xml,
+        "resources",
         `<resources>${'<object id="1">'.repeat(80_000)}</resources>`,
       ),
     ],
-    [
-      modelPath,
-      xml.replace(/<build\b[^>]*>[\s\S]*?<\/build>/, "<build>".repeat(80_000)),
-    ],
+    [modelPath, replaceSection(xml, "build", "<build>".repeat(80_000))],
     [modelPath, "<model ".repeat(80_000)],
     [
       modelPath,
-      xml.replace(
-        /<mesh>[\s\S]*?<\/mesh>/,
-        `<mesh>${"<vertex ".repeat(80_000)}`,
-      ),
+      replaceSection(xml, "mesh", `<mesh>${"<vertex ".repeat(80_000)}`),
     ],
+    [modelPath, replaceTriangleTail(xml, "<triangle ".repeat(80_000))],
     [
       modelPath,
-      xml.replace(/<triangles>[\s\S]*?<\/mesh>/, "<triangle ".repeat(80_000)),
-    ],
-    [
-      modelPath,
-      xml.replace(
-        /<build\b[^>]*>[\s\S]*?<\/build>/,
-        `<build>${"<item ".repeat(80_000)}</build>`,
-      ),
+      replaceSection(xml, "build", `<build>${"<item ".repeat(80_000)}</build>`),
     ],
     ["_rels/.rels", "<Relationship ".repeat(80_000)],
     ["[Content_Types].xml", '<Default Extension="model" '.repeat(80_000)],
@@ -193,20 +186,16 @@ test("nested 3MF object/build sections are rejected while sibling objects retain
   );
   const xml = strFromU8(entries[modelPath]);
   for (const malformed of [
-    xml
-      .replace(/(<object\b[^>]*>)/, '$1<object id="2">')
-      .replace("</object>", "</object></object>"),
-    xml
-      .replace(/(<build\b[^>]*>)/, "$1<build>")
-      .replace("</build>", "</build></build>"),
+    nestedSection(xml, "object", '<object id="2">'),
+    nestedSection(xml, "build", "<build>"),
   ])
     assert.throws(
       () =>
         parseThreeMf(zipSync({ ...entries, [modelPath]: strToU8(malformed) })),
       { code: "INVALID_ARTIFACT" },
     );
-  const object = xml.match(/<object\b[\s\S]*?<\/object>/)[0];
-  const id = object.match(/\bid="([^"]+)"/)[1];
+  const object = firstObject(xml);
+  const id = objectId(object);
   const sibling = object.replace(`id="${id}"`, 'id="987654"');
   const combined = xml
     .replace("</resources>", `${sibling}</resources>`)
@@ -242,3 +231,32 @@ test("3MF accepts a matching content-type override and rejects a mismatched part
       assert.throws(() => parseThreeMf(archive), { code: "INVALID_ARTIFACT" });
   }
 });
+
+function repeatBuildItem(xml, count) {
+  return xml.replace(/<item\b[^>]*\/>/, (item) => item.repeat(count));
+}
+
+function replaceSection(xml, name, replacement) {
+  return xml.replace(
+    new RegExp(`<${name}\\b[^>]*>[\\s\\S]*?</${name}>`),
+    replacement,
+  );
+}
+
+function replaceTriangleTail(xml, replacement) {
+  return xml.replace(/<triangles>[\s\S]*?<\/mesh>/, replacement);
+}
+
+function nestedSection(xml, name, opening) {
+  return xml
+    .replace(new RegExp(`(<${name}\\b[^>]*>)`), `$1${opening}`)
+    .replace(`</${name}>`, `</${name}></${name}>`);
+}
+
+function firstObject(xml) {
+  return xml.match(/<object\b[\s\S]*?<\/object>/)[0];
+}
+
+function objectId(object) {
+  return object.match(/\bid="([^"]+)"/)[1];
+}

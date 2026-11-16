@@ -13,7 +13,7 @@ export function assertSourcePolicy(source: string): void {
   let offset = 0;
   const skipTrivia = (): void => {
     while (offset < source.length) {
-      if (/\s/.test(source[offset]!)) offset++;
+      if (isWhitespace(source[offset]!)) offset++;
       else if (source.startsWith("//", offset)) {
         offset += 2;
         while (
@@ -46,12 +46,12 @@ export function assertSourcePolicy(source: string): void {
       }
       continue;
     }
-    if (!/[A-Za-z_$]/.test(source[offset] ?? "")) {
+    if (!isIdentifierStart(source[offset] ?? "")) {
       offset++;
       continue;
     }
     const start = offset++;
-    while (/[A-Za-z0-9_$]/.test(source[offset] ?? "")) offset++;
+    while (isIdentifierContinuation(source[offset] ?? "")) offset++;
     const identifier = source.slice(start, offset);
     skipTrivia();
     if (
@@ -78,4 +78,16 @@ export function assertSourcePolicy(source: string): void {
       offset++;
     }
   }
+}
+
+function isWhitespace(character: string): boolean {
+  return /\s/.test(character);
+}
+
+function isIdentifierStart(character: string): boolean {
+  return /[A-Za-z_$]/.test(character);
+}
+
+function isIdentifierContinuation(character: string): boolean {
+  return /[A-Za-z0-9_$]/.test(character);
 }

@@ -25,7 +25,7 @@ function malformed(): never {
 // This is the existing restricted 3MF profile, not a general XML parser. Advance
 // past each tag once; malformed delimiters must not rescan the remaining input.
 function* tags(xml: string, name: TagName): Generator<XmlTag> {
-  const startPattern = new RegExp(`<(\\/?${name})(?=[\\s/>])`, "gi");
+  const startPattern = tagStartPattern(name);
   for (;;) {
     const match = startPattern.exec(xml);
     if (!match) return;
@@ -41,7 +41,7 @@ function* tags(xml: string, name: TagName): Generator<XmlTag> {
       start: match.index,
       end: end + 1,
       closing,
-      selfClosing: /\/\s*$/.test(attributes),
+      selfClosing: attributes.trimEnd().endsWith("/"),
     };
   }
 }
@@ -74,4 +74,8 @@ export function* threeMfSections(
     }
   }
   if (opening) malformed();
+}
+
+function tagStartPattern(name: TagName): RegExp {
+  return new RegExp(`<(\\/?${name})(?=[\\s/>])`, "gi");
 }

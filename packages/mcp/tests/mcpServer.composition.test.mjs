@@ -3,6 +3,8 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import assert from "node:assert/strict";
 import test from "node:test";
+import metadata from "../package.json" with { type: "json" };
+import { CAD_LIMITS } from "@theoryfoundry/contracts";
 import {
   connectCadMcpStdio,
   createCadMcpServer,
@@ -62,6 +64,10 @@ test("official MCP SDK negotiates, exposes schemas, and invokes the transport-ne
   try {
     await server.connect(serverTransport);
     await client.connect(clientTransport);
+    assert.deepEqual(client.getServerVersion(), {
+      name: metadata.mcpServerName,
+      version: metadata.version,
+    });
     const listed = await client.listTools();
     assert.deepEqual(
       listed.tools.map((tool) => tool.name),
@@ -309,7 +315,11 @@ test("MCP rejects excessive input elements before producing schema errors", asyn
       },
     });
     assert.equal(result.isError, true);
-    assert.match(result.content[0].text, /maximum of 65536 elements/);
+    assert.ok(
+      result.content[0].text.includes(
+        `maximum of ${CAD_LIMITS.toolInputElements} elements`,
+      ),
+    );
     assert.ok(JSON.stringify(result).length < 1024);
     assert.equal(invoked, false);
     // The ceiling must still admit the largest supported parameter-edit shape.

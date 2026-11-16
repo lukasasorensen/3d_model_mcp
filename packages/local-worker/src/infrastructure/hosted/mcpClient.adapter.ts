@@ -1,3 +1,7 @@
+import {
+  LOCAL_WORKER_PACKAGE_VERSION,
+  LOCAL_WORKER_MCP_NAME,
+} from "@theoryfoundry/contracts";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -13,8 +17,8 @@ export function createHostedToolCaller(
   return async (name, input, signal): Promise<CallToolResult> => {
     signal.throwIfAborted();
     const client = new Client({
-      name: "theoryfoundry-local-worker",
-      version: "0.1.0",
+      name: LOCAL_WORKER_MCP_NAME,
+      version: LOCAL_WORKER_PACKAGE_VERSION,
     });
     const transport = new StreamableHTTPClientTransport(
       new URL("/mcp", origin),

@@ -15,7 +15,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node ../../tooling/releases/generateMcpMetadata.script.mjs --check && tsc -p tsconfig.build.json",
     "clean": "rimraf dist",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node ../../tooling/testing/runTests.script.mjs --project"
