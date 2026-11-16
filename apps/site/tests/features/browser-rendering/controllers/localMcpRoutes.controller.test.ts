@@ -1,5 +1,5 @@
 import type { LocalMcpBrowserRenderJob } from "@theoryfoundry/contracts";
-import { BROWSER_RENDERER } from "@theoryfoundry/contracts";
+import { BROWSER_RENDERER, CAD_LIMITS } from "@theoryfoundry/contracts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -137,4 +137,50 @@ void test("local MCP bridge completion requires exact origin and bound session",
     { params: Promise.resolve({ jobId: "local-render-1" }) },
   );
   assert.equal(denied.status, 403);
+});
+
+void test("local completion cancels oversized bodies with absent or understated lengths", async () => {
+  const handler = createCompleteLocalMcpRenderHandler(
+    async () => {
+      throw new Error("Unexpected persistence");
+    },
+    {
+      NODE_ENV: "development",
+      THEORYFOUNDRY_LOCAL_MCP_BRIDGE: "1",
+      THEORYFOUNDRY_ALLOWED_ORIGIN: "http://localhost:3000",
+    },
+  );
+  for (const length of [undefined, "2"]) {
+    let consumed = 0;
+    let cancelled = false;
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller): void {
+        consumed += 4096;
+        controller.enqueue(new Uint8Array(4096).fill(32));
+        if (consumed >= 1024 * 1024) controller.close();
+      },
+      cancel(): void {
+        cancelled = true;
+      },
+    });
+    const request = new Request(
+      "http://localhost:3000/v1/local-mcp/browser-renders/job-1",
+      {
+        method: "POST",
+        headers: {
+          origin: "http://localhost:3000",
+          "x-theoryfoundry-session-id": "session-1",
+          ...(length === undefined ? {} : { "content-length": length }),
+        },
+        body,
+        duplex: "half",
+      } as RequestInit,
+    );
+    const response = await handler(request, {
+      params: Promise.resolve({ jobId: "job-1" }),
+    });
+    assert.equal(response.status, 413);
+    assert.equal(cancelled, true);
+    assert.ok(consumed <= CAD_LIMITS.browserRenderCompletionBytes + 8192);
+  }
 });

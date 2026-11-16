@@ -16,7 +16,8 @@ export const account = pgTable(
   "account",
   {
     id: primaryTextId(),
-    issuer: text("issuer").notNull(),
+    // Retain historical issuer data; Better Auth 1.7.3+ keys accounts by provider.
+    issuer: text("issuer"),
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),
     userId: text("user_id")
@@ -37,6 +38,9 @@ export const account = pgTable(
   },
   (table) => [
     index("account_user_idx").on(table.userId),
-    uniqueIndex("account_issuer_id_unique").on(table.issuer, table.accountId),
+    uniqueIndex("account_provider_id_unique").on(
+      table.providerId,
+      table.accountId,
+    ),
   ],
 );

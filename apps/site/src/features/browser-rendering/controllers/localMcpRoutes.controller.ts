@@ -1,4 +1,8 @@
 import {
+  readBoundedJson,
+  RequestBodyTooLargeError,
+} from "../../../shared/http/index";
+import {
   CAD_LIMITS,
   browserRenderCompletionSchema,
   localMcpBrowserRenderJobSchema,
@@ -78,20 +82,16 @@ export function createCompleteLocalMcpRenderHandler(
     }
     const jobId = opaqueIdSchema.safeParse((await context.params).jobId);
     if (!jobId.success) return jsonError("INVALID_REQUEST", 400);
-    const byteLimit = Math.min(CAD_LIMITS.toolResultBytes, 128 * 1024);
-    const contentLength = Number(request.headers.get("content-length") ?? "0");
-    if (!Number.isFinite(contentLength) || contentLength > byteLimit) {
-      return jsonError("REQUEST_TOO_LARGE", 413);
-    }
     let raw: unknown;
     try {
-      const body = await request.text();
-      if (new TextEncoder().encode(body).byteLength > byteLimit) {
-        return jsonError("REQUEST_TOO_LARGE", 413);
-      }
-      raw = JSON.parse(body) as unknown;
-    } catch {
-      return jsonError("INVALID_REQUEST", 400);
+      raw = await readBoundedJson(
+        request,
+        CAD_LIMITS.browserRenderCompletionBytes,
+      );
+    } catch (error) {
+      return error instanceof RequestBodyTooLargeError
+        ? jsonError("REQUEST_TOO_LARGE", 413)
+        : jsonError("INVALID_REQUEST", 400);
     }
     const completion = browserRenderCompletionSchema.safeParse(raw);
     if (!completion.success || completion.data.sessionId !== sessionId) {

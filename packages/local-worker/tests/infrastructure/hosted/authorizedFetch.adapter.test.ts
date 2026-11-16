@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import {
   createAuthorizedFetch,
@@ -8,6 +9,9 @@ import {
 } from "../../../src/infrastructure/hosted/index.js";
 import { fixture } from "../../fixtures/compute.fixture.js";
 void test("authenticated HTTP transport forwards MCP and multipart artifacts without session or credential leakage", async () => {
+  const metadata = JSON.parse(
+    await readFile(new URL("../../../package.json", import.meta.url), "utf8"),
+  );
   const calls: string[] = [];
   let tokenReads = 0;
   const host = createServer((request, response) => {
@@ -28,12 +32,20 @@ void test("authenticated HTTP transport forwards MCP and multipart artifacts wit
         const rpc = JSON.parse(bytes.toString()) as {
           method: string;
           id?: number;
-          params: { name: string };
+          params: {
+            name: string;
+            clientInfo?: { name: string; version: string };
+          };
         };
         if (rpc.id === undefined) {
           response.writeHead(202).end();
           return;
         }
+        if (rpc.method === "initialize")
+          assert.deepEqual(rpc.params.clientInfo, {
+            name: metadata.mcpServerName,
+            version: metadata.version,
+          });
         const result =
           rpc.method === "initialize"
             ? {

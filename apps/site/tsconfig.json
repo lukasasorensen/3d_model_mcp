@@ -5,7 +5,7 @@
     "esModuleInterop": true,
     "incremental": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -29,7 +29,9 @@
     "src/**/*.tsx",
     "src/app/.well-known/**/*.ts",
     ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
     ".next-acceptance/types/**/*.ts",
+    ".next-acceptance/dev/types/**/*.ts",
     "tests/**/*.ts",
     "tests/**/*.tsx"
   ],

@@ -1,6 +1,6 @@
 {
   "name": "@theoryfoundry/model-project",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
@@ -26,13 +26,13 @@
     "@theoryfoundry/contracts": "workspace:*",
     "drizzle-orm": "^0.45.2",
     "pg": "^8.23.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
     "@types/pg": "^8.23.1",
-    "drizzle-kit": "^0.31.10",
+    "drizzle-kit": "^0.31.11",
     "@electric-sql/pglite": "^0.5.8",
-    "rimraf": "^6.0.1"
+    "rimraf": "6.1.4"
   }
 }

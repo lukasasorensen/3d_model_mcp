@@ -1,10 +1,11 @@
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createLocalWorkerServer } from "../src/index.js";
-import { createCadToolCatalog } from "@theoryfoundry/contracts";
+import { CAD_LIMITS, createCadToolCatalog } from "@theoryfoundry/contracts";
 import { fixture, validationInput } from "./fixtures/compute.fixture.js";
 void test("MCP handshake is offline, catalog is shared, project tools forward, compute stays local", async () => {
   const f = fixture();
@@ -36,6 +37,13 @@ void test("MCP handshake is offline, catalog is shared, project tools forward, c
   try {
     await worker.server.connect(serverTransport);
     await client.connect(clientTransport);
+    const metadata = JSON.parse(
+      await readFile(new URL("../package.json", import.meta.url), "utf8"),
+    );
+    assert.deepEqual(client.getServerVersion(), {
+      name: metadata.mcpServerName,
+      version: metadata.version,
+    });
     const listed = await client.listTools();
     assert.deepEqual(
       listed.tools.map((tool) => tool.name).sort(),
@@ -229,5 +237,45 @@ void test("local validation returns compact MCP metadata for a large stored gene
   } finally {
     await worker.close();
     await client.close();
+  }
+});
+
+void test("worker MCP input budget rejects oversized argument trees before forwarding", async () => {
+  const f = fixture();
+  let forwarded = false;
+  const worker = createLocalWorkerServer({
+    ...f.deps,
+    callHosted: async () => {
+      forwarded = true;
+      throw new Error("Unexpected forwarding");
+    },
+  });
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+  const client = new Client({ name: "input-budget-test", version: "1" });
+  try {
+    await worker.server.connect(serverTransport);
+    await client.connect(clientTransport);
+    const result = await client.callTool({
+      name: "edit_parameters",
+      arguments: {
+        operations: Array.from({ length: 20_000 }, () => ({
+          op: "set_value",
+          id: "x",
+          value: [],
+        })),
+      },
+    });
+    assert.equal(result.isError, true);
+    assert.ok(
+      JSON.stringify(result.content).includes(
+        `maximum of ${CAD_LIMITS.toolInputElements} elements`,
+      ),
+    );
+    assert.ok(JSON.stringify(result).length < 1024);
+    assert.equal(forwarded, false);
+  } finally {
+    await client.close();
+    await worker.close();
   }
 });

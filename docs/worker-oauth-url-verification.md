@@ -12,13 +12,14 @@ callback policy correctly rejects it. A diagnostic server bound to `127.0.0.1`
 masked the problem because normalization matched the outer hostname first.
 Redeployment did not resolve it; the earlier running-state hypothesis was wrong.
 
-Set the documented `skipMiddlewareUrlNormalize` Next configuration option so
+Set the documented `skipProxyUrlNormalize` Next.js 16 configuration option
+(formerly `skipMiddlewareUrlNormalize` in Next.js 15) so
 request URLs reach handlers unchanged. Callback registration, exact matching,
 PKCE, scopes, token policies and database schemas remain unchanged. This setting
 applies site-wide; the site has no middleware or custom rewrite configuration.
 
 References: [upstream reproduction](https://github.com/vercel/next.js/issues/79182)
-and [Next.js 15 URL normalization option](https://nextjs.org/docs/15/app/api-reference/file-conventions/middleware#advanced-middleware-flags).
+and [Next.js URL normalization option](https://nextjs.org/docs/app/api-reference/file-conventions/proxy#advanced-proxy-flags).
 
 ## Verification
 

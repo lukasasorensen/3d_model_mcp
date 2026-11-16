@@ -1,6 +1,6 @@
 {
   "name": "@theoryfoundry/site",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,19 +17,19 @@
     "@theoryfoundry/contracts": "workspace:*",
     "@theoryfoundry/gateway": "workspace:*",
     "@theoryfoundry/runtime": "workspace:*",
-    "better-auth": "^1.7.2",
-    "fflate": "0.8.2",
-    "next": "15.5.22",
+    "better-auth": "1.7.25",
+    "fflate": "0.8.3",
+    "next": "16.4.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "three": "0.179.1",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@types/three": "0.179.0",
-    "rimraf": "^6.0.1"
+    "rimraf": "6.1.4"
   }
 }

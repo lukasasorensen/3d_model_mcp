@@ -1,3 +1,4 @@
+import { threeMfOpeningTags, threeMfSections } from "./threeMfXml.util.js";
 import { RendererError } from "./rendererError.util.js";
 import { unzip } from "./readZip.util.js";
 import { writeZip } from "./writeZip.util.js";
@@ -11,7 +12,7 @@ export function bindThreeMfSource(
   bytes: Uint8Array,
   sourceHash: string,
 ): Uint8Array {
-  if (!/^[a-f0-9]{64}$/.test(sourceHash))
+  if (!isSourceHash(sourceHash))
     throw new RendererError(
       "INTEGRITY_FAILURE",
       "Source linkage hash is invalid.",
@@ -26,15 +27,12 @@ export function bindThreeMfSource(
       "3MF package has no model part.",
     );
   const xml = new TextDecoder("utf-8", { fatal: true }).decode(model.bytes);
-  if (/<metadata\s+name=["']theoryfoundry:sourceHash["']/i.test(xml))
+  if (containsSourceLink(xml))
     throw new RendererError(
       "INTEGRITY_FAILURE",
       "Renderer output attempted to supply trusted source linkage.",
     );
-  const linked = xml.replace(
-    /(<model\b[^>]*>)/i,
-    `$1<metadata name="theoryfoundry:sourceHash">${sourceHash}</metadata>`,
-  );
+  const linked = insertSourceLink(xml, sourceHash);
   if (linked === xml)
     throw new RendererError("INVALID_ARTIFACT", "3MF model root is malformed.");
   model.bytes = new TextEncoder().encode(linked);
@@ -64,20 +62,14 @@ export function parseThreeMf(
     relationships.bytes,
   );
   const relationshipsMatches = [
-    ...relationshipsXml.matchAll(/<Relationship\b([^>]*)\/?\s*>/gi),
-  ].filter((match) =>
-    /\bType\s*=\s*["']http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/2013\/01\/3dmodel["']/i.test(
-      match[1] ?? "",
-    ),
-  );
+    ...threeMfOpeningTags(relationshipsXml, "Relationship"),
+  ].filter(isModelRelationship);
   if (relationshipsMatches.length !== 1)
     throw new RendererError(
       "INVALID_ARTIFACT",
       "3MF package must declare exactly one root model relationship.",
     );
-  const targetValue = relationshipsMatches[0]?.[1]?.match(
-    /\bTarget\s*=\s*["']([^"']+)["']/i,
-  )?.[1];
+  const targetValue = readAttribute(relationshipsMatches[0] ?? "", "Target");
   if (
     !targetValue ||
     targetValue.includes("\\") ||
@@ -87,17 +79,23 @@ export function parseThreeMf(
       "INVALID_ARTIFACT",
       "3MF model relationship target is unsafe or missing.",
     );
-  const target = targetValue.replace(/^\//, "");
-  const escapedTarget = `/${target}`.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  if (
-    !/<Default\b(?=[^>]*\bExtension=["']model["'])(?=[^>]*\bContentType=["']application\/vnd\.ms-package\.3dmanufacturing-3dmodel\+xml["'])[^>]*\/?>/i.test(
-      contentTypesXml,
-    ) &&
-    !new RegExp(
-      `<Override\\b(?=[^>]*\\bPartName=["']${escapedTarget}["'])(?=[^>]*\\bContentType=["']application/vnd\\.ms-package\\.3dmanufacturing-3dmodel\\+xml["'])[^>]*/?>`,
-      "i",
-    ).test(contentTypesXml)
-  )
+  const target = targetValue.startsWith("/")
+    ? targetValue.slice(1)
+    : targetValue;
+  let defaultType = false;
+  for (const attributes of threeMfOpeningTags(contentTypesXml, "Default")) {
+    if (declaresModelExtension(attributes) && hasModelContentType(attributes))
+      defaultType = true;
+  }
+  let overrideType = false;
+  for (const attributes of threeMfOpeningTags(contentTypesXml, "Override")) {
+    if (
+      readPartName(attributes) === `/${target}` &&
+      hasModelContentType(attributes)
+    )
+      overrideType = true;
+  }
+  if (!defaultType && !overrideType)
     throw new RendererError(
       "INVALID_ARTIFACT",
       "3MF content types do not declare the related model part.",
@@ -111,14 +109,13 @@ export function parseThreeMf(
       "3MF package has no model part.",
     );
   const xml = new TextDecoder("utf-8", { fatal: true }).decode(model.bytes);
-  const root = xml.match(/<model\b([^>]*)>/i)?.[1] ?? "";
-  if (!/\bunit\s*=\s*["']millimeter["']/i.test(root))
+  const root = threeMfOpeningTags(xml, "model").next().value ?? "";
+  if (!usesMillimeters(root))
     throw new RendererError(
       "INVALID_ARTIFACT",
       "3MF units must be millimeters.",
     );
-  for (const match of xml.matchAll(/\btransform\s*=\s*["']([^"']+)["']/gi)) {
-    const values = (match[1] ?? "").trim().split(/\s+/).map(Number);
+  for (const values of readTransforms(xml)) {
     const identity = [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0];
     if (
       values.length !== 12 ||
@@ -132,13 +129,7 @@ export function parseThreeMf(
       );
   }
   if (expectedSourceHash) {
-    const escaped = expectedSourceHash.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    if (
-      !new RegExp(
-        `<metadata\\s+name=["']theoryfoundry:sourceHash["']\\s*>\\s*${escaped}\\s*</metadata>`,
-        "i",
-      ).test(xml)
-    ) {
+    if (!hasExpectedSourceLink(xml, expectedSourceHash)) {
       throw new RendererError(
         "INTEGRITY_FAILURE",
         "3MF source linkage is missing or mismatched.",
@@ -147,46 +138,32 @@ export function parseThreeMf(
   }
   const objects = new Map<
     number,
-    { vertices: Array<[number, number, number]>; triangleCount: number }
+    { boundingBox: ParsedMesh["boundingBox"]; triangleCount: number }
   >();
-  for (const objectMatch of xml.matchAll(
-    /<object\b([^>]*)>([\s\S]*?)<\/object\s*>/gi,
-  )) {
-    const attributes = objectMatch[1] ?? "";
-    const body = objectMatch[2] ?? "";
-    const id = Number(attributes.match(/\bid\s*=\s*["']([^"']+)["']/i)?.[1]);
+  for (const { attributes, body } of threeMfSections(xml, "object")) {
+    const id = Number(readAttribute(attributes, "id"));
     if (
       !Number.isInteger(id) ||
       id <= 0 ||
       objects.has(id) ||
-      !/<mesh\b/i.test(body) ||
-      /<components\b/i.test(body)
+      !containsMesh(body) ||
+      containsComponents(body)
     )
       throw new RendererError(
         "INVALID_ARTIFACT",
         "3MF contains an invalid or unsupported object graph.",
       );
     const vertices: Array<[number, number, number]> = [];
-    for (const match of body.matchAll(/<vertex\b([^>]*)\/?\s*>/gi)) {
-      const vertexAttributes = match[1] ?? "";
-      const coordinate = (name: string): number =>
-        Number(
-          vertexAttributes.match(
-            new RegExp(`\\b${name}\\s*=\\s*["']([^"']+)["']`, "i"),
-          )?.[1],
-        );
+    for (const vertexAttributes of threeMfOpeningTags(body, "vertex")) {
+      const coordinate = (name: "x" | "y" | "z"): number =>
+        Number(readAttribute(vertexAttributes, name));
       vertices.push([coordinate("x"), coordinate("y"), coordinate("z")]);
     }
-    checkedBounds(vertices);
+    const boundingBox = checkedBounds(vertices);
     const triangles: Triangle[] = [];
-    for (const match of body.matchAll(/<triangle\b([^>]*)\/?\s*>/gi)) {
-      const triangleAttributes = match[1] ?? "";
-      const indices = ["v1", "v2", "v3"].map((name) => {
-        const index = Number(
-          triangleAttributes.match(
-            new RegExp(`\\b${name}\\s*=\\s*["']([^"']+)["']`, "i"),
-          )?.[1],
-        );
+    for (const triangleAttributes of threeMfOpeningTags(body, "triangle")) {
+      const indices = (["v1", "v2", "v3"] as const).map((name) => {
+        const index = Number(readAttribute(triangleAttributes, name));
         if (!Number.isInteger(index) || index < 0 || index >= vertices.length)
           throw new RendererError(
             "INVALID_ARTIFACT",
@@ -202,23 +179,21 @@ export function parseThreeMf(
         "3MF object contains no triangles.",
       );
     assertClosedOrientedManifold(vertices, triangles);
-    objects.set(id, { vertices, triangleCount: triangles.length });
+    objects.set(id, { boundingBox, triangleCount: triangles.length });
   }
   if (objects.size === 0)
     throw new RendererError(
       "INVALID_ARTIFACT",
       "3MF contains no validated mesh objects.",
     );
-  const buildMatches = [
-    ...xml.matchAll(/<build\b[^>]*>([\s\S]*?)<\/build\s*>/gi),
-  ];
+  const buildMatches = [...threeMfSections(xml, "build")];
   if (buildMatches.length !== 1)
     throw new RendererError(
       "INVALID_ARTIFACT",
       "3MF must contain exactly one build graph.",
     );
   const itemMatches = [
-    ...(buildMatches[0]?.[1] ?? "").matchAll(/<item\b([^>]*)\/?\s*>/gi),
+    ...threeMfOpeningTags(buildMatches[0]?.body ?? "", "item"),
   ];
   if (itemMatches.length === 0)
     throw new RendererError("INVALID_ARTIFACT", "3MF build graph is empty.");
@@ -226,17 +201,17 @@ export function parseThreeMf(
   let triangleCount = 0;
   const referenced = new Set<number>();
   for (const item of itemMatches) {
-    const objectId = Number(
-      (item[1] ?? "").match(/\bobjectid\s*=\s*["']([^"']+)["']/i)?.[1],
-    );
+    const objectId = Number(readAttribute(item, "objectid"));
     const object = objects.get(objectId);
     if (!object)
       throw new RendererError(
         "INVALID_ARTIFACT",
         "3MF build item references an invalid object.",
       );
-    referenced.add(objectId);
-    for (const vertex of object.vertices) builtVertices.push(vertex);
+    if (!referenced.has(objectId)) {
+      builtVertices.push(object.boundingBox.min, object.boundingBox.max);
+      referenced.add(objectId);
+    }
     triangleCount += object.triangleCount;
   }
   if (referenced.size !== objects.size)
@@ -245,4 +220,78 @@ export function parseThreeMf(
       "3MF contains mesh objects that are not referenced by the build graph.",
     );
   return { triangleCount, boundingBox: checkedBounds(builtVertices) };
+}
+
+function isSourceHash(value: string): boolean {
+  return /^[a-f0-9]{64}$/.test(value);
+}
+
+function containsSourceLink(xml: string): boolean {
+  return /<metadata\s+name=["']theoryfoundry:sourceHash["']/i.test(xml);
+}
+
+function insertSourceLink(xml: string, sourceHash: string): string {
+  return xml.replace(
+    /(<model\b[^>]*>)/i,
+    `$1<metadata name="theoryfoundry:sourceHash">${sourceHash}</metadata>`,
+  );
+}
+
+function hasExpectedSourceLink(xml: string, sourceHash: string): boolean {
+  const escaped = escapePatternText(sourceHash);
+  return new RegExp(
+    `<metadata\\s+name=["']theoryfoundry:sourceHash["']\\s*>\\s*${escaped}\\s*</metadata>`,
+    "i",
+  ).test(xml);
+}
+
+function escapePatternText(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function isModelRelationship(attributes: string): boolean {
+  return /\bType\s*=\s*["']http:\/\/schemas\.microsoft\.com\/3dmanufacturing\/2013\/01\/3dmodel["']/i.test(
+    attributes,
+  );
+}
+
+function readAttribute(
+  attributes: string,
+  name: "Target" | "id" | "objectid" | "x" | "y" | "z" | "v1" | "v2" | "v3",
+): string | undefined {
+  return attributes.match(
+    new RegExp(`\\b${name}\\s*=\\s*["']([^"']+)["']`, "i"),
+  )?.[1];
+}
+
+function declaresModelExtension(attributes: string): boolean {
+  return /\bExtension=["']model["']/i.test(attributes);
+}
+
+function hasModelContentType(attributes: string): boolean {
+  return /\bContentType=["']application\/vnd\.ms-package\.3dmanufacturing-3dmodel\+xml["']/i.test(
+    attributes,
+  );
+}
+
+function readPartName(attributes: string): string | undefined {
+  return attributes.match(/\bPartName=["']([^"']+)["']/i)?.[1];
+}
+
+function usesMillimeters(attributes: string): boolean {
+  return /\bunit\s*=\s*["']millimeter["']/i.test(attributes);
+}
+
+function* readTransforms(xml: string): Generator<number[]> {
+  for (const match of xml.matchAll(/\btransform\s*=\s*["']([^"']+)["']/gi)) {
+    yield (match[1] ?? "").trim().split(/\s+/).map(Number);
+  }
+}
+
+function containsMesh(xml: string): boolean {
+  return /<mesh\b/i.test(xml);
+}
+
+function containsComponents(xml: string): boolean {
+  return /<components\b/i.test(xml);
 }

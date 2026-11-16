@@ -410,7 +410,15 @@ for (const { worker, profile, callback, erase } of [
       const retryCode = new URL(
         (await retryConsent.json()).url,
       ).searchParams.get("code");
-      assert.equal((await exchange(retryCode, "b".repeat(64))).status, 401);
+      // Failed PKCE returns the OAuth-standard error without consuming the code.
+      const rejectedExchange = await exchange(retryCode, "b".repeat(64));
+      assert.equal(rejectedExchange.status, 400);
+      const rejectedBody = await rejectedExchange.json();
+      assert.equal(rejectedBody.error, "invalid_grant");
+      assert.equal(rejectedBody.access_token, undefined);
+      const correctedExchange = await exchange(retryCode);
+      assert.equal(correctedExchange.status, 200);
+      assert.ok((await correctedExchange.json()).access_token);
       await assert.rejects(verify(tokens.access_token), {
         code: "invalid_token",
       });
