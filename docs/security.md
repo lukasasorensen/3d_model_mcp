@@ -19,7 +19,9 @@ Content-Length, and cancel oversized streams before JSON/schema parsing.
 
 3MF validation retains each validated object's bounds and triangle count. Repeated
 identity-transform build items add triangle counts but do not duplicate vertex
-tables. Mesh topology, source linkage and object-reference checks still apply.
+tables. XML tag and object/build scans advance monotonically and reject malformed
+delimiters, missing closes and nested object/build sections without rescanning
+remaining input. Mesh topology, source linkage and object-reference checks still apply.
 Both hosted and local-worker MCP servers cap input trees at 65,536 elements before
 tool schema validation. This accommodates 200 parameter edits with 100 enum options
 each while bounding schema-error amplification; transport byte limits still apply.
