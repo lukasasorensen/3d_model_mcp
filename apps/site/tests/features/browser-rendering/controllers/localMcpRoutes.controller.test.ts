@@ -1,5 +1,5 @@
 import type { LocalMcpBrowserRenderJob } from "@theoryfoundry/contracts";
-import { BROWSER_RENDERER } from "@theoryfoundry/contracts";
+import { BROWSER_RENDERER, CAD_LIMITS } from "@theoryfoundry/contracts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -181,6 +181,6 @@ void test("local completion cancels oversized bodies with absent or understated 
     });
     assert.equal(response.status, 413);
     assert.equal(cancelled, true);
-    assert.ok(consumed <= 128 * 1024 + 8192);
+    assert.ok(consumed <= CAD_LIMITS.browserRenderCompletionBytes + 8192);
   }
 });

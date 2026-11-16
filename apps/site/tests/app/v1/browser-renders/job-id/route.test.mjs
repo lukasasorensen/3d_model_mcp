@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { CAD_LIMITS } from "@theoryfoundry/contracts";
 import test from "node:test";
 import { build } from "esbuild";
 import { mkdtemp, rm } from "node:fs/promises";
@@ -80,7 +81,10 @@ test("hosted completions stop oversized streams before parsing or persistence", 
         params: Promise.resolve({ jobId: "job-1" }),
       });
       assert.equal(response.status, 413);
-      assert.ok(consumed <= 128 * 1024 + 8192, `consumed ${consumed}`);
+      assert.ok(
+        consumed <= CAD_LIMITS.browserRenderCompletionBytes + 8192,
+        `consumed ${consumed}`,
+      );
       if (length !== String(1024 * 1024)) assert.equal(cancelled, true);
       await stream.cancel();
     }

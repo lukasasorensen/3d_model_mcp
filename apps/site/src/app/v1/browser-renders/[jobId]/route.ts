@@ -4,6 +4,7 @@ import {
 } from "../../../../shared/http/index";
 import { authenticateRequest } from "@/authentication.composition";
 import {
+  CAD_LIMITS,
   browserRenderCompletionSchema,
   opaqueIdSchema,
 } from "@theoryfoundry/contracts";
@@ -33,7 +34,10 @@ export async function POST(
   if (!jobId.success) return jsonError("INVALID_REQUEST", 400);
   let raw: unknown;
   try {
-    raw = await readBoundedJson(request, 128 * 1024);
+    raw = await readBoundedJson(
+      request,
+      CAD_LIMITS.browserRenderCompletionBytes,
+    );
   } catch (error) {
     return error instanceof RequestBodyTooLargeError
       ? jsonError("REQUEST_TOO_LARGE", 413)

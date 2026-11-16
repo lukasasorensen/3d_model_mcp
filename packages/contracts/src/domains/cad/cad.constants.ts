@@ -17,6 +17,7 @@ export const CAD_LIMITS = Object.freeze({
   sourceBytes: 256 * 1024,
   previewBytes: 10 * 1024 * 1024,
   previewTriangles: 250_000,
+  browserRenderCompletionBytes: 128 * 1024,
   exportBytes: 25 * 1024 * 1024,
   diagnosticCount: 50,
   diagnosticMessageCharacters: 2_000,

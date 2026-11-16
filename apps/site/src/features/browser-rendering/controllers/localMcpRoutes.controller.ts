@@ -3,6 +3,7 @@ import {
   RequestBodyTooLargeError,
 } from "../../../shared/http/index";
 import {
+  CAD_LIMITS,
   browserRenderCompletionSchema,
   localMcpBrowserRenderJobSchema,
   opaqueIdSchema,
@@ -83,7 +84,10 @@ export function createCompleteLocalMcpRenderHandler(
     if (!jobId.success) return jsonError("INVALID_REQUEST", 400);
     let raw: unknown;
     try {
-      raw = await readBoundedJson(request, 128 * 1024);
+      raw = await readBoundedJson(
+        request,
+        CAD_LIMITS.browserRenderCompletionBytes,
+      );
     } catch (error) {
       return error instanceof RequestBodyTooLargeError
         ? jsonError("REQUEST_TOO_LARGE", 413)
