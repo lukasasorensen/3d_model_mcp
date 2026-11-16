@@ -127,7 +127,10 @@ export async function* streamCadChat(
               );
             void config.toolCall;
             const toolCallId = `${requestId}-t${toolRounds}`;
-            if (spec.name === "propose_model_source") {
+            if (
+              spec.name === "propose_model_source" ||
+              spec.name === "edit_parameters"
+            ) {
               candidateProposals += 1;
               if (candidateProposals > CHAT_LIMITS.maxRepairAttempts + 1) {
                 terminalFailure = "REPAIR_LIMIT_EXCEEDED";
@@ -144,6 +147,7 @@ export async function* streamCadChat(
                 sensitiveValues.add(input[key]);
             if (
               spec.name === "propose_model_source" ||
+              spec.name === "edit_parameters" ||
               spec.name === "restore_revision"
             )
               Object.assign(input, { requestId, toolCallId });
@@ -369,9 +373,14 @@ export async function* streamCadChat(
       const provider = options.provider;
       const projectContext = isLiveProvider(provider.id)
         ? await loadChatContext(
-            () => tools[0]!.invoke({ projectId: request.projectId }),
+            () =>
+              tools
+                .find((entry) => entry.name === "get_project_state")!
+                .invoke({ projectId: request.projectId }),
             (revision) =>
-              tools[1]!.invoke({ projectId: request.projectId, revision }),
+              tools
+                .find((entry) => entry.name === "read_model_source")!
+                .invoke({ projectId: request.projectId, revision }),
           )
         : "";
       const agent = createAgent({

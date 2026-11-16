@@ -176,11 +176,11 @@ test("large generated documents return compact mutation metadata after proposal,
       projectId,
       parentRevision: null,
       modelBody,
-      parameters,
+      operations: parameters.map((parameter) => ({ op: "create", parameter })),
       requestId: "large",
       toolCallId: "large",
     };
-    const candidate = await invoke("propose_model_source", proposal);
+    const candidate = await invoke("edit_parameters", proposal);
     const stored = await repository.getCandidate(
       projectId,
       candidate.candidateId,
@@ -195,7 +195,7 @@ test("large generated documents return compact mutation metadata after proposal,
     );
     assert.equal(stored.modelBody, modelBody);
     assert.equal(
-      (await invoke("propose_model_source", proposal)).candidateId,
+      (await invoke("edit_parameters", proposal)).candidateId,
       candidate.candidateId,
     );
     assert.equal(

@@ -1,6 +1,6 @@
 {
   "name": "3d-model-mcp",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": true,
   "description": "Local-first conversational CAD using MCP tools and OpenSCAD.",
   "packageManager": "pnpm@11.17.0",
@@ -73,6 +73,7 @@
     "typescript-eslint": "8.72.0",
     "@types/node": "24.10.1",
     "globals": "17.13.0",
-    "@theoryfoundry/model-project": "workspace:*"
+    "@theoryfoundry/model-project": "workspace:*",
+    "@theoryfoundry/mcp": "workspace:*"
   }
 }

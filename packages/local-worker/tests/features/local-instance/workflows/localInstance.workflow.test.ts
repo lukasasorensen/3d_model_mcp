@@ -170,7 +170,7 @@ void test("failed upgrades retain the cold backup and prevent old-image startup"
       JSON.stringify({
         ...release,
         version: "0.9.0",
-        workerVersion: "0.4.0",
+        workerVersion: "0.5.0",
         appImage: "theoryfoundry/local-app:0.9.0",
       }),
     );
@@ -184,7 +184,7 @@ void test("failed upgrades retain the cold backup and prevent old-image startup"
       runLocalInstance(
         { command: "upgrade", open: false, release: manifest, output },
         f.caps,
-        "0.4.0",
+        "0.5.0",
       ),
       /COMPOSE_FAILED/,
     );
@@ -194,7 +194,7 @@ void test("failed upgrades retain the cold backup and prevent old-image startup"
     ) as { upgradePending: boolean };
     assert.equal(pending.upgradePending, true);
     await assert.rejects(
-      runLocalInstance({ command: "start", open: false }, f.caps, "0.4.0"),
+      runLocalInstance({ command: "start", open: false }, f.caps, "0.5.0"),
       /UPGRADE_PENDING/,
     );
     assert.ok(f.calls.some((args) => args.includes("stop")));

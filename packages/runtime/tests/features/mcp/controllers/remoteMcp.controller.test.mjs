@@ -80,8 +80,10 @@ test("official MCP client negotiates remote transport, preserves tools, and clos
     const listed = await client.listTools();
     assert.deepEqual(listed.tools.map((tool) => tool.name).sort(), [
       "create_project",
+      "edit_parameters",
       "export_model",
       "get_project_state",
+      "list_model_parameters",
       "list_projects",
       "list_revisions",
       "promote_candidate",

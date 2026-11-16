@@ -202,8 +202,9 @@ gateway/local-worker 0.3.0 → 0.4.0 and site 0.8.0 → 0.8.1. These are once-pe
 worker pins/setup/release examples are synchronized. Publish and verify worker
 0.4.0 before end users install it. Installer pins and renderer assets are unchanged.
 
-THE-54/55 add dedicated AI management tools and controls using body plus JSON.
-They must not introduce independently editable generated declarations.
+THE-54 adds [AI parameter tools](ai-parameter-tools.md) using body plus JSON.
+THE-55 adds interactive controls. Neither introduces independently editable
+generated declarations.
 
 ## Verification
 

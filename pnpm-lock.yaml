@@ -18,6 +18,9 @@ importers:
       '@theoryfoundry/browser-renderer':
         specifier: workspace:*
         version: link:packages/browser-renderer
+      '@theoryfoundry/mcp':
+        specifier: workspace:*
+        version: link:packages/mcp
       '@theoryfoundry/model-project':
         specifier: workspace:*
         version: link:packages/runtime/model-project

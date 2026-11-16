@@ -1,4 +1,8 @@
+import * as z from "zod/v4";
 import {
+  applyParameterOperations,
+  editParametersInputSchema,
+  listModelParametersInputSchema,
   CAD_LIMITS,
   modelRecordMetadata,
   createCadToolCatalog,
@@ -109,6 +113,71 @@ export function createCadToolRegistry(
         void source;
         return boundedResult({
           model: model.modelBody === undefined ? model : editable,
+        });
+      },
+    },
+    list_model_parameters: {
+      ...catalog.list_model_parameters,
+      execute: async (raw): Promise<Record<string, unknown>> => {
+        const input = listModelParametersInputSchema.parse(raw);
+        const revision =
+          input.revision ??
+          (await repository.getProjectState(input.projectId)).currentRevision;
+        if (revision === null) return { revision: null, parameters: [] };
+        const model = await repository.readModelSource(
+          input.projectId,
+          revision,
+        );
+        return boundedResult({
+          revision: model.revision,
+          parameters: model.parameters ?? [],
+        });
+      },
+    },
+    edit_parameters: {
+      ...catalog.edit_parameters,
+      execute: async (raw): Promise<Record<string, unknown>> => {
+        const input = editParametersInputSchema.parse(raw);
+        // Never resolve edits against current: retries must use their original parent.
+        await repository.getProjectState(input.projectId);
+        const parent =
+          input.parentRevision === null
+            ? undefined
+            : await repository.readModelSource(
+                input.projectId,
+                input.parentRevision,
+              );
+        const modelBody = input.modelBody ?? parent?.modelBody;
+        if (modelBody === undefined)
+          throw new CadDomainError(
+            "INVALID_PARAMETERS",
+            "Supply modelBody explicitly for genesis or legacy parameter adoption.",
+            { field: "modelBody" },
+          );
+        let parameters;
+        try {
+          parameters = applyParameterOperations(
+            parent?.parameters ?? [],
+            input.operations,
+          );
+        } catch (error) {
+          if (!(error instanceof z.ZodError)) throw error;
+          const issue = error.issues[0]!;
+          throw new CadDomainError("INVALID_PARAMETERS", issue.message, {
+            path: issue.path.map(String).join("."),
+          });
+        }
+        return boundedResult({
+          candidate: modelRecordMetadata(
+            await repository.proposeModelSource({
+              projectId: input.projectId,
+              parentRevision: input.parentRevision,
+              requestId: input.requestId,
+              toolCallId: input.toolCallId,
+              modelBody,
+              parameters,
+            }),
+          ),
         });
       },
     },

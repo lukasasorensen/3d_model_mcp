@@ -1,4 +1,6 @@
 import {
+  parameterEditContentSchema,
+  listModelParametersInputSchema,
   exportModelInputSchema,
   getProjectStateInputSchema,
   listRevisionsInputSchema,
@@ -17,6 +19,8 @@ export const CAD_TOOL_NAMES = [
   "update_project",
   "get_project_state",
   "read_model_source",
+  "list_model_parameters",
+  "edit_parameters",
   "propose_model_source",
   "validate_and_render",
   "promote_candidate",
@@ -26,6 +30,18 @@ export const CAD_TOOL_NAMES = [
 ] as const satisfies readonly CadToolName[];
 
 export const toolSpecs = [
+  {
+    name: "list_model_parameters",
+    description:
+      "List complete parameter definitions and current/default values with their revision. Read the body separately with read_model_source.",
+    schema: listModelParametersInputSchema,
+  },
+  {
+    name: "edit_parameters",
+    description:
+      "Create a candidate using batched create/update (complete definition), set_value (ID/value), or delete (ID) operations, each ID once. Use the exact parent. Omitted modelBody preserves the named parent's generated body. Genesis/legacy adoption needs an explicit body; coordinate body edits for rename/deletion. Validate and promote separately; never edit generated headers.",
+    schema: parameterEditContentSchema,
+  },
   {
     name: "get_project_state",
     description: "Inspect authoritative current CAD state.",
