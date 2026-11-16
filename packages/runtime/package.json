@@ -23,14 +23,14 @@
     "oauth:provision": "node dist/provisionOAuthClient.composition.js"
   },
   "dependencies": {
-    "@better-auth/oauth-provider": "1.7.7",
+    "@better-auth/oauth-provider": "1.7.25",
     "@modelcontextprotocol/sdk": "1.32.0",
     "@theoryfoundry/contracts": "workspace:*",
     "@theoryfoundry/gateway": "workspace:*",
     "@theoryfoundry/mcp": "workspace:*",
     "@theoryfoundry/model-project": "workspace:*",
     "@theoryfoundry/renderer": "workspace:*",
-    "better-auth": "1.7.7",
+    "better-auth": "1.7.25",
     "drizzle-orm": "^0.45.2",
     "jose": "6.2.8",
     "pg": "^8.23.0",
@@ -41,6 +41,6 @@
     "@electric-sql/pglite": "^0.5.8",
     "@types/node": "24.10.1",
     "@types/pg": "^8.23.1",
-    "rimraf": "^6.0.1"
+    "rimraf": "6.1.4"
   }
 }

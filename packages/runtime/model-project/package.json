@@ -33,6 +33,6 @@
     "@types/pg": "^8.23.1",
     "drizzle-kit": "^0.31.11",
     "@electric-sql/pglite": "^0.5.8",
-    "rimraf": "^6.0.1"
+    "rimraf": "6.1.4"
   }
 }

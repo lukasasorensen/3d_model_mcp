@@ -8,10 +8,11 @@ production deployment remains separately authorized.
 `.node-version`, CI and both Docker base stages pin Node **24.21.0**. Workspace
 engines require `>=24 <25`; pnpm remains **11.17.0**. The installer targets Node 24
 and requires at least that major; the headless proof package uses the workspace
-Node range. Existing Next.js 15.5.22, React, database and renderer versions remain.
+Node range. Current framework and dependency versions are recorded in
+[the dependency inventory](dependencies-and-licenses.md).
 
-Pins match the template's compatible toolchain: TypeScript 5.9.3, ESLint 10.13.0,
-`@eslint/js` 10.0.1, typescript-eslint 8.72.0, tsx 4.23.15, Node types 24.10.1,
+Current pins: TypeScript 5.9.3, ESLint 10.15.0,
+`@eslint/js` 10.0.1, typescript-eslint 8.72.2, tsx 4.23.15, Node types 24.10.1,
 Prettier 3.9.10 and dependency-cruiser 18.7.0. `globals` 17.13.0 supplies Node and
 browser environments to the flat ESLint configuration.
 
@@ -37,21 +38,20 @@ browser environments to the flat ESLint configuration.
 
 ## Declaration compatibility patches
 
-Two pnpm patches are installed from the frozen lockfile, including in Docker. They
-change declarations only; dependency JavaScript and versions are unchanged.
+One pnpm patch is installed from the frozen lockfile, including in Docker. It
+changes declarations only:
 
 - `@langchain/core@1.2.4`: Zod v3 compatibility `typeName`/`description` fields accept
   explicit undefined, matching Zod's own declarations. Without this, strict optional
   checking reduces the tool-call-limit input to `never` and rejects chat middleware.
-- `better-call@1.4.0`: optional OpenAPI array `items` accepts explicit undefined,
-  matching the OAuth provider's inferred metadata unions. Without this, the OAuth
-  provider cannot satisfy Better Auth's plugin contract under exact optional checks.
 
-Remove each patch when upstream declarations accept these shapes. Keep strict checking
-and the existing authenticated OAuth/chat tests; do not replace the patches with casts
-or compiler/lint suppressions.
+The former Better Call 1.4.0 patch was removed with the stable auth upgrade to
+Better Call 1.4.5, which includes the optional OpenAPI `items` declaration fix.
+Remove the remaining patch when upstream declarations accept these shapes. Keep
+strict checking and authenticated OAuth/chat tests; do not substitute casts or
+compiler/lint suppressions.
 
-## Verification
+## Original THE-31 verification
 
 The toolchain regression suite checks runtime pin consistency, source-only emission,
 source/test check coverage, and rejection of unchecked indexing, explicit undefined,

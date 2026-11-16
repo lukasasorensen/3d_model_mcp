@@ -16,7 +16,7 @@ test("production Next requests preserve exact OAuth loopback callbacks", () => {
     isNodeServer: true,
     isClient: false,
     isEdgeServer: false,
-    isTurbopack: false,
+    isTurbopack: true,
     rewrites: { beforeFiles: [], afterFiles: [], fallback: [] },
   });
   const key = "__NEXT_NO_MIDDLEWARE_URL_NORMALIZE";
