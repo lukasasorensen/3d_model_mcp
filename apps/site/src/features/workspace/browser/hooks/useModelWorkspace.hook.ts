@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
   completeBrowserRender,
+  completeRemoteMcpBrowserRender,
   useBrowserPresence,
   useBrowserRenderer,
 } from "../../../browser-rendering/browser/index";
@@ -68,6 +69,8 @@ export function useModelWorkspace({
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [chatCollapsed, setChatCollapsed] = useState(false);
   const [restorePending, setRestorePending] = useState(false);
+  const [parameterPending, setParameterPending] = useState(false);
+  const [parameterRendering, setParameterRendering] = useState(false);
   const [previewLoadState, setPreviewLoadState] =
     useState<PreviewLoadState>("empty");
   const abortRef = useRef<AbortController | undefined>(undefined);
@@ -151,7 +154,10 @@ export function useModelWorkspace({
     localEnabled: localMcpBridgeEnabled,
     remoteEnabled: remoteMcpEnabled,
     isAvailable:
-      !restorePending && exportState !== "preparing" && readiness === "ready",
+      !parameterPending &&
+      !restorePending &&
+      exportState !== "preparing" &&
+      readiness === "ready",
     renderWake,
   });
 
@@ -159,7 +165,11 @@ export function useModelWorkspace({
     projectId,
     sessionId,
     ready: readiness === "ready",
-    busy: isMcpRendering || restorePending || exportState === "preparing",
+    busy:
+      parameterRendering ||
+      isMcpRendering ||
+      restorePending ||
+      exportState === "preparing",
     localEnabled: localMcpBridgeEnabled,
     remoteEnabled: remoteMcpEnabled,
     presenceWake,
@@ -168,6 +178,7 @@ export function useModelWorkspace({
   const submit = useCallback(
     async (message: string, retry = false) => {
       if (
+        parameterPending ||
         !isSidebarChatEnabled ||
         !aiSelection.available ||
         !sessionId ||
@@ -243,6 +254,7 @@ export function useModelWorkspace({
       }
     },
     [
+      parameterPending,
       isSidebarChatEnabled,
       aiSelection,
       projectId,
@@ -266,7 +278,7 @@ export function useModelWorkspace({
   );
 
   const restore = async (revisionId: string): Promise<void> => {
-    if (!(await acquireRenderer())) return;
+    if (parameterPending || !(await acquireRenderer())) return;
     dispatch({ type: "clear_notice" });
     setRestorePending(true);
     try {
@@ -314,7 +326,8 @@ export function useModelWorkspace({
   }
 
   const exportCurrent = async (): Promise<void> => {
-    if (!currentManifest || !(await acquireRenderer())) return;
+    if (parameterPending || !currentManifest || !(await acquireRenderer()))
+      return;
     setExportState("preparing");
     try {
       const source = await fetchRevisionSource(
@@ -366,6 +379,24 @@ export function useModelWorkspace({
     chatCollapsed,
     setChatCollapsed,
     restorePending,
+    parameterPending,
+    setParameterPending,
+    acquireRenderer,
+    releaseRenderer,
+    refreshProject,
+    renderParameters: async (job, signal): Promise<void> => {
+      setParameterRendering(true);
+      try {
+        await completeRemoteMcpBrowserRender(
+          renderPreview,
+          job,
+          sessionId,
+          signal,
+        );
+      } finally {
+        setParameterRendering(false);
+      }
+    },
     previewLoadState,
     setPreviewLoadState,
     abortRef,

@@ -1,16 +1,21 @@
 import {
   artifactManifestSchema,
+  parameterSnapshotFields,
   candidateRecordSchema,
   createProjectInputSchema,
   revisionManifestSchema,
   updateProjectInputSchema,
   type CandidateRecord,
+  type ModelSourceDocument,
   type CreateProjectInput,
   type RevisionManifest,
   type UpdateProjectInput,
 } from "@theoryfoundry/contracts";
+import {
+  assertNewModelDocument,
+  resolveModelDocument,
+} from "../../../shared/utils/parameterSnapshot.util.js";
 import { randomUUID } from "node:crypto";
-import { assertSourcePolicy } from "../../../shared/utils/sourcePolicy.util.js";
 import type { ProjectWorkflowOptions } from "../projectRepository.types.js";
 import type { ModelSourceService } from "../services/modelSource.service.js";
 
@@ -90,6 +95,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
       source: { hash: manifest.sourceHash, byteSize: manifest.sourceBytes },
       artifacts: manifest.artifacts,
       diagnostics: manifest.diagnostics,
+      ...parameterSnapshotFields(manifest.parameters),
     };
   }
 
@@ -120,6 +126,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
               },
               artifacts: current.artifacts,
               diagnostics: current.diagnostics,
+              ...parameterSnapshotFields(current.parameters),
             }
           : {
               projectId,
@@ -150,7 +157,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
   async readModelSource(
     projectId: string,
     revision?: string,
-  ): Promise<{ revision: string; source: string; sourceHash: string }> {
+  ): Promise<ModelSourceDocument> {
     return this.sources.readModelSource(projectId, revision);
   }
 
@@ -162,13 +169,32 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
   }
 
   async proposeModelSource(input: ModelProposal): Promise<CandidateRecord> {
-    assertSourcePolicy(input.source);
     return this.persistence.transaction(async (transaction) => {
       const project = await transaction.requireProject(input.projectId, true);
-      const existingId = await transaction.findProposalCandidateId(input);
+      const parent = input.parentRevision
+        ? await transaction
+            .readRevision(input.projectId, input.parentRevision)
+            .catch((error: unknown) => {
+              if (
+                error instanceof CadDomainError &&
+                error.code === "REVISION_NOT_FOUND" &&
+                project.currentRevision !== input.parentRevision
+              )
+                throw new CadDomainError(
+                  "STALE_REVISION",
+                  "Candidate parent is not the current revision.",
+                );
+              throw error;
+            })
+        : undefined;
+      const parentParameters = parent?.manifest.parameters;
+      const document = resolveModelDocument(input, parentParameters);
+      const proposal = { ...input, ...document };
+      const existingId = await transaction.findProposalCandidateId(proposal);
       if (existingId)
         return (await transaction.readCandidate(input.projectId, existingId))
           .candidate;
+      assertNewModelDocument(document, parentParameters);
       if (project.currentRevision !== input.parentRevision) {
         throw new CadDomainError(
           "STALE_REVISION",
@@ -184,7 +210,7 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         id: candidateId,
         projectId: input.projectId,
         parentRevision: input.parentRevision,
-        source: input.source,
+        ...document,
         requestId: input.requestId,
         toolCallId: input.toolCallId,
         createdAt: this.clock(),
@@ -288,6 +314,8 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         projectId: input.projectId,
         parentRevision: project.currentRevision,
         source: persistedCandidate.source,
+        parameters: candidate.parameters,
+        modelBody: candidate.modelBody,
         sourceHash: candidate.sourceHash,
         sourceBytes: candidate.sourceBytes,
         requestId: candidate.requestId,
@@ -348,7 +376,13 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         { current: project.currentRevision },
       );
     }
-    return { ...(await this.readModelSource(projectId, revision)), format };
+    const model = await this.readModelSource(projectId, revision);
+    return {
+      revision: model.revision,
+      source: model.source,
+      sourceHash: model.sourceHash,
+      format,
+    };
   }
 
   async restoreRevision(input: {
@@ -381,6 +415,8 @@ export class PostgresProjectWorkflow implements ModelProjectStore {
         parentRevision: project.currentRevision,
         restoredFromRevision: input.revision,
         source: target.source,
+        parameters: target.manifest.parameters,
+        modelBody: target.manifest.modelBody,
         sourceHash: target.manifest.sourceHash,
         sourceBytes: target.manifest.sourceBytes,
         requestId: input.requestId,

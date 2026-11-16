@@ -3,6 +3,8 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import assert from "node:assert/strict";
 import test from "node:test";
+import metadata from "../package.json" with { type: "json" };
+import { CAD_LIMITS } from "@theoryfoundry/contracts";
 import {
   connectCadMcpStdio,
   createCadMcpServer,
@@ -36,10 +38,13 @@ const repository = new Proxy(
 test("exposes exactly the approved transport-neutral CAD tool allowlist", () => {
   const registry = createCadToolRegistry(repository);
   assert.deepEqual(Object.keys(registry), [
+    "list_projects",
     "create_project",
     "update_project",
     "get_project_state",
     "read_model_source",
+    "list_model_parameters",
+    "edit_parameters",
     "propose_model_source",
     "validate_and_render",
     "promote_candidate",
@@ -59,6 +64,10 @@ test("official MCP SDK negotiates, exposes schemas, and invokes the transport-ne
   try {
     await server.connect(serverTransport);
     await client.connect(clientTransport);
+    assert.deepEqual(client.getServerVersion(), {
+      name: metadata.mcpServerName,
+      version: metadata.version,
+    });
     const listed = await client.listTools();
     assert.deepEqual(
       listed.tools.map((tool) => tool.name),
@@ -248,4 +257,101 @@ test("failed stdio server startup closes the server and preserves the startup er
     (error) => error === startupError,
   );
   assert.equal(closed, true);
+});
+
+test("project discovery uses the already owner-scoped repository and configured project URLs", async () => {
+  const registry = createCadToolRegistry(
+    {
+      listProjects: async () => [
+        {
+          projectId: "owned",
+          name: "Local part",
+          description: "Owned project",
+        },
+      ],
+    },
+    { projectUrl: (id) => `http://127.0.0.1:43100/projects/${id}` },
+  );
+  const result = await registry.list_projects.execute({});
+  assert.deepEqual(result.projects, [
+    {
+      projectId: "owned",
+      name: "Local part",
+      description: "Owned project",
+      projectUrl: "http://127.0.0.1:43100/projects/owned",
+    },
+  ]);
+  await assert.rejects(registry.list_projects.execute({ ownerId: "other" }));
+});
+
+test("MCP rejects excessive input elements before producing schema errors", async () => {
+  let invoked = false;
+  const server = createCadMcpServer(
+    new Proxy(
+      {},
+      {
+        get() {
+          return async () => {
+            invoked = true;
+          };
+        },
+      },
+    ),
+  );
+  const client = new Client({ name: "input-budget-test", version: "1" });
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+  try {
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    const result = await client.callTool({
+      name: "edit_parameters",
+      arguments: {
+        operations: Array.from({ length: 20_000 }, () => ({
+          op: "set_value",
+          id: "x",
+          value: [],
+        })),
+      },
+    });
+    assert.equal(result.isError, true);
+    assert.ok(
+      result.content[0].text.includes(
+        `maximum of ${CAD_LIMITS.toolInputElements} elements`,
+      ),
+    );
+    assert.ok(JSON.stringify(result).length < 1024);
+    assert.equal(invoked, false);
+    // The ceiling must still admit the largest supported parameter-edit shape.
+    await client.callTool({
+      name: "edit_parameters",
+      arguments: {
+        projectId: "project",
+        parentRevision: null,
+        requestId: "request",
+        toolCallId: "tool",
+        operations: Array.from({ length: 200 }, (_, i) => ({
+          op: "update",
+          parameter: {
+            id: `p${i}`,
+            binding: `p${i}`,
+            label: "Parameter",
+            description: "Description",
+            type: "enum",
+            value: 0,
+            defaultValue: 0,
+            control: "select",
+            options: Array.from({ length: 100 }, (_, value) => ({
+              label: String(value),
+              value,
+            })),
+          },
+        })),
+      },
+    });
+    assert.equal(invoked, true);
+  } finally {
+    await client.close();
+    await server.close();
+  }
 });

@@ -1,3 +1,4 @@
+import { localEditionOrigin } from "./localEditionPolicy.util.js";
 export const REMOTE_MCP_SCOPE = "cad:tools";
 export const REMOTE_MCP_TIMEOUT_MS = 90_000;
 
@@ -21,7 +22,8 @@ export function remoteMcpIdentity(
     parsed.password ||
     (parsed.protocol !== "https:" &&
       !(
-        environment.NODE_ENV !== "production" &&
+        (environment.NODE_ENV !== "production" ||
+          localEditionOrigin(environment) === origin) &&
         parsed.protocol === "http:" &&
         ["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname)
       ))

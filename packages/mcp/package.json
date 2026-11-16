@@ -1,6 +1,7 @@
 {
   "name": "@theoryfoundry/mcp",
-  "version": "0.1.0",
+  "version": "0.4.1",
+  "mcpServerName": "theoryfoundry-cad",
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
@@ -15,19 +16,19 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node ../../tooling/releases/generateMcpMetadata.script.mjs --check && tsc -p tsconfig.build.json",
     "clean": "rimraf dist",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node ../../tooling/testing/runTests.script.mjs --project"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.30.0",
+    "@modelcontextprotocol/sdk": "1.32.0",
     "@theoryfoundry/contracts": "workspace:*",
     "@theoryfoundry/model-project": "workspace:*",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
-    "rimraf": "^6.0.1"
+    "rimraf": "6.1.4"
   }
 }

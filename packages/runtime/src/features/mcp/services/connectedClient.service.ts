@@ -1,4 +1,5 @@
 import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { CAD_LIMITS, parameterToolErrorSchema } from "@theoryfoundry/contracts";
 import type { CadMcpToolResult } from "@theoryfoundry/gateway";
 import { type CadToolName } from "@theoryfoundry/mcp";
 import type { ConnectedCadMcpClient } from "../connectedClient.port.js";
@@ -42,16 +43,23 @@ export function connectedClient(
             "text" in item &&
             typeof item.text === "string",
         )?.text;
-        let error: { code: string; message: string } | undefined;
+        let error: CadMcpToolResult["error"];
         try {
+          if (Buffer.byteLength(firstText ?? "") > CAD_LIMITS.toolResultBytes)
+            throw new Error("Oversized MCP error.");
           const parsed = JSON.parse(firstText ?? "") as {
             error?: { code?: unknown; message?: unknown };
           };
           if (
             typeof parsed.error?.code === "string" &&
             typeof parsed.error.message === "string"
-          )
+          ) {
             error = { code: parsed.error.code, message: parsed.error.message };
+            const parameterError = parameterToolErrorSchema.safeParse(
+              parsed.error,
+            );
+            if (parameterError.success) error = parameterError.data;
+          }
         } catch {
           /* public gateway applies a fixed safe error */
         }

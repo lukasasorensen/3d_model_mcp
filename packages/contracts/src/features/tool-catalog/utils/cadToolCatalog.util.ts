@@ -1,4 +1,8 @@
 import {
+  editParametersInputSchema,
+  editParametersOutputSchema,
+  listModelParametersInputSchema,
+  listModelParametersOutputSchema,
   createProjectInputSchema,
   createProjectOutputSchema,
   exportModelInputSchema,
@@ -7,6 +11,8 @@ import {
   getProjectStateOutputSchema,
   listRevisionsInputSchema,
   listRevisionsOutputSchema,
+  listProjectsInputSchema,
+  projectListSchema,
   promoteCandidateInputSchema,
   promoteCandidateOutputSchema,
   proposeModelSourceInputSchema,
@@ -25,6 +31,14 @@ import {
   previewMetadataSchema,
 } from "../../../domains/preview/index.js";
 const baseCatalog = {
+  list_projects: {
+    title: "List projects",
+    description:
+      "List active CAD projects belonging to the authenticated owner. Select by project ID; ask when names are ambiguous.",
+    inputSchema: listProjectsInputSchema,
+    outputSchema: projectListSchema,
+    readOnly: true,
+  },
   create_project: {
     title: "Create project",
     description:
@@ -52,15 +66,31 @@ const baseCatalog = {
   read_model_source: {
     title: "Read model source",
     description:
-      "Read canonical OpenSCAD source for the current or a historical opaque revision ID.",
+      "Read editable modelBody and its full parameter snapshot for generated documents, or source for legacy documents, at the current or a historical revision. sourceHash always identifies the assembled render source.",
     inputSchema: readModelSourceInputSchema,
     outputSchema: readModelSourceOutputSchema,
     readOnly: true,
   },
+  list_model_parameters: {
+    title: "List model parameters",
+    description:
+      "Read complete parameter definitions and current/default values at the current or a historical revision. Returns the selected revision, or null with an empty list for an empty project. Read modelBody separately with read_model_source.",
+    inputSchema: listModelParametersInputSchema,
+    outputSchema: listModelParametersOutputSchema,
+    readOnly: true,
+  },
+  edit_parameters: {
+    title: "Edit parameters",
+    description:
+      "Create an immutable candidate against the exact parent with batched create, update, set_value and delete operations. Create/update supply complete definitions; update retains the ID. Target each ID once. Omit modelBody to preserve the named parent's generated body exactly; genesis/legacy adoption requires an explicit body. Coordinate body edits for binding rename/deletion. Never edit generated headers. Validate, inspect preview and promote explicitly; accepted state is unchanged until promotion. Replay the same parent and request/tool IDs on retry.",
+    inputSchema: editParametersInputSchema,
+    outputSchema: editParametersOutputSchema,
+    readOnly: false,
+  },
   propose_model_source: {
     title: "Propose model source",
     description:
-      "Create an immutable candidate from bounded OpenSCAD source against an explicit current parent (null only for genesis).",
+      "Create an immutable candidate against the exact current parent (null only for genesis). Supply modelBody plus structured parameters to generate a read-only header; omit parameters to inherit the named parent snapshot, or use [] to remove declarations. Never put the generated header in modelBody. Legacy unparameterized projects may supply source instead. Supply exactly one of source/modelBody. Registered names are reserved against assignments in the body, including named arguments; coordinate body edits when removing/renaming parameters.",
     inputSchema: proposeModelSourceInputSchema,
     outputSchema: proposeModelSourceOutputSchema,
     readOnly: false,
@@ -92,7 +122,7 @@ const baseCatalog = {
   list_revisions: {
     title: "List revisions",
     description:
-      "List the authoritative revision chain from current to genesis.",
+      "List the authoritative revision chain from current to genesis without repeating parameter snapshots or model bodies. Use read_model_source with a revision ID to inspect its full snapshot.",
     inputSchema: listRevisionsInputSchema,
     outputSchema: listRevisionsOutputSchema,
     readOnly: true,

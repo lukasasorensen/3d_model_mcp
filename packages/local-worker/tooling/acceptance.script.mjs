@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createCadToolCatalog } from "@theoryfoundry/contracts";
 import { setTimeout as delay } from "node:timers/promises";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
@@ -36,7 +37,10 @@ async function call(name, args) {
 try {
   await worker.server.connect(b);
   await client.connect(a);
-  assert.equal((await client.listTools()).tools.length, 11);
+  assert.deepEqual(
+    (await client.listTools()).tools.map((tool) => tool.name).sort(),
+    Object.keys(createCadToolCatalog("local-worker")).sort(),
+  );
   assert.equal(
     (await call("get_project_state", { projectId: "project" }))
       .structuredContent.state.rendererAvailability,

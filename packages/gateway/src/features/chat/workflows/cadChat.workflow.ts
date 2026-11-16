@@ -36,6 +36,7 @@ import {
   utf8Chunks,
 } from "../utils/assistantText.util.js";
 import { projectStructuredEvents } from "../utils/structuredEvents.util.js";
+import { toolErrorFeedback } from "../utils/toolErrorFeedback.util.js";
 export async function* streamCadChat(
   request: ChatRequest,
   options: ChatOrchestratorOptions & { provider: CadChatProvider },
@@ -127,7 +128,10 @@ export async function* streamCadChat(
               );
             void config.toolCall;
             const toolCallId = `${requestId}-t${toolRounds}`;
-            if (spec.name === "propose_model_source") {
+            if (
+              spec.name === "propose_model_source" ||
+              spec.name === "edit_parameters"
+            ) {
               candidateProposals += 1;
               if (candidateProposals > CHAT_LIMITS.maxRepairAttempts + 1) {
                 terminalFailure = "REPAIR_LIMIT_EXCEEDED";
@@ -139,10 +143,12 @@ export async function* streamCadChat(
               ...(rawInput as Record<string, unknown>),
               projectId: request.projectId,
             };
-            if (typeof input.source === "string")
-              sensitiveValues.add(input.source);
+            for (const key of ["source", "modelBody"] as const)
+              if (typeof input[key] === "string")
+                sensitiveValues.add(input[key]);
             if (
               spec.name === "propose_model_source" ||
+              spec.name === "edit_parameters" ||
               spec.name === "restore_revision"
             )
               Object.assign(input, { requestId, toolCallId });
@@ -239,10 +245,12 @@ export async function* streamCadChat(
                 toolCallId,
               });
               return JSON.stringify({
-                error: {
-                  code,
-                  message: "The CAD tool rejected the request safely.",
-                },
+                error: toolErrorFeedback(
+                  spec.name,
+                  result.error,
+                  sensitiveValues,
+                  options.provider.redactText,
+                ),
               });
             }
             let serialized: string;
@@ -338,11 +346,10 @@ export async function* streamCadChat(
                   },
                 });
             }
-            const modelSource = (
-              result.structuredContent.model as { source?: unknown } | undefined
-            )?.source;
-            if (typeof modelSource === "string")
-              sensitiveValues.add(modelSource);
+            const model = result.structuredContent.model as
+              { source?: unknown; modelBody?: unknown } | undefined;
+            for (const value of [model?.source, model?.modelBody])
+              if (typeof value === "string") sensitiveValues.add(value);
             if (spec.name === "export_model") {
               const receipt = exportReceiptSchema.parse(
                 result.structuredContent.export,
@@ -369,9 +376,14 @@ export async function* streamCadChat(
       const provider = options.provider;
       const projectContext = isLiveProvider(provider.id)
         ? await loadChatContext(
-            () => tools[0]!.invoke({ projectId: request.projectId }),
+            () =>
+              tools
+                .find((entry) => entry.name === "get_project_state")!
+                .invoke({ projectId: request.projectId }),
             (revision) =>
-              tools[1]!.invoke({ projectId: request.projectId, revision }),
+              tools
+                .find((entry) => entry.name === "read_model_source")!
+                .invoke({ projectId: request.projectId, revision }),
           )
         : "";
       const agent = createAgent({

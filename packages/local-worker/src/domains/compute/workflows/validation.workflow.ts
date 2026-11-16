@@ -3,6 +3,7 @@ import {
   workerValidationLeaseSchema,
   workerValidationStatusSchema,
   completeWorkerValidationSchema,
+  modelRecordMetadata,
   type CandidateRecord,
 } from "@theoryfoundry/contracts";
 import type { ComputeDependencies } from "../compute.port.js";
@@ -109,7 +110,7 @@ export async function validateLocally(
         "Local rendering failed; retry the same candidate.",
         { retryable: true },
       );
-    return { candidate: status.candidate! };
+    return { candidate: modelRecordMetadata(status.candidate!) };
   } finally {
     if (!completed)
       await api

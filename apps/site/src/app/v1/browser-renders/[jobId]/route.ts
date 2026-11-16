@@ -1,5 +1,10 @@
+import {
+  readBoundedJson,
+  RequestBodyTooLargeError,
+} from "../../../../shared/http/index";
 import { authenticateRequest } from "@/authentication.composition";
 import {
+  CAD_LIMITS,
   browserRenderCompletionSchema,
   opaqueIdSchema,
 } from "@theoryfoundry/contracts";
@@ -27,13 +32,16 @@ export async function POST(
   if (isPolicyResponse(user)) return user;
   const jobId = opaqueIdSchema.safeParse((await context.params).jobId);
   if (!jobId.success) return jsonError("INVALID_REQUEST", 400);
-  const contentLength = Number(request.headers.get("content-length") ?? "0");
-  if (contentLength > 128 * 1024) return jsonError("REQUEST_TOO_LARGE", 413);
   let raw: unknown;
   try {
-    raw = await request.json();
-  } catch {
-    return jsonError("INVALID_REQUEST", 400);
+    raw = await readBoundedJson(
+      request,
+      CAD_LIMITS.browserRenderCompletionBytes,
+    );
+  } catch (error) {
+    return error instanceof RequestBodyTooLargeError
+      ? jsonError("REQUEST_TOO_LARGE", 413)
+      : jsonError("INVALID_REQUEST", 400);
   }
   const completion = browserRenderCompletionSchema.safeParse(raw);
   if (

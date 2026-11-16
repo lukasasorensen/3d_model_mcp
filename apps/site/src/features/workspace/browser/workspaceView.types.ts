@@ -1,4 +1,5 @@
 import type {
+  RemoteMcpBrowserRenderJob,
   ProjectSummary,
   RevisionManifest,
 } from "@theoryfoundry/contracts";
@@ -25,6 +26,15 @@ export interface WorkspaceView {
   chatCollapsed: boolean;
   setChatCollapsed: Dispatch<SetStateAction<boolean>>;
   restorePending: boolean;
+  parameterPending: boolean;
+  setParameterPending(value: boolean): void;
+  acquireRenderer(): Promise<boolean>;
+  releaseRenderer(): void;
+  refreshProject(): Promise<boolean>;
+  renderParameters(
+    job: RemoteMcpBrowserRenderJob,
+    signal: AbortSignal,
+  ): Promise<void>;
   previewLoadState: PreviewLoadState;
   setPreviewLoadState: Dispatch<SetStateAction<PreviewLoadState>>;
   abortRef: RefObject<AbortController | undefined>;

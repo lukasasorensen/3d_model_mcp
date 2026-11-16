@@ -1,0 +1,2 @@
+ALTER TABLE "candidates" ADD COLUMN "parameter_snapshot" jsonb DEFAULT '[]'::jsonb NOT NULL;--> statement-breakpoint
+ALTER TABLE "revisions" ADD COLUMN "parameter_snapshot" jsonb DEFAULT '[]'::jsonb NOT NULL;

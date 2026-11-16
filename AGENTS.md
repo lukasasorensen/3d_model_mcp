@@ -24,9 +24,21 @@ See [alignment plan](docs/alignment-plan.md) for the staged migration and
   sync. Bump once per PR relative to its integration base, not per review commit;
   recheck after rebasing. Promotion PRs carry the tested versions from `develop`
   without another bump. State the version change in the PR description.
+- Maintain the [Notion release changelog](https://app.notion.com/p/413aecc8802381e6bdc9c8c94ed48ea7)
+  under the project wiki. For each release or promotion, update that existing page
+  newest first with versions, user-visible changes, PR links, and migration/setup
+  requirements. Record CI, deployment, and live acceptance separately as verified
+  or pending; do not wait for CI to update it. Fetch saved changes to verify them.
+  If Notion is unavailable, report the pending changelog update.
 - For PR updates, push the changes and update the PR without waiting for hosted CI
   to finish. Report any checks still running in the handoff; wait for CI only when
   explicitly requested or when preparing an authorized merge.
+- The user may review PRs in GitHub from time to time; this is not required for
+  every PR. When asked to address a review, fetch every review thread, fix each
+  actionable comment, verify and push the updates, then reply to each comment
+  with the change and verification evidence. For discussion-only or response-only
+  comments, reply with reasoning and alternatives without changing that item until
+  requested. Do not wait for a user review on every PR or treat review as merge approval.
 - Merge only when explicitly requested, after rechecking the PR head and required checks.
   Mark Done only when completion criteria are verified. Track implementation,
   deployment, and live acceptance separately; a passing build is not live acceptance.
@@ -53,6 +65,14 @@ See [alignment plan](docs/alignment-plan.md) for the staged migration and
   discriminated unions, narrow interfaces and substitutable implementations.
   Choose cohesive functions or classes as appropriate. Use composition and explicit
   injection, avoiding speculative abstractions, global mutable state and unnecessary inheritance.
+- Keep names, versions, limits and other meaningful strings/numbers in a single
+  authoritative manifest or named domain constant. Derive runtime metadata from
+  that source instead of copying release values into implementation code. After
+  changing MCP package names or versions, run `pnpm generate:release-metadata`;
+  builds and `pnpm verify` reject stale generated metadata.
+- Put regular-expression matching, parsing and replacement behind named functions
+  that explain their intent at call sites, including in tests; avoid inline regex
+  operations in orchestration and business logic.
 - Preserve operational errors and domain-specific failure modes. Close resources
   after failed startup and normal shutdown. Keep authorization at every persistence boundary.
 

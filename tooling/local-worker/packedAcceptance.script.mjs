@@ -52,7 +52,7 @@ for (const [name, value] of Object.entries(manifest.dependencies)) {
 for (const file of files)
   assert.match(
     file,
-    /^package\/(?:dist\/(?:[a-zA-Z0-9_-]+\.js|assets\/(?:integrity\.json|index\.html|proof\.js|openscad-worker\.js|vendor\/openscad\/(?:openscad\.js|openscad\.wasm|bosl2\.zip|manifest\.json)))|licenses\/[a-zA-Z0-9.-]+|package\.json|README\.md|THIRD_PARTY_NOTICES\.md)$/,
+    /^package\/(?:dist\/(?:[a-zA-Z0-9_-]+\.js|local\/(?:compose\.self-host\.yaml|local-release\.json)|assets\/(?:integrity\.json|index\.html|proof\.js|openscad-worker\.js|vendor\/openscad\/(?:openscad\.js|openscad\.wasm|bosl2\.zip|manifest\.json)))|licenses\/[a-zA-Z0-9.-]+|package\.json|README\.md|THIRD_PARTY_NOTICES\.md)$/,
   );
 const directory = await realpath(
   await mkdtemp(join(tmpdir(), "theoryfoundry-packed-")),
@@ -268,13 +268,31 @@ try {
     .trim()
     .split("\n")
     .map((line) => JSON.parse(line));
-  assert.equal(
-    messages.find((value) => value.id === 2).result.tools.length,
-    11,
+  assert.deepEqual(
+    messages
+      .find((value) => value.id === 2)
+      .result.tools.map((tool) => tool.name)
+      .sort(),
+    [
+      "list_projects",
+      "create_project",
+      "update_project",
+      "get_project_state",
+      "read_model_source",
+      "list_model_parameters",
+      "edit_parameters",
+      "propose_model_source",
+      "validate_and_render",
+      "get_model_preview",
+      "promote_candidate",
+      "export_model",
+      "list_revisions",
+      "restore_revision",
+    ].sort(),
   );
   assert.equal(served.stderr, "");
   checks.push(
-    "Packed stdio initializes/lists eleven tools offline, emits only JSON-RPC and exits on EOF",
+    "Packed stdio initializes/lists the approved tool set offline, emits only JSON-RPC and exits on EOF",
   );
   console.log(
     JSON.stringify(

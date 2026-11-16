@@ -1,3 +1,5 @@
+import { CAD_MCP_IDENTITY } from "./shared/mcpIdentity.constants.js";
+import { CAD_LIMITS } from "@theoryfoundry/contracts";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -46,12 +48,10 @@ export function createCadMcpServer(
   } = {},
 ): McpServer {
   const registry = createCadToolRegistry(repository, options.workflowService);
-  const server = new McpServer(
-    { name: "theoryfoundry-cad", version: "0.1.0" },
-    {
-      instructions: cadToolInstructions(),
-    },
-  );
+  const server = new McpServer(CAD_MCP_IDENTITY, {
+    maxToolInputElements: CAD_LIMITS.toolInputElements,
+    instructions: cadToolInstructions(),
+  });
 
   for (const name of Object.keys(registry) as CadToolName[]) {
     const definition = registry[name];

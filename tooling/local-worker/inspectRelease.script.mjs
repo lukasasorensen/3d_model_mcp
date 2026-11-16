@@ -63,7 +63,7 @@ assert.equal(new Set(names).size, names.length);
 const files = names.map((name) => {
   assert.match(
     name,
-    /^package\/(?:dist\/(?:[a-zA-Z0-9_-]+\.js|assets\/(?:integrity\.json|index\.html|proof\.js|openscad-worker\.js|vendor\/openscad\/(?:openscad\.js|openscad\.wasm|bosl2\.zip|manifest\.json)))|licenses\/[a-zA-Z0-9.-]+|package\.json|README\.md|THIRD_PARTY_NOTICES\.md)$/,
+    /^package\/(?:dist\/(?:[a-zA-Z0-9_-]+\.js|local\/(?:compose\.self-host\.yaml|local-release\.json)|assets\/(?:integrity\.json|index\.html|proof\.js|openscad-worker\.js|vendor\/openscad\/(?:openscad\.js|openscad\.wasm|bosl2\.zip|manifest\.json)))|licenses\/[a-zA-Z0-9.-]+|package\.json|README\.md|THIRD_PARTY_NOTICES\.md)$/,
   );
   const content = tar("-xOzf", path, name);
   return {

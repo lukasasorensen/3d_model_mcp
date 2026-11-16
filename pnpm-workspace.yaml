@@ -9,4 +9,9 @@ allowBuilds:
 
 patchedDependencies:
   "@langchain/core@1.2.4": patches/@langchain__core@1.2.4.patch
-  better-call@1.4.0: patches/better-call@1.4.0.patch
+
+# Stable Drizzle Kit still depends on the legacy esbuild loader.
+overrides:
+  "@esbuild-kit/core-utils>esbuild": 0.25.12
+  # Stable TypeScript ESLint still requests minimatch 10; remove when it adopts 11.
+  "@typescript-eslint/typescript-estree>minimatch": 11.0.8

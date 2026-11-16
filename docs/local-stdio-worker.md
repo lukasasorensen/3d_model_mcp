@@ -1,6 +1,6 @@
 # Local stdio worker
 
-THE-15's private `@theoryfoundry/local-worker` package connects the shared eleven
+THE-15's private `@theoryfoundry/local-worker` package connects the shared twelve
 CAD tools to hosted project persistence and a managed local Chromium renderer.
 It uses the dedicated worker OAuth client and OS credential store from
 [worker authentication](local-worker-authentication.md). No database credentials

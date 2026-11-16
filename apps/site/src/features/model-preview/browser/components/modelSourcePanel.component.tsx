@@ -79,9 +79,13 @@ export function ModelSourcePanel({
         {sourceState.status === "ready" ? (
           <>
             <div className="model-source-meta">
-              <span>OpenSCAD</span>
+              <span>OpenSCAD · read-only</span>
               <code title={sourceHash}>{sourceHash?.slice(0, 12)}…</code>
             </div>
+            <p className="action-help">
+              Generated parameter declarations are managed through parameter
+              definitions and values.
+            </p>
             <pre
               tabIndex={0}
               aria-label={`OpenSCAD source for ${revisionLabel}`}

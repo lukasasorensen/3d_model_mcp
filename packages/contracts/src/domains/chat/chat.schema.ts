@@ -38,6 +38,8 @@ const chatEventBase = {
 const cadToolNameSchema = z.enum([
   "get_project_state",
   "read_model_source",
+  "list_model_parameters",
+  "edit_parameters",
   "propose_model_source",
   "validate_and_render",
   "promote_candidate",

@@ -50,3 +50,5 @@ export const updateProjectOutputSchema = createProjectOutputSchema;
 export const projectListSchema = z
   .object({ projects: z.array(projectSummarySchema) })
   .strict();
+
+export const listProjectsInputSchema = z.object({}).strict();

@@ -36,6 +36,8 @@ export const defineCandidatesSchema = defineTableFactory(
           { onDelete: "restrict" },
         ),
         ...sourceDocumentColumns(),
+        modelBody: text("model_body"),
+        parameterSnapshot: jsonb("parameter_snapshot").notNull().default([]),
         activeAttemptId: text("active_attempt_id"),
         geometry: jsonb("geometry"),
         state: candidateState("state").notNull(),

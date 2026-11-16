@@ -1,5 +1,7 @@
 import {
   CONTRACT_VERSION,
+  parameterSnapshotFields,
+  type ProjectParameter,
   artifactManifestSchema,
   revisionManifestSchema,
   type ArtifactManifest,
@@ -41,6 +43,8 @@ export class FileProjectPublication {
     restoredFrom?: string;
     candidateId: string;
     source: Uint8Array;
+    modelBody?: string | undefined;
+    parameters?: ProjectParameter[];
     sourceHash: string;
     requestId: string;
     toolCallId: string;
@@ -110,6 +114,8 @@ export class FileProjectPublication {
       revisionId: input.revisionId,
       parentRevision: input.parentRevision,
       ...(input.restoredFrom ? { restoredFrom: input.restoredFrom } : {}),
+      ...parameterSnapshotFields(input.parameters),
+      ...(input.modelBody !== undefined ? { modelBody: input.modelBody } : {}),
       sourceHash: input.sourceHash,
       sourceBytes: input.source.byteLength,
       createdAt: this.clock().toISOString(),

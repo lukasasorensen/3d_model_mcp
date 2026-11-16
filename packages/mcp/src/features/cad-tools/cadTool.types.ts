@@ -1,9 +1,12 @@
 import type * as z from "zod/v4";
 export type CadToolName =
+  | "list_projects"
   | "create_project"
   | "update_project"
   | "get_project_state"
   | "read_model_source"
+  | "list_model_parameters"
+  | "edit_parameters"
   | "propose_model_source"
   | "validate_and_render"
   | "promote_candidate"

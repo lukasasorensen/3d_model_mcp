@@ -1,0 +1,60 @@
+name: Prepare local edition release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: local-edition-release
+  cancel-in-progress: false
+
+jobs:
+  release-candidate:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    environment: local-edition-release
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Require recorded distribution clearance
+        env:
+          CLEARED: ${{ vars.LOCAL_EDITION_DISTRIBUTION_CLEARED }}
+        run: test "$CLEARED" = true
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version-file: .node-version
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      - run: pnpm install --frozen-lockfile
+      - name: Sign in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_USER: ${{ github.actor }}
+        run: printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GHCR_USER" --password-stdin
+      - run: docker buildx create --use
+      - name: Publish images and verify anonymous digest pulls
+        env:
+          LOCAL_EDITION_DISTRIBUTION_CLEARED: ${{ vars.LOCAL_EDITION_DISTRIBUTION_CLEARED }}
+        run: node tooling/local-instance/publishImages.script.mjs
+      - name: Package worker and plugin candidates with the published image manifest
+        env:
+          THEORYFOUNDRY_LOCAL_RELEASE_MANIFEST: ${{ github.workspace }}/dist/local-edition/local-release.json
+        run: pnpm pack:worker && pnpm pack:local-plugin
+      - name: Upload matched release candidates
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: theoryfoundry-local-release-candidates
+          path: |
+            dist/local-edition/local-release.json
+            dist/packages/*.tgz
+            dist/local-plugin/*.zip
+          if-no-files-found: error
+          retention-days: 14
+      - name: Remove registry credentials
+        if: always()
+        run: docker logout ghcr.io

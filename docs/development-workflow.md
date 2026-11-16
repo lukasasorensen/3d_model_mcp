@@ -19,6 +19,12 @@ OAuth provisioning and headless-renderer commands remain in `package.json`.
 | `pnpm build`                                | Build libraries and the Next.js app                                    |
 | `pnpm verify`                               | Run all checks, Node/browser tests and builds without rewriting source |
 
+MCP server names (`mcpServerName`) and versions live in the owning package manifests.
+After changing either manifest, run `pnpm generate:release-metadata` and commit the
+generated constants. `pnpm check:release-metadata`, package builds and `pnpm verify`
+reject stale output. Generated constants keep runtime code independent of manifest
+files and preserve the contracts package boundary.
+
 All handwritten files use Prettier where a parser is available. Format explicit files
 with `pnpm exec prettier --write path/to/file`. Every handwritten text file is capped
 at 500 physical lines, including tests, configuration and docs. Both legacy baselines

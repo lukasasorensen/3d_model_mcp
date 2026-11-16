@@ -297,3 +297,94 @@ test("bounds assistant output and deltas by UTF-8 bytes", async () => {
       CHAT_LIMITS.assistantOutputCharacters,
   );
 });
+
+test("parameter edits share source proposal repair limits and receive server causal IDs", async () => {
+  const calls = [];
+  const steps = [
+    "edit_parameters",
+    "propose_model_source",
+    "edit_parameters",
+    "edit_parameters",
+  ];
+  const provider = {
+    id: "parameter-repairs",
+    createModel: () =>
+      new FakeToolCallingModel({
+        toolCalls: steps.map((name, index) => [
+          {
+            id: `provider-${index}`,
+            name,
+            args: {
+              projectId: "wrong-project",
+              parentRevision: null,
+              ...(name === "edit_parameters"
+                ? {
+                    modelBody: "cube(width);",
+                    operations: [
+                      {
+                        op: "create",
+                        parameter: {
+                          id: "width",
+                          binding: "width",
+                          type: "number",
+                          label: "Width",
+                          defaultValue: 10,
+                          value: 20,
+                        },
+                      },
+                    ],
+                  }
+                : { source: "cube(1);" }),
+            },
+          },
+        ]),
+      }),
+  };
+  const client = exactClient(async (name, input) => {
+    if (name === "get_project_state")
+      return {
+        isError: false,
+        structuredContent: {
+          state: {
+            projectId: "project-1",
+            currentRevision: null,
+            source: null,
+            artifacts: [],
+            diagnostics: [],
+          },
+        },
+      };
+    calls.push({ name, input });
+    return {
+      isError: false,
+      structuredContent: {
+        candidate: {
+          candidateId: `candidate-${calls.length}`,
+          state: "CREATED",
+        },
+      },
+    };
+  });
+  const events = await collect(
+    streamCadChat(request, {
+      client,
+      provider,
+      createId: () => "parameter-repair",
+    }),
+  );
+  assert.deepEqual(
+    calls.map((call) => call.name),
+    steps.slice(0, 3),
+  );
+  calls.forEach(({ input }, index) => {
+    assert.equal(input.projectId, request.projectId);
+    assert.equal(input.requestId, "parameter-repair");
+    assert.equal(input.toolCallId, `parameter-repair-t${index + 1}`);
+  });
+  assert.ok(
+    events.some(
+      (event) =>
+        event.type === "error" && event.code === "REPAIR_LIMIT_EXCEEDED",
+    ),
+  );
+});

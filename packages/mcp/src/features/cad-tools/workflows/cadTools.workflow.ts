@@ -1,11 +1,17 @@
+import * as z from "zod/v4";
 import {
+  applyParameterOperations,
+  editParametersInputSchema,
+  listModelParametersInputSchema,
   CAD_LIMITS,
+  modelRecordMetadata,
   createCadToolCatalog,
   type CadWorkflowService,
   createProjectInputSchema,
   exportModelInputSchema,
   getProjectStateInputSchema,
   listRevisionsInputSchema,
+  listProjectsInputSchema,
   promoteCandidateInputSchema,
   proposeModelSourceInputSchema,
   readModelSourceInputSchema,
@@ -38,6 +44,20 @@ export function createCadToolRegistry(
 ): CadToolRegistry {
   const catalog = createCadToolCatalog();
   return {
+    list_projects: {
+      ...catalog.list_projects,
+      execute: async (raw): Promise<Record<string, unknown>> => {
+        listProjectsInputSchema.parse(raw);
+        return boundedResult({
+          projects: (await repository.listProjects()).map((project) => ({
+            ...project,
+            ...(workflow
+              ? { projectUrl: workflow.projectUrl(project.projectId) }
+              : {}),
+          })),
+        });
+      },
+    },
     create_project: {
       ...catalog.create_project,
       execute: async (raw): Promise<Record<string, unknown>> => {
@@ -84,10 +104,79 @@ export function createCadToolRegistry(
       ...catalog.read_model_source,
       execute: async (raw): Promise<Record<string, unknown>> => {
         const input = readModelSourceInputSchema.parse(raw);
+        const model = await repository.readModelSource(
+          input.projectId,
+          input.revision,
+        );
+        // Generated documents expose editable body + JSON once, not a duplicate assembled source.
+        const { source, ...editable } = model;
+        void source;
         return boundedResult({
-          model: await repository.readModelSource(
-            input.projectId,
-            input.revision,
+          model: model.modelBody === undefined ? model : editable,
+        });
+      },
+    },
+    list_model_parameters: {
+      ...catalog.list_model_parameters,
+      execute: async (raw): Promise<Record<string, unknown>> => {
+        const input = listModelParametersInputSchema.parse(raw);
+        const revision =
+          input.revision ??
+          (await repository.getProjectState(input.projectId)).currentRevision;
+        if (revision === null) return { revision: null, parameters: [] };
+        const model = await repository.readModelSource(
+          input.projectId,
+          revision,
+        );
+        return boundedResult({
+          revision: model.revision,
+          parameters: model.parameters ?? [],
+        });
+      },
+    },
+    edit_parameters: {
+      ...catalog.edit_parameters,
+      execute: async (raw): Promise<Record<string, unknown>> => {
+        const input = editParametersInputSchema.parse(raw);
+        // Never resolve edits against current: retries must use their original parent.
+        await repository.getProjectState(input.projectId);
+        const parent =
+          input.parentRevision === null
+            ? undefined
+            : await repository.readModelSource(
+                input.projectId,
+                input.parentRevision,
+              );
+        const modelBody = input.modelBody ?? parent?.modelBody;
+        if (modelBody === undefined)
+          throw new CadDomainError(
+            "INVALID_PARAMETERS",
+            "Supply modelBody explicitly for genesis or legacy parameter adoption.",
+            { field: "modelBody" },
+          );
+        let parameters;
+        try {
+          parameters = applyParameterOperations(
+            parent?.parameters ?? [],
+            input.operations,
+          );
+        } catch (error) {
+          if (!(error instanceof z.ZodError)) throw error;
+          const issue = error.issues[0]!;
+          throw new CadDomainError("INVALID_PARAMETERS", issue.message, {
+            path: issue.path.map(String).join("."),
+          });
+        }
+        return boundedResult({
+          candidate: modelRecordMetadata(
+            await repository.proposeModelSource({
+              projectId: input.projectId,
+              parentRevision: input.parentRevision,
+              requestId: input.requestId,
+              toolCallId: input.toolCallId,
+              modelBody,
+              parameters,
+            }),
           ),
         });
       },
@@ -96,8 +185,10 @@ export function createCadToolRegistry(
       ...catalog.propose_model_source,
       execute: async (raw): Promise<Record<string, unknown>> =>
         boundedResult({
-          candidate: await repository.proposeModelSource(
-            proposeModelSourceInputSchema.parse(raw),
+          candidate: modelRecordMetadata(
+            await repository.proposeModelSource(
+              proposeModelSourceInputSchema.parse(raw),
+            ),
           ),
         }),
     },
@@ -113,10 +204,12 @@ export function createCadToolRegistry(
           await workflow.requireReady(input.projectId);
         try {
           return boundedResult({
-            candidate: await repository.validateAndRender({
-              ...input,
-              signal: context.signal,
-            }),
+            candidate: modelRecordMetadata(
+              await repository.validateAndRender({
+                ...input,
+                signal: context.signal,
+              }),
+            ),
           });
         } catch (error) {
           if (workflow && error instanceof CadDomainError)
@@ -133,10 +226,12 @@ export function createCadToolRegistry(
       execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = promoteCandidateInputSchema.parse(raw);
         return boundedResult({
-          revision: await repository.promoteCandidate({
-            ...input,
-            signal: context.signal,
-          }),
+          revision: modelRecordMetadata(
+            await repository.promoteCandidate({
+              ...input,
+              signal: context.signal,
+            }),
+          ),
         });
       },
     },
@@ -162,7 +257,13 @@ export function createCadToolRegistry(
       execute: async (raw): Promise<Record<string, unknown>> => {
         const input = listRevisionsInputSchema.parse(raw);
         return boundedResult({
-          revisions: await repository.listRevisions(input.projectId),
+          revisions: (await repository.listRevisions(input.projectId)).map(
+            ({ parameters, modelBody, ...revision }) => {
+              void parameters;
+              void modelBody;
+              return revision;
+            },
+          ),
         });
       },
     },
@@ -171,10 +272,12 @@ export function createCadToolRegistry(
       execute: async (raw, context): Promise<Record<string, unknown>> => {
         const input = restoreRevisionInputSchema.parse(raw);
         return boundedResult({
-          revision: await repository.restoreRevision({
-            ...input,
-            signal: context.signal,
-          }),
+          revision: modelRecordMetadata(
+            await repository.restoreRevision({
+              ...input,
+              signal: context.signal,
+            }),
+          ),
         });
       },
     },

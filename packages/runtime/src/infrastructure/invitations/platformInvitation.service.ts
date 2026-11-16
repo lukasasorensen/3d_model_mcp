@@ -182,7 +182,6 @@ export class PlatformInvitations {
         userId: id,
         accountId: id,
         providerId: "credential",
-        issuer: "local:credential",
         password: await policy.hash(password),
       });
       return invite.email;

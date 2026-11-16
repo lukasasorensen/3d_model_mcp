@@ -1,9 +1,11 @@
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { createLocalWorkerServer } from "../src/index.js";
-import { createCadToolCatalog } from "@theoryfoundry/contracts";
+import { CAD_LIMITS, createCadToolCatalog } from "@theoryfoundry/contracts";
 import { fixture, validationInput } from "./fixtures/compute.fixture.js";
 void test("MCP handshake is offline, catalog is shared, project tools forward, compute stays local", async () => {
   const f = fixture();
@@ -35,6 +37,13 @@ void test("MCP handshake is offline, catalog is shared, project tools forward, c
   try {
     await worker.server.connect(serverTransport);
     await client.connect(clientTransport);
+    const metadata = JSON.parse(
+      await readFile(new URL("../package.json", import.meta.url), "utf8"),
+    );
+    assert.deepEqual(client.getServerVersion(), {
+      name: metadata.mcpServerName,
+      version: metadata.version,
+    });
     const listed = await client.listTools();
     assert.deepEqual(
       listed.tools.map((tool) => tool.name).sort(),
@@ -157,5 +166,116 @@ void test("hosted tool errors remain actionable and are not relabeled as success
   } finally {
     await worker.close();
     await client.close();
+  }
+});
+
+void test("local validation returns compact MCP metadata for a large stored generated body", async () => {
+  const f = fixture();
+  const { CAD_LIMITS, parameterSnapshotSchema } =
+    await import("@theoryfoundry/contracts");
+  const { createHash } = await import("node:crypto");
+  const modelBody = "/*" + '"'.repeat(220 * 1024) + "*/ cube([3,4,5]);";
+  const parameters = parameterSnapshotSchema.parse(
+    Array.from({ length: 50 }, (_, index) => ({
+      id: `p${index}`,
+      binding: `p${index}`,
+      type: "number",
+      label: `Parameter ${index}`,
+      description: "x".repeat(2000),
+      defaultValue: 20,
+      value: 20,
+    })),
+  );
+  f.lease.source = `// theoryfoundry:parameters:start v1\n${parameters.map((p) => `${p.binding} = ${p.value};`).join("\n")}\n// theoryfoundry:parameters:end\n${modelBody}`;
+  f.lease.sourceHash = createHash("sha256")
+    .update(f.lease.source)
+    .digest("hex");
+  Object.assign(f.candidate, {
+    modelBody,
+    parameters,
+    sourceHash: f.lease.sourceHash,
+    sourceBytes: Buffer.byteLength(f.lease.source),
+  });
+  assert.ok(
+    Buffer.byteLength(JSON.stringify({ candidate: f.candidate })) >
+      CAD_LIMITS.toolResultBytes,
+  );
+  const worker = createLocalWorkerServer({
+    ...f.deps,
+    callHosted: async () => {
+      throw new Error("Validation must remain local");
+    },
+  });
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+  const client = new Client({ name: "large-generated-worker", version: "1" });
+  try {
+    await worker.server.connect(serverTransport);
+    await client.connect(clientTransport);
+    const result = (await client.callTool({
+      name: "validate_and_render",
+      arguments: validationInput,
+    })) as CallToolResult;
+    assert.equal(result.isError, undefined, JSON.stringify(result.content));
+    const payload = result.structuredContent as {
+      candidate: { modelBody?: string; parameters?: unknown; state: string };
+    };
+    assert.equal(Object.hasOwn(payload.candidate, "modelBody"), false);
+    assert.deepEqual(payload.candidate.parameters, parameters);
+    assert.equal(payload.candidate.state, "VALID");
+    assert.ok(
+      Buffer.byteLength(JSON.stringify(payload)) < CAD_LIMITS.toolResultBytes,
+    );
+    const text = result.content.find((part) => part.type === "text");
+    assert.equal(text?.type, "text");
+    assert.deepEqual(JSON.parse(text!.text), payload);
+    assert.equal(f.candidate.modelBody, modelBody);
+    assert.deepEqual(
+      f.calls.map((call) => call.path),
+      ["validation/begin", "validation/complete"],
+    );
+  } finally {
+    await worker.close();
+    await client.close();
+  }
+});
+
+void test("worker MCP input budget rejects oversized argument trees before forwarding", async () => {
+  const f = fixture();
+  let forwarded = false;
+  const worker = createLocalWorkerServer({
+    ...f.deps,
+    callHosted: async () => {
+      forwarded = true;
+      throw new Error("Unexpected forwarding");
+    },
+  });
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+  const client = new Client({ name: "input-budget-test", version: "1" });
+  try {
+    await worker.server.connect(serverTransport);
+    await client.connect(clientTransport);
+    const result = await client.callTool({
+      name: "edit_parameters",
+      arguments: {
+        operations: Array.from({ length: 20_000 }, () => ({
+          op: "set_value",
+          id: "x",
+          value: [],
+        })),
+      },
+    });
+    assert.equal(result.isError, true);
+    assert.ok(
+      JSON.stringify(result.content).includes(
+        `maximum of ${CAD_LIMITS.toolInputElements} elements`,
+      ),
+    );
+    assert.ok(JSON.stringify(result).length < 1024);
+    assert.equal(forwarded, false);
+  } finally {
+    await client.close();
+    await worker.close();
   }
 });

@@ -1,9 +1,11 @@
 import {
+  parameterEditContentSchema,
+  listModelParametersInputSchema,
   exportModelInputSchema,
   getProjectStateInputSchema,
   listRevisionsInputSchema,
   promoteCandidateInputSchema,
-  proposeModelSourceInputSchema,
+  modelProposalContentSchema,
   readModelSourceInputSchema,
   restoreRevisionInputSchema,
   validateAndRenderInputSchema,
@@ -12,10 +14,13 @@ import type { CadToolName } from "@theoryfoundry/mcp";
 import type * as z from "zod/v4";
 
 export const CAD_TOOL_NAMES = [
+  "list_projects",
   "create_project",
   "update_project",
   "get_project_state",
   "read_model_source",
+  "list_model_parameters",
+  "edit_parameters",
   "propose_model_source",
   "validate_and_render",
   "promote_candidate",
@@ -26,22 +31,33 @@ export const CAD_TOOL_NAMES = [
 
 export const toolSpecs = [
   {
+    name: "list_model_parameters",
+    description:
+      "List complete parameter definitions and current/default values with their revision. Read the body separately with read_model_source.",
+    schema: listModelParametersInputSchema,
+  },
+  {
+    name: "edit_parameters",
+    description:
+      "Create a candidate using batched create/update (complete definition), set_value (ID/value), or delete (ID) operations, each ID once. Use the exact parent. Omitted modelBody preserves the named parent's generated body. Genesis/legacy adoption needs an explicit body; coordinate body edits for rename/deletion. Validate and promote separately; never edit generated headers.",
+    schema: parameterEditContentSchema,
+  },
+  {
     name: "get_project_state",
     description: "Inspect authoritative current CAD state.",
     schema: getProjectStateInputSchema,
   },
   {
     name: "read_model_source",
-    description: "Read canonical source for a revision.",
+    description:
+      "Read editable modelBody plus parameters for generated documents, or legacy source, at a revision. sourceHash identifies assembled render source.",
     schema: readModelSourceInputSchema,
   },
   {
     name: "propose_model_source",
-    description: "Propose bounded OpenSCAD source against a parent revision.",
-    schema: proposeModelSourceInputSchema.omit({
-      requestId: true,
-      toolCallId: true,
-    }),
+    description:
+      "Propose against the exact parent. Supply modelBody plus structured parameters for a generated read-only header, or legacy source for an unparameterized model. Supply exactly one of source/modelBody; omitted parameters inherit the named parent, [] removes declarations. Never edit generated literals; coordinate body changes for removal/rename.",
+    schema: modelProposalContentSchema,
   },
   {
     name: "validate_and_render",

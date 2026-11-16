@@ -23,7 +23,7 @@ export interface FileLocks {
 export interface FileRecords {
   ensureProject(projectId: string): Promise<void>;
   findProposalCandidate(
-    input: ModelProposal,
+    input: ModelProposal & { source: string },
   ): Promise<CandidateRecord | undefined>;
   readProjectDetails(projectId: string): Promise<ProjectSummary>;
   readCurrent(projectId: string): Promise<string | null>;
