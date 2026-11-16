@@ -106,3 +106,19 @@ bounds changed from 30 × 10 × 5 to 40 × 10 × 5 without changing the body.
 The three existing optional runtime skips remain: p95 performance, real PostgreSQL
 concurrency, and standalone PostgreSQL stdio acceptance. Hosted CI and deployment
 status are recorded in the PR and changelog.
+
+PR review fixes replace the packed-worker smoke test's stale tool count with the
+exact approved tool names. Local-worker acceptance also checks its complete catalog.
+Sidebar parameter failures now preserve bounded, allowlisted diagnostics through
+the MCP adapter into model feedback. Reasons, stable parameter paths/IDs, binding
+names and body coordinates are available for repairs; unknown metadata is removed,
+known credentials/source and sensitive paths are redacted, and public error events
+remain generic. A real MCP-to-sidebar regression rejects a below-minimum edit,
+delivers its diagnostic, and then validates/promotes the model's corrected edit.
+Versions remain the once-per-PR values above.
+
+Review-fix verification passed on Node 24.21.0: full `pnpm verify`, `pnpm pack:worker`,
+the packaged-worker `--smoke` acceptance, and `pnpm acceptance:local-worker`.
+Local-worker acceptance used real sandboxed Chromium with the pinned renderer and
+checked decoded previews, STL/3MF geometry, BOSL2, rejection, cancellation and cleanup.
+Its hosted responses are fixtures; authenticated live acceptance remains separate.

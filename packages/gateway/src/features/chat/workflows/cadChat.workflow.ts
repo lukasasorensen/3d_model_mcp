@@ -36,6 +36,7 @@ import {
   utf8Chunks,
 } from "../utils/assistantText.util.js";
 import { projectStructuredEvents } from "../utils/structuredEvents.util.js";
+import { toolErrorFeedback } from "../utils/toolErrorFeedback.util.js";
 export async function* streamCadChat(
   request: ChatRequest,
   options: ChatOrchestratorOptions & { provider: CadChatProvider },
@@ -244,10 +245,12 @@ export async function* streamCadChat(
                 toolCallId,
               });
               return JSON.stringify({
-                error: {
-                  code,
-                  message: "The CAD tool rejected the request safely.",
-                },
+                error: toolErrorFeedback(
+                  spec.name,
+                  result.error,
+                  sensitiveValues,
+                  options.provider.redactText,
+                ),
               });
             }
             let serialized: string;
