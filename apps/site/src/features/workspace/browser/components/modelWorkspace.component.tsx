@@ -8,6 +8,7 @@ import {
   type HostedInstallations,
   ConnectToCodex,
 } from "../../../onboarding/browser/index";
+import { ParameterPanel } from "../../../parameter-controls/browser/index";
 import { RevisionHistory } from "./revisionHistory.component";
 import { WorkspaceStatusToast } from "./workspaceStatusToast.component";
 
@@ -61,6 +62,12 @@ export function ModelWorkspace({
     chatCollapsed,
     setChatCollapsed,
     restorePending,
+    parameterPending,
+    setParameterPending,
+    acquireRenderer,
+    releaseRenderer,
+    refreshProject,
+    renderParameters,
     previewLoadState,
     setPreviewLoadState,
     abortRef,
@@ -121,6 +128,7 @@ export function ModelWorkspace({
             type="button"
             onClick={() => router.push("/projects")}
             disabled={
+              parameterPending ||
               isMcpRendering ||
               state.active ||
               restorePending ||
@@ -142,6 +150,7 @@ export function ModelWorkspace({
                 )
               }
               disabled={
+                parameterPending ||
                 isMcpRendering ||
                 state.active ||
                 restorePending ||
@@ -275,7 +284,7 @@ export function ModelWorkspace({
               revisionId={selectedManifest?.revisionId}
               sourceHash={selectedManifest?.sourceHash}
               currentLabel={selectedLabel}
-              updating={state.active}
+              updating={state.active || parameterPending}
               onLoadStateChange={setPreviewLoadState}
             />
             <div className="model-facts" aria-label="Model facts">
@@ -308,6 +317,7 @@ export function ModelWorkspace({
                     setExportState("idle");
                   }}
                   disabled={
+                    parameterPending ||
                     isMcpRendering ||
                     !currentManifest ||
                     state.active ||
@@ -323,6 +333,7 @@ export function ModelWorkspace({
                   className="export-button"
                   onClick={() => void exportCurrent()}
                   disabled={
+                    parameterPending ||
                     isMcpRendering ||
                     !currentManifest ||
                     state.active ||
@@ -341,6 +352,30 @@ export function ModelWorkspace({
                 ? `${currentLabel} · ${exportFormat.toUpperCase()} · generated locally in this browser`
                 : "A current revision is required for export."}
             </p>
+            {state.hydrated && (
+              <ParameterPanel
+                key={projectId}
+                projectId={projectId}
+                currentRevision={state.currentRevision}
+                selectedRevision={state.selectedRevision}
+                selectedSourceHash={selectedManifest?.sourceHash}
+                sessionId={sessionId}
+                disabled={
+                  state.active ||
+                  restorePending ||
+                  isMcpRendering ||
+                  exportState === "preparing" ||
+                  readiness !== "ready" ||
+                  !sessionId ||
+                  promotionPending
+                }
+                acquire={acquireRenderer}
+                release={releaseRenderer}
+                render={renderParameters}
+                refresh={refreshProject}
+                onPending={setParameterPending}
+              />
+            )}
           </div>
           {exportState === "failed" && (
             <p role="alert" className="notice notice-error">
@@ -368,6 +403,7 @@ export function ModelWorkspace({
               currentRevision={state.currentRevision}
               selectedRevision={state.selectedRevision}
               disabled={
+                parameterPending ||
                 isMcpRendering ||
                 state.active ||
                 restorePending ||
@@ -401,6 +437,7 @@ export function ModelWorkspace({
             hasCurrentRevision={Boolean(state.currentRevision)}
             active={state.active}
             available={
+              !parameterPending &&
               !isMcpRendering &&
               !restorePending &&
               exportState !== "preparing" &&

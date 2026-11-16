@@ -1,0 +1,82 @@
+.parameter-panel {
+  border-top: 1px solid var(--line);
+  padding: 1rem;
+  min-width: 0;
+}
+.parameter-panel h2 {
+  margin: 0 0 0.5rem;
+}
+.parameter-panel form {
+  display: grid;
+  gap: 1rem;
+}
+.parameter-field {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.parameter-field > label {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.parameter-field input:not([type="checkbox"]),
+.parameter-field select,
+.parameter-field textarea {
+  width: 100%;
+  min-width: 0;
+}
+.parameter-field input[type="checkbox"] {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.parameter-field input[type="text"],
+.parameter-field select,
+.parameter-field textarea {
+  border: 1px solid var(--line);
+  background: var(--surface-1);
+}
+.parameter-field input[type="range"] {
+  min-height: 2.75rem;
+  padding: 0;
+}
+.parameter-field textarea {
+  resize: vertical;
+}
+.parameter-help {
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.parameter-help p {
+  margin: 0.25rem 0;
+}
+.parameter-value {
+  white-space: pre-wrap;
+}
+.parameter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.parameter-panel .notice button {
+  margin: 0.25rem;
+}
+
+@media (min-width: 1440px) {
+  .model-primary:has(.parameter-field) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+    gap: var(--space-4);
+  }
+  .model-primary:has(.parameter-field) > * {
+    grid-column: 1;
+  }
+  .model-primary:has(.parameter-field) > .parameter-panel {
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    align-self: start;
+    max-height: 75vh;
+    overflow: auto;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+}

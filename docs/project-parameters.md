@@ -203,7 +203,7 @@ worker pins/setup/release examples are synchronized. Publish and verify worker
 0.4.0 before end users install it. Installer pins and renderer assets are unchanged.
 
 THE-54 adds [AI parameter tools](ai-parameter-tools.md) using body plus JSON.
-THE-55 adds interactive controls. Neither introduces independently editable
+THE-55 adds [interactive controls](interactive-parameters.md). Neither introduces independently editable
 generated declarations.
 
 ## Verification

@@ -7,7 +7,11 @@ import {
   revisionManifestSchema,
 } from "@theoryfoundry/contracts";
 
-export async function mountWorkspaceJourney(page, width) {
+export async function mountWorkspaceJourney(
+  page,
+  width,
+  parameterized = false,
+) {
   const sources = { r1: "cube(10);", r2: "cube(20);", r3: "cube(10);" };
   const revisions = Object.entries(sources).map(([revisionId, source], index) =>
     revisionManifestSchema.parse({
@@ -67,6 +71,31 @@ export async function mountWorkspaceJourney(page, width) {
       controls.current = "r3";
       return json({ revision: revisions[2] });
     }
+    if (path.endsWith("/parameters")) {
+      const id =
+        new URL(request.url()).searchParams.get("revision") ?? controls.current;
+      return json({
+        revision: id,
+        sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
+        editable: parameterized,
+        parameters: parameterized
+          ? [
+              {
+                id: "width",
+                binding: "width",
+                label: "Width",
+                type: "number",
+                value: id === "r2" ? 20 : 10,
+                defaultValue: 10,
+                min: 1,
+                max: 100,
+                step: 1,
+                control: "slider",
+              },
+            ]
+          : [],
+      });
+    }
     if (path.endsWith("/source")) {
       const id = path.split("/").at(-2);
       controls.sourceRequests.push(id);
@@ -118,7 +147,7 @@ export async function mountWorkspaceJourney(page, width) {
             resolveDir: root + "/apps/site",
             contents: path.endsWith("navigation")
               ? `export function useRouter(){return {push(){}}}`
-              : `import {useEffect} from 'react';export default function dynamic(){return function Viewer({revisionId,onLoadStateChange}){useEffect(()=>onLoadStateChange('ready'),[revisionId,onLoadStateChange]);return <div aria-label="Preview fixture">{revisionId}</div>}}`,
+              : `import {useEffect} from 'react';export default function dynamic(){return function Viewer({revisionId,onLoadStateChange}){useEffect(()=>onLoadStateChange('ready'),[revisionId,onLoadStateChange]);return <div className="viewer-shell" aria-label="Preview fixture">{revisionId}</div>}}`,
           }));
         },
       },

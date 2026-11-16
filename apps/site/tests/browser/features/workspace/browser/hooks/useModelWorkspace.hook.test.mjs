@@ -91,3 +91,35 @@ for (const width of [1440, 390]) {
     expect(errors).toEqual([]);
   });
 }
+
+test("parameter controls sit beside the preview without AI chat and drafts do not enter downloads", async ({
+  page,
+}) => {
+  const { errors } = await mountWorkspaceJourney(page, 1440, true);
+  const field = page.getByRole("textbox", { name: "Width", exact: true });
+  await expect(field).toHaveValue("20");
+  const preview = await page.getByLabel("Preview fixture").boundingBox();
+  const panel = await page
+    .getByRole("region", { name: "Parameters", exact: true })
+    .boundingBox();
+  expect(panel.x).toBeGreaterThanOrEqual(preview.x + preview.width);
+  await page.screenshot({
+    path: test.info().outputPath("parameter-workspace.png"),
+  });
+  await field.fill("30");
+  const pending = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Download STL · R2", exact: true })
+    .click();
+  const file = await pending;
+  expect(await readFile(await file.path(), "utf8")).toBe("cube(20);");
+  await expect(field).toHaveValue("30");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(field).toBeVisible();
+  await page
+    .getByRole("navigation", { name: "Workspace sections" })
+    .getByRole("button", { name: "Details", exact: true })
+    .click();
+  await expect(field).not.toBeVisible();
+  expect(errors).toEqual([]);
+});

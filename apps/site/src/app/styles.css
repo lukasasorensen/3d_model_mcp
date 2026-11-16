@@ -2,6 +2,7 @@
 @import "./styles/workspace.css";
 @import "./styles/viewer.css";
 @import "./styles/model-details.css";
+@import "./styles/parameters.css";
 @import "./styles/chat.css";
 @import "./styles/authentication.css";
 @import "./styles/connected-apps.css";
