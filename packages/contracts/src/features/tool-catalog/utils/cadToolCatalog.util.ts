@@ -1,4 +1,8 @@
 import {
+  editParametersInputSchema,
+  editParametersOutputSchema,
+  listModelParametersInputSchema,
+  listModelParametersOutputSchema,
   createProjectInputSchema,
   createProjectOutputSchema,
   exportModelInputSchema,
@@ -66,6 +70,22 @@ const baseCatalog = {
     inputSchema: readModelSourceInputSchema,
     outputSchema: readModelSourceOutputSchema,
     readOnly: true,
+  },
+  list_model_parameters: {
+    title: "List model parameters",
+    description:
+      "Read complete parameter definitions and current/default values at the current or a historical revision. Returns the selected revision, or null with an empty list for an empty project. Read modelBody separately with read_model_source.",
+    inputSchema: listModelParametersInputSchema,
+    outputSchema: listModelParametersOutputSchema,
+    readOnly: true,
+  },
+  edit_parameters: {
+    title: "Edit parameters",
+    description:
+      "Create an immutable candidate against the exact parent with batched create, update, set_value and delete operations. Create/update supply complete definitions; update retains the ID. Target each ID once. Omit modelBody to preserve the named parent's generated body exactly; genesis/legacy adoption requires an explicit body. Coordinate body edits for binding rename/deletion. Never edit generated headers. Validate, inspect preview and promote explicitly; accepted state is unchanged until promotion. Replay the same parent and request/tool IDs on retry.",
+    inputSchema: editParametersInputSchema,
+    outputSchema: editParametersOutputSchema,
+    readOnly: false,
   },
   propose_model_source: {
     title: "Propose model source",

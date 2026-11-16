@@ -115,7 +115,7 @@ export const inferenceInputSchema = z
           })
           .strict(),
       )
-      .max(8),
+      .max(10),
   })
   .strict();
 export const aiFailureCodeSchema = z.enum([

@@ -181,3 +181,88 @@ void test("generated model reads retain editable body and parameters without an 
     assert.deepEqual(actual.content, result.content);
   }
 });
+
+void test("parameter tools are discoverable and forward edits and reads to hosted persistence", async () => {
+  const server = new McpServer({ name: "parameter-forwarding", version: "1" });
+  const client = new Client({
+    name: "parameter-forwarding-test",
+    version: "1",
+  });
+  const calls: Array<{ name: string; input: unknown }> = [];
+  const parameter = {
+    id: "width",
+    binding: "width",
+    label: "Width",
+    type: "number",
+    value: 20,
+    defaultValue: 10,
+  };
+  registerLocalTools(
+    server,
+    {
+      callHosted: async (name, input) => {
+        calls.push({ name, input });
+        const value =
+          name === "list_model_parameters"
+            ? { revision: "revision", parameters: [parameter] }
+            : {
+                error: {
+                  code: "STALE_REVISION",
+                  message: "Refresh the parent.",
+                },
+              };
+        return {
+          ...(name === "edit_parameters" ? { isError: true } : {}),
+          content: [{ type: "text", text: JSON.stringify(value) }],
+          ...(name === "list_model_parameters"
+            ? { structuredContent: value }
+            : {}),
+        };
+      },
+      compute: async () => {
+        throw new Error("Parameter operations must not compute locally");
+      },
+      availability: () => "ready",
+    },
+    new AbortController().signal,
+  );
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+  try {
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    const listed = await client.listTools();
+    for (const name of ["list_model_parameters", "edit_parameters"])
+      assert.ok(listed.tools.some((tool) => tool.name === name));
+    const read = await client.callTool({
+      name: "list_model_parameters",
+      arguments: { projectId: "project", revision: "revision" },
+    });
+    assert.deepEqual(read.structuredContent, {
+      revision: "revision",
+      parameters: [parameter],
+    });
+    const input = {
+      projectId: "project",
+      parentRevision: "revision",
+      requestId: "request",
+      toolCallId: "tool",
+      operations: [{ op: "set_value", id: "width", value: 30 }],
+    };
+    const edit = await client.callTool({
+      name: "edit_parameters",
+      arguments: input,
+    });
+    assert.equal(edit.isError, true);
+    assert.match(JSON.stringify(edit.content), /STALE_REVISION/);
+    assert.deepEqual(calls, [
+      {
+        name: "list_model_parameters",
+        input: { projectId: "project", revision: "revision" },
+      },
+      { name: "edit_parameters", input },
+    ]);
+  } finally {
+    await Promise.allSettled([client.close(), server.close()]);
+  }
+});

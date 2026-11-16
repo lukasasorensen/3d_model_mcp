@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createCadToolRegistry, invokeCadTool } from "@theoryfoundry/mcp";
 import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -159,11 +160,33 @@ try {
     subnormalRejectedBeforePersistence: true,
     pinnedLexerRejectsSubnormal: true,
   });
+  const registry = createCadToolRegistry(repository);
+  const callTool = async (name, input) => {
+    const result = await invokeCadTool(registry, name, input);
+    assert.equal(result.ok, true, JSON.stringify(result));
+    return result.value;
+  };
   for (const width of [30, 40]) {
     const snapshot = parameters.map((parameter) =>
       parameter.id === "width" ? { ...parameter, value: width } : parameter,
     );
-    const candidate = await propose(body, snapshot);
+    const candidate = (
+      await callTool("edit_parameters", {
+        projectId,
+        parentRevision,
+        requestId: `tool-acceptance-${++sequence}`,
+        toolCallId: "parameters",
+        ...(parentRevision === null
+          ? {
+              modelBody: body,
+              operations: snapshot.map((parameter) => ({
+                op: "create",
+                parameter,
+              })),
+            }
+          : { operations: [{ op: "set_value", id: "width", value: width }] }),
+      })
+    ).candidate;
     const valid = await validate(candidate);
     assert.equal(valid.state, "VALID", JSON.stringify(valid.diagnostics));
     assert.deepEqual(valid.artifacts[0].boundingBox, {
@@ -171,6 +194,12 @@ try {
       max: [width, 10, 5],
     });
     parentRevision = (await promote(valid)).revisionId;
+    const listed = await callTool("list_model_parameters", { projectId });
+    assert.equal(listed.revision, parentRevision);
+    assert.equal(
+      listed.parameters.find((parameter) => parameter.id === "width").value,
+      width,
+    );
     const document = await repository.readModelSource(projectId);
     assert.equal(document.modelBody, body);
     assert.equal(document.sourceHash, hash(document.source));
@@ -186,6 +215,7 @@ try {
     );
     evidence.push({
       width,
+      tools: ["list_model_parameters", "edit_parameters"],
       sourceHash: document.sourceHash,
       bounds: valid.artifacts[0].boundingBox,
       formats: ["stl", "3mf"],

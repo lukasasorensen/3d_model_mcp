@@ -13,7 +13,7 @@ test("release candidates require matching versions and trusted digest-pinned ima
   assert.deepEqual(publishedRelease(manifest, "0.8.0", "0.3.0"), manifest);
   for (const change of [
     { version: "0.9.0" },
-    { workerVersion: "0.4.0" },
+    { workerVersion: "0.5.0" },
     { postgresMajor: 17 },
     { appImage: "theoryfoundry/local-app:0.8.0" },
     { postgresImage: undefined },

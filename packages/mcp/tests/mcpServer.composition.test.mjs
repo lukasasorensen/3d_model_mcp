@@ -41,6 +41,8 @@ test("exposes exactly the approved transport-neutral CAD tool allowlist", () => 
     "update_project",
     "get_project_state",
     "read_model_source",
+    "list_model_parameters",
+    "edit_parameters",
     "propose_model_source",
     "validate_and_render",
     "promote_candidate",
