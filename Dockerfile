@@ -38,9 +38,10 @@ RUN pnpm test:codex-installer \
   && pnpm test \
   && pnpm build \
   && pnpm check:boundaries
-RUN mkdir -p apps/site/.next/standalone/apps/site/.next \
-  && cp -R apps/site/.next/static apps/site/.next/standalone/apps/site/.next/static \
-  && cp -R apps/site/public apps/site/.next/standalone/apps/site/public
+# Tracing can create these destinations before all public assets are copied.
+RUN mkdir -p apps/site/.next/standalone/apps/site/.next/static apps/site/.next/standalone/apps/site/public \
+  && cp -R apps/site/.next/static/. apps/site/.next/standalone/apps/site/.next/static/ \
+  && cp -R apps/site/public/. apps/site/.next/standalone/apps/site/public/
 
 # Operator image: contains Drizzle migrations, pnpm, and provisioning commands.
 FROM build AS tooling
