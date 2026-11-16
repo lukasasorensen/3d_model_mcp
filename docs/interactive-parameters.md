@@ -68,6 +68,10 @@ The operation has a 180-second overall bound. Abort propagates into the MCP call
 browser worker and completion request. Renderer subscriptions and foreground leases
 are released on completion/failure. Cancellation can race a committed promotion;
 the client refreshes authoritative project state instead of assuming rollback.
+Reconciliation waits at most 15 seconds for the shared workspace refresh and can be
+cancelled independently after an update ends. Pending state always clears, retaining
+the draft and retry identity when the saved outcome is unconfirmed. Parameter reads
+also have a 15-second limit; a late workspace refresh cannot discard a dirty draft.
 
 ## Retry and conflict behavior
 
@@ -116,7 +120,7 @@ variable, renderer pin or generated-header version is introduced. Existing 0017/
 migrations remain prerequisites. CI, deployment/publication and manual/live
 acceptance evidence are recorded separately in the PR and release changelog.
 
-Local verification passed on Node 24.21.0: full `pnpm verify` (74 browser checks and
+Local verification passed on Node 24.21.0: full `pnpm verify` (82 browser checks and
 production build), `pnpm acceptance:parameters`, hosted/local plugin packaging,
 worker packaging and the external packaged-worker `--smoke` harness. The pinned
 renderer was OpenSCAD 2026.07.20/BOSL2 v2.0.741 with sandboxed Chromium 149.0.7827.55.

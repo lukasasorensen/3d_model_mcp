@@ -4,6 +4,79 @@ import { expect } from "playwright/test";
 import { test } from "../../../../browser.fixture.mjs";
 import { mountParameterPanel } from "../fixtures/parameterPanel.fixture.mjs";
 
+for (const mode of ["lost", "success"])
+  for (const recovery of ["timeout", "cancel"])
+    test(`${mode} update releases pending state when reconciliation ends by ${recovery}`, async ({
+      page,
+    }) => {
+      await page.clock.install();
+      const { controls, errors } = await mountParameterPanel(page);
+      let releaseRefresh;
+      let enteredRefresh;
+      const entered = new Promise((resolve) => {
+        enteredRefresh = resolve;
+      });
+      const stall = async (route) => {
+        enteredRefresh();
+        await new Promise((resolve) => {
+          releaseRefresh = resolve;
+        });
+        await route
+          .fulfill({ json: controls.snapshots[controls.current] })
+          .catch(() => undefined);
+      };
+      await page.route("**/fixture/current", stall);
+      const width = page.getByRole("textbox", {
+        name: "Width · mm",
+        exact: true,
+      });
+      await width.fill("35");
+      controls.mode = mode;
+      await page.getByRole("button", { name: "Apply changes" }).click();
+      await entered;
+      const requestId = controls.requests.at(-1).requestId;
+      await expect(
+        page.getByText("Operation: pending", { exact: true }),
+      ).toBeVisible();
+      if (recovery === "cancel")
+        await page.getByRole("button", { name: "Cancel update" }).click();
+      else await page.clock.fastForward(15_001);
+      await expect(
+        page.getByText("Operation: idle", { exact: true }),
+      ).toBeVisible();
+      await expect(page.getByRole("alert")).toContainText("could not be");
+      await expect(
+        page.getByRole("button", { name: "Refresh saved values" }),
+      ).toBeEnabled();
+      await expect(width).toBeEnabled();
+      await expect(width).toHaveValue("35");
+      await expect(
+        page.getByText("Preview: r1", { exact: true }),
+      ).toBeVisible();
+      await page.unroute("**/fixture/current", stall);
+      if (mode === "lost") {
+        releaseRefresh();
+        controls.mode = "success";
+        await page
+          .getByRole("button", { name: "Retry interrupted update" })
+          .click();
+        await expect(
+          page.getByText("Changes saved.", { exact: true }),
+        ).toBeVisible();
+        assert.equal(controls.requests.at(-1).requestId, requestId);
+      } else {
+        // A late authoritative refresh may advance the preview, but cannot erase a draft.
+        await width.fill("36");
+        releaseRefresh();
+        await expect(
+          page.getByText("Preview: r2", { exact: true }),
+        ).toBeVisible();
+        await expect(width).toHaveValue("36");
+        await expect(width).toBeDisabled();
+      }
+      assert.deepEqual(errors, []);
+    });
+
 test("touch users can adjust a slider or exact input without saving until Apply", async ({
   browser,
 }) => {

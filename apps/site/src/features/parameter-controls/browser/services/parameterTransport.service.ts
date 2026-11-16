@@ -13,7 +13,10 @@ export async function fetchParameters(
 ): Promise<ParameterControlsSnapshot> {
   const response = await fetch(
     `/v1/projects/${encodeURIComponent(projectId)}/parameters${revision ? `?revision=${encodeURIComponent(revision)}` : ""}`,
-    { signal, cache: "no-store" },
+    {
+      signal: AbortSignal.any([signal, AbortSignal.timeout(15_000)]),
+      cache: "no-store",
+    },
   );
   if (!response.ok)
     throw new Error(

@@ -16,6 +16,7 @@ import {
   reapplyParameterDraft,
   type ParameterDraft,
 } from "../utils/parameterDraft.util";
+import { waitForParameterRefresh } from "../utils/parameterRefresh.util";
 
 export interface ParameterControlsOptions {
   projectId: string;
@@ -253,15 +254,34 @@ export function useParameterControls(options: ParameterControlsOptions): {
         });
     } finally {
       if (acquired) options.release();
-      // Reconcile after every outcome, including transport loss and cancellation races.
-      await options.refresh().catch(() => false);
-      if (mounted.current) {
-        if (saved) {
-          try {
+      // Cancellation may race a save. Give reconciliation its own cancellable wait.
+      const reconciliation = new AbortController();
+      abort.current = reconciliation;
+      const reportRefreshFailure = (): void => {
+        if (!mounted.current) return;
+        setMessage("");
+        setError({
+          code: saved ? "REFRESH_FAILED" : "UPDATE_INTERRUPTED",
+          message: saved
+            ? "Changes were saved, but values could not be refreshed. Retry loading the project."
+            : "The saved outcome could not be confirmed. Your draft is retained; refresh or retry the interrupted update.",
+        });
+      };
+      try {
+        if (mounted.current) {
+          const refreshed = await waitForParameterRefresh(
+            options.refresh,
+            reconciliation.signal,
+          );
+          if (!refreshed) reportRefreshFailure();
+          else if (saved) {
             const accepted = await fetchParameters(
               options.projectId,
               null,
-              AbortSignal.timeout(15_000),
+              AbortSignal.any([
+                reconciliation.signal,
+                AbortSignal.timeout(15_000),
+              ]),
             );
             if (
               mounted.current &&
@@ -280,19 +300,18 @@ export function useParameterControls(options: ParameterControlsOptions): {
               request.current = undefined;
               setMessage("Changes saved.");
             }
-          } catch {
-            setError({
-              code: "REFRESH_FAILED",
-              message:
-                "Changes were saved, but values could not be refreshed. Retry loading the project.",
-            });
           }
         }
-        setPending(false);
-        latest.current.onPending(false);
-        setReload((n) => n + 1);
+      } catch {
+        reportRefreshFailure();
+      } finally {
+        abort.current = undefined;
+        if (mounted.current) {
+          setPending(false);
+          latest.current.onPending(false);
+          setReload((n) => n + 1);
+        }
       }
-      abort.current = undefined;
     }
   };
   return {
