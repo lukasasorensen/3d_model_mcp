@@ -1,4 +1,9 @@
 import {
+  modelFileEditContentSchema,
+  listModelFilesInputSchema,
+  readModelFileInputSchema,
+  readModelObjectInputSchema,
+  createCadToolCatalog,
   parameterEditContentSchema,
   listModelParametersInputSchema,
   exportModelInputSchema,
@@ -21,6 +26,11 @@ export const CAD_TOOL_NAMES = [
   "read_model_source",
   "list_model_parameters",
   "edit_parameters",
+  "list_model_files",
+  "list_model_objects",
+  "read_model_file",
+  "read_model_object",
+  "edit_model_files",
   "propose_model_source",
   "validate_and_render",
   "promote_candidate",
@@ -29,7 +39,34 @@ export const CAD_TOOL_NAMES = [
   "restore_revision",
 ] as const satisfies readonly CadToolName[];
 
+const catalog = createCadToolCatalog();
 export const toolSpecs = [
+  {
+    name: "list_model_files",
+    description: catalog.list_model_files.description,
+    schema: listModelFilesInputSchema,
+  },
+  {
+    name: "list_model_objects",
+    description: catalog.list_model_objects.description,
+    schema: listModelFilesInputSchema,
+  },
+  {
+    name: "read_model_file",
+    description: catalog.read_model_file.description,
+    schema: readModelFileInputSchema,
+  },
+  {
+    name: "read_model_object",
+    description: catalog.read_model_object.description,
+    schema: readModelObjectInputSchema,
+  },
+  {
+    name: "edit_model_files",
+    description: catalog.edit_model_files.description,
+    schema: modelFileEditContentSchema,
+  },
+
   {
     name: "list_model_parameters",
     description:

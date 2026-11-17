@@ -24,6 +24,7 @@ import {
   type ModelProjectStore,
 } from "@theoryfoundry/model-project";
 
+import { createModelFileTools } from "../services/modelFileTools.service.js";
 import type { CadToolRegistry } from "../cadTool.types.js";
 function boundedResult(
   value: Record<string, unknown>,
@@ -44,6 +45,7 @@ export function createCadToolRegistry(
 ): CadToolRegistry {
   const catalog = createCadToolCatalog();
   return {
+    ...createModelFileTools(repository),
     list_projects: {
       ...catalog.list_projects,
       execute: async (raw): Promise<Record<string, unknown>> => {

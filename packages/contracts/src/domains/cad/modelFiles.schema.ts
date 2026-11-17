@@ -18,7 +18,7 @@ export const modelFileSchema = z
 export const modelObjectSchema = z
   .object({
     id: opaqueIdSchema,
-    name: z.string().min(1).max(100),
+    name: modelFileSchema.shape.name,
     fileId: opaqueIdSchema,
   })
   .strict();
@@ -35,30 +35,8 @@ export const modelFilesPresentationSchema = z
 const modelFilesV1Schema = z
   .object({
     version: z.literal(1),
-    files: z
-      .array(
-        z
-          .object({
-            id: opaqueIdSchema,
-            name: z.string().min(1).max(100),
-            body: z.string().min(1).max(CAD_LIMITS.sourceBytes),
-          })
-          .strict(),
-      )
-      .min(1)
-      .max(MODEL_FILE_LIMITS.files),
-    objects: z
-      .array(
-        z
-          .object({
-            id: opaqueIdSchema,
-            name: z.string().min(1).max(100),
-            fileId: opaqueIdSchema,
-          })
-          .strict(),
-      )
-      .min(1)
-      .max(MODEL_FILE_LIMITS.objects),
+    files: z.array(modelFileSchema).min(1).max(MODEL_FILE_LIMITS.files),
+    objects: z.array(modelObjectSchema).min(1).max(MODEL_FILE_LIMITS.objects),
     composition: z
       .object({
         operation: z.enum(["union", "difference", "intersection"]),

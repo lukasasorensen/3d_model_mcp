@@ -1,5 +1,4 @@
 import * as z from "zod/v4";
-import { CAD_LIMITS } from "./cad.constants.js";
 import {
   opaqueIdSchema,
   projectIdSchema,
@@ -9,19 +8,19 @@ import {
   modelFileSchema,
   modelObjectSchema,
   modelFilesPresentationSchema,
-  modelFilesSchema,
+  MODEL_FILE_LIMITS,
 } from "./modelFiles.schema.js";
 import { proposeModelSourceOutputSchema } from "./modelOperations.schema.js";
 
 const target = { id: opaqueIdSchema };
-const name = z.string().min(1).max(100);
+const name = modelFileSchema.shape.name;
 export const modelFileOperationSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("create_file"), file: modelFileSchema }).strict(),
   z
     .object({
       op: z.literal("update_file"),
       ...target,
-      body: z.string().min(1).max(CAD_LIMITS.sourceBytes),
+      body: modelFileSchema.shape.body,
     })
     .strict(),
   z.object({ op: z.literal("rename_file"), ...target, name }).strict(),
@@ -36,7 +35,7 @@ export const modelFileOperationSchema = z.discriminatedUnion("op", [
   z
     .object({
       op: z.literal("reorder_files"),
-      ids: z.array(opaqueIdSchema).max(64),
+      ids: z.array(opaqueIdSchema).max(MODEL_FILE_LIMITS.files),
     })
     .strict(),
   z
@@ -61,7 +60,7 @@ export const modelFileOperationSchema = z.discriminatedUnion("op", [
   z
     .object({
       op: z.literal("reorder_objects"),
-      ids: z.array(opaqueIdSchema).max(100),
+      ids: z.array(opaqueIdSchema).max(MODEL_FILE_LIMITS.objects),
     })
     .strict(),
 ]);
@@ -119,4 +118,3 @@ export const readModelObjectOutputSchema = z
     file: modelFileSchema,
   })
   .strict();
-export const modelFilesDocumentSchema = modelFilesSchema;
