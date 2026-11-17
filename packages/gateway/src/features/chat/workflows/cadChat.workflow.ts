@@ -1,3 +1,4 @@
+import { modelSourceTexts } from "../utils/modelSourceTexts.util.js";
 import {
   CAD_LIMITS,
   CHAT_LIMITS,
@@ -143,9 +144,8 @@ export async function* streamCadChat(
               ...(rawInput as Record<string, unknown>),
               projectId: request.projectId,
             };
-            for (const key of ["source", "modelBody"] as const)
-              if (typeof input[key] === "string")
-                sensitiveValues.add(input[key]);
+            for (const text of modelSourceTexts(input))
+              sensitiveValues.add(text);
             if (
               spec.name === "propose_model_source" ||
               spec.name === "edit_parameters" ||
@@ -346,10 +346,8 @@ export async function* streamCadChat(
                   },
                 });
             }
-            const model = result.structuredContent.model as
-              { source?: unknown; modelBody?: unknown } | undefined;
-            for (const value of [model?.source, model?.modelBody])
-              if (typeof value === "string") sensitiveValues.add(value);
+            for (const text of modelSourceTexts(result.structuredContent.model))
+              sensitiveValues.add(text);
             if (spec.name === "export_model") {
               const receipt = exportReceiptSchema.parse(
                 result.structuredContent.export,

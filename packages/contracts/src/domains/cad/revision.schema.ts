@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { modelFilesSchema } from "./modelFiles.schema.js";
 import { parameterSnapshotSchema } from "./parameter.schema.js";
 import { CONTRACT_VERSION } from "../../shared/version.constants.js";
 import {
@@ -21,6 +22,7 @@ export const revisionManifestSchema = z
     parentRevision: revisionIdSchema.nullable(),
     restoredFrom: revisionIdSchema.optional(),
     parameters: parameterSnapshotSchema.optional(),
+    modelFiles: modelFilesSchema.optional(),
     modelBody: z.string().max(CAD_LIMITS.sourceBytes).optional(),
     sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
     sourceBytes: z.number().int().nonnegative().max(CAD_LIMITS.sourceBytes),

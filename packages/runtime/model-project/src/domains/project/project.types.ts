@@ -1,5 +1,6 @@
 import type {
   ArtifactManifest,
+  ModelFiles,
   ProjectParameter,
   Diagnostic,
   ProjectSummary,
@@ -10,6 +11,7 @@ export interface ModelProposal {
   parentRevision: string | null;
   source?: string | undefined;
   modelBody?: string | undefined;
+  modelFiles?: ModelFiles | undefined;
   parameters?: ProjectParameter[] | undefined;
   requestId: string;
   toolCallId: string;

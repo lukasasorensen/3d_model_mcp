@@ -152,6 +152,7 @@ export class FileProjectWorkflow {
           ...(document.modelBody !== undefined
             ? { modelBody: document.modelBody }
             : {}),
+          ...(document.modelFiles ? { modelFiles: document.modelFiles } : {}),
           sourceHash: sha256(source),
           sourceBytes,
           state: "CREATED",
@@ -256,6 +257,7 @@ export class FileProjectWorkflow {
           source,
           ...parameterSnapshotFields(candidate.parameters),
           modelBody: candidate.modelBody,
+          modelFiles: candidate.modelFiles,
           sourceHash: candidate.sourceHash,
           requestId: candidate.requestId,
           toolCallId: candidate.toolCallId,
@@ -353,6 +355,7 @@ export class FileProjectWorkflow {
           source,
           ...parameterSnapshotFields(target.parameters),
           modelBody: target.modelBody,
+          modelFiles: target.modelFiles,
           sourceHash: target.sourceHash,
           requestId: input.requestId,
           toolCallId: input.toolCallId,

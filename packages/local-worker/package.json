@@ -1,6 +1,6 @@
 {
   "name": "@theoryfoundry/local-worker",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "mcpServerName": "theoryfoundry-local-worker",
   "private": true,
   "type": "module",

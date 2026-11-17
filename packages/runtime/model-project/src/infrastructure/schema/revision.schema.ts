@@ -38,6 +38,7 @@ export const defineRevisionsSchema = defineTableFactory(
         ),
         ...sourceDocumentColumns(),
         modelBody: text("model_body"),
+        modelFiles: jsonb("model_files"),
         parameterSnapshot: jsonb("parameter_snapshot").notNull().default([]),
         ...requestTraceColumns(),
         candidateId: text("candidate_id").notNull(),

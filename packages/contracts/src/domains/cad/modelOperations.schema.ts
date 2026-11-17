@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { modelFilesSchema } from "./modelFiles.schema.js";
 import { parameterSnapshotSchema } from "./parameter.schema.js";
 import {
   projectIdSchema,
@@ -26,14 +27,18 @@ export const modelProposalContentSchema = z
     projectId: projectIdSchema,
     parentRevision: revisionIdSchema.nullable(),
     source: z.string().min(1).max(CAD_LIMITS.sourceBytes).optional(),
+    modelFiles: modelFilesSchema.optional(),
     modelBody: z.string().min(1).max(CAD_LIMITS.sourceBytes).optional(),
     parameters: parameterSnapshotSchema.optional(),
   })
   .strict()
   .refine(
-    (input) => (input.source === undefined) !== (input.modelBody === undefined),
+    (input) =>
+      [input.source, input.modelBody, input.modelFiles].filter(
+        (value) => value !== undefined,
+      ).length === 1,
     {
-      message: "Supply exactly one of source or modelBody.",
+      message: "Supply exactly one of source, modelBody or modelFiles.",
     },
   );
 
@@ -111,30 +116,49 @@ export const readModelSourceOutputSchema = z
         revision: revisionIdSchema,
         source: z.string().optional(),
         modelBody: z.string().optional(),
+        modelFiles: modelFilesSchema.optional(),
         parameters: parameterSnapshotSchema.optional(),
         sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
       })
       .strict()
       .refine(
         (model) =>
-          (model.source === undefined) !== (model.modelBody === undefined),
+          [model.source, model.modelBody, model.modelFiles].filter(
+            (value) => value !== undefined,
+          ).length === 1,
         {
-          message: "Model reads contain either source or modelBody.",
+          message:
+            "Model reads contain exactly one of source, modelBody or modelFiles.",
         },
       ),
   })
   .strict();
 
 export const proposeModelSourceOutputSchema = z
-  .object({ candidate: candidateRecordSchema.omit({ modelBody: true }) })
+  .object({
+    candidate: candidateRecordSchema.omit({
+      modelBody: true,
+      modelFiles: true,
+    }),
+  })
   .strict();
 
 export const validateAndRenderOutputSchema = z
-  .object({ candidate: candidateRecordSchema.omit({ modelBody: true }) })
+  .object({
+    candidate: candidateRecordSchema.omit({
+      modelBody: true,
+      modelFiles: true,
+    }),
+  })
   .strict();
 
 export const promoteCandidateOutputSchema = z
-  .object({ revision: revisionManifestSchema.omit({ modelBody: true }) })
+  .object({
+    revision: revisionManifestSchema.omit({
+      modelBody: true,
+      modelFiles: true,
+    }),
+  })
   .strict();
 
 export const exportModelOutputSchema = z
@@ -148,5 +172,10 @@ export const listRevisionsOutputSchema = z
   .strict();
 
 export const restoreRevisionOutputSchema = z
-  .object({ revision: revisionManifestSchema.omit({ modelBody: true }) })
+  .object({
+    revision: revisionManifestSchema.omit({
+      modelBody: true,
+      modelFiles: true,
+    }),
+  })
   .strict();

@@ -1,0 +1,77 @@
+import {
+  canonicalModelFiles,
+  modelFilesSchema,
+  type ModelFiles,
+} from "@theoryfoundry/contracts";
+import { CadDomainError } from "./cadDomainError.util.js";
+import { parameterTokens } from "./parameterTokens.util.js";
+import { assertSourcePolicy } from "./sourcePolicy.util.js";
+
+export function checkedModelFiles(raw: unknown): ModelFiles {
+  const parsed = modelFilesSchema.safeParse(raw);
+  if (!parsed.success)
+    throw new CadDomainError(
+      "INVALID_MODEL_FILES",
+      "Invalid model files or composition.",
+      { reason: parsed.error.issues[0]!.message.slice(0, 200) },
+    );
+  return canonicalModelFiles(parsed.data);
+}
+
+/** Frozen v1 assembly: one scoped union per object, explicit CSG operand order. */
+export function assembleModelFiles(snapshot: ModelFiles): string {
+  const files = new Map(snapshot.files.map((file) => [file.id, file.body]));
+  const objects = new Map(
+    snapshot.objects.map((object) => [object.id, object.fileId]),
+  );
+  const operands = snapshot.composition.objectIds.map(
+    (id) => `union() {\n${files.get(objects.get(id)!)!}\n}`,
+  );
+  return `${snapshot.composition.operation}() {\n${operands.join("\n")}\n}`;
+}
+
+/** Files cannot escape their object scope or load files outside the snapshot. */
+export function assertModelFiles(snapshot: ModelFiles): void {
+  for (const file of snapshot.files) {
+    assertSourcePolicy(file.body);
+    try {
+      const stack: string[] = [];
+      for (const token of parameterTokens(file.body)) {
+        if (
+          token.kind === "identifier" &&
+          ["include", "use"].includes(token.text)
+        )
+          throw new Error(
+            "Model files must be self-contained; compose objects through fileId references.",
+          );
+        if (token.kind !== "punctuation") continue;
+        if (["{", "(", "["].includes(token.text)) stack.push(token.text);
+        const opening = (
+          { "}": "{", ")": "(", "]": "[" } as Record<string, string>
+        )[token.text];
+        if (opening && stack.pop() !== opening)
+          throw new Error("Unbalanced file delimiters.");
+      }
+      if (stack.length) throw new Error("Unbalanced file delimiters.");
+    } catch (error) {
+      throw new CadDomainError(
+        "INVALID_MODEL_FILES",
+        "Invalid model file body.",
+        {
+          fileId: file.id,
+          reason: error instanceof Error ? error.message : "Invalid source.",
+        },
+      );
+    }
+  }
+}
+
+export function modelFilesEqual(
+  left: ModelFiles | undefined,
+  right: ModelFiles | undefined,
+): boolean {
+  return (
+    JSON.stringify(left && canonicalModelFiles(left)) ===
+    JSON.stringify(right && canonicalModelFiles(right))
+  );
+}

@@ -37,6 +37,7 @@ export const defineCandidatesSchema = defineTableFactory(
         ),
         ...sourceDocumentColumns(),
         modelBody: text("model_body"),
+        modelFiles: jsonb("model_files"),
         parameterSnapshot: jsonb("parameter_snapshot").notNull().default([]),
         activeAttemptId: text("active_attempt_id"),
         geometry: jsonb("geometry"),
