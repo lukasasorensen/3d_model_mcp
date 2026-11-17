@@ -2,6 +2,7 @@ import {
   canonicalModelFiles,
   visibleModelObjectIds,
   modelFilesSchema,
+  objectTransformIsIdentity,
   type ModelFiles,
 } from "@theoryfoundry/contracts";
 import { CadDomainError } from "./cadDomainError.util.js";
@@ -23,16 +24,20 @@ export function checkedModelFiles(raw: unknown): ModelFiles {
 export function assembleModelFiles(snapshot: ModelFiles): string {
   const files = new Map(snapshot.files.map((file) => [file.id, file.body]));
   const objects = new Map(
-    snapshot.objects.map((object) => [object.id, object.fileId]),
+    snapshot.objects.map((object) => [object.id, object]),
   );
   const ids =
     snapshot.version === 1
       ? snapshot.composition.objectIds
       : visibleModelObjectIds(snapshot);
   if (ids.length === 0) return "union() {\n\n}";
-  const operands = ids.map(
-    (id) => `union() {\n${files.get(objects.get(id)!)!}\n}`,
-  );
+  const operands = ids.map((id) => {
+    const object = objects.get(id)!;
+    const source = `union() {\n${files.get(object.fileId)!}\n}`;
+    const transform = object.transform;
+    if (!transform || objectTransformIsIdentity(transform)) return source;
+    return `translate(${JSON.stringify(transform.position)}) rotate(${JSON.stringify(transform.rotation)}) scale(${JSON.stringify(transform.scale)}) ${source}`;
+  });
   return `${snapshot.composition.operation}() {\n${operands.join("\n")}\n}`;
 }
 
@@ -53,7 +58,7 @@ export function assertModelFiles(snapshot: ModelFiles): void {
           ["include", "use"].includes(token.text)
         )
           throw new Error(
-            "Model files must be self-contained; compose objects through fileId references.",
+            "Model files must be self-contained; include/use directives, including BOSL2 imports, cannot be nested in object scopes.",
           );
         if (token.kind !== "punctuation") continue;
         if (["{", "(", "["].includes(token.text)) stack.push(token.text);

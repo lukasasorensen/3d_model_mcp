@@ -21,6 +21,9 @@ importers:
       '@theoryfoundry/browser-renderer':
         specifier: workspace:*
         version: link:packages/browser-renderer
+      '@theoryfoundry/contracts':
+        specifier: workspace:*
+        version: link:packages/contracts
       '@theoryfoundry/mcp':
         specifier: workspace:*
         version: link:packages/mcp

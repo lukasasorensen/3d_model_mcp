@@ -85,6 +85,10 @@ export function applyModelFileOperations(
         if (!object) fail("Object ID does not exist.", index);
         object!.name = operation.name;
         break;
+      case "set_object_transform":
+        if (!object) fail("Object ID does not exist.", index);
+        object!.transform = structuredClone(operation.transform);
+        break;
       case "remove_object":
         if (!object) fail("Object ID does not exist.", index);
         if (

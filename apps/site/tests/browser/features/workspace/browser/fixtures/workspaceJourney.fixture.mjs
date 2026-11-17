@@ -12,13 +12,16 @@ export async function mountWorkspaceJourney(
   width,
   parameterized = false,
   multiObject = false,
+  legacyLibrary = false,
 ) {
   const historical = multiObject
     ? "difference() {\nunion() {\ncube([20,10,5]);\n}\nunion() {\ntranslate([5,2,-1]) cube([5,6,7]);\n}\n}"
     : "cube(10);";
   const accepted = multiObject
     ? "difference() {\nunion() {\ncube([20,10,5]);\n}\n}"
-    : "cube(20);";
+    : legacyLibrary
+      ? "include <BOSL2/std.scad>; cuboid([2,4,6]);"
+      : "cube(20);";
   const sources = { r1: historical, r2: accepted, r3: historical };
   const revisions = Object.entries(sources).map(([revisionId, source], index) =>
     revisionManifestSchema.parse({
@@ -85,6 +88,22 @@ export async function mountWorkspaceJourney(
         revision: id,
         sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
         state: null,
+      });
+    }
+    if (path.endsWith("/objects")) {
+      const id =
+        new URL(request.url()).searchParams.get("revision") ?? controls.current;
+      return json({
+        revision: id,
+        sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
+        modelFiles: null,
+        parameters: [],
+        ...(legacyLibrary
+          ? {
+              unsupportedReason:
+                "Object editing is unavailable for this legacy model. BOSL2 include/use imports require source or AI editing. Your saved model, preview and downloads remain available.",
+            }
+          : {}),
       });
     }
     if (path.endsWith("/parameters")) {

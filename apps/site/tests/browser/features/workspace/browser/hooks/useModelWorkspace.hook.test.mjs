@@ -3,6 +3,34 @@ import { readFile } from "node:fs/promises";
 import { expect, test } from "playwright/test";
 import { mountWorkspaceJourney } from "../fixtures/workspaceJourney.fixture.mjs";
 
+test("legacy BOSL2 compatibility notice leaves saved preview and downloads available", async ({
+  page,
+}) => {
+  const { controls, errors, sources } = await mountWorkspaceJourney(
+    page,
+    1440,
+    false,
+    false,
+    true,
+  );
+  await expect(
+    page.getByRole("status").filter({ hasText: "BOSL2" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Preview fixture")).toHaveText("r2");
+  await expect(
+    page.getByRole("button", { name: "Apply object changes", exact: true }),
+  ).toHaveCount(0);
+  const pending = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Download STL · R2", exact: true })
+    .click();
+  const file = await pending;
+  expect(await readFile(await file.path(), "utf8")).toBe(sources.r2);
+  expect(controls.current).toBe("r2");
+  expect(controls.restoreRequests).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
 for (const width of [1440, 390]) {
   test(`revision inspection, restore and verified download at ${width}px`, async ({
     page,

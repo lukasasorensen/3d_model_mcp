@@ -1,6 +1,7 @@
 import * as z from "zod/v4";
 import { CAD_LIMITS } from "./cad.constants.js";
 import { opaqueIdSchema } from "./identity.schema.js";
+import { objectTransformSchema } from "./objectTransform.schema.js";
 
 export const MODEL_FILE_LIMITS = Object.freeze({
   files: 64,
@@ -20,6 +21,7 @@ export const modelObjectSchema = z
     id: opaqueIdSchema,
     name: modelFileSchema.shape.name,
     fileId: opaqueIdSchema,
+    transform: objectTransformSchema.optional(),
   })
   .strict();
 export const modelFilesPresentationSchema = z
