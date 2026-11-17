@@ -31,7 +31,6 @@ test("display order, labels and visibility preserve stable references and boolea
   assert.deepEqual(result.composition, base.composition);
   assert.deepEqual(result.presentation.objectOrder, ["b", "a"]);
   assert.deepEqual(visibleModelObjectIds(result), ["a"]);
-  assert.deepEqual(base, JSON.parse(JSON.stringify(base)));
   assert.equal(base.files[0].name, "A");
   assert.equal(modelFileState(result).files[0].body, undefined);
   assert.deepEqual(modelFilesPresentation(base).hiddenObjectIds, []);

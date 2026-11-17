@@ -92,6 +92,40 @@ for (const adapter of ["filesystem", "postgres"])
             toolCallId: "genesis",
           }),
         );
+        const legacyProject = await repository.createProject({
+          name: "Legacy",
+          description: "Explicit adoption",
+        });
+        const legacy = await accept(
+          repository,
+          await repository.proposeModelSource({
+            projectId: legacyProject.projectId,
+            parentRevision: null,
+            source: "cube(1);",
+            requestId: "legacy",
+            toolCallId: "legacy",
+          }),
+        );
+        assert.deepEqual(
+          await call("list_model_files", {
+            projectId: legacyProject.projectId,
+          }),
+          { revision: legacy.revisionId, state: null },
+        );
+        const legacyEdit = await call(
+          "edit_model_files",
+          {
+            projectId: legacyProject.projectId,
+            parentRevision: legacy.revisionId,
+            requestId: "legacy-edit",
+            toolCallId: "legacy-edit",
+            operations: [{ op: "rename_file", id: "a", name: "A" }],
+          },
+          "INVALID_MODEL_FILES",
+        );
+        assert.ok(
+          legacyEdit.error.message.includes("complete modelFiles proposal"),
+        );
         const args = {
           projectId,
           parentRevision: first.revisionId,
@@ -137,6 +171,22 @@ for (const adapter of ["filesystem", "postgres"])
         assert.equal(
           (await call("edit_model_files", args)).candidate.candidateId,
           stored.candidateId,
+        );
+        await assert.rejects(
+          repository.proposeModelSource({
+            projectId,
+            parentRevision: first.revisionId,
+            requestId: "all-hidden",
+            toolCallId: "all-hidden",
+            modelFiles: {
+              ...stored.modelFiles,
+              presentation: {
+                ...stored.modelFiles.presentation,
+                hiddenObjectIds: ["a", "b", "c"],
+              },
+            },
+          }),
+          { code: "INVALID_MODEL_FILES" },
         );
         const second = await accept(repository, stored);
         assert.equal(

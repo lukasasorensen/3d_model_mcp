@@ -41,7 +41,7 @@ export function createModelFileTools(repository: ModelProjectStore): FileTools {
     list_model_objects: { ...catalog.list_model_objects, execute: list },
     read_model_file: {
       ...catalog.read_model_file,
-      execute: async (raw) => {
+      execute: async (raw): Promise<Record<string, unknown>> => {
         const input = readModelFileInputSchema.parse(raw);
         const model = await repository.readModelSource(
           input.projectId,
@@ -61,7 +61,7 @@ export function createModelFileTools(repository: ModelProjectStore): FileTools {
     },
     read_model_object: {
       ...catalog.read_model_object,
-      execute: async (raw) => {
+      execute: async (raw): Promise<Record<string, unknown>> => {
         const input = readModelObjectInputSchema.parse(raw);
         const model = await repository.readModelSource(
           input.projectId,
@@ -84,7 +84,7 @@ export function createModelFileTools(repository: ModelProjectStore): FileTools {
     },
     edit_model_files: {
       ...catalog.edit_model_files,
-      execute: async (raw) => {
+      execute: async (raw): Promise<Record<string, unknown>> => {
         const input = editModelFilesInputSchema.parse(raw);
         // Resolve the named parent even after promotion so retries retain their original identity.
         await repository.getProjectState(input.projectId);
