@@ -68,9 +68,9 @@ live acceptance are separate checks.
 
 ## Release versions
 
-This branch includes THE-57's shared model-file v2 foundation. Relative to develop,
-root/hosted/local plugins move 0.13.0 → 0.14.0; contracts 0.7.0 → 0.8.0;
-model-project 0.8.0 → 0.9.0; MCP 0.5.0 → 0.6.0; gateway/local-worker
-0.6.0 → 0.7.0; runtime 0.9.0 → 0.10.0; site 0.11.0 → 0.12.0. Renderer
-packages and asset pins are unchanged. Parallel PRs using this foundation must
-recheck their once-per-PR version changes after integration.
+THE-59 follows the integrated THE-57 model-file foundation and THE-58 layers panel.
+Relative to that integration base, root/hosted/local plugins move 0.15.0 → 0.16.0
+and site moves 0.13.0 → 0.14.0. Shared versions carry forward unchanged: contracts
+0.8.0, model-project 0.9.0, MCP 0.6.0, gateway/local-worker 0.7.0 and runtime
+0.10.0. Renderer packages and asset pins are unchanged. THE-57 and THE-58 retain
+their release history in their respective documentation.
