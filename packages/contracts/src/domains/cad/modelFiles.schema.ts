@@ -8,34 +8,35 @@ export const MODEL_FILE_LIMITS = Object.freeze({
   snapshotBytes: CAD_LIMITS.sourceBytes,
 });
 
+export const modelFileSchema = z
+  .object({
+    id: opaqueIdSchema,
+    name: z.string().min(1).max(100),
+    body: z.string().min(1).max(CAD_LIMITS.sourceBytes),
+  })
+  .strict();
+export const modelObjectSchema = z
+  .object({
+    id: opaqueIdSchema,
+    name: modelFileSchema.shape.name,
+    fileId: opaqueIdSchema,
+  })
+  .strict();
+export const modelFilesPresentationSchema = z
+  .object({
+    fileOrder: z.array(opaqueIdSchema).max(MODEL_FILE_LIMITS.files),
+    objectOrder: z.array(opaqueIdSchema).max(MODEL_FILE_LIMITS.objects),
+    hiddenFileIds: z.array(opaqueIdSchema).max(MODEL_FILE_LIMITS.files),
+    hiddenObjectIds: z.array(opaqueIdSchema).max(MODEL_FILE_LIMITS.objects),
+  })
+  .strict();
+
 /** Names are labels, never filesystem paths. IDs survive renaming and reordering. */
-export const modelFilesSchema = z
+const modelFilesV1Schema = z
   .object({
     version: z.literal(1),
-    files: z
-      .array(
-        z
-          .object({
-            id: opaqueIdSchema,
-            name: z.string().min(1).max(100),
-            body: z.string().min(1).max(CAD_LIMITS.sourceBytes),
-          })
-          .strict(),
-      )
-      .min(1)
-      .max(MODEL_FILE_LIMITS.files),
-    objects: z
-      .array(
-        z
-          .object({
-            id: opaqueIdSchema,
-            name: z.string().min(1).max(100),
-            fileId: opaqueIdSchema,
-          })
-          .strict(),
-      )
-      .min(1)
-      .max(MODEL_FILE_LIMITS.objects),
+    files: z.array(modelFileSchema).min(1).max(MODEL_FILE_LIMITS.files),
+    objects: z.array(modelObjectSchema).min(1).max(MODEL_FILE_LIMITS.objects),
     composition: z
       .object({
         operation: z.enum(["union", "difference", "intersection"]),
@@ -46,7 +47,16 @@ export const modelFilesSchema = z
       })
       .strict(),
   })
-  .strict()
+  .strict();
+
+export const modelFilesSchema = z
+  .discriminatedUnion("version", [
+    modelFilesV1Schema,
+    modelFilesV1Schema.extend({
+      version: z.literal(2),
+      presentation: modelFilesPresentationSchema,
+    }),
+  ])
   .superRefine((snapshot, context) => {
     const fail = (message: string): void => {
       context.addIssue({ code: "custom", message });
@@ -67,6 +77,23 @@ export const modelFilesSchema = z
         fail(`Composition references missing object ${id}.`);
     if (objects.size !== composed.size)
       fail("Composition must reference every object.");
+    if (snapshot.version === 2) {
+      for (const [ids, targets, complete] of [
+        [snapshot.presentation.fileOrder, files, true],
+        [snapshot.presentation.objectOrder, objects, true],
+        [snapshot.presentation.hiddenFileIds, files, false],
+        [snapshot.presentation.hiddenObjectIds, objects, false],
+      ] as const) {
+        if (
+          new Set(ids).size !== ids.length ||
+          ids.some((id) => !targets.has(id)) ||
+          (complete && ids.length !== targets.size)
+        )
+          fail(
+            "Presentation IDs must be unique valid targets; order must include every target.",
+          );
+      }
+    }
     if (
       new TextEncoder().encode(JSON.stringify(snapshot)).byteLength >
       MODEL_FILE_LIMITS.snapshotBytes
@@ -81,7 +108,51 @@ export function canonicalModelFiles(snapshot: ModelFiles): ModelFiles {
     a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
   return {
     ...snapshot,
+    ...(snapshot.version === 2
+      ? {
+          presentation: {
+            ...snapshot.presentation,
+            hiddenFileIds: [...snapshot.presentation.hiddenFileIds].sort(),
+            hiddenObjectIds: [...snapshot.presentation.hiddenObjectIds].sort(),
+          },
+        }
+      : {}),
     files: [...snapshot.files].sort(byId),
     objects: [...snapshot.objects].sort(byId),
   };
+}
+
+export type ModelFilesPresentation = z.infer<
+  typeof modelFilesPresentationSchema
+>;
+export function modelFilesPresentation(
+  snapshot: ModelFiles,
+): ModelFilesPresentation {
+  return snapshot.version === 2
+    ? structuredClone(snapshot.presentation)
+    : {
+        fileOrder: snapshot.files.map((file) => file.id),
+        objectOrder: snapshot.objects.map((object) => object.id),
+        hiddenFileIds: [],
+        hiddenObjectIds: [],
+      };
+}
+export function visibleModelObjectIds(snapshot: ModelFiles): string[] {
+  const presentation = modelFilesPresentation(snapshot);
+  const hiddenFiles = new Set(presentation.hiddenFileIds);
+  const hiddenObjects = new Set(presentation.hiddenObjectIds);
+  const visible = new Set(
+    snapshot.objects
+      .filter(
+        (object) =>
+          !hiddenObjects.has(object.id) && !hiddenFiles.has(object.fileId),
+      )
+      .map((object) => object.id),
+  );
+  if (
+    snapshot.composition.operation === "difference" &&
+    !visible.has(snapshot.composition.objectIds[0]!)
+  )
+    return [];
+  return snapshot.composition.objectIds.filter((id) => visible.has(id));
 }

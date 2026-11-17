@@ -131,6 +131,7 @@ export async function* streamCadChat(
             const toolCallId = `${requestId}-t${toolRounds}`;
             if (
               spec.name === "propose_model_source" ||
+              spec.name === "edit_model_files" ||
               spec.name === "edit_parameters"
             ) {
               candidateProposals += 1;
@@ -148,6 +149,7 @@ export async function* streamCadChat(
               sensitiveValues.add(text);
             if (
               spec.name === "propose_model_source" ||
+              spec.name === "edit_model_files" ||
               spec.name === "edit_parameters" ||
               spec.name === "restore_revision"
             )
@@ -346,7 +348,7 @@ export async function* streamCadChat(
                   },
                 });
             }
-            for (const text of modelSourceTexts(result.structuredContent.model))
+            for (const text of modelSourceTexts(result.structuredContent))
               sensitiveValues.add(text);
             if (spec.name === "export_model") {
               const receipt = exportReceiptSchema.parse(

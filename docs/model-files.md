@@ -44,9 +44,10 @@ Version 1 supports one explicit `union`, `difference`, or `intersection` over an
 ordered list of object IDs. Every object occurs exactly once. Difference subtracts
 later operands from the first. Object/file collection order has no geometric effect;
 only the explicit composition order does. Multiple objects can refer to the same
-file, and unused files remain in the snapshot. Nested CSG trees, per-object transforms,
-visibility, selection, layer controls and dedicated AI file-management tools are
-outside this foundation; THE-57–59 and the modeling-tools project own those flows.
+file, and unused files remain in the snapshot. Nested CSG trees and per-object transforms remain outside this foundation.
+[Dedicated AI file/object tools](model-file-tools.md) add version 2 visibility and
+display order without changing version 1 assembly. THE-58–59 own the layers UI and
+combined preview/export acceptance.
 
 Files are self-contained OpenSCAD bodies, each enclosed in its own `union()` block.
 This keeps local declarations separate and makes each object's geometry one CSG
@@ -96,8 +97,7 @@ Chat treats file bodies as source data and includes them in its existing redacti
 Legacy records stay unchanged with no automatic file splitting. Supplying a complete
 `source`/`modelBody` proposal explicitly replaces the current document mode; older
 revisions retain their files. Older strict clients must upgrade before reading or
-editing multi-file documents. Dedicated file-management tools and a layers UI are
-not added by this change.
+editing multi-file documents. Dedicated file-management tools are documented in [model file tools](model-file-tools.md).
 
 ## Migration and versions
 

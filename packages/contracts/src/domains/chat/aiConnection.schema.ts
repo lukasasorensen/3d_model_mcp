@@ -2,6 +2,7 @@ import * as z from "zod/v4";
 
 export const AI_LIMITS = Object.freeze({
   outputTokens: 8192,
+  tools: 15,
   invocationBytes: 8 * 1024 * 1024,
   resultBytes: 512 * 1024,
   providerStreamBytes: 8 * 1024 * 1024,
@@ -115,7 +116,7 @@ export const inferenceInputSchema = z
           })
           .strict(),
       )
-      .max(10),
+      .max(AI_LIMITS.tools),
   })
   .strict();
 export const aiFailureCodeSchema = z.enum([

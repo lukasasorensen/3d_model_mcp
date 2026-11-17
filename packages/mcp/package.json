@@ -1,6 +1,6 @@
 {
   "name": "@theoryfoundry/mcp",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "mcpServerName": "theoryfoundry-cad",
   "private": true,
   "type": "module",

@@ -20,7 +20,11 @@ export function toolErrorFeedback(
     code: safeCode(error?.code),
     message: "The CAD tool rejected the request safely.",
   };
-  if (toolName !== "edit_parameters" && toolName !== "propose_model_source")
+  if (
+    toolName !== "edit_model_files" &&
+    toolName !== "edit_parameters" &&
+    toolName !== "propose_model_source"
+  )
     return fallback;
   const parsed = parameterToolErrorSchema.safeParse(error);
   if (!parsed.success) return fallback;
