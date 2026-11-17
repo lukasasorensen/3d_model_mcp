@@ -1,6 +1,7 @@
 import {
   CONTRACT_VERSION,
   parameterSnapshotFields,
+  type ModelFiles,
   type ProjectParameter,
   artifactManifestSchema,
   revisionManifestSchema,
@@ -44,6 +45,7 @@ export class FileProjectPublication {
     candidateId: string;
     source: Uint8Array;
     modelBody?: string | undefined;
+    modelFiles?: ModelFiles | undefined;
     parameters?: ProjectParameter[];
     sourceHash: string;
     requestId: string;
@@ -116,6 +118,7 @@ export class FileProjectPublication {
       ...(input.restoredFrom ? { restoredFrom: input.restoredFrom } : {}),
       ...parameterSnapshotFields(input.parameters),
       ...(input.modelBody !== undefined ? { modelBody: input.modelBody } : {}),
+      ...(input.modelFiles ? { modelFiles: input.modelFiles } : {}),
       sourceHash: input.sourceHash,
       sourceBytes: input.source.byteLength,
       createdAt: this.clock().toISOString(),

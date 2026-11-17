@@ -7,6 +7,9 @@ const source = join(root, "plugins/theoryfoundry-local");
 const manifest = JSON.parse(
   await readFile(join(source, "plugin.json"), "utf8"),
 );
+const codexManifest = JSON.parse(
+  await readFile(join(source, ".codex-plugin/plugin.json"), "utf8"),
+);
 const application = JSON.parse(
   await readFile(join(root, "package.json"), "utf8"),
 );
@@ -18,6 +21,7 @@ const runtime = JSON.parse(
 );
 if (
   manifest.version !== application.version ||
+  codexManifest.version !== application.version ||
   runtime.version !== worker.version
 )
   throw new Error("Local plugin/runtime pins are out of sync.");

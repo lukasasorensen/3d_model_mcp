@@ -1,5 +1,6 @@
 import {
   type CandidateRecord,
+  type ModelFiles,
   type ProjectParameter,
   type CreateProjectInput,
   type Diagnostic,
@@ -60,6 +61,7 @@ export interface ProjectPersistence {
     parentRevision: string | null;
     source: string;
     modelBody?: string | undefined;
+    modelFiles?: ModelFiles | undefined;
     parameters?: ProjectParameter[] | undefined;
     requestId: string;
     toolCallId: string;
@@ -98,6 +100,7 @@ export interface ProjectPersistence {
     restoredFromRevision?: string;
     source: string;
     modelBody?: string | undefined;
+    modelFiles?: ModelFiles | undefined;
     parameters?: ProjectParameter[] | undefined;
     sourceHash: string;
     sourceBytes: number;

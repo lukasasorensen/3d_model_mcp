@@ -43,6 +43,6 @@ export async function readParameters(
     revision,
     sourceHash: model.sourceHash,
     parameters: model.parameters ?? [],
-    editable: model.modelBody !== undefined,
+    editable: model.modelBody !== undefined || model.modelFiles !== undefined,
   });
 }

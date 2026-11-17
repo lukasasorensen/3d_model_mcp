@@ -7,6 +7,7 @@ export interface CandidateRow extends QueryResultRow {
   source: string;
   parameter_snapshot: unknown;
   model_body: string | null;
+  model_files: unknown;
   source_hash: string;
   source_bytes: number;
   state: CandidateRecord["state"];
@@ -28,6 +29,7 @@ export interface RevisionRow extends QueryResultRow {
   source: string;
   parameter_snapshot: unknown;
   model_body: string | null;
+  model_files: unknown;
   source_hash: string;
   source_bytes: number;
   request_id: string;

@@ -1,4 +1,5 @@
 export * from "./cad.constants.js";
+export * from "./modelFiles.schema.js";
 export * from "./parameter.schema.js";
 export * from "./parameterOperations.schema.js";
 export * from "./parameterToolError.schema.js";

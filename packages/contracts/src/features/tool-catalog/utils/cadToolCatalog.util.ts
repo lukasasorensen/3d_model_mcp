@@ -66,7 +66,7 @@ const baseCatalog = {
   read_model_source: {
     title: "Read model source",
     description:
-      "Read editable modelBody and its full parameter snapshot for generated documents, or source for legacy documents, at the current or a historical revision. sourceHash always identifies the assembled render source.",
+      "Read modelFiles snapshots for multi-file documents, editable modelBody and its full parameter snapshot for generated documents, or source for legacy documents, at the current or a historical revision. sourceHash always identifies the assembled render source.",
     inputSchema: readModelSourceInputSchema,
     outputSchema: readModelSourceOutputSchema,
     readOnly: true,
@@ -82,7 +82,7 @@ const baseCatalog = {
   edit_parameters: {
     title: "Edit parameters",
     description:
-      "Create an immutable candidate against the exact parent with batched create, update, set_value and delete operations. Create/update supply complete definitions; update retains the ID. Target each ID once. Omit modelBody to preserve the named parent's generated body exactly; genesis/legacy adoption requires an explicit body. Coordinate body edits for binding rename/deletion. Never edit generated headers. Validate, inspect preview and promote explicitly; accepted state is unchanged until promotion. Replay the same parent and request/tool IDs on retry.",
+      "Create an immutable candidate against the exact parent with batched create, update, set_value and delete operations. Create/update supply complete definitions; update retains the ID. Target each ID once. Omit modelBody to preserve the named parent's generated body or complete file snapshot exactly; genesis/legacy adoption requires an explicit body. Coordinate body edits for binding rename/deletion. Never edit generated headers. Validate, inspect preview and promote explicitly; accepted state is unchanged until promotion. Replay the same parent and request/tool IDs on retry.",
     inputSchema: editParametersInputSchema,
     outputSchema: editParametersOutputSchema,
     readOnly: false,
@@ -90,7 +90,7 @@ const baseCatalog = {
   propose_model_source: {
     title: "Propose model source",
     description:
-      "Create an immutable candidate against the exact current parent (null only for genesis). Supply modelBody plus structured parameters to generate a read-only header; omit parameters to inherit the named parent snapshot, or use [] to remove declarations. Never put the generated header in modelBody. Legacy unparameterized projects may supply source instead. Supply exactly one of source/modelBody. Registered names are reserved against assignments in the body, including named arguments; coordinate body edits when removing/renaming parameters.",
+      "Create an immutable candidate against the exact current parent (null only for genesis). Supply modelBody plus structured parameters to generate a read-only header; omit parameters to inherit the named parent snapshot, or use [] to remove declarations. Never put the generated header in modelBody. Legacy unparameterized projects may supply source instead. Supply exactly one of source/modelBody/modelFiles. Registered names are reserved against assignments in the body, including named arguments; coordinate body edits when removing/renaming parameters.",
     inputSchema: proposeModelSourceInputSchema,
     outputSchema: proposeModelSourceOutputSchema,
     readOnly: false,

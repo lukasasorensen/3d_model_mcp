@@ -2,7 +2,13 @@ import {
   canonicalParameterSnapshot,
   parameterSnapshotSchema,
   type ProjectParameter,
+  type ModelFiles,
 } from "@theoryfoundry/contracts";
+import {
+  checkedModelFiles,
+  assembleModelFiles,
+  assertModelFiles,
+} from "./modelFiles.util.js";
 import { CadDomainError } from "./cadDomainError.util.js";
 import { assertParameterBody } from "./parameterBody.util.js";
 import { assertSourcePolicy } from "./sourcePolicy.util.js";
@@ -42,16 +48,38 @@ export function resolveModelDocument(
     source?: string | undefined;
     modelBody?: string | undefined;
     parameters?: unknown;
+    modelFiles?: ModelFiles | undefined;
   },
   inherited: unknown,
-): { source: string; modelBody?: string; parameters: ProjectParameter[] } {
-  if ((input.source === undefined) === (input.modelBody === undefined))
-    throw invalidParameters("Supply exactly one of source or modelBody.");
+): {
+  source: string;
+  modelBody?: string;
+  modelFiles?: ModelFiles;
+  parameters: ProjectParameter[];
+} {
+  if (
+    [input.source, input.modelBody, input.modelFiles].filter(
+      (value) => value !== undefined,
+    ).length !== 1
+  )
+    throw invalidParameters(
+      "Supply exactly one of source, modelBody or modelFiles.",
+    );
   const previous = checkedParameterSnapshot(inherited);
   const parameters =
     input.parameters === undefined
       ? previous
       : checkedParameterSnapshot(input.parameters);
+  if (input.modelFiles !== undefined) {
+    const modelFiles = checkedModelFiles(input.modelFiles);
+    const modelBody = assembleModelFiles(modelFiles);
+    return {
+      source: assembleModelSource(modelBody, parameters),
+      modelBody,
+      modelFiles,
+      parameters,
+    };
+  }
   if (input.modelBody === undefined) {
     if (parameters.length)
       throw invalidParameters(
@@ -69,6 +97,15 @@ export function assertNewModelDocument(
   document: ReturnType<typeof resolveModelDocument>,
   inherited: unknown,
 ): void {
+  if (document.modelFiles) {
+    assertModelFiles(document.modelFiles);
+    for (const file of document.modelFiles.files)
+      assertParameterBody(
+        file.body,
+        document.parameters,
+        checkedParameterSnapshot(inherited),
+      );
+  }
   assertRenderableParameters(document.parameters);
   assertSourcePolicy(document.source);
   assertParameterBody(
@@ -83,7 +120,19 @@ export function checkedStoredModelDocument(
   source: string,
   modelBody: string | undefined,
   raw: unknown,
+  modelFiles?: unknown,
 ): ProjectParameter[] {
+  if (modelFiles !== undefined && modelFiles !== null) {
+    try {
+      if (assembleModelFiles(checkedModelFiles(modelFiles)) !== modelBody)
+        throw new Error("assembly mismatch");
+    } catch {
+      throw new CadDomainError(
+        "CORRUPT_PROJECT",
+        "Stored files disagree with the assembled body.",
+      );
+    }
+  }
   const parameters = checkedParameterSnapshot(raw);
   if (
     modelBody !== undefined &&

@@ -121,6 +121,7 @@ export class FileProjectQueries {
     const manifest = await this.records.readManifest(projectId, selected);
     return {
       revision: selected,
+      ...(manifest.modelFiles ? { modelFiles: manifest.modelFiles } : {}),
       ...(manifest.modelBody !== undefined
         ? { modelBody: manifest.modelBody }
         : {}),

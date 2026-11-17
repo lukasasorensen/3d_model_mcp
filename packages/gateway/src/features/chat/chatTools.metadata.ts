@@ -39,7 +39,7 @@ export const toolSpecs = [
   {
     name: "edit_parameters",
     description:
-      "Create a candidate using batched create/update (complete definition), set_value (ID/value), or delete (ID) operations, each ID once. Use the exact parent. Omitted modelBody preserves the named parent's generated body. Genesis/legacy adoption needs an explicit body; coordinate body edits for rename/deletion. Validate and promote separately; never edit generated headers.",
+      "Create a candidate using batched create/update (complete definition), set_value (ID/value), or delete (ID) operations, each ID once. Use the exact parent. Omitted modelBody preserves the named parent's generated body or complete file snapshot. Genesis/legacy adoption needs an explicit body; coordinate body edits for rename/deletion. Validate and promote separately; never edit generated headers.",
     schema: parameterEditContentSchema,
   },
   {
@@ -50,13 +50,13 @@ export const toolSpecs = [
   {
     name: "read_model_source",
     description:
-      "Read editable modelBody plus parameters for generated documents, or legacy source, at a revision. sourceHash identifies assembled render source.",
+      "Read modelFiles snapshots for multi-file documents, editable modelBody plus parameters for generated documents, or legacy source, at a revision. sourceHash identifies assembled render source.",
     schema: readModelSourceInputSchema,
   },
   {
     name: "propose_model_source",
     description:
-      "Propose against the exact parent. Supply modelBody plus structured parameters for a generated read-only header, or legacy source for an unparameterized model. Supply exactly one of source/modelBody; omitted parameters inherit the named parent, [] removes declarations. Never edit generated literals; coordinate body changes for removal/rename.",
+      "Propose against the exact parent. Supply modelBody plus structured parameters for a generated read-only header, or legacy source for an unparameterized model. Supply exactly one of source/modelBody/modelFiles; omitted parameters inherit the named parent, [] removes declarations. Never edit generated literals; coordinate body changes for removal/rename.",
     schema: modelProposalContentSchema,
   },
   {

@@ -24,11 +24,13 @@ export function hydrateCandidate(
         row.source,
         row.model_body ?? undefined,
         row.parameter_snapshot,
+        row.model_files,
       ),
     ),
     ...(row.model_body !== null && row.model_body !== undefined
       ? { modelBody: row.model_body }
       : {}),
+    ...(row.model_files != null ? { modelFiles: row.model_files } : {}),
     sourceHash: row.source_hash,
     sourceBytes: row.source_bytes,
     state: row.state,
