@@ -26,3 +26,5 @@ export * from "./geometry.schema.js";
 export * from "./export.schema.js";
 export * from "./cadWorkflow.port.js";
 export * from "./utils/exportFilename.util.js";
+export * from "./modelFileOperations.schema.js";
+export * from "./utils/applyModelFileOperations.util.js";

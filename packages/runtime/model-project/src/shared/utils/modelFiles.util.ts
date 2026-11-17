@@ -1,5 +1,6 @@
 import {
   canonicalModelFiles,
+  visibleModelObjectIds,
   modelFilesSchema,
   type ModelFiles,
 } from "@theoryfoundry/contracts";
@@ -24,7 +25,12 @@ export function assembleModelFiles(snapshot: ModelFiles): string {
   const objects = new Map(
     snapshot.objects.map((object) => [object.id, object.fileId]),
   );
-  const operands = snapshot.composition.objectIds.map(
+  const ids =
+    snapshot.version === 1
+      ? snapshot.composition.objectIds
+      : visibleModelObjectIds(snapshot);
+  if (ids.length === 0) return "union() {\n\n}";
+  const operands = ids.map(
     (id) => `union() {\n${files.get(objects.get(id)!)!}\n}`,
   );
   return `${snapshot.composition.operation}() {\n${operands.join("\n")}\n}`;
@@ -32,6 +38,11 @@ export function assembleModelFiles(snapshot: ModelFiles): string {
 
 /** Files cannot escape their object scope or load files outside the snapshot. */
 export function assertModelFiles(snapshot: ModelFiles): void {
+  if (snapshot.version === 2 && visibleModelObjectIds(snapshot).length === 0)
+    throw new CadDomainError(
+      "INVALID_MODEL_FILES",
+      "Keep at least one object visible and keep the original difference base visible. Empty models cannot be validated or exported.",
+    );
   for (const file of snapshot.files) {
     assertSourcePolicy(file.body);
     try {
