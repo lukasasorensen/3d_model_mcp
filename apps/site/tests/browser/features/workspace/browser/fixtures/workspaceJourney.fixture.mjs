@@ -11,8 +11,15 @@ export async function mountWorkspaceJourney(
   page,
   width,
   parameterized = false,
+  multiObject = false,
 ) {
-  const sources = { r1: "cube(10);", r2: "cube(20);", r3: "cube(10);" };
+  const historical = multiObject
+    ? "difference() {\nunion() {\ncube([20,10,5]);\n}\nunion() {\ntranslate([5,2,-1]) cube([5,6,7]);\n}\n}"
+    : "cube(10);";
+  const accepted = multiObject
+    ? "difference() {\nunion() {\ncube([20,10,5]);\n}\n}"
+    : "cube(20);";
+  const sources = { r1: historical, r2: accepted, r3: historical };
   const revisions = Object.entries(sources).map(([revisionId, source], index) =>
     revisionManifestSchema.parse({
       version: "1",
@@ -166,5 +173,5 @@ export async function mountWorkspaceJourney(
   await page.goto("https://example.test/projects/sample");
   await page.addStyleTag({ content: await applicationStyles() });
   await page.addScriptTag({ content: result.outputFiles[0].text });
-  return { controls, errors };
+  return { controls, errors, sources };
 }

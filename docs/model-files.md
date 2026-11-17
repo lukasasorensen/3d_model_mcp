@@ -127,3 +127,6 @@ and parameter-change cases, and restores the original snapshot/source. The local
 passed on November 16, 2026 with OpenSCAD 2026.07.20, BOSL2 v2.0.741 and Chromium
 149.0.7827.55. File-local declarations stayed isolated. Report:
 `dist/model-files-acceptance/report.json`. Full verification and CI are recorded in the PR.
+
+For v2 visibility, restored presentation metadata and accepted-revision download
+behavior, see [multi-object rendering, restoration and export](multi-object-lifecycle.md).

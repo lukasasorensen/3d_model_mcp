@@ -13,7 +13,10 @@ import { ParameterPanel } from "../../../parameter-controls/browser/index";
 import { RevisionHistory } from "./revisionHistory.component";
 import { WorkspaceStatusToast } from "./workspaceStatusToast.component";
 
-import { type DownloadFormat } from "../../../exports/browser/index";
+import {
+  ExportPolicy,
+  type DownloadFormat,
+} from "../../../exports/browser/index";
 
 import { useWorkspaceSection } from "../hooks/useWorkspaceSection.hook";
 import { useModelWorkspace } from "../hooks/useModelWorkspace.hook";
@@ -369,11 +372,11 @@ export function ModelWorkspace({
                 </button>
               </div>
             </div>
-            <p id="export-help" className="action-help">
-              {currentManifest
-                ? `${currentLabel} · ${exportFormat.toUpperCase()} · generated locally in this browser`
-                : "A current revision is required for export."}
-            </p>
+            <ExportPolicy
+              currentLabel={currentLabel}
+              format={exportFormat}
+              available={Boolean(currentManifest)}
+            />
             {state.hydrated && (
               <>
                 <LayersPanel
