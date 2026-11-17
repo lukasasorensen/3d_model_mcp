@@ -53,9 +53,8 @@ PGlite HTTP/MCP integration tests exercise actual proposal/render/promote lifecy
 retry identity, historical reads, ownership isolation and competing writers. These
 fixtures do not claim authenticated production or assistive-technology acceptance.
 
-This PR includes the shared THE-57 contract/MCP commits so it can be verified independently
-against develop. Release versions relative to develop: root/plugins 0.13.0 → 0.14.0,
-contracts 0.7.0 → 0.8.0, model-project 0.8.0 → 0.9.0, MCP 0.5.0 → 0.6.0,
-gateway/local-worker 0.6.0 → 0.7.0, runtime 0.9.0 → 0.10.0, site 0.11.0 → 0.12.0.
+This feature builds on THE-57, already integrated into develop. Release versions
+relative to that integration base: root/hosted/local plugins 0.14.0 → 0.15.0 and
+site 0.12.0 → 0.13.0. Shared package versions carry forward unchanged: contracts
+0.8.0, model-project 0.9.0, MCP 0.6.0, gateway/local-worker 0.7.0 and runtime 0.10.0.
 Existing migration 0020 is required; this feature adds no migration or renderer pin.
-Restack and recheck once-per-PR versions before merging dependent work.
