@@ -38,7 +38,7 @@ void test("legacy source reads become one stable editable object without rewriti
 function legacyClient(source: string, modelBody?: string): CadMcpClient {
   return {
     listTools: async () => [],
-    async callTool(name) {
+    async callTool(name): ReturnType<CadMcpClient["callTool"]> {
       assert.equal(
         name,
         "read_model_source",
