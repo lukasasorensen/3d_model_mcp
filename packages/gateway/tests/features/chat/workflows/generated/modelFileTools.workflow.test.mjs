@@ -48,6 +48,24 @@ test("connected chat exposes all file tools, scopes edits and redacts individual
           file: { id: "a", name: "A", body },
         },
       };
+    if (name === "validate_and_render")
+      return {
+        isError: false,
+        structuredContent: {
+          candidate: { candidateId: "candidate-1", state: "VALID" },
+        },
+      };
+    if (name === "promote_candidate")
+      return {
+        isError: false,
+        structuredContent: {
+          revision: {
+            revisionId: "revision-2",
+            candidateId: "candidate-1",
+            artifacts: [],
+          },
+        },
+      };
     assert.equal(name, "edit_model_files");
     return {
       isError: false,
@@ -81,6 +99,22 @@ test("connected chat exposes all file tools, scopes edits and redacts individual
             operations: [{ op: "rename_object", id: "a", name: "Base" }],
           },
         },
+        {
+          name: "validate_and_render",
+          args: {
+            projectId: "untrusted",
+            candidateId: "candidate-1",
+            previewProfile: "standard",
+          },
+        },
+        {
+          name: "promote_candidate",
+          args: {
+            projectId: "untrusted",
+            candidateId: "candidate-1",
+            expectedParentRevision: "revision-1",
+          },
+        },
       ];
       const next = steps[invocation++];
       return next
@@ -98,7 +132,17 @@ test("connected chat exposes all file tools, scopes edits and redacts individual
   assert.equal(events.at(-1).outcome, "completed", JSON.stringify(events));
   assert.deepEqual(
     calls.map((call) => call.name),
-    ["read_model_file", "edit_model_files"],
+    [
+      "read_model_file",
+      "edit_model_files",
+      "validate_and_render",
+      "promote_candidate",
+    ],
+  );
+  assert.ok(
+    events.some(
+      (event) => event.type === "revision" && event.revisionId === "revision-2",
+    ),
   );
   assert.ok(calls.every((call) => call.input.projectId === request.projectId));
   assert.equal(calls[1].input.requestId, "file-request");
