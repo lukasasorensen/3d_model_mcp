@@ -4,6 +4,7 @@ import {
   revisionIdSchema,
   sessionIdSchema,
   modelFileStateSchema,
+  MODEL_FILE_LIMITS,
 } from "@theoryfoundry/contracts";
 
 export const objectLayersSnapshotSchema = z
@@ -31,7 +32,7 @@ const layerOperationSchema = z.discriminatedUnion("op", [
   z
     .object({
       op: z.literal("reorder_objects"),
-      ids: z.array(opaqueIdSchema).min(1).max(100),
+      ids: z.array(opaqueIdSchema).min(1).max(MODEL_FILE_LIMITS.objects),
     })
     .strict(),
 ]);
@@ -40,7 +41,10 @@ export const applyObjectLayersSchema = z
     parentRevision: revisionIdSchema,
     requestId: opaqueIdSchema,
     sessionId: sessionIdSchema,
-    operations: z.array(layerOperationSchema).min(1).max(165),
+    operations: z
+      .array(layerOperationSchema)
+      .min(1)
+      .max(MODEL_FILE_LIMITS.objects + MODEL_FILE_LIMITS.files + 1),
   })
   .strict();
 export type ObjectLayersSnapshot = z.infer<typeof objectLayersSnapshotSchema>;

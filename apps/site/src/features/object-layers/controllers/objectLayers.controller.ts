@@ -3,6 +3,7 @@ import {
   parameterControlsEventSchema,
   projectIdSchema,
   revisionIdSchema,
+  CAD_LIMITS,
 } from "@theoryfoundry/contracts";
 import {
   NO_STORE_HEADERS,
@@ -69,7 +70,7 @@ export function createObjectLayersHandlers(deps: ObjectLayersDependencies): {
       if (!project.success) return jsonError("INVALID_REQUEST", 400);
       let raw: unknown;
       try {
-        raw = await readBoundedJson(request, 256 * 1024);
+        raw = await readBoundedJson(request, CAD_LIMITS.sourceBytes);
       } catch (error) {
         return jsonError(
           "INVALID_REQUEST",
