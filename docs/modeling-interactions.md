@@ -72,7 +72,9 @@ creating new accepted revisions rather than changing immutable history. Only
 successful publication moves the undo/redo cursor. A failed edit retains the last
 accepted model and its history. New edits after undo clear the redo branch.
 External changes invalidate the local editing history so undo cannot overwrite
-unrelated edits.
+unrelated edits. Save reconciliation records its accepted revision before React
+commits the UI update, so an overlapping snapshot read cannot mistake that save
+for an external change and discard the remaining undo/redo history.
 
 ## Copy and paste
 
@@ -107,7 +109,8 @@ Run `pnpm acceptance:object-editing` for pinned Chromium/OpenSCAD geometry check
 It compares actual STL and 3MF bounds for move, rotation, uniform/per-axis scale,
 compound rotation, independent paste, persisted reload and history snapshots.
 Browser fixtures additionally exercise actual pointer gizmos, numeric entry,
-save retries, bounded refresh recovery, and normal/forced-color layouts.
+save retries, bounded refresh recovery, overlapping undo/redo snapshot reads,
+external history invalidation, and normal/forced-color layouts.
 
 ## Release
 

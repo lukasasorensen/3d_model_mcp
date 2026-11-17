@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { expect } from "playwright/test";
 import { test } from "../../../../browser.fixture.mjs";
 import { mountObjectEditingPanel } from "../fixtures/objectEditingPanel.fixture.mjs";
+import { overlapNextObjectReads } from "../fixtures/overlappingObjectReads.fixture.mjs";
 
 test("unsupported legacy models explain compatibility without offering failed edits", async ({
   page,
@@ -140,6 +141,7 @@ test("object drafts cancel, apply, copy, paste, undo and redo independently", as
     12,
   );
   assert.notEqual(pasted.objects[0].fileId, pasted.objects[1].fileId);
+  await overlapNextObjectReads(page);
   await page
     .getByRole("button", { name: "Undo object edit", exact: true })
     .click();
@@ -148,11 +150,15 @@ test("object drafts cancel, apply, copy, paste, undo and redo independently", as
     controls.snapshots[controls.current].modelFiles.objects.length,
     1,
   );
+  await expect(
+    page.getByRole("button", { name: "Redo object edit", exact: true }),
+  ).toBeEnabled();
   await page
     .getByRole("button", { name: "Undo object edit", exact: true })
     .click();
   await expect(page.getByText("Preview: r5", { exact: true })).toBeVisible();
   await expect(x).toHaveValue("0");
+  await overlapNextObjectReads(page);
   await page
     .getByRole("button", { name: "Redo object edit", exact: true })
     .click();
@@ -166,6 +172,32 @@ test("object drafts cancel, apply, copy, paste, undo and redo independently", as
     controls.snapshots[controls.current].modelFiles.objects.length,
     2,
   );
+  assert.deepEqual(errors, []);
+});
+
+test("an external accepted revision clears local undo and redo history", async ({
+  page,
+}) => {
+  const { controls, errors, snapshot } = await mountObjectEditingPanel(page);
+  const x = page.getByRole("textbox", { name: "Position X · mm", exact: true });
+  await x.fill("12");
+  await page
+    .getByRole("button", { name: "Apply object changes", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Undo object edit", exact: true }),
+  ).toBeEnabled();
+  controls.snapshots.r3 = snapshot("r3");
+  controls.current = "r3";
+  await page.evaluate(() => window.refresh());
+  await expect(page.getByText("Preview: r3", { exact: true })).toBeVisible();
+  await expect(x).toHaveValue("0");
+  await expect(x).toBeEnabled();
+  for (const name of ["Undo object edit", "Redo object edit"])
+    await expect(
+      page.getByRole("button", { name, exact: true }),
+    ).toBeDisabled();
+  assert.equal(controls.requests.length, 1);
   assert.deepEqual(errors, []);
 });
 

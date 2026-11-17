@@ -276,6 +276,8 @@ export function useObjectEditing(options: ObjectEditingOptions): {
               "The accepted revision changed. Reload the project before making another edit.",
             );
           if (mounted.current) {
+            // Overlapping reads must see our revision before React commits state.
+            currentSnapshot.current = accepted;
             setSnapshot(accepted);
             setDraft(accepted.modelFiles ?? undefined);
             if (mode === "apply") {
