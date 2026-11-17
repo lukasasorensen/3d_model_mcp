@@ -1,0 +1,50 @@
+.object-editing-panel {
+  display: grid;
+  gap: 1rem;
+}
+.object-transform-editor {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.object-transform-modes,
+.object-transform-axes {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.object-transform-modes button[aria-pressed="true"] {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.object-transform-fields {
+  min-width: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.object-transform-fields label {
+  display: grid;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 4rem;
+}
+.object-transform-fields input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.object-transform-canvas {
+  position: relative;
+  min-height: 280px;
+  height: 320px;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  touch-action: none;
+  overflow: hidden;
+}
+.object-transform-canvas > p {
+  padding: 1rem;
+}
+.object-transform-dimensions {
+  font-variant-numeric: tabular-nums;
+}

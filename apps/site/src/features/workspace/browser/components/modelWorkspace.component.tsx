@@ -1,5 +1,5 @@
 "use client";
-import { useId, useState, type JSX } from "react";
+import { useId, type JSX } from "react";
 
 import dynamic from "next/dynamic";
 import { ChatPane, ChatModelPicker } from "../../../chat/browser/index";
@@ -8,8 +8,7 @@ import {
   type HostedInstallations,
   ConnectToCodex,
 } from "../../../onboarding/browser/index";
-import { LayersPanel } from "../../../object-layers/browser/index";
-import { ParameterPanel } from "../../../parameter-controls/browser/index";
+import { WorkspaceEditingControls } from "./workspaceEditingControls.component";
 import { RevisionHistory } from "./revisionHistory.component";
 import { WorkspaceStatusToast } from "./workspaceStatusToast.component";
 
@@ -50,7 +49,6 @@ export function ModelWorkspace({
   installations?: HostedInstallations | undefined;
 }): JSX.Element {
   const projectSelectorId = useId();
-  const [layerPending, setLayerPending] = useState(false);
   const {
     router,
     aiSelection,
@@ -67,7 +65,7 @@ export function ModelWorkspace({
     chatCollapsed,
     setChatCollapsed,
     restorePending,
-    parameterPending: parameterOperationPending,
+    parameterPending,
     setParameterPending,
     acquireRenderer,
     releaseRenderer,
@@ -98,7 +96,6 @@ export function ModelWorkspace({
     localMcpBridgeEnabled,
     remoteMcpEnabled,
   });
-  const parameterPending = parameterOperationPending || layerPending;
   const { mobile, section, selectSection } =
     useWorkspaceSection(isSidebarChatEnabled);
   const controlOptions = {
@@ -378,22 +375,11 @@ export function ModelWorkspace({
               available={Boolean(currentManifest)}
             />
             {state.hydrated && (
-              <>
-                <LayersPanel
-                  key={projectId}
-                  {...controlOptions}
-                  disabled={
-                    controlOptions.disabled || parameterOperationPending
-                  }
-                  onPending={setLayerPending}
-                />
-                <ParameterPanel
-                  key={projectId}
-                  {...controlOptions}
-                  disabled={controlOptions.disabled || layerPending}
-                  onPending={setParameterPending}
-                />
-              </>
+              <WorkspaceEditingControls
+                key={projectId}
+                {...controlOptions}
+                onPending={setParameterPending}
+              />
             )}
           </div>
           {exportState === "failed" && (

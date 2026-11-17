@@ -9,20 +9,21 @@ file body. Both support an optional historical revision. Labels are data, never 
 `edit_model_files` accepts `projectId`, the exact non-null `parentRevision`,
 `requestId`, `toolCallId` and a batch of operations:
 
-| Operation               | Fields                              |
-| ----------------------- | ----------------------------------- |
-| `create_file`           | `file: {id, name, body}`            |
-| `update_file`           | `id`, `body`                        |
-| `rename_file`           | `id`, `name`                        |
-| `remove_file`           | `id`                                |
-| `set_file_visibility`   | `id`, `visible`                     |
-| `reorder_files`         | `ids` (all file IDs exactly once)   |
-| `create_object`         | `object: {id, name, fileId}`        |
-| `update_object`         | `id`, `fileId`                      |
-| `rename_object`         | `id`, `name`                        |
-| `remove_object`         | `id`                                |
-| `set_object_visibility` | `id`, `visible`                     |
-| `reorder_objects`       | `ids` (all object IDs exactly once) |
+| Operation               | Fields                                         |
+| ----------------------- | ---------------------------------------------- |
+| `create_file`           | `file: {id, name, body}`                       |
+| `update_file`           | `id`, `body`                                   |
+| `rename_file`           | `id`, `name`                                   |
+| `remove_file`           | `id`                                           |
+| `set_file_visibility`   | `id`, `visible`                                |
+| `reorder_files`         | `ids` (all file IDs exactly once)              |
+| `create_object`         | `object: {id, name, fileId}`                   |
+| `update_object`         | `id`, `fileId`                                 |
+| `rename_object`         | `id`, `name`                                   |
+| `remove_object`         | `id`                                           |
+| `set_object_visibility` | `id`, `visible`                                |
+| `set_object_transform`  | `id`, `transform: {position, rotation, scale}` |
+| `reorder_objects`       | `ids` (all object IDs exactly once)            |
 
 The batch transforms the named parent's immutable snapshot. New IDs must be unique;
 updates retain IDs. References are checked after the whole batch, allowing atomic
@@ -30,6 +31,12 @@ file creation/reassignment/removal. Removing a still-referenced file fails. Each
 object appends to the explicit composition; removing an object removes that operand.
 Removing a difference base is rejected: use a complete proposal with an explicit
 new composition to intentionally replace it. All models retain at least one file/object.
+
+Objects may include an optional transform. Position is a millimeter triple,
+rotation is an XYZ degree triple about the local origin, and scale is a positive
+factor triple. Missing transforms mean identity. Source remains independently
+addressable: transforming an object does not modify the shared file. See
+[direct object editing](modeling-interactions.md) for composition order and limits.
 
 The reply contains compact candidate metadata and resulting `state`. It does not
 change accepted state. Validate/render, inspect the preview, then promote that

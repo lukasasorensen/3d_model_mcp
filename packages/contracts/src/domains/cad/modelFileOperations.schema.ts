@@ -11,6 +11,7 @@ import {
   MODEL_FILE_LIMITS,
 } from "./modelFiles.schema.js";
 import { proposeModelSourceOutputSchema } from "./modelOperations.schema.js";
+import { objectTransformSchema } from "./objectTransform.schema.js";
 
 const target = { id: opaqueIdSchema };
 const name = modelFileSchema.shape.name;
@@ -49,6 +50,13 @@ export const modelFileOperationSchema = z.discriminatedUnion("op", [
     })
     .strict(),
   z.object({ op: z.literal("rename_object"), ...target, name }).strict(),
+  z
+    .object({
+      op: z.literal("set_object_transform"),
+      ...target,
+      transform: objectTransformSchema,
+    })
+    .strict(),
   z.object({ op: z.literal("remove_object"), ...target }).strict(),
   z
     .object({
