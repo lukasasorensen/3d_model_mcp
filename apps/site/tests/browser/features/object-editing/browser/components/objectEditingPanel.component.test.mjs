@@ -4,6 +4,22 @@ import { expect } from "playwright/test";
 import { test } from "../../../../browser.fixture.mjs";
 import { mountObjectEditingPanel } from "../fixtures/objectEditingPanel.fixture.mjs";
 
+test("cancel clears invalid numeric text even when no valid edit was staged", async ({
+  page,
+}) => {
+  const { controls, errors } = await mountObjectEditingPanel(page);
+  const x = page.getByRole("textbox", { name: "Position X · mm", exact: true });
+  await x.fill("-");
+  await expect(x).toHaveAttribute("aria-invalid", "true");
+  await page
+    .getByRole("button", { name: "Cancel object changes", exact: true })
+    .click();
+  await expect(x).toHaveValue("0");
+  await expect(x).toHaveAttribute("aria-invalid", "false");
+  assert.equal(controls.requests.length, 0);
+  assert.deepEqual(errors, []);
+});
+
 test("lost save acknowledgement retries the exact candidate and retains undo history", async ({
   page,
 }) => {

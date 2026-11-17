@@ -13,6 +13,7 @@ export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
   const selectorId = useId();
   const errorRef = useRef<HTMLDivElement>(null);
   const [valid, setValid] = useState(true);
+  const [editorReset, setEditorReset] = useState(0);
   const transform = useMemo(
     () =>
       state.selectedObject ? objectTransform(state.selectedObject) : undefined,
@@ -95,7 +96,10 @@ export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
             id={selectorId}
             value={state.selectedId ?? ""}
             disabled={disabled}
-            onChange={(event) => state.select(event.target.value)}
+            onChange={(event) => {
+              state.select(event.target.value);
+              setValid(true);
+            }}
           >
             <option value="">Choose an object</option>
             {state.draft.objects.map((object) => (
@@ -106,7 +110,7 @@ export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
           </select>
           {state.selectedObject && state.selectedSource && transform && (
             <ObjectTransformEditor
-              key={`${state.selectedId}:${state.snapshot?.revision}`}
+              key={`${state.selectedId}:${state.snapshot?.revision}:${editorReset}`}
               objectName={state.selectedObject.name}
               source={state.selectedSource}
               transform={transform}
@@ -139,8 +143,14 @@ export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
             </button>
             <button
               type="button"
-              disabled={state.loading || state.pending || !state.dirty}
-              onClick={state.cancel}
+              disabled={
+                state.loading || state.pending || (!state.dirty && valid)
+              }
+              onClick={() => {
+                state.cancel();
+                setEditorReset((value) => value + 1);
+                setValid(true);
+              }}
             >
               Cancel object changes
             </button>

@@ -40,7 +40,7 @@ site **0.15.0**, PostgreSQL **18**. Packaged image names are
 loaded from reviewed image archives or built from the explicit checkout with
 `--source`. Nothing publishes images, npm packages or plugins automatically.
 
-Application 0.15.0 also requires migration `0020_model-files` for revision-bound
+Application 0.13.0 also requires migration `0020_model-files` for revision-bound
 [file snapshots](model-files.md). Migration `0019_auth-provider-account-key` is required for the
 patched authentication library. The local lifecycle runs migrations before readiness;
 [check duplicate account keys](dependencies-and-licenses.md#better-auth-database-upgrade)

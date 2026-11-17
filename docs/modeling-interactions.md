@@ -55,7 +55,8 @@ per-axis values. Direct manipulation updates a draft and disables camera orbit
 for the duration of the drag. A drag does not publish a revision.
 
 Apply proposes against the exact accepted parent, validates/renders, and promotes
-only a valid candidate. Cancel discards an unsaved draft. In-flight interruption
+only a valid candidate. Cancel discards an unsaved draft and is disabled once
+Apply starts. In-flight interruption
 must reconcile the accepted revision because cancellation can race publication.
 Historical or stale selections cannot silently overwrite a newer accepted model.
 
@@ -94,3 +95,25 @@ Filesystem and PostgreSQL fixtures check persisted transforms, failed validation
 reload, undo/redo and stale-parent rejection. Those fixture renderers do not prove
 geometric accuracy: actual renderer and browser acceptance are recorded separately
 in the PR and Linear issues.
+
+Run `pnpm acceptance:object-editing` for pinned Chromium/OpenSCAD geometry checks.
+It compares actual STL and 3MF bounds for move, rotation, uniform/per-axis scale,
+compound rotation, independent paste, persisted reload and history snapshots.
+Browser fixtures additionally exercise actual pointer gizmos, numeric entry,
+save retries, bounded refresh recovery, and normal/forced-color layouts.
+
+## Release
+
+Relative to integrated THE-58/THE-59, root and hosted/local plugins advance
+0.16.0 → 0.17.0; site 0.14.0 → 0.15.0; contracts 0.8.0 → 0.9.0;
+model-project 0.9.0 → 0.10.0; MCP 0.6.0 → 0.7.0; runtime 0.10.0 → 0.11.0;
+local-worker 0.7.0 → 0.8.0. Gateway stays 0.7.0. Command pins, local plugin
+runtime metadata and generated release identities follow the manifests.
+No new migration or renderer pin is introduced; existing migration
+`0020_model-files` remains required. Upgrade strict consumers together to read
+the optional object transform and new `set_object_transform` operation.
+
+Undo/redo and the clipboard belong to the mounted project session; saved edits
+survive reload, while the session's undo cursor and clipboard do not. No production
+deployment, public package publication, or authenticated live-user acceptance is
+implied by local fixture and renderer checks.

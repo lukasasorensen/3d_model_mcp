@@ -17,7 +17,11 @@ export function WorkspaceEditingControls(
   useEffect(() => (): void => onPending(false), [onPending]);
   return (
     <>
-      <LayersPanel {...options} disabled={options.disabled || parametersPending || objectsPending} onPending={setLayersPending} />
+      <LayersPanel
+        {...options}
+        disabled={options.disabled || parametersPending || objectsPending}
+        onPending={setLayersPending}
+      />
       <ObjectEditingPanel
         key={options.projectId}
         {...options}

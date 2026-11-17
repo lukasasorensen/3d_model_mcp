@@ -4,8 +4,8 @@ import { build } from "esbuild";
 import { expect } from "playwright/test";
 import { test, root, applicationStyles } from "../../../../browser.fixture.mjs";
 
-async function mount(page) {
-  const contents = `import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import {BoxGeometry,Mesh} from 'three';import {STLExporter} from 'three/addons/exporters/STLExporter.js';import {ObjectTransformEditor} from './src/features/object-editing/browser/components/objectTransformEditor.component';import {BrowserRendererContext} from './src/features/browser-rendering/browser/index';const bytes=new TextEncoder().encode(new STLExporter().parse(new Mesh(new BoxGeometry(10,20,30))));const renderer={cachedPreview:()=>bytes,renderPreview:async()=>({bytes,diagnostics:[]})};function App(){const [transform,setTransform]=useState({position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]});const [valid,setValid]=useState(true);window.transform=transform;return <BrowserRendererContext.Provider value={renderer}><main style={{width:600}}><ObjectTransformEditor objectName="Test block" source="cube([10,20,30],center=true);" transform={transform} onChange={setTransform} onValidityChange={setValid}/><button disabled={!valid}>Apply test</button></main></BrowserRendererContext.Provider>};createRoot(document.getElementById('root')).render(<App/>);`;
+async function mount(page, strict = false) {
+  const contents = `import React,{StrictMode,useState} from 'react';import {createRoot} from 'react-dom/client';import {BoxGeometry,Mesh} from 'three';import {STLExporter} from 'three/addons/exporters/STLExporter.js';import {ObjectTransformEditor} from './src/features/object-editing/browser/components/objectTransformEditor.component';import {BrowserRendererContext} from './src/features/browser-rendering/browser/index';const bytes=new TextEncoder().encode(new STLExporter().parse(new Mesh(new BoxGeometry(10,20,30))));const renderer={cachedPreview:()=>bytes,renderPreview:async()=>({bytes,diagnostics:[]})};function App(){const [transform,setTransform]=useState({position:[0,0,0],rotation:[0,0,0],scale:[1,1,1]});const [valid,setValid]=useState(true);window.transform=transform;return <BrowserRendererContext.Provider value={renderer}><main style={{width:600}}><ObjectTransformEditor objectName="Test block" source="cube([10,20,30],center=true);" transform={transform} onChange={setTransform} onValidityChange={setValid}/><button disabled={!valid}>Apply test</button></main></BrowserRendererContext.Provider>};createRoot(document.getElementById('root')).render(${strict ? "<StrictMode><App/></StrictMode>" : "<App/>"});`;
   const bundle = await build({
     stdin: { contents, resolveDir: root + "/apps/site", loader: "tsx" },
     bundle: true,
@@ -90,28 +90,29 @@ test("dragging the scene background changes only the camera", async ({
   assert.deepEqual(errors, []);
 });
 
-test("dragging the move handle edits the selected object position", async ({
-  page,
-}) => {
-  const errors = await mount(page);
-  await page.locator("canvas").scrollIntoViewIfNeeded();
-  await page.waitForTimeout(300);
-  const box = await page.locator("canvas").boundingBox();
-  assert.ok(box);
-  await page.mouse.move(box.x + box.width * 0.545, box.y + box.height * 0.54);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width * 0.64, box.y + box.height * 0.62, {
-    steps: 8,
+for (const strict of [false, true])
+  test(`dragging the move handle edits the selected object position${strict ? " in StrictMode" : ""}`, async ({
+    page,
+  }) => {
+    const errors = await mount(page, strict);
+    await page.locator("canvas").scrollIntoViewIfNeeded();
+    await page.waitForTimeout(300);
+    const box = await page.locator("canvas").boundingBox();
+    assert.ok(box);
+    await page.mouse.move(box.x + box.width * 0.545, box.y + box.height * 0.54);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.64, box.y + box.height * 0.62, {
+      steps: 8,
+    });
+    await page.mouse.up();
+    const transform = await page.evaluate(() => window.transform);
+    assert.ok(Math.abs(transform.position[0]) > 1, JSON.stringify(transform));
+    assert.ok(Math.abs(transform.position[1]) < 0.001);
+    assert.ok(Math.abs(transform.position[2]) < 0.001);
+    assert.deepEqual(transform.rotation, [0, 0, 0]);
+    assert.deepEqual(transform.scale, [1, 1, 1]);
+    assert.deepEqual(errors, []);
   });
-  await page.mouse.up();
-  const transform = await page.evaluate(() => window.transform);
-  assert.ok(Math.abs(transform.position[0]) > 1, JSON.stringify(transform));
-  assert.ok(Math.abs(transform.position[1]) < 0.001);
-  assert.ok(Math.abs(transform.position[2]) < 0.001);
-  assert.deepEqual(transform.rotation, [0, 0, 0]);
-  assert.deepEqual(transform.scale, [1, 1, 1]);
-  assert.deepEqual(errors, []);
-});
 
 for (const scenario of [
   { mode: "Rotate", start: [0.5, 0.55], end: [0.55, 0.5], field: "rotation" },
