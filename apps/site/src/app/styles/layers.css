@@ -1,0 +1,60 @@
+.layers-panel {
+  border-top: 1px solid var(--line);
+  padding: 1rem;
+  min-width: 0;
+}
+.layers-panel h2 {
+  margin: 0 0 0.5rem;
+}
+.layers-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+.layers-list li {
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  min-width: 0;
+}
+.layers-list li[data-selected="true"] {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.layer-select {
+  display: grid;
+  text-align: left;
+  width: 100%;
+  overflow-wrap: anywhere;
+}
+.layer-select span {
+  font-size: 0.85rem;
+}
+.layer-visibility {
+  display: block;
+  margin: 0.4rem 0;
+}
+.layer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.layer-actions label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+}
+.layer-actions input {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.layer-selection,
+.layers-panel small {
+  overflow-wrap: anywhere;
+}
+.layers-panel .notice button {
+  margin: 0.25rem;
+}

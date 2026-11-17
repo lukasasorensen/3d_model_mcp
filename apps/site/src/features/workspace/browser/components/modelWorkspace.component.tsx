@@ -1,5 +1,5 @@
 "use client";
-import { useId, type JSX } from "react";
+import { useId, useState, type JSX } from "react";
 
 import dynamic from "next/dynamic";
 import { ChatPane, ChatModelPicker } from "../../../chat/browser/index";
@@ -8,6 +8,7 @@ import {
   type HostedInstallations,
   ConnectToCodex,
 } from "../../../onboarding/browser/index";
+import { LayersPanel } from "../../../object-layers/browser/index";
 import { ParameterPanel } from "../../../parameter-controls/browser/index";
 import { RevisionHistory } from "./revisionHistory.component";
 import { WorkspaceStatusToast } from "./workspaceStatusToast.component";
@@ -46,6 +47,7 @@ export function ModelWorkspace({
   installations?: HostedInstallations | undefined;
 }): JSX.Element {
   const projectSelectorId = useId();
+  const [layerPending, setLayerPending] = useState(false);
   const {
     router,
     aiSelection,
@@ -62,7 +64,7 @@ export function ModelWorkspace({
     chatCollapsed,
     setChatCollapsed,
     restorePending,
-    parameterPending,
+    parameterPending: parameterOperationPending,
     setParameterPending,
     acquireRenderer,
     releaseRenderer,
@@ -93,8 +95,28 @@ export function ModelWorkspace({
     localMcpBridgeEnabled,
     remoteMcpEnabled,
   });
+  const parameterPending = parameterOperationPending || layerPending;
   const { mobile, section, selectSection } =
     useWorkspaceSection(isSidebarChatEnabled);
+  const controlOptions = {
+    projectId,
+    currentRevision: state.currentRevision,
+    selectedRevision: state.selectedRevision,
+    selectedSourceHash: selectedManifest?.sourceHash,
+    sessionId,
+    disabled:
+      state.active ||
+      restorePending ||
+      isMcpRendering ||
+      exportState === "preparing" ||
+      readiness !== "ready" ||
+      !sessionId ||
+      promotionPending,
+    acquire: acquireRenderer,
+    release: releaseRenderer,
+    render: renderParameters,
+    refresh: refreshProject,
+  };
   return (
     <main
       className="app-shell"
@@ -353,28 +375,22 @@ export function ModelWorkspace({
                 : "A current revision is required for export."}
             </p>
             {state.hydrated && (
-              <ParameterPanel
-                key={projectId}
-                projectId={projectId}
-                currentRevision={state.currentRevision}
-                selectedRevision={state.selectedRevision}
-                selectedSourceHash={selectedManifest?.sourceHash}
-                sessionId={sessionId}
-                disabled={
-                  state.active ||
-                  restorePending ||
-                  isMcpRendering ||
-                  exportState === "preparing" ||
-                  readiness !== "ready" ||
-                  !sessionId ||
-                  promotionPending
-                }
-                acquire={acquireRenderer}
-                release={releaseRenderer}
-                render={renderParameters}
-                refresh={refreshProject}
-                onPending={setParameterPending}
-              />
+              <>
+                <LayersPanel
+                  key={projectId}
+                  {...controlOptions}
+                  disabled={
+                    controlOptions.disabled || parameterOperationPending
+                  }
+                  onPending={setLayerPending}
+                />
+                <ParameterPanel
+                  key={projectId}
+                  {...controlOptions}
+                  disabled={controlOptions.disabled || layerPending}
+                  onPending={setParameterPending}
+                />
+              </>
             )}
           </div>
           {exportState === "failed" && (
