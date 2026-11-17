@@ -62,6 +62,7 @@ export function useObjectLayers(options: ObjectLayersOptions): {
   });
   const [selected, setSelected] = useState<string>();
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState<ParameterControlsError>();
@@ -159,6 +160,7 @@ export function useObjectLayers(options: ObjectLayersOptions): {
       abort.current ||
       historical ||
       loading ||
+      refreshing ||
       !operations.length ||
       (!retry && stale) ||
       layerDraftProblem(base, draft)
@@ -282,7 +284,7 @@ export function useObjectLayers(options: ObjectLayersOptions): {
     base,
     draft,
     selected,
-    loading,
+    loading: loading || refreshing,
     pending,
     message,
     error,
@@ -332,12 +334,25 @@ export function useObjectLayers(options: ObjectLayersOptions): {
       abort.current?.abort();
     },
     reload(): void {
-      setError(undefined);
-      void latest.current
-        .refresh()
-        .catch(() => false)
+      if (refreshing || pending) return;
+      setRefreshing(true);
+      const controller = new AbortController();
+      void waitForLayerRefresh(latest.current.refresh, controller.signal)
+        .then((refreshed) => {
+          if (!mounted.current) return;
+          if (!refreshed) {
+            setError((previous) => ({
+              code: previous?.code ?? "REFRESH_FAILED",
+              message:
+                "The saved layers could not be refreshed within 15 seconds. Your draft and last preview are retained. Retry refreshing when the project connection recovers.",
+            }));
+            return;
+          }
+          setError(undefined);
+          setReload((n) => n + 1);
+        })
         .finally(() => {
-          if (mounted.current) setReload((n) => n + 1);
+          if (mounted.current) setRefreshing(false);
         });
     },
   };

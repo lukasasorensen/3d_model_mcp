@@ -57,7 +57,11 @@ export function LayersPanel(options: ObjectLayersOptions): JSX.Element {
               Retry interrupted layer update
             </button>
           )}
-          <button type="button" disabled={state.pending} onClick={state.reload}>
+          <button
+            type="button"
+            disabled={state.pending || state.loading}
+            onClick={state.reload}
+          >
             Refresh saved layers
           </button>
         </div>

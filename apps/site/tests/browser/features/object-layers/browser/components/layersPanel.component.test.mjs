@@ -179,11 +179,12 @@ for (const mode of ["lost", "success"])
       const entered = new Promise((resolve) => {
         enteredRefresh = resolve;
       });
+      const blocked = new Promise((resolve) => {
+        releaseRefresh = resolve;
+      });
       const stall = async (route) => {
         enteredRefresh();
-        await new Promise((resolve) => {
-          releaseRefresh = resolve;
-        });
+        await blocked;
         await route
           .fulfill({ json: controls.snapshots[controls.current] })
           .catch(() => undefined);
@@ -205,6 +206,21 @@ for (const mode of ["lost", "success"])
         page.getByText("Operation: idle", { exact: true }),
       ).toBeVisible();
       await expect(page.getByRole("alert")).toContainText("could not be");
+      await expect(show(page, "Lid (lid)")).not.toBeChecked();
+      await expect(
+        page.getByText("Preview: r1", { exact: true }),
+      ).toBeVisible();
+      const refreshButton = page.getByRole("button", {
+        name: "Refresh saved layers",
+      });
+      await refreshButton.click();
+      await expect(refreshButton).toBeDisabled();
+      await expect(page.getByRole("alert")).toContainText("could not be");
+      await page.clock.fastForward(15_001);
+      await expect(refreshButton).toBeEnabled();
+      await expect(page.getByRole("alert")).toContainText(
+        "could not be refreshed within 15 seconds",
+      );
       await expect(show(page, "Lid (lid)")).not.toBeChecked();
       await expect(
         page.getByText("Preview: r1", { exact: true }),
