@@ -87,6 +87,16 @@ export async function mountWorkspaceJourney(
         state: null,
       });
     }
+    if (path.endsWith("/objects")) {
+      const id =
+        new URL(request.url()).searchParams.get("revision") ?? controls.current;
+      return json({
+        revision: id,
+        sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
+        modelFiles: null,
+        parameters: [],
+      });
+    }
     if (path.endsWith("/parameters")) {
       const id =
         new URL(request.url()).searchParams.get("revision") ?? controls.current;
