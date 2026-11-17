@@ -38,6 +38,11 @@ const repository = new Proxy(
 test("exposes exactly the approved transport-neutral CAD tool allowlist", () => {
   const registry = createCadToolRegistry(repository);
   assert.deepEqual(Object.keys(registry), [
+    "list_model_files",
+    "list_model_objects",
+    "read_model_file",
+    "read_model_object",
+    "edit_model_files",
     "list_projects",
     "create_project",
     "update_project",

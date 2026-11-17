@@ -266,3 +266,6 @@ current states after current advances, reject changed proposals and verify owner
 isolation. Numeric diagnostics now use stable IDs/bindings plus field paths; tests
 cover reordered input, current/default values and enum options. The once-per-PR
 versions above are unchanged.
+
+THE-56 adds [revision-bound model files](model-files.md) as a third proposal mode.
+Parameter edits preserve complete file snapshots and their explicit composition.

@@ -1,6 +1,6 @@
 {
   "name": "3d-model-mcp",
-  "version": "0.12.2",
+  "version": "0.17.0",
   "private": true,
   "description": "Local-first conversational CAD using MCP tools and OpenSCAD.",
   "packageManager": "pnpm@11.17.0",
@@ -56,7 +56,9 @@
     "pack:local-plugin": "node tooling/local-instance/buildPlugin.script.mjs",
     "pack:local-images": "pnpm build:worker-assets && node tooling/local-instance/buildImages.script.mjs",
     "acceptance:local-edition": "node tooling/local-instance/acceptance.script.mjs",
-    "acceptance:parameters": "pnpm build:packages && pnpm build:headless-renderer-proof && node --import tsx tooling/parameters/acceptance.script.mjs"
+    "acceptance:parameters": "pnpm build:packages && pnpm build:headless-renderer-proof && node --import tsx tooling/parameters/acceptance.script.mjs",
+    "acceptance:model-files": "pnpm build:packages && pnpm build:headless-renderer-proof && node tooling/model-files/acceptance.script.mjs",
+    "acceptance:object-editing": "pnpm build:packages && pnpm build:headless-renderer-proof && node tooling/object-editing/acceptance.script.mjs"
   },
   "devDependencies": {
     "@theoryfoundry/browser-renderer": "workspace:*",
@@ -76,6 +78,7 @@
     "@types/node": "24.10.1",
     "globals": "17.13.0",
     "@theoryfoundry/model-project": "workspace:*",
-    "@theoryfoundry/mcp": "workspace:*"
+    "@theoryfoundry/mcp": "workspace:*",
+    "@theoryfoundry/contracts": "workspace:*"
   }
 }

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createCadToolCatalog } from "../../packages/contracts/dist/index.js";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { createHash } from "node:crypto";
@@ -273,22 +274,7 @@ try {
       .find((value) => value.id === 2)
       .result.tools.map((tool) => tool.name)
       .sort(),
-    [
-      "list_projects",
-      "create_project",
-      "update_project",
-      "get_project_state",
-      "read_model_source",
-      "list_model_parameters",
-      "edit_parameters",
-      "propose_model_source",
-      "validate_and_render",
-      "get_model_preview",
-      "promote_candidate",
-      "export_model",
-      "list_revisions",
-      "restore_revision",
-    ].sort(),
+    Object.keys(createCadToolCatalog("local-worker")).sort(),
   );
   assert.equal(served.stderr, "");
   checks.push(

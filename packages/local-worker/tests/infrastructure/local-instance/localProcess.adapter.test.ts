@@ -16,9 +16,9 @@ void test("Docker cancellation waits for process exit and permits cleanup with a
       `#!${process.execPath}
 const fs=require('node:fs');
 if(process.argv.includes('wait')){
-  fs.writeFileSync(${JSON.stringify(marker)}, 'started');
-  setInterval(()=>{}, 20);
   process.on('SIGTERM',()=>setTimeout(()=>{fs.writeFileSync(${JSON.stringify(exited)}, 'exited');process.exit(0)}, 100));
+  setInterval(()=>{}, 20);
+  fs.writeFileSync(${JSON.stringify(marker)}, 'started');
 }else if(process.argv.includes('context'))process.stdout.write(JSON.stringify('unix:///test.sock'));
 else process.stdout.write('stopped');
 `,

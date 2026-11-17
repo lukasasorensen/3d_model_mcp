@@ -28,7 +28,7 @@ export async function invokeCadTool(
       error: {
         code: "INVALID_TOOL_INPUT",
         message: "Tool input failed strict schema validation.",
-        ...(name === "edit_parameters"
+        ...(name === "edit_parameters" || name === "edit_model_files"
           ? {
               details: {
                 path: parsed.error.issues[0]!.path.map(String)

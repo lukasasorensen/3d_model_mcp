@@ -1,4 +1,8 @@
 export * from "./cad.constants.js";
+export * from "./modelFiles.schema.js";
+export * from "./objectTransform.schema.js";
+export * from "./modelObjectClipboard.schema.js";
+export * from "./utils/modelObjectClipboard.util.js";
 export * from "./parameter.schema.js";
 export * from "./parameterOperations.schema.js";
 export * from "./parameterToolError.schema.js";
@@ -25,3 +29,5 @@ export * from "./geometry.schema.js";
 export * from "./export.schema.js";
 export * from "./cadWorkflow.port.js";
 export * from "./utils/exportFilename.util.js";
+export * from "./modelFileOperations.schema.js";
+export * from "./utils/applyModelFileOperations.util.js";

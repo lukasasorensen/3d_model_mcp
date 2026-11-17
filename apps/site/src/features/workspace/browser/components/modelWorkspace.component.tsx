@@ -8,11 +8,14 @@ import {
   type HostedInstallations,
   ConnectToCodex,
 } from "../../../onboarding/browser/index";
-import { ParameterPanel } from "../../../parameter-controls/browser/index";
+import { WorkspaceEditingControls } from "./workspaceEditingControls.component";
 import { RevisionHistory } from "./revisionHistory.component";
 import { WorkspaceStatusToast } from "./workspaceStatusToast.component";
 
-import { type DownloadFormat } from "../../../exports/browser/index";
+import {
+  ExportPolicy,
+  type DownloadFormat,
+} from "../../../exports/browser/index";
 
 import { useWorkspaceSection } from "../hooks/useWorkspaceSection.hook";
 import { useModelWorkspace } from "../hooks/useModelWorkspace.hook";
@@ -95,6 +98,25 @@ export function ModelWorkspace({
   });
   const { mobile, section, selectSection } =
     useWorkspaceSection(isSidebarChatEnabled);
+  const controlOptions = {
+    projectId,
+    currentRevision: state.currentRevision,
+    selectedRevision: state.selectedRevision,
+    selectedSourceHash: selectedManifest?.sourceHash,
+    sessionId,
+    disabled:
+      state.active ||
+      restorePending ||
+      isMcpRendering ||
+      exportState === "preparing" ||
+      readiness !== "ready" ||
+      !sessionId ||
+      promotionPending,
+    acquire: acquireRenderer,
+    release: releaseRenderer,
+    render: renderParameters,
+    refresh: refreshProject,
+  };
   return (
     <main
       className="app-shell"
@@ -347,32 +369,15 @@ export function ModelWorkspace({
                 </button>
               </div>
             </div>
-            <p id="export-help" className="action-help">
-              {currentManifest
-                ? `${currentLabel} · ${exportFormat.toUpperCase()} · generated locally in this browser`
-                : "A current revision is required for export."}
-            </p>
+            <ExportPolicy
+              currentLabel={currentLabel}
+              format={exportFormat}
+              available={Boolean(currentManifest)}
+            />
             {state.hydrated && (
-              <ParameterPanel
+              <WorkspaceEditingControls
                 key={projectId}
-                projectId={projectId}
-                currentRevision={state.currentRevision}
-                selectedRevision={state.selectedRevision}
-                selectedSourceHash={selectedManifest?.sourceHash}
-                sessionId={sessionId}
-                disabled={
-                  state.active ||
-                  restorePending ||
-                  isMcpRendering ||
-                  exportState === "preparing" ||
-                  readiness !== "ready" ||
-                  !sessionId ||
-                  promotionPending
-                }
-                acquire={acquireRenderer}
-                release={releaseRenderer}
-                render={renderParameters}
-                refresh={refreshProject}
+                {...controlOptions}
                 onPending={setParameterPending}
               />
             )}

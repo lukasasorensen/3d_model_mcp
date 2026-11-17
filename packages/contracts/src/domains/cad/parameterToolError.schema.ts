@@ -6,7 +6,11 @@ const fieldPath = z
 
 /** Bounded model-facing diagnostics; unrelated error metadata is never forwarded. */
 export const parameterToolErrorSchema = z.object({
-  code: z.enum(["INVALID_PARAMETERS", "INVALID_TOOL_INPUT"]),
+  code: z.enum([
+    "INVALID_PARAMETERS",
+    "INVALID_TOOL_INPUT",
+    "INVALID_MODEL_FILES",
+  ]),
   message: z.string().min(1).max(500),
   details: z
     .object({

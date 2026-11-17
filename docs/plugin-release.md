@@ -10,8 +10,8 @@ shared. Public directory publication and live client acceptance remain release g
 `plugins/theoryfoundry/` owns the shared identity, publisher metadata, logo and setup
 skill. `tooling/mcp-plugin/` builds client packages and local validation catalogs.
 Publisher: Lukas Sorensen. Production origin: `https://3dai.theoryfoundry.com`.
-Version: 0.12.2, matching the root release. The site is at 0.10.2, the runtime at
-0.8.1, and the optional npm installer at 0.2.0.
+Version: 0.17.0, matching the root release. The site is at 0.15.0, the runtime at
+0.11.0, and the optional npm installer at 0.2.0.
 
 ```sh
 pnpm pack:plugins
@@ -36,8 +36,8 @@ It does not grant permission to edit a model or automatically install the npm he
 
 ## Operator OAuth provisioning
 
-Apply migrations through `0019_auth-provider-account-key` before starting the
-0.12.2 application or provisioning OAuth clients. See the
+Apply migrations through `0020_model-files` before starting the
+0.17.0 application or provisioning OAuth clients. See the
 [account-key upgrade and duplicate check](dependencies-and-licenses.md#better-auth-database-upgrade).
 Use the same public-origin environment and database as the deployed application.
 The commands add exact callbacks and preserve an existing disabled client. `--replace`

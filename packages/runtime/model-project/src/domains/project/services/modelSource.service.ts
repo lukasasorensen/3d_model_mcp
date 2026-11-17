@@ -46,6 +46,9 @@ export class ModelSourceService {
     );
     return {
       revision: selectedRevision,
+      ...(persistedRevision.manifest.modelFiles
+        ? { modelFiles: persistedRevision.manifest.modelFiles }
+        : {}),
       ...(persistedRevision.manifest.modelBody !== undefined
         ? { modelBody: persistedRevision.manifest.modelBody }
         : {}),

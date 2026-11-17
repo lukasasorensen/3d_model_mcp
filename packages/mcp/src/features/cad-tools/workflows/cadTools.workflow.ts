@@ -24,6 +24,7 @@ import {
   type ModelProjectStore,
 } from "@theoryfoundry/model-project";
 
+import { createModelFileTools } from "../services/modelFileTools.service.js";
 import type { CadToolRegistry } from "../cadTool.types.js";
 function boundedResult(
   value: Record<string, unknown>,
@@ -44,6 +45,7 @@ export function createCadToolRegistry(
 ): CadToolRegistry {
   const catalog = createCadToolCatalog();
   return {
+    ...createModelFileTools(repository),
     list_projects: {
       ...catalog.list_projects,
       execute: async (raw): Promise<Record<string, unknown>> => {
@@ -109,10 +111,14 @@ export function createCadToolRegistry(
           input.revision,
         );
         // Generated documents expose editable body + JSON once, not a duplicate assembled source.
-        const { source, ...editable } = model;
+        const { source, modelBody, ...editable } = model;
         void source;
         return boundedResult({
-          model: model.modelBody === undefined ? model : editable,
+          model: model.modelFiles
+            ? editable
+            : modelBody === undefined
+              ? model
+              : { ...editable, modelBody },
         });
       },
     },
@@ -147,8 +153,13 @@ export function createCadToolRegistry(
                 input.projectId,
                 input.parentRevision,
               );
+        if (parent?.modelFiles && input.modelBody !== undefined)
+          throw new CadDomainError(
+            "INVALID_MODEL_FILES",
+            "Edit file bodies through a complete modelFiles proposal; parameter edits preserve the snapshot.",
+          );
         const modelBody = input.modelBody ?? parent?.modelBody;
-        if (modelBody === undefined)
+        if (modelBody === undefined && !parent?.modelFiles)
           throw new CadDomainError(
             "INVALID_PARAMETERS",
             "Supply modelBody explicitly for genesis or legacy parameter adoption.",
@@ -174,7 +185,9 @@ export function createCadToolRegistry(
               parentRevision: input.parentRevision,
               requestId: input.requestId,
               toolCallId: input.toolCallId,
-              modelBody,
+              ...(parent?.modelFiles
+                ? { modelFiles: parent.modelFiles }
+                : { modelBody }),
               parameters,
             }),
           ),
@@ -258,9 +271,10 @@ export function createCadToolRegistry(
         const input = listRevisionsInputSchema.parse(raw);
         return boundedResult({
           revisions: (await repository.listRevisions(input.projectId)).map(
-            ({ parameters, modelBody, ...revision }) => {
+            ({ parameters, modelBody, modelFiles, ...revision }) => {
               void parameters;
               void modelBody;
+              void modelFiles;
               return revision;
             },
           ),

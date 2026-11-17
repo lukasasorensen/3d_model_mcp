@@ -3,6 +3,7 @@
 @import "./styles/viewer.css";
 @import "./styles/model-details.css";
 @import "./styles/parameters.css";
+@import "./styles/objectEditing.css";
 @import "./styles/chat.css";
 @import "./styles/authentication.css";
 @import "./styles/connected-apps.css";
@@ -14,3 +15,5 @@
 
 @import "./styles/workspace-sections.css";
 @import "./styles/public-info.css";
+
+@import "./styles/layers.css";

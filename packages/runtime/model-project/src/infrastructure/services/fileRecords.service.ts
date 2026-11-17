@@ -1,3 +1,4 @@
+import { modelFilesEqual } from "../../shared/utils/modelFiles.util.js";
 import {
   candidateRecordSchema,
   parameterSnapshotsEqual,
@@ -104,6 +105,7 @@ export class FileProjectRecords {
         source.toString("utf8"),
         manifest.modelBody,
         manifest.parameters,
+        manifest.modelFiles,
       );
       assertArtifactSet(
         manifest.artifacts,
@@ -167,6 +169,7 @@ export class FileProjectRecords {
         candidate.sourceHash === sourceHash &&
         parameterSnapshotsEqual(candidate.parameters, input.parameters) &&
         candidate.modelBody === input.modelBody &&
+        modelFilesEqual(candidate.modelFiles, input.modelFiles) &&
         (!first ||
           candidate.createdAt < first.createdAt ||
           (candidate.createdAt === first.createdAt &&
@@ -206,6 +209,7 @@ export class FileProjectRecords {
         source,
         candidate.modelBody,
         candidate.parameters,
+        candidate.modelFiles,
       );
       return candidate;
     } catch (error) {
@@ -247,6 +251,7 @@ export class FileProjectRecords {
         if (
           candidate.sourceHash !== manifest.sourceHash ||
           candidate.modelBody !== manifest.modelBody ||
+          !modelFilesEqual(candidate.modelFiles, manifest.modelFiles) ||
           !parameterSnapshotsEqual(candidate.parameters, manifest.parameters)
         ) {
           throw new CadDomainError(
