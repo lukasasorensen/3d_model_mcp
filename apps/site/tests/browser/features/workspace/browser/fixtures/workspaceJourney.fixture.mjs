@@ -71,6 +71,15 @@ export async function mountWorkspaceJourney(
       controls.current = "r3";
       return json({ revision: revisions[2] });
     }
+    if (path.endsWith("/layers")) {
+      const id =
+        new URL(request.url()).searchParams.get("revision") ?? controls.current;
+      return json({
+        revision: id,
+        sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
+        state: null,
+      });
+    }
     if (path.endsWith("/parameters")) {
       const id =
         new URL(request.url()).searchParams.get("revision") ?? controls.current;
