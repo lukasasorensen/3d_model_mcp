@@ -58,7 +58,7 @@ export function assertModelFiles(snapshot: ModelFiles): void {
           ["include", "use"].includes(token.text)
         )
           throw new Error(
-            "Model files must be self-contained; compose objects through fileId references.",
+            "Model files must be self-contained; include/use directives, including BOSL2 imports, cannot be nested in object scopes.",
           );
         if (token.kind !== "punctuation") continue;
         if (["{", "(", "["].includes(token.text)) stack.push(token.text);

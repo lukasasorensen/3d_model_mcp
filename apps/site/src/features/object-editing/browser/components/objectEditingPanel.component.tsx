@@ -36,10 +36,12 @@ export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
       aria-busy={state.pending}
     >
       <h2 id={headingId}>Edit objects</h2>
-      <p className="action-help">
-        Select an object to move, rotate, resize, or copy it. Apply validates
-        and saves a new revision. Downloads use the accepted model.
-      </p>
+      {!state.snapshot?.unsupportedReason && (
+        <p className="action-help">
+          Select an object to move, rotate, resize, or copy it. Apply validates
+          and saves a new revision. Downloads use the accepted model.
+        </p>
+      )}
       {state.loading && <p role="status">Loading objects…</p>}
       {state.error && (
         <div
@@ -80,7 +82,10 @@ export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
         </p>
       )}
       {!state.loading && !state.draft && (
-        <p>No editable objects are available yet.</p>
+        <p role="status">
+          {state.snapshot?.unsupportedReason ??
+            "No editable objects are available yet."}
+        </p>
       )}
       {state.draft && (
         <>

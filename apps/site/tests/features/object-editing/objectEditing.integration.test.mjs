@@ -237,6 +237,45 @@ for (const adapter of ["filesystem", "database"])
         ).modelFiles,
         modelFiles,
       );
+      const legacy = await repository.createProject({
+        name: "Legacy BOSL2",
+        description: "Read compatibility",
+      });
+      const legacySource = "include <BOSL2/std.scad>; cuboid([2,4,6]);";
+      const legacyCandidate = await repository.proposeModelSource({
+        projectId: legacy.projectId,
+        parentRevision: null,
+        source: legacySource,
+        requestId: "legacy",
+        toolCallId: "legacy",
+      });
+      await repository.validateAndRender({
+        projectId: legacy.projectId,
+        candidateId: legacyCandidate.candidateId,
+        previewProfile: "standard",
+      });
+      const legacyRevision = await repository.promoteCandidate({
+        projectId: legacy.projectId,
+        candidateId: legacyCandidate.candidateId,
+        expectedParentRevision: null,
+      });
+      const legacyRead = await handlers.GET(
+        new Request(`${origin}/v1/projects/${legacy.projectId}/objects`),
+        { params: Promise.resolve({ projectId: legacy.projectId }) },
+      );
+      assert.equal(legacyRead.status, 200);
+      const unsupported = await legacyRead.json();
+      assert.equal(unsupported.modelFiles, null);
+      assert.ok(unsupported.unsupportedReason.includes("BOSL2"));
+      assert.equal(unsupported.revision, legacyRevision.revisionId);
+      assert.equal(
+        (await repository.getProjectState(legacy.projectId)).currentRevision,
+        legacyRevision.revisionId,
+      );
+      assert.equal(
+        (await repository.readModelSource(legacy.projectId)).source,
+        legacySource,
+      );
       if (database) {
         const otherClient = await createInMemoryCadMcpClient(make("other"));
         try {

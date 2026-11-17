@@ -4,6 +4,41 @@ import { expect } from "playwright/test";
 import { test } from "../../../../browser.fixture.mjs";
 import { mountObjectEditingPanel } from "../fixtures/objectEditingPanel.fixture.mjs";
 
+test("unsupported legacy models explain compatibility without offering failed edits", async ({
+  page,
+}) => {
+  const { controls, errors } = await mountObjectEditingPanel(page);
+  controls.snapshots.r2 = {
+    ...controls.snapshots.r1,
+    revision: "r2",
+    modelFiles: null,
+    unsupportedReason:
+      "Object editing is unavailable for this legacy model. BOSL2 include/use imports require source or AI editing. Your saved model, preview and downloads remain available.",
+  };
+  controls.current = "r2";
+  await page.evaluate(() => window.refresh());
+  await expect(
+    page.getByRole("status").filter({ hasText: "BOSL2" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("textbox", { name: "Position X · mm" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Apply object changes", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Copy object", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Paste object", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText("Operation: idle", { exact: true }),
+  ).toBeVisible();
+  assert.equal(controls.requests.length, 0);
+  assert.deepEqual(errors, []);
+});
+
 test("cancel clears invalid numeric text even when no valid edit was staged", async ({
   page,
 }) => {

@@ -28,6 +28,13 @@ proposals, streamed validation and promotion. The model-file operation API provi
 atomic edits against the accepted parent. Both are reused as the editing model;
 camera OrbitControls are never a persistence mechanism.
 
+Legacy single-source documents are checked against the model-file scope policy
+before offering object controls. Sources containing `include`/`use`, including
+BOSL2 imports, cannot be nested in the current object wrapper. These models show
+an explanation instead of offering edits that would fail on Apply. Their saved
+source, preview and downloads remain available; source/AI editing remains the
+compatible path. Comments and strings mentioning imports do not block adoption.
+
 ## Transform contract
 
 Objects may carry `transform` with three finite triples: `position` in millimeters,

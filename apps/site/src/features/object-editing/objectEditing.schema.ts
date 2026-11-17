@@ -19,6 +19,7 @@ export const objectEditingSnapshotSchema = z
     sourceHash: parameterControlsSnapshotSchema.shape.sourceHash,
     modelFiles: modelFilesSchema.nullable(),
     parameters: parameterSnapshotSchema,
+    unsupportedReason: z.string().min(1).max(500).optional(),
   })
   .strict();
 export const applyObjectEditSchema = z
