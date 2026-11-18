@@ -124,6 +124,7 @@ test("parameter controls sit beside the preview without AI chat and drafts do no
   page,
 }) => {
   const { errors } = await mountWorkspaceJourney(page, 1440, true);
+  await page.getByRole("button", { name: "Parameters", exact: true }).click();
   const field = page.getByRole("textbox", { name: "Width", exact: true });
   await expect(field).toHaveValue("20");
   const preview = await page.getByLabel("Preview fixture").boundingBox();

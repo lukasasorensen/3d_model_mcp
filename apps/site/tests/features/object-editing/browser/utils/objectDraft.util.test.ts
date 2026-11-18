@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { selectedObjectSource } from "../../../../../src/features/object-editing/browser/utils/objectDraft.util";
+import { objectPreviewSources } from "../../../../../src/features/object-editing/browser/utils/objectDraft.util";
 void test("selected geometry uses matching parameter context and raw file without double-applying its transform", () => {
   const files = {
     version: 1 as const,
@@ -20,7 +20,7 @@ void test("selected geometry uses matching parameter context and raw file withou
     composition: { operation: "union" as const, objectIds: ["o"] },
   };
   assert.equal(
-    selectedObjectSource(files, "o", [
+    objectPreviewSources(files.files, [
       {
         id: "w",
         binding: "width",
@@ -29,8 +29,8 @@ void test("selected geometry uses matching parameter context and raw file withou
         value: 5,
         defaultValue: 5,
       },
-    ]),
+    ]).get("f"),
     "width = 5;\ncube(width);",
   );
-  assert.equal(selectedObjectSource(files, "missing", []), undefined);
+  assert.equal(objectPreviewSources(files.files, []).get("missing"), undefined);
 });

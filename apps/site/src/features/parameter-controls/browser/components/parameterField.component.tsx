@@ -28,7 +28,10 @@ export function ParameterField({
     "aria-invalid": Boolean(error),
   } as const;
   return (
-    <div className="parameter-field">
+    <div
+      className="parameter-field"
+      data-slider={numeric && p.control === "slider" ? "" : undefined}
+    >
       <label htmlFor={id}>
         {p.label}
         {numeric && p.unit ? ` · ${p.unit}` : ""}
