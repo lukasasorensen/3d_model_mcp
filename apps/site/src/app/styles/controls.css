@@ -72,41 +72,54 @@ button.icon-button {
   padding: 0;
 }
 
-/* Compact controls keep their labels available to keyboard and touch users. */
+/* Reserve a row for the label without widening the button. */
 .icon-button-reveal {
-  position: relative;
+  display: inline-grid;
+  justify-items: center;
+}
+.icon-button-reveal > button {
+  grid-row: 2;
 }
 .icon-button-label {
-  position: absolute;
+  grid-row: 1;
+  inline-size: 0;
+  margin-block-end: var(--space-1);
+  visibility: hidden;
+}
+.icon-button-label > span {
+  position: relative;
   z-index: 10;
-  inset-block-start: 100%;
-  inset-inline-start: 50%;
+  display: block;
+  inline-size: max-content;
   transform: translateX(-50%);
   padding: var(--space-1) var(--space-2);
   border: 1px solid var(--line);
   border-radius: var(--control-radius);
   background: var(--surface-1);
   color: var(--text);
-  white-space: nowrap;
-  visibility: hidden;
 }
-.icon-button-reveal:is(:hover, :focus-visible)
-  .icon-button-label:not([data-dismissed]) {
+.icon-button-reveal:not([data-dismissed]):is(
+    :hover,
+    :has(> button:focus-visible)
+  )
+  > .icon-button-label {
   visibility: visible;
 }
+.icon-button-touch-label {
+  display: none;
+}
 @media (hover: none), (any-pointer: coarse) {
-  button.icon-button-reveal {
+  .icon-button-reveal {
+    display: contents;
+  }
+  .icon-button-reveal > button {
     gap: 0.35rem;
     padding-inline: 0.7rem;
   }
-  .icon-button-reveal .icon-button-label {
-    position: static;
-    transform: none;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: inherit;
-    white-space: normal;
-    visibility: visible;
+  .icon-button-reveal > .icon-button-label {
+    display: none;
+  }
+  .icon-button-touch-label {
+    display: inline;
   }
 }

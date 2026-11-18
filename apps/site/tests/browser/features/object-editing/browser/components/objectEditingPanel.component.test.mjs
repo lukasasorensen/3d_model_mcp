@@ -386,7 +386,7 @@ test("the main canvas selects objects and the toolbar keeps text shortcuts nativ
   ).toHaveValue("box");
   await expect(page.locator("canvas")).toHaveCount(1);
   await expect(
-    page.getByRole("button", { name: "Fit selected object" }),
+    page.getByRole("button", { name: "Fit object in view" }),
   ).toBeEnabled();
   const position = page.getByRole("textbox", { name: "Position X · mm" });
   await position.fill("8");
@@ -403,7 +403,10 @@ test("a saved layer visibility change hides even the selected object", async ({
   page,
 }) => {
   const { controls, errors, snapshot } = await mountObjectEditingPanel(page);
-  const fit = page.getByRole("button", { name: "Fit selected object" });
+  const fit = page.getByRole("button", { name: "Fit object in view" });
+  await expect(fit).toHaveText("Fit object");
+  await expect(fit).toHaveAccessibleName("Fit object in view");
+  await expect(fit).toHaveAttribute("title", "Fit object in view");
   await expect(fit).toBeEnabled();
   const files = controls.snapshots.r1.modelFiles;
   controls.snapshots.r2 = snapshot("r2", {
@@ -468,7 +471,7 @@ test("the operand preview counts visible instances sharing a source file", async
   controls.snapshots.r2 = snapshot("r2", shared);
   controls.current = "r2";
   await page.evaluate(() => window.refresh());
-  const fit = page.getByRole("button", { name: "Fit selected object" });
+  const fit = page.getByRole("button", { name: "Fit object in view" });
   await expect(
     page.getByText("The object preview exceeds its total triangle limit.", {
       exact: false,

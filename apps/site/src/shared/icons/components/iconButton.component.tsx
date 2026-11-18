@@ -21,7 +21,6 @@ export function IconButton({
   revealLabel,
   className,
   onFocus,
-  onPointerEnter,
   ...props
 }: IconButtonProps): JSX.Element {
   const [dismissed, setDismissed] = useState(false);
@@ -34,32 +33,36 @@ export function IconButton({
     return (): void => document.removeEventListener("keydown", dismiss, true);
   }, [revealLabel]);
 
-  return (
+  const button = (
     <Button
       {...props}
-      className={["icon-button", revealLabel && "icon-button-reveal", className]
-        .filter(Boolean)
-        .join(" ")}
+      className={className ? `icon-button ${className}` : "icon-button"}
       accessibleLabel={label}
       icon={<Icon size="1.125em" focusable="false" />}
       onFocus={(event) => {
         setDismissed(false);
         onFocus?.(event);
       }}
-      onPointerEnter={(event) => {
-        setDismissed(false);
-        onPointerEnter?.(event);
-      }}
     >
       {revealLabel && (
-        <span
-          className="icon-button-label"
-          aria-hidden="true"
-          data-dismissed={dismissed || undefined}
-        >
+        <span className="icon-button-touch-label" aria-hidden="true">
           {revealLabel}
         </span>
       )}
     </Button>
+  );
+  if (!revealLabel) return button;
+
+  return (
+    <span
+      className="icon-button-reveal"
+      onPointerEnter={() => setDismissed(false)}
+      data-dismissed={dismissed || undefined}
+    >
+      {button}
+      <span className="icon-button-label" aria-hidden="true">
+        <span>{revealLabel}</span>
+      </span>
+    </span>
   );
 }

@@ -77,6 +77,9 @@ async function selectMainObject(page) {
   await expect(objectPosition(page)).toBeVisible();
 }
 
+const revealedLabel = (button) =>
+  button.locator("..").locator(".icon-button-label > span");
+
 test("compact editing controls reveal labels on hover and keyboard focus", async ({
   page,
 }) => {
@@ -98,7 +101,8 @@ test("compact editing controls reveal labels on hover and keyboard focus", async
       [parameters, "Parameters"],
       [move, "Move"],
     ]) {
-      const label = control.getByText(text, { exact: true });
+      const label = revealedLabel(control);
+      await expect(label).toHaveText(text);
       await expect(label).toBeHidden();
       await control.hover();
       await expect(label).toBeVisible();
@@ -116,9 +120,7 @@ test("compact editing controls reveal labels on hover and keyboard focus", async
   await layers.focus();
   await page.keyboard.press("Tab");
   await expect(parameters).toBeFocused();
-  await expect(
-    parameters.getByText("Parameters", { exact: true }),
-  ).toBeVisible();
+  await expect(revealedLabel(parameters)).toBeVisible();
   await page.keyboard.press("Enter");
   await expect(parameters).toHaveAttribute("aria-expanded", "true");
   await expect(parameterRegion(page)).toBeVisible();
@@ -127,7 +129,7 @@ test("compact editing controls reveal labels on hover and keyboard focus", async
   await expect(parameters).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(move).toBeFocused();
-  const moveLabel = move.getByText("Move", { exact: true });
+  const moveLabel = revealedLabel(move);
   await expect(moveLabel).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(moveLabel).toBeHidden();
@@ -140,6 +142,42 @@ test("compact editing controls reveal labels on hover and keyboard focus", async
   await expect(rotate).toBeFocused();
   await page.keyboard.press("Space");
   await expect(rotate).toHaveAttribute("aria-pressed", "true");
+});
+
+test("revealed labels leave narrow editor controls clickable", async ({
+  page,
+}) => {
+  await mountWorkspaceJourney(page, 320, false, false, false, true);
+  await selectMainObject(page);
+  const layers = page.getByRole("button", {
+    name: "Layers panel",
+    exact: true,
+  });
+  const scale = page.getByRole("button", {
+    name: "Scale selected object",
+    exact: true,
+  });
+  await layers.hover();
+  const layersLabel = revealedLabel(layers);
+  await expect(layersLabel).toBeVisible();
+  const labelBox = await layersLabel.boundingBox();
+  const scaleBox = await scale.boundingBox();
+  expect(labelBox.y + labelBox.height).toBeLessThan(scaleBox.y);
+  await layersLabel.click();
+  await expect(layers).toHaveAttribute("aria-expanded", "true");
+
+  const rotate = page.getByRole("button", {
+    name: "Rotate selected object",
+    exact: true,
+  });
+  const position = objectPosition(page);
+  const box = await position.boundingBox();
+  const x = box.x + (box.width * 3) / 4;
+  const y = box.y + 4;
+  await rotate.hover();
+  await page.mouse.click(x, y);
+  await expect(position).toBeFocused();
+  await expect(rotate).toHaveAttribute("aria-pressed", "false");
 });
 
 test.describe("touch editing controls", () => {

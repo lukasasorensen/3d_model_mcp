@@ -220,7 +220,7 @@ export function ObjectEditingPanel({
           <div className="parameter-actions">
             <Button
               type="button"
-              accessibleLabel="Fit selected object"
+              accessibleLabel="Fit object in view"
               disabled={!selectedGeometry}
               onClick={() => {
                 if (state.selectedId) setFitRequest({ id: state.selectedId });

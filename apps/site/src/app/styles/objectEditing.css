@@ -25,13 +25,22 @@
 }
 .editor-heading-bar {
   justify-content: space-between;
+  align-items: end;
 }
 .editor-panel-toggles {
   margin-inline-start: auto;
+  justify-content: end;
+  /* Leave room for the longest tooltip as text scales. */
+  min-inline-size: min(100%, 7em);
 }
-.floating-panel-toggle .icon-button-label {
-  inset-inline: auto 0;
-  transform: none;
+.editor-panel-toggles .icon-button-reveal:last-child > .icon-button-label {
+  justify-self: end;
+}
+.editor-panel-toggles
+  .icon-button-reveal:last-child
+  > .icon-button-label
+  > span {
+  transform: translateX(-100%);
 }
 .editor-content {
   display: grid;
@@ -70,7 +79,7 @@
   justify-self: center;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: end;
   justify-content: center;
   gap: 0.5rem 0.875rem;
   max-width: 100%;
@@ -272,6 +281,9 @@
   gap: 0.4rem;
   align-items: center;
   min-width: 0;
+}
+.object-transform-editor {
+  align-items: end;
 }
 .object-transform-fields {
   display: flex;
