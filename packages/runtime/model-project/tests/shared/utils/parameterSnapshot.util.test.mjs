@@ -363,3 +363,45 @@ test("numeric diagnostics identify stable IDs, bindings and fields regardless of
     },
   );
 });
+
+test("resolve rejects expanded model files before retry lookup and counts the generated header", () => {
+  const names = Array.from({ length: 100 }, (_, index) => `object-${index}`);
+  const repeated = {
+    version: 1,
+    files: [
+      { id: "f", name: "Body", body: `/*${"雪".repeat(80_000)}*/cube(1);` },
+    ],
+    objects: names.map((id) => ({ id, name: id, fileId: "f" })),
+    composition: { operation: "union", objectIds: names },
+  };
+  assert.throws(() => resolveIdentity({ modelFiles: repeated }), {
+    code: "SOURCE_TOO_LARGE",
+  });
+
+  const pair = {
+    ...repeated,
+    objects: repeated.objects.slice(0, 2),
+    composition: { operation: "union", objectIds: names.slice(0, 2) },
+    files: [{ ...repeated.files[0], body: "cube(1);" }],
+  };
+  const wrapperBytes =
+    Buffer.byteLength(resolveIdentity({ modelFiles: pair }).source) -
+    2 * Buffer.byteLength("cube(1);");
+  const targetFileBytes = (CAD_LIMITS.sourceBytes - wrapperBytes) / 2;
+  const suffix = "*/cube(1);";
+  const fillerBytes =
+    Math.floor(targetFileBytes) - Buffer.byteLength("/*" + suffix);
+  pair.files[0].body =
+    "/*" +
+    "雪".repeat(Math.floor(fillerBytes / 3)) +
+    " ".repeat(fillerBytes % 3) +
+    suffix;
+  const accepted = resolveIdentity({ modelFiles: pair });
+  assert.ok(Buffer.byteLength(accepted.source) >= CAD_LIMITS.sourceBytes - 1);
+  assert.throws(
+    () => resolveIdentity({ modelFiles: pair, parameters: [width] }),
+    {
+      code: "SOURCE_TOO_LARGE",
+    },
+  );
+});

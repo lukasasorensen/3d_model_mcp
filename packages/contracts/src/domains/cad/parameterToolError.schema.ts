@@ -1,4 +1,5 @@
 import * as z from "zod/v4";
+import { opaqueIdSchema } from "./identity.schema.js";
 
 const fieldPath = z
   .string()
@@ -16,6 +17,7 @@ export const parameterToolErrorSchema = z.object({
     .object({
       path: fieldPath.max(200).optional(),
       reason: z.string().max(200).optional(),
+      fileId: opaqueIdSchema.optional(),
       parameterId: z
         .string()
         .regex(/^[A-Za-z0-9_-]{1,100}$/)

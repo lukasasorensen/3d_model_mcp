@@ -135,3 +135,18 @@ test("validated UUID parameter IDs remain actionable while known credentials are
     undefined,
   );
 });
+
+test("file validation feedback preserves opaque IDs but redacts known sensitive values", () => {
+  const fileId = "fa2f8b20-2dcd-4c5c-bc3d-a99233629e93";
+  const error = {
+    code: "INVALID_MODEL_FILES",
+    message: "Invalid model file body.",
+    details: { fileId, reason: "Unbalanced file delimiters." },
+  };
+  assert.deepEqual(toolErrorFeedback("edit_model_files", error, empty), error);
+  assert.ok(
+    !JSON.stringify(
+      toolErrorFeedback("edit_model_files", error, new Set([fileId])),
+    ).includes(fileId),
+  );
+});
