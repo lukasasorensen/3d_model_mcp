@@ -120,7 +120,8 @@ test("the floating panels share one viewport and parameter drafts survive closin
     ]);
   await expect(page.locator("canvas")).toHaveCount(1);
   const [bar, scene, right] = await geometry();
-  expect(right.x).toBeGreaterThanOrEqual(scene.x + scene.width);
+  expect(right.x + right.width).toBeLessThanOrEqual(scene.x + scene.width);
+  expect(right.y).toBeLessThan(scene.y + scene.height);
   expect(right.y).toBeGreaterThanOrEqual(bar.y + bar.height);
   await input.fill("17");
   await input.press("Escape");
@@ -243,4 +244,70 @@ test("a retained layer draft cannot select an object removed in the current revi
   await expect(
     page.getByRole("group", { name: "Transform Body" }),
   ).toBeVisible();
+});
+
+test("the tucked Layers card peeks on hover and focus and reopens the draft", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1360, height: 940 });
+  await mountWorkspaceEditingControls(page);
+  const layers = page.getByRole("region", { name: "Layers", exact: true });
+  const viewport = page.locator(".editor-viewport");
+  const size = await viewport.boundingBox();
+  const close = layers.getByRole("button", { name: "Close layers" });
+  await layers.getByRole("button", { name: "Show Lid (lid)" }).click();
+  await close.click();
+  const edge = page.getByRole("button", { name: "Open layers" });
+  await expect(layers).toBeHidden();
+  const exposedWidth = async () => {
+    const card = await edge.boundingBox();
+    return card.x + card.width - size.x;
+  };
+  await expect.poll(exposedWidth).toBeCloseTo(44, 0);
+  await page.mouse.move(size.x + 12, (await edge.boundingBox()).y + 12);
+  await expect.poll(exposedWidth).toBeGreaterThan(70);
+  await expect(layers).toBeHidden();
+  await edge.click();
+  await expect(close).toBeFocused();
+  await expect(
+    layers.getByRole("button", { name: "Show Lid (lid)" }),
+  ).toHaveAttribute("aria-pressed", "false");
+  expect((await viewport.boundingBox()).width).toBe(size.width);
+
+  await close.press("Escape");
+  await page.mouse.move(0, 0);
+  await edge.focus();
+  await expect.poll(exposedWidth).toBeGreaterThan(70);
+  await edge.press("Enter");
+  await expect(close).toBeFocused();
+  await close.click();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(edge).toBeHidden();
+  await page.getByRole("button", { name: "Layers", exact: true }).click();
+  await expect(
+    layers.getByRole("button", { name: "Show Lid (lid)" }),
+  ).toHaveAttribute("aria-pressed", "false");
+});
+
+test.describe("tablet Layers card", () => {
+  test.use({ hasTouch: true, viewport: { width: 900, height: 800 } });
+
+  test("tapping the exposed edge opens Layers without hover", async ({
+    page,
+  }) => {
+    await mountWorkspaceEditingControls(page);
+    await page.getByRole("button", { name: "Close parameters" }).tap();
+    const close = page.getByRole("button", { name: "Close layers" });
+    await close.tap();
+    const edge = page.getByRole("button", { name: "Open layers" });
+    const card = await edge.boundingBox();
+    await page.touchscreen.tap(
+      card.x + card.width - 16,
+      card.y + card.height / 2,
+    );
+    await expect(close).toBeFocused();
+    await expect(
+      page.getByRole("button", { name: "Select Body (body)" }),
+    ).toBeVisible();
+  });
 });

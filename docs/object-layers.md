@@ -6,9 +6,11 @@ objects may use the same file. Legacy single-source projects display an explanat
 empty state; no implicit object splitting or adoption occurs.
 
 Layers opens on the left of the main editor. Parameters opens on the right.
-Both use the shared panel disclosure. One panel fits beside the viewport from
+Both use the shared panel disclosure. One panel overlays the full-width viewport from
 780px of editor width, and both fit from 1200px. In narrower editors the panels
 follow the viewport in Layers, Parameters order. Object tools stay above it.
+On wide editors, closing Layers leaves the right edge of a card at the left of
+the viewport. Hover or focus reveals its label. Activate the card to reopen Layers.
 
 Selecting a row name, a visible mesh or an option in the object selector sets the
 same project-scoped selection. A saved hidden object keeps its exact transform
