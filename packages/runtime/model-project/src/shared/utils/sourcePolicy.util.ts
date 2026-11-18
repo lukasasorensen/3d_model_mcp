@@ -1,8 +1,7 @@
 import { CAD_LIMITS } from "@theoryfoundry/contracts";
 import { CadDomainError } from "./cadDomainError.util.js";
 
-export function assertSourcePolicy(source: string): void {
-  const byteSize = Buffer.byteLength(source);
+export function assertSourceByteSize(byteSize: number): void {
   if (byteSize > CAD_LIMITS.sourceBytes) {
     throw new CadDomainError(
       "SOURCE_TOO_LARGE",
@@ -10,6 +9,10 @@ export function assertSourcePolicy(source: string): void {
       { byteSize, limit: CAD_LIMITS.sourceBytes },
     );
   }
+}
+
+export function assertSourcePolicy(source: string): void {
+  assertSourceByteSize(Buffer.byteLength(source));
   let offset = 0;
   const skipTrivia = (): void => {
     while (offset < source.length) {

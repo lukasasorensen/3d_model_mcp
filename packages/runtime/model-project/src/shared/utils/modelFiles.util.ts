@@ -7,7 +7,10 @@ import {
 } from "@theoryfoundry/contracts";
 import { CadDomainError } from "./cadDomainError.util.js";
 import { parameterTokens } from "./parameterTokens.util.js";
-import { assertSourcePolicy } from "./sourcePolicy.util.js";
+import {
+  assertSourceByteSize,
+  assertSourcePolicy,
+} from "./sourcePolicy.util.js";
 
 export function checkedModelFiles(raw: unknown): ModelFiles {
   const parsed = modelFilesSchema.safeParse(raw);
@@ -21,8 +24,16 @@ export function checkedModelFiles(raw: unknown): ModelFiles {
 }
 
 /** Frozen v1 assembly: one scoped union per object, explicit CSG operand order. */
-export function assembleModelFiles(snapshot: ModelFiles): string {
-  const files = new Map(snapshot.files.map((file) => [file.id, file.body]));
+export function assembleModelFiles(
+  snapshot: ModelFiles,
+  headerBytes = 0,
+): string {
+  const files = new Map(
+    snapshot.files.map((file) => [
+      file.id,
+      { body: file.body, bytes: Buffer.byteLength(file.body) },
+    ]),
+  );
   const objects = new Map(
     snapshot.objects.map((object) => [object.id, object]),
   );
@@ -30,15 +41,52 @@ export function assembleModelFiles(snapshot: ModelFiles): string {
     snapshot.version === 1
       ? snapshot.composition.objectIds
       : visibleModelObjectIds(snapshot);
-  if (ids.length === 0) return "union() {\n\n}";
-  const operands = ids.map((id) => {
+  const opening = `${ids.length ? snapshot.composition.operation : "union"}() {\n`;
+  const closing = "\n}";
+  const parts = [opening];
+  let bytes =
+    headerBytes + Buffer.byteLength(opening) + Buffer.byteLength(closing);
+  for (const [index, id] of ids.entries()) {
     const object = objects.get(id)!;
-    const source = `union() {\n${files.get(object.fileId)!}\n}`;
+    const file = files.get(object.fileId)!;
     const transform = object.transform;
-    if (!transform || objectTransformIsIdentity(transform)) return source;
-    return `translate(${JSON.stringify(transform.position)}) rotate(${JSON.stringify(transform.rotation)}) scale(${JSON.stringify(transform.scale)}) ${source}`;
-  });
-  return `${snapshot.composition.operation}() {\n${operands.join("\n")}\n}`;
+    const transformPrefix =
+      transform && !objectTransformIsIdentity(transform)
+        ? `translate(${JSON.stringify(transform.position)}) rotate(${JSON.stringify(transform.rotation)}) scale(${JSON.stringify(transform.scale)}) `
+        : "";
+    const operandOpening = `${index ? "\n" : ""}${transformPrefix}union() {\n`;
+    bytes +=
+      Buffer.byteLength(operandOpening) +
+      file.bytes +
+      Buffer.byteLength(closing);
+    parts.push(operandOpening, file.body, closing);
+  }
+  assertSourceByteSize(bytes);
+  parts.push(closing);
+  return parts.join("");
+}
+
+function assertStorageText(value: string, fileId: string, field: string): void {
+  // In Unicode mode a valid surrogate pair is a single code point outside this range.
+  if (value.includes("\0") || /[\uD800-\uDFFF]/u.test(value))
+    throw new CadDomainError(
+      "INVALID_MODEL_FILES",
+      "Invalid model file text.",
+      {
+        fileId,
+        reason: `${field} must contain valid Unicode text without NUL characters.`,
+      },
+    );
+}
+
+/** PostgreSQL JSONB and local project files share the same proposal text rules. */
+export function assertModelFileStorageText(snapshot: ModelFiles): void {
+  for (const object of snapshot.objects)
+    assertStorageText(object.name, object.fileId, "Object name");
+  for (const file of snapshot.files) {
+    assertStorageText(file.name, file.id, "File name");
+    assertStorageText(file.body, file.id, "File body");
+  }
 }
 
 /** Files cannot escape their object scope or load files outside the snapshot. */
