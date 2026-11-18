@@ -114,6 +114,21 @@ async function drag(page, from, to) {
 async function projection(page) {
   const canvas = page.getByTestId("model-viewer").locator("canvas");
   await expect(canvas).toHaveCount(1);
+  // Fiber initially mounts a default-size drawing surface before observing its parent.
+  await expect
+    .poll(() =>
+      canvas.evaluate((element) => {
+        const surface = element.getBoundingClientRect();
+        const viewport = element
+          .closest(".viewer-canvas")
+          .getBoundingClientRect();
+        return Math.max(
+          Math.abs(surface.width - viewport.width),
+          Math.abs(surface.height - viewport.height),
+        );
+      }),
+    )
+    .toBeLessThan(1);
   await page.evaluate(
     () =>
       new Promise((resolve) =>
@@ -174,7 +189,7 @@ for (const strict of [false, true])
     const errors = await mount(page, strict);
     await page.getByRole("button", { name: "Fit model", exact: true }).click();
     const project = await projection(page);
-    await drag(page, project([0, 0, 0.45]), project([0, 0, 0.85]));
+    await drag(page, project([0, 0, 0.48]), project([0, 0, 0.85]));
     await expect
       .poll(async () =>
         Math.abs(await page.evaluate(() => window.transform.position[2])),
