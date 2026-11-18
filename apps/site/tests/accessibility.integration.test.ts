@@ -13,11 +13,18 @@ void test("workspace preserves accessible landmarks, live region, restore copy, 
       return readFile(new URL(file, stylesheet), "utf8");
     }),
   ).then((parts) => parts.join("\n"));
-  const [workspace, chat, history, viewer, sourcePanel, css] =
+  const [workspace, modelSummary, chat, history, viewer, sourcePanel, css] =
     await Promise.all([
       readFile(
         new URL(
           "../src/features/workspace/browser/components/modelWorkspace.component.tsx",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "../src/features/workspace/browser/components/workspaceModelSummary.component.tsx",
           import.meta.url,
         ),
         "utf8",
@@ -56,7 +63,7 @@ void test("workspace preserves accessible landmarks, live region, restore copy, 
   assert.match(workspace, /aria-live="polite"/);
   assert.match(workspace, /className="project-selector"/);
   assert.match(
-    workspace,
+    modelSummary,
     /<option value="stl">STL<\/option>\s*<option value="glb">GLB<\/option>/,
   );
   assert.match(chat, /role="feed"/);

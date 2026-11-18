@@ -34,8 +34,20 @@ export async function applyParameterValues(
   signal: AbortSignal,
   receive: (event: ParameterControlsEvent) => Promise<void> | void,
 ): Promise<void> {
+  return streamModelUpdate(projectId, "parameters", input, signal, receive);
+}
+
+export async function streamModelUpdate<
+  Input extends { requestId: string; sessionId: string },
+>(
+  projectId: string,
+  route: "parameters" | "draft/save",
+  input: Input,
+  signal: AbortSignal,
+  receive: (event: ParameterControlsEvent) => Promise<void> | void,
+): Promise<void> {
   const response = await fetch(
-    `/v1/projects/${encodeURIComponent(projectId)}/parameters`,
+    `/v1/projects/${encodeURIComponent(projectId)}/${route}`,
     {
       method: "POST",
       signal,

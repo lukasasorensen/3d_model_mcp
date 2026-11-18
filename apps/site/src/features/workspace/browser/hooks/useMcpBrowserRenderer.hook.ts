@@ -30,6 +30,7 @@ export function useMcpBrowserRenderer(options: {
   status: string;
   acquire: () => Promise<boolean>;
   release: () => void;
+  tryDraftRenderer: (cancel: () => void) => (() => void) | undefined;
 } {
   const { renderPreview, renderModelPng, generateDownload } =
     useBrowserRenderer();
@@ -45,6 +46,10 @@ export function useMcpBrowserRenderer(options: {
   const [isRendering, setIsRendering] = useState(false);
   const [status, setStatus] = useState("");
   const acquire = useCallback(() => lease.current.acquireForeground(), []);
+  const tryDraftRenderer = useCallback(
+    (cancel: () => void) => lease.current.tryPreview(cancel),
+    [],
+  );
   const tryBackground = useCallback(() => lease.current.tryBackground(), []);
   const pumpRef = useRef<() => void>(() => undefined);
   const release = useCallback(() => {
@@ -274,5 +279,5 @@ export function useMcpBrowserRenderer(options: {
     renderModelPng,
     generateDownload,
   ]);
-  return { isRendering, status, acquire, release };
+  return { isRendering, status, acquire, release, tryDraftRenderer };
 }

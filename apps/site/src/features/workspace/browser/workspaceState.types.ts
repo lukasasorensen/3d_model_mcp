@@ -38,4 +38,5 @@ export type WorkspaceAction =
   | { type: "local_error"; message: string }
   | { type: "clear_notice" }
   | { type: "select_revision"; revisionId: string }
+  | { type: "select_current" }
   | { type: "restored"; revision: RevisionManifest };

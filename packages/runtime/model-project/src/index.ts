@@ -33,6 +33,7 @@ export { createProjectDatabase } from "./projectDatabase.composition.js";
 export { CadDomainError } from "./shared/utils/cadDomainError.util.js";
 export type { CadDomainErrorCode } from "./shared/utils/cadDomainError.util.js";
 export { sha256 } from "./shared/utils/hash.util.js";
+export { prepareModelDocument } from "./shared/utils/parameterSnapshot.util.js";
 export { assertModelFiles } from "./shared/utils/modelFiles.util.js";
 export { renderValidationResultSchema } from "./shared/utils/renderPolicy.util.js";
 export { MODEL_PROJECT_BOUNDARY } from "./shared/validation.constants.js";

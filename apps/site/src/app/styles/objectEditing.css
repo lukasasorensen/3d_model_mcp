@@ -324,3 +324,50 @@
     border: 2px solid Highlight;
   }
 }
+
+.working-revision-actions {
+  flex: 1 0 100%;
+  min-inline-size: 0;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.working-revision-actions p {
+  margin: 0;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.working-revision-actions p:empty {
+  display: none;
+}
+
+.working-revision-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.working-revision-buttons button {
+  min-block-size: 44px;
+}
+
+@container (min-width: 780px) {
+  .working-revision-actions {
+    flex: 0 1 auto;
+    margin-inline-start: auto;
+    max-inline-size: 38rem;
+    padding: 0.45rem;
+    border: 1px solid var(--line);
+    border-radius: 0.65rem;
+    background: var(--surface-1);
+  }
+
+  .working-revision-buttons {
+    justify-content: end;
+  }
+
+  .working-revision-actions p {
+    text-align: end;
+  }
+}

@@ -5,10 +5,14 @@ export function LayerNameField({
   initialName,
   disabled,
   onFinish,
+  value,
+  onChange,
 }: {
   initialName: string;
   disabled: boolean;
   onFinish(name?: string): void;
+  value?: string | undefined;
+  onChange?(name: string): void;
 }): JSX.Element {
   const [name, setName] = useState(initialName);
   const [error, setError] = useState("");
@@ -22,7 +26,7 @@ export function LayerNameField({
       onSubmit={(event) => {
         event.preventDefault();
         if (disabled) return;
-        const result = layerNameSchema.safeParse(name);
+        const result = layerNameSchema.safeParse(value ?? name);
         if (result.success) onFinish(result.data);
         else
           setError(
@@ -34,11 +38,13 @@ export function LayerNameField({
         ref={input}
         disabled={disabled}
         aria-label={`Rename ${initialName}`}
-        value={name}
+        maxLength={100}
+        value={value ?? name}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? hint : undefined}
         onChange={(event) => {
-          setName(event.target.value);
+          if (onChange) onChange(event.target.value);
+          else setName(event.target.value);
           setError("");
         }}
         onKeyDown={(event) => {

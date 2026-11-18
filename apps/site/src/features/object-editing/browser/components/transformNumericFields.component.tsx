@@ -13,18 +13,30 @@ const FIELDS = {
   scale: { key: "scale", label: "Scale", unit: "factor" },
 } as const;
 
+export type TransformInput = {
+  values: string[];
+  uniform: string;
+  error: string;
+};
+
 export function TransformNumericFields({
   transform,
   mode,
   disabled,
   onChange,
   onValidityChange,
+  input,
+  onInputChange,
+  onInputFinish,
 }: {
   transform: ObjectTransform;
   mode: TransformControlsMode;
   disabled: boolean;
   onChange(transform: ObjectTransform): void;
   onValidityChange?: ((valid: boolean) => void) | undefined;
+  input?: TransformInput | undefined;
+  onInputChange?(input: TransformInput | undefined): void;
+  onInputFinish?(): void;
 }): JSX.Element {
   const field = FIELDS[mode];
   const id = useId();
@@ -47,6 +59,9 @@ export function TransformNumericFields({
     validity.current?.(true);
   }, [x, y, z, field.key]);
 
+  const shownValues = input?.values ?? values;
+  const shownUniform = input?.uniform ?? uniform;
+  const shownError = onInputChange ? input?.error : error;
   const change = (raw: string, index: number | "uniform"): void => {
     if (index === "uniform") setUniform(raw);
     else
@@ -57,26 +72,53 @@ export function TransformNumericFields({
     const vector =
       index === "uniform"
         ? [value, value, value]
-        : values.map((entry, axis) =>
+        : shownValues.map((entry, axis) =>
             axis === index ? value : entry.trim() ? Number(entry) : Number.NaN,
           );
     const next = { ...transform, [field.key]: vector };
     const parsed = objectTransformSchema.safeParse(next);
     if (!parsed.success) {
-      setError(
+      const message =
         mode === "scale"
           ? "Enter a finite, positive scale factor within the supported range. Zero and mirrored scales are unsupported."
-          : `Enter a finite ${field.label.toLowerCase()} value within the supported range.`,
-      );
+          : `Enter a finite ${field.label.toLowerCase()} value within the supported range.`;
+      setError(message);
+      onInputChange?.({
+        values: shownValues.map((value, axis) =>
+          axis === index ? raw : value,
+        ),
+        uniform: index === "uniform" ? raw : shownUniform,
+        error: message,
+      });
       onValidityChange?.(false);
       return;
     }
     setError(undefined);
     onValidityChange?.(true);
     onChange(parsed.data);
+    if (input) onInputChange?.(undefined);
   };
   return (
-    <fieldset className="object-transform-fields" disabled={disabled}>
+    <fieldset
+      className="object-transform-fields"
+      disabled={disabled}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget))
+          onInputFinish?.();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && input && !disabled) {
+          event.stopPropagation();
+          setValues(transform[field.key].map(String));
+          setUniform(
+            field.key === "scale" && x === y && y === z ? String(x) : "",
+          );
+          onInputChange?.(undefined);
+          onInputFinish?.();
+          validity.current?.(true);
+        }
+      }}
+    >
       <legend>
         {field.label} · {field.unit}
       </legend>
@@ -89,9 +131,10 @@ export function TransformNumericFields({
               type="text"
               inputMode="decimal"
               aria-label={`${field.label} ${axis} · ${field.unit}`}
-              aria-invalid={Boolean(error)}
-              aria-describedby={error ? `${id}-error` : undefined}
-              value={values[index] ?? ""}
+              aria-invalid={Boolean(shownError)}
+              aria-describedby={shownError ? `${id}-error` : undefined}
+              maxLength={128}
+              value={shownValues[index] ?? ""}
               onChange={(event) => change(event.target.value, index)}
             />
           </label>
@@ -104,17 +147,18 @@ export function TransformNumericFields({
             id={`${id}-uniform`}
             type="text"
             inputMode="decimal"
-            value={uniform}
+            maxLength={128}
+            value={shownUniform}
             placeholder="Set all axes"
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? `${id}-error` : undefined}
+            aria-invalid={Boolean(shownError)}
+            aria-describedby={shownError ? `${id}-error` : undefined}
             onChange={(event) => change(event.target.value, "uniform")}
           />
         </label>
       )}
-      {error && (
+      {shownError && (
         <p className="notice-error" id={`${id}-error`} role="alert">
-          {error}
+          {shownError}
         </p>
       )}
     </fieldset>

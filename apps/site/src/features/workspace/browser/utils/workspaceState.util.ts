@@ -125,6 +125,8 @@ export function workspaceReducer(
       notice: action.message,
       turns: updateAssistant(state, (turn) => ({ ...turn, outcome: "failed" })),
     };
+  if (action.type === "select_current")
+    return { ...state, selectedRevision: state.currentRevision };
   if (action.type === "select_revision")
     return { ...state, selectedRevision: action.revisionId };
   if (action.type === "restored") {

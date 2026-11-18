@@ -9,6 +9,7 @@ export function ParameterField({
   error,
   disabled,
   change,
+  onCancel,
 }: {
   parameter: ProjectParameter;
   value: string | boolean;
@@ -16,6 +17,7 @@ export function ParameterField({
   error?: string | undefined;
   disabled: boolean;
   change(value: string | boolean): void;
+  onCancel?(): void;
 }): JSX.Element {
   const id = useId();
   const numeric = p.type === "number" || p.type === "integer";
@@ -31,6 +33,12 @@ export function ParameterField({
     <div
       className="parameter-field"
       data-slider={numeric && p.control === "slider" ? "" : undefined}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && onCancel && !disabled) {
+          event.stopPropagation();
+          onCancel();
+        }
+      }}
     >
       <label htmlFor={id}>
         {p.label}
@@ -68,6 +76,7 @@ export function ParameterField({
           {...props}
           type="text"
           inputMode={p.type === "integer" ? "numeric" : "decimal"}
+          maxLength={128}
           value={String(value)}
           onChange={(e) => change(e.target.value)}
         />
