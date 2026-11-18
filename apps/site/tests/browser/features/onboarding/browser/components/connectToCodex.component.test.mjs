@@ -34,13 +34,15 @@ test("connection setup choices, commands, clipboard and dialog navigation", asyn
         contained:
           document.activeElement === document.body ||
           Boolean(document.activeElement?.closest("dialog[open]")),
-        text: document.activeElement?.textContent,
+        name:
+          document.activeElement?.getAttribute("aria-label") ??
+          document.activeElement?.textContent,
       }));
       expect(focus.contained).toBe(true);
-      reached.add(focus.text);
+      reached.add(focus.name);
     }
   }
-  expect(reached.has("Close")).toBe(true);
+  expect(reached.has("Close connection setup")).toBe(true);
   expect(reached.has("Copy starter prompt")).toBe(true);
   await expect(
     page.getByRole("button", { name: "Continue to setup" }),

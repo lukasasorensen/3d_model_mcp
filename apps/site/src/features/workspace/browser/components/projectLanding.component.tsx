@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "../../../../shared/controls/index";
 import { ProjectList } from "./projectList.component";
 import type { JSX } from "react";
 
@@ -149,9 +150,16 @@ export function ProjectLanding({
               />
             </label>
             <div className="project-form-actions">
-              <button type="submit" className="button-primary" disabled={busy}>
-                {pending ? "Creating…" : "Create project"}
-              </button>
+              <Button
+                type="submit"
+                className="button-primary"
+                accessibleLabel={
+                  pending ? "Creating project…" : "Create project"
+                }
+                disabled={busy}
+              >
+                {pending ? "Creating…" : "Create"}
+              </Button>
               <button
                 type="button"
                 disabled={busy}

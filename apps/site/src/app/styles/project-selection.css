@@ -182,3 +182,9 @@
 .project-delete-dialog::backdrop {
   background: rgb(0 0 0 / 70%);
 }
+
+.project-open .project-open-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}

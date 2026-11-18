@@ -8,6 +8,7 @@ import {
   checkedModelFiles,
   assembleModelFiles,
   assertModelFiles,
+  assertModelFileStorageText,
 } from "./modelFiles.util.js";
 import { CadDomainError } from "./cadDomainError.util.js";
 import { assertParameterBody } from "./parameterBody.util.js";
@@ -72,9 +73,11 @@ export function resolveModelDocument(
       : checkedParameterSnapshot(input.parameters);
   if (input.modelFiles !== undefined) {
     const modelFiles = checkedModelFiles(input.modelFiles);
-    const modelBody = assembleModelFiles(modelFiles);
+    assertModelFileStorageText(modelFiles);
+    const header = assembleModelSource("", parameters);
+    const modelBody = assembleModelFiles(modelFiles, Buffer.byteLength(header));
     return {
-      source: assembleModelSource(modelBody, parameters),
+      source: header + modelBody,
       modelBody,
       modelFiles,
       parameters,

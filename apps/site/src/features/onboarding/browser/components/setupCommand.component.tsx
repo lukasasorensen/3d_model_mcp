@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "../../../../shared/controls/index";
 import { useId, useState, type JSX } from "react";
 
 export function SetupCommand({
@@ -26,13 +27,13 @@ export function SetupCommand({
     <div className="setup-command">
       <label htmlFor={id}>{label}</label>
       <textarea id={id} readOnly value={value} rows={rows} spellCheck={false} />
-      <button
-        type="button"
+      <Button
         className="button-primary"
+        accessibleLabel={`Copy ${label.toLowerCase()}`}
         onClick={() => void copy()}
       >
-        Copy {label.toLowerCase()}
-      </button>
+        Copy
+      </Button>
       <p role="status" aria-live="polite">
         {notice}
       </p>

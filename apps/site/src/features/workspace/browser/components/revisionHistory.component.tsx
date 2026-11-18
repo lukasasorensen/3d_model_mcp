@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "../../../../shared/controls/index";
 import type { JSX } from "react";
 
 import type { RevisionManifest } from "@theoryfoundry/contracts";
@@ -27,45 +28,50 @@ export function RevisionHistory({
       {revisions.length === 0 ? (
         <p>No promoted revisions yet.</p>
       ) : (
-        <ol>
-          {revisions.map((revision) => {
-            const current = revision.revisionId === currentRevision;
-            const selected = revision.revisionId === selectedRevision;
-            let status = "Historical revision";
-            if (current) status = "Current revision";
-            else if (selected) status = "Selected for inspection";
-            return (
-              <li
-                key={revision.revisionId}
-                className={selected ? "revision-selected" : ""}
-              >
-                <button
-                  type="button"
-                  className="revision-select"
-                  onClick={() => onSelect(revision.revisionId)}
-                  aria-pressed={selected}
+        <>
+          <p className="action-help">
+            Restoring creates a new current revision.
+          </p>
+          <ol>
+            {revisions.map((revision) => {
+              const label = revisionLabel(revisions, revision.revisionId);
+              const current = revision.revisionId === currentRevision;
+              const selected = revision.revisionId === selectedRevision;
+              let status = "Historical revision";
+              if (current) status = "Current revision";
+              else if (selected) status = "Selected for inspection";
+              return (
+                <li
+                  key={revision.revisionId}
+                  className={selected ? "revision-selected" : ""}
                 >
-                  <strong>
-                    {revisionLabel(revisions, revision.revisionId)}
-                  </strong>
-                  <span>{status}</span>
-                  <code title={revision.revisionId}>{revision.revisionId}</code>
-                </button>
-                {!current && (
                   <button
                     type="button"
-                    className="restore-button"
-                    aria-label={`Restore ${revisionLabel(revisions, revision.revisionId)} as a new revision`}
-                    onClick={() => onRestore(revision.revisionId)}
-                    disabled={disabled}
+                    className="revision-select"
+                    onClick={() => onSelect(revision.revisionId)}
+                    aria-pressed={selected}
                   >
-                    Restore as a new revision
+                    <strong>{label}</strong>
+                    <span>{status}</span>
+                    <code title={revision.revisionId}>
+                      {revision.revisionId}
+                    </code>
                   </button>
-                )}
-              </li>
-            );
-          })}
-        </ol>
+                  {!current && (
+                    <Button
+                      className="restore-button"
+                      accessibleLabel={`Restore ${label} as a new revision`}
+                      onClick={() => onRestore(revision.revisionId)}
+                      disabled={disabled}
+                    >
+                      Restore
+                    </Button>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </>
       )}
     </details>
   );

@@ -55,3 +55,71 @@ select:disabled {
 .button-primary:hover:not(:disabled) {
   background: var(--accent-hover);
 }
+
+button.button-with-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+.button-icon {
+  display: inline-flex;
+  flex: none;
+}
+button.icon-button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+}
+
+/* Reserve a row for the label without widening the button. */
+.icon-button-reveal {
+  display: inline-grid;
+  justify-items: center;
+}
+.icon-button-reveal > button {
+  grid-row: 2;
+}
+.icon-button-label {
+  grid-row: 1;
+  inline-size: 0;
+  margin-block-end: var(--space-1);
+  visibility: hidden;
+}
+.icon-button-label > span {
+  position: relative;
+  z-index: 10;
+  display: block;
+  inline-size: max-content;
+  transform: translateX(-50%);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  background: var(--surface-1);
+  color: var(--text);
+}
+.icon-button-reveal:not([data-dismissed]):is(
+    :hover,
+    :has(> button:focus-visible)
+  )
+  > .icon-button-label {
+  visibility: visible;
+}
+.icon-button-touch-label {
+  display: none;
+}
+@media (hover: none), (any-pointer: coarse) {
+  .icon-button-reveal {
+    display: contents;
+  }
+  .icon-button-reveal > button {
+    gap: 0.35rem;
+    padding-inline: 0.7rem;
+  }
+  .icon-button-reveal > .icon-button-label {
+    display: none;
+  }
+  .icon-button-touch-label {
+    display: inline;
+  }
+}

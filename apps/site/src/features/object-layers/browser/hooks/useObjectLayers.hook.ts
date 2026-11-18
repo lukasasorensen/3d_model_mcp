@@ -33,7 +33,6 @@ export function useObjectLayers(options: ObjectLayersOptions): {
   view: ObjectLayersSnapshot | undefined;
   base: ObjectLayersSnapshot | undefined;
   draft: LayerDraft;
-  selected: string | undefined;
   loading: boolean;
   pending: boolean;
   message: string;
@@ -43,7 +42,7 @@ export function useObjectLayers(options: ObjectLayersOptions): {
   dirty: boolean;
   problem: string;
   retryOutcome: boolean;
-  select(id: string): void;
+  rename(id: string, name: string): void;
   reset(): void;
   apply(retry?: boolean): Promise<void>;
   toggle(id: string): void;
@@ -55,12 +54,7 @@ export function useObjectLayers(options: ObjectLayersOptions): {
   const [current, setCurrent] = useState<ObjectLayersSnapshot>();
   const [view, setView] = useState<ObjectLayersSnapshot>();
   const [base, setBase] = useState<ObjectLayersSnapshot>();
-  const [draft, setDraft] = useState<LayerDraft>({
-    order: [],
-    hidden: [],
-    hiddenFiles: [],
-  });
-  const [selected, setSelected] = useState<string>();
+  const [draft, setDraft] = useState<LayerDraft>(() => layerDraft(undefined));
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [pending, setPending] = useState(false);
@@ -163,7 +157,7 @@ export function useObjectLayers(options: ObjectLayersOptions): {
       refreshing ||
       !operations.length ||
       (!retry && stale) ||
-      layerDraftProblem(base, draft)
+      layerDraftProblem(base, draft, operations.length)
     )
       return;
     const payload = JSON.stringify({
@@ -177,7 +171,7 @@ export function useObjectLayers(options: ObjectLayersOptions): {
     options.onPending(true);
     setError(undefined);
     let acquired = false;
-    let saved = false;
+    let savedRevision: string | undefined;
     try {
       acquired = await options.acquire();
       controller.signal.throwIfAborted();
@@ -202,7 +196,7 @@ export function useObjectLayers(options: ObjectLayersOptions): {
             setError(event.error);
             setMessage("");
           } else if (event.type === "saved") {
-            saved = true;
+            savedRevision = event.revision;
             setMessage("Layers saved. Refreshing the accepted model…");
           } else
             setMessage(
@@ -232,8 +226,8 @@ export function useObjectLayers(options: ObjectLayersOptions): {
         if (mounted.current) {
           setMessage("");
           setError({
-            code: saved ? "REFRESH_FAILED" : "UPDATE_INTERRUPTED",
-            message: saved
+            code: savedRevision ? "REFRESH_FAILED" : "UPDATE_INTERRUPTED",
+            message: savedRevision
               ? "Layers were saved, but the accepted model could not be refreshed. Refresh saved layers."
               : "The saved outcome could not be confirmed. Your draft is retained; refresh or retry the interrupted update.",
           });
@@ -246,7 +240,7 @@ export function useObjectLayers(options: ObjectLayersOptions): {
             reconciliation.signal,
           );
           if (!refreshed) reportRefreshFailure();
-          else if (saved) {
+          else if (savedRevision) {
             const accepted = await fetchLayers(
               options.projectId,
               null,
@@ -255,7 +249,10 @@ export function useObjectLayers(options: ObjectLayersOptions): {
                 AbortSignal.timeout(15_000),
               ]),
             );
-            if (accepted.revision !== latest.current.currentRevision)
+            if (
+              accepted.revision !== savedRevision ||
+              accepted.revision !== latest.current.currentRevision
+            )
               reportRefreshFailure();
             else if (mounted.current) {
               setCurrent(accepted);
@@ -283,7 +280,6 @@ export function useObjectLayers(options: ObjectLayersOptions): {
     view,
     base,
     draft,
-    selected,
     loading: loading || refreshing,
     pending,
     message,
@@ -291,10 +287,17 @@ export function useObjectLayers(options: ObjectLayersOptions): {
     historical,
     stale,
     dirty,
-    problem: layerDraftProblem(base, draft),
+    problem: layerDraftProblem(base, draft, operations.length),
     retryOutcome:
       error?.code === "UPDATE_INTERRUPTED" && Boolean(request.current),
-    select: setSelected,
+    rename(id, name): void {
+      setDraft((previous) => ({
+        ...previous,
+        names: new Map(previous.names).set(id, name),
+      }));
+      setError(undefined);
+      setMessage(`Rename to ${name} staged.`);
+    },
     reset,
     apply,
     showFile(id: string): void {
@@ -328,7 +331,9 @@ export function useObjectLayers(options: ObjectLayersOptions): {
         return { ...previous, order };
       });
       setError(undefined);
-      setMessage("Layer order staged. Boolean composition is unchanged.");
+      setMessage(
+        `Moved ${draft.names.get(id)} to position ${draft.order.indexOf(id) + offset + 1} of ${draft.order.length}.`,
+      );
     },
     cancel(): void {
       abort.current?.abort();

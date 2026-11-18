@@ -1,4 +1,5 @@
 "use client";
+import { CloseIcon, IconButton } from "../../../../shared/icons/index";
 import { useEffect, useState, type JSX } from "react";
 
 export function WorkspaceStatusToast({
@@ -17,13 +18,11 @@ export function WorkspaceStatusToast({
   return (
     <div className="workspace-toast">
       <span role="status">{message}</span>
-      <button
-        type="button"
-        aria-label="Dismiss notification"
+      <IconButton
+        icon={CloseIcon}
+        label="Dismiss notification"
         onClick={() => setVisible(false)}
-      >
-        ×
-      </button>
+      />
     </div>
   );
 }

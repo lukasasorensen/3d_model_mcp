@@ -1,17 +1,25 @@
 "use client";
-import { useEffect, useRef, type JSX } from "react";
+import { Button } from "../../../../shared/controls/index";
+import {
+  Panel,
+  PanelActions,
+  type PanelProps,
+} from "../../../../shared/panels/index";
+import { useRef, type JSX } from "react";
 import { ParameterField } from "./parameterField.component";
 import {
   useParameterControls,
   type ParameterControlsOptions,
 } from "../hooks/useParameterControls.hook";
 
-export function ParameterPanel(options: ParameterControlsOptions): JSX.Element {
+export function ParameterPanel({
+  floating,
+  ...options
+}: ParameterControlsOptions & {
+  floating?: PanelProps["floating"];
+}): JSX.Element {
   const state = useParameterControls(options);
   const summary = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (state.error) summary.current?.focus();
-  }, [state.error]);
   const parameters = state.historical
     ? (state.view?.parameters ?? [])
     : (state.base?.parameters ?? []);
@@ -33,12 +41,15 @@ export function ParameterPanel(options: ParameterControlsOptions): JSX.Element {
     state.validation.operations.length > 0 &&
     !Object.keys(state.validation.errors).length;
   return (
-    <section
-      className="parameter-panel"
-      aria-labelledby="parameter-heading"
-      aria-busy={state.pending}
+    <Panel
+      title="Parameters"
+      className="parameter-panel editor-parameter-panel"
+      floating={floating}
+      dirty={state.validation.dirty}
+      busy={state.pending}
+      error={state.error}
+      errorFocusRef={summary}
     >
-      <h2 id="parameter-heading">Parameters</h2>
       <p className="action-help">
         Adjust values, then apply to validate and save a new revision. Downloads
         use saved values.
@@ -155,32 +166,43 @@ export function ParameterPanel(options: ParameterControlsOptions): JSX.Element {
           />
         ))}
         {!state.historical && parameters.length > 0 && (
-          <div className="parameter-actions">
-            <button type="submit" disabled={!canApply}>
-              {state.pending ? "Applying…" : "Apply changes"}
-            </button>
-            <button
+          <PanelActions>
+            <Button
               type="button"
               disabled={disabled}
               onClick={() => state.reset(true)}
+              accessibleLabel="Reset to defaults"
             >
-              Reset to defaults
-            </button>
-            <button
+              Reset
+            </Button>
+            <Button
               type="button"
               disabled={
                 state.pending || state.loading || !state.validation.dirty
               }
               onClick={() => state.reset()}
+              accessibleLabel="Discard changes"
             >
-              Discard changes
-            </button>
+              Discard
+            </Button>
+            <Button
+              className={floating ? "editor-apply" : undefined}
+              type="submit"
+              disabled={!canApply}
+              accessibleLabel={
+                state.pending
+                  ? "Applying parameter changes…"
+                  : "Apply parameter changes"
+              }
+            >
+              {state.pending ? "Applying…" : "Apply"}
+            </Button>
             {state.pending && (
               <button type="button" onClick={state.cancel}>
                 Cancel update
               </button>
             )}
-          </div>
+          </PanelActions>
         )}
       </form>
       {!state.historical && state.validation.dirty && !state.pending && (
@@ -189,6 +211,6 @@ export function ParameterPanel(options: ParameterControlsOptions): JSX.Element {
       <p role="status" aria-live="polite">
         {state.message}
       </p>
-    </section>
+    </Panel>
   );
 }

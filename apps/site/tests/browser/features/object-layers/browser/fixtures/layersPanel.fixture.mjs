@@ -98,6 +98,8 @@ export async function mountLayersPanel(page) {
           next.presentation.hiddenFileIds.filter((id) => id !== op.id);
       else if (op.op === "reorder_objects")
         next.presentation.objectOrder = op.ids;
+      else if (op.op === "rename_object")
+        next.objects.find((object) => object.id === op.id).name = op.name;
       else if (op.visible)
         next.presentation.hiddenObjectIds =
           next.presentation.hiddenObjectIds.filter((id) => id !== op.id);
@@ -113,7 +115,7 @@ export async function mountLayersPanel(page) {
   });
   const result = await build({
     stdin: {
-      contents: `import React,{useState} from 'react';import{createRoot}from'react-dom/client';import{LayersPanel}from './src/features/object-layers/browser/components/layersPanel.component';function App(){const[revision,setRevision]=useState('r1');const[selected,setSelected]=useState('r1');const[key,setKey]=useState(0);const[pending,setPending]=useState(false);window.chooseRevision=setSelected;window.remount=()=>setKey(k=>k+1);window.refresh=async()=>{const s=await(await fetch('/fixture/current')).json();setRevision(s.revision);setSelected(s.revision);return true;};return <main><p>Preview: {revision}</p><p>Operation: {pending?'pending':'idle'}</p><LayersPanel key={key} projectId="project" currentRevision={revision} selectedRevision={selected} sessionId="session" disabled={false} acquire={async()=>true} release={()=>{}} render={async()=>{}} refresh={window.refresh} onPending={setPending}/></main>};createRoot(document.getElementById('root')).render(<App/>);`,
+      contents: `import React,{useState} from 'react';import{createRoot}from'react-dom/client';import{LayersPanel}from './src/features/object-layers/browser/components/layersPanel.component';function App(){const[revision,setRevision]=useState('r1');const[selected,setSelected]=useState('r1');const[objectId,setObjectId]=useState(null);const[key,setKey]=useState(0);const[pending,setPending]=useState(false);window.chooseRevision=setSelected;window.remount=()=>{setObjectId(null);setKey(k=>k+1);};window.refresh=async()=>{const s=await(await fetch('/fixture/current')).json();setRevision(s.revision);setSelected(s.revision);return true;};return <main><p>Preview: {revision}</p><p>Operation: {pending?'pending':'idle'}</p><LayersPanel canSelect={()=>true} selectedId={objectId} select={setObjectId} key={key} projectId="project" currentRevision={revision} selectedRevision={selected} sessionId="session" disabled={false} acquire={async()=>true} release={()=>{}} render={async()=>{}} refresh={window.refresh} onPending={setPending}/></main>};createRoot(document.getElementById('root')).render(<App/>);`,
       resolveDir: root + "/apps/site",
       loader: "tsx",
     },

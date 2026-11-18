@@ -69,3 +69,29 @@ test("oversized or malformed MCP errors do not enter the client error contract",
   assert.equal(oversized.error, undefined);
   assert.equal((await response({ code: 42, message: "bad" })).error, undefined);
 });
+
+test("MCP adapter retains bounded file diagnostics and drops private metadata", async () => {
+  const details = {
+    fileId: "model-file",
+    reason: "Unbalanced file delimiters.",
+  };
+  const error = {
+    code: "INVALID_MODEL_FILES",
+    message: "Invalid model file body.",
+    details,
+  };
+  assert.deepEqual(
+    (await response({ ...error, details: { ...details, source: "private" } }))
+      .error,
+    error,
+  );
+  assert.equal(
+    (
+      await response({
+        ...error,
+        details: { ...details, fileId: "/private/path" },
+      })
+    ).error.details,
+    undefined,
+  );
+});

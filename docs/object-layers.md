@@ -5,22 +5,35 @@ presentation order, including stable object IDs and source file names/IDs. Multi
 objects may use the same file. Legacy single-source projects display an explanatory
 empty state; no implicit object splitting or adoption occurs.
 
-Select an object independently of its visibility. The selected row and its details
-remain identifiable while hidden. Selection belongs to the panel and resets on reload;
-the composed STL preview does not support per-object mesh picking or highlighting.
-Native buttons and checkboxes support keyboard selection, visibility and move-up/down
-without requiring drag gestures. Long names wrap at mobile widths.
+Layers opens on the left of the main editor. Parameters opens on the right.
+Both use the shared panel disclosure. One panel overlays the full-width viewport from
+780px of editor width, and both fit from 1200px. In narrower editors the panels
+follow the viewport in Layers, Parameters order. Object tools stay above it.
+On wide editors, closing Layers leaves the right edge of a card at the left of
+the viewport. Hover or focus reveals its label. Activate the card to reopen Layers.
+
+Selecting a row name, a visible mesh or an option in the object selector sets the
+same project-scoped selection. A saved hidden object keeps its exact transform
+fields available. Its mesh and gizmo stay hidden. Row actions leave selection alone.
 
 ## Drafts and accepted geometry
 
-Show/hide and reorder stage a draft. Apply creates an immutable candidate through
-`edit_model_files`, validates/renders it, then promotes against the exact parent.
+Drag a grip with a mouse or touch to preview a move. The list scrolls near its
+edges. Drop stages the displayed order. Escape and pointer cancellation leave the
+starting order intact. The row menu also supports Move up and Move down. Rename
+opens an inline name field. Enter stages a trimmed object label; Escape cancels.
+The object ID, source file, and references survive the rename.
+
+Apply layers sends renames, visibility and presentation order in one
+`edit_model_files` candidate, validates/renders it, then promotes against the exact
+parent. A draft over the tool's 200-operation limit must be split before applying.
 The viewer and downloads retain accepted geometry until successful promotion and
 refresh. Discard loads the latest accepted layers. List order uses
 `presentation.objectOrder`; it never changes the explicit boolean operand order.
 Changing visibility excludes hidden objects from the saved preview and exports.
 
-A source-hidden object shows an unchecked, disabled effective visibility checkbox.
+A source-hidden object shows a disabled crossed-out eye. For other objects the
+eye button exposes shown/hidden state through `aria-pressed`.
 Show source file stages visibility for every object referencing that file, while
 preserving each object's independent hidden state. The panel explains this shared
 scope before the control. Individually hidden objects remain selectable.

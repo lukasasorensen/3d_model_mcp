@@ -21,6 +21,23 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   { languageOptions: { globals: globals.node } },
   {
+    files: ["apps/site/src/**/*.{ts,tsx}"],
+    ignores: ["apps/site/src/shared/icons/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["lucide-react", "lucide-react/**"],
+              message: "Import UI icons from the shared icons public barrel.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ["apps/site/**/*.{ts,tsx}", "packages/browser-renderer/**/*.ts"],
     languageOptions: { globals: globals.browser },
   },

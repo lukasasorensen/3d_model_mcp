@@ -64,7 +64,7 @@ void test("workspace preserves accessible landmarks, live region, restore copy, 
   assert.match(chat, /aria-expanded={!collapsed}/);
   assert.match(chat, /aria-controls="conversation-content"/);
   assert.match(chat, /Minimize chat panel/);
-  assert.match(history, /Restore as a new revision/);
+  assert.match(history, /as a new revision/);
   assert.match(viewer, /3D model inspection/);
   assert.doesNotMatch(
     viewer,

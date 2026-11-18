@@ -101,15 +101,13 @@
   .viewer-help {
     max-width: calc(100% - 20px);
   }
-  .model-actions {
-    display: grid;
+  .model-summary .model-actions {
+    flex: 1 1 100%;
+    margin-inline-start: 0;
   }
-  .export-controls,
-  .export-button {
+  .export-controls {
     width: 100%;
-  }
-  .export-controls label {
-    text-align: left;
+    justify-content: flex-start;
   }
   .export-controls select {
     flex: 1;

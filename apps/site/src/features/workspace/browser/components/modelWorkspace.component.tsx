@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "../../../../shared/controls/index";
+import { DownloadIcon } from "../../../../shared/icons/index";
 import { useId, type JSX } from "react";
 
 import dynamic from "next/dynamic";
@@ -98,6 +100,7 @@ export function ModelWorkspace({
   });
   const { mobile, section, selectSection } =
     useWorkspaceSection(isSidebarChatEnabled);
+  const exportFormatLabel = exportFormat.toUpperCase();
   const controlOptions = {
     projectId,
     currentRevision: state.currentRevision,
@@ -266,7 +269,7 @@ export function ModelWorkspace({
                 (restorePending
                   ? "Restoring as a new revision…"
                   : exportState === "preparing"
-                    ? `Preparing ${exportFormat.toUpperCase()}…`
+                    ? `Preparing ${exportFormatLabel}…`
                     : "Working on your request…"),
             ].map(
               (message, index) =>
@@ -301,86 +304,99 @@ export function ModelWorkspace({
               </p>
             )}
           <div id="model-panel" className="model-primary">
-            <ModelViewer
-              projectId={projectId}
-              revisionId={selectedManifest?.revisionId}
-              sourceHash={selectedManifest?.sourceHash}
-              currentLabel={selectedLabel}
-              updating={state.active || parameterPending}
-              onLoadStateChange={setPreviewLoadState}
-            />
-            <div className="model-facts" aria-label="Model facts">
-              <div>
-                <span>Revision</span>
-                <strong>{selectedLabel}</strong>
-              </div>
-              <div>
-                <span>Dimensions · mm</span>
-                <strong>{dimensions}</strong>
-              </div>
-              <div>
-                <span>Preview</span>
-                <strong>
-                  {previewStatusLabel(
-                    Boolean(selectedManifest),
-                    previewLoadState,
-                  )}
-                </strong>
-              </div>
-            </div>
-            <div className="model-actions">
-              <div className="export-controls">
-                <label htmlFor="export-format">Download format</label>
-                <select
-                  id="export-format"
-                  value={exportFormat}
-                  onChange={(event) => {
-                    setExportFormat(event.target.value as DownloadFormat);
-                    setExportState("idle");
-                  }}
-                  disabled={
-                    parameterPending ||
-                    isMcpRendering ||
-                    !currentManifest ||
-                    state.active ||
-                    exportState === "preparing"
-                  }
-                >
-                  <option value="stl">STL</option>
-                  <option value="glb">GLB</option>
-                  <option value="3mf">3MF</option>
-                </select>
-                <button
-                  type="button"
-                  className="export-button"
-                  onClick={() => void exportCurrent()}
-                  disabled={
-                    parameterPending ||
-                    isMcpRendering ||
-                    !currentManifest ||
-                    state.active ||
-                    exportState === "preparing"
-                  }
-                  aria-describedby="export-help"
-                >
-                  {exportState === "preparing"
-                    ? `Preparing ${exportFormat.toUpperCase()}…`
-                    : `Download ${exportFormat.toUpperCase()} · ${currentLabel}`}
-                </button>
-              </div>
-            </div>
-            <ExportPolicy
-              currentLabel={currentLabel}
-              format={exportFormat}
-              available={Boolean(currentManifest)}
-            />
-            {state.hydrated && (
-              <WorkspaceEditingControls
-                key={projectId}
-                {...controlOptions}
-                onPending={setParameterPending}
-              />
-            )}
+            <WorkspaceEditingControls
+              key={projectId}
+              {...controlOptions}
+              hydrated={state.hydrated === true}
+              onPending={setParameterPending}
+              previewReady={previewLoadState === "ready"}
+              renderViewport={(editing) => (
+                <ModelViewer
+                  {...editing}
+                  projectId={projectId}
+                  revisionId={selectedManifest?.revisionId}
+                  sourceHash={selectedManifest?.sourceHash}
+                  currentLabel={selectedLabel}
+                  updating={state.active || parameterPending}
+                  onLoadStateChange={setPreviewLoadState}
+                />
+              )}
+            >
+              <section
+                className="model-summary"
+                aria-label="Model summary and downloads"
+              >
+                <div className="model-facts" aria-label="Model facts">
+                  <div>
+                    <span>Revision</span>
+                    <strong>{selectedLabel}</strong>
+                  </div>
+                  <div>
+                    <span>Dimensions · mm</span>
+                    <strong>{dimensions}</strong>
+                  </div>
+                  <div>
+                    <span>Preview</span>
+                    <strong>
+                      {previewStatusLabel(
+                        Boolean(selectedManifest),
+                        previewLoadState,
+                      )}
+                    </strong>
+                  </div>
+                </div>
+                <div className="model-actions">
+                  <div className="export-controls">
+                    <label htmlFor="export-format">Download format</label>
+                    <select
+                      id="export-format"
+                      value={exportFormat}
+                      onChange={(event) => {
+                        setExportFormat(event.target.value as DownloadFormat);
+                        setExportState("idle");
+                      }}
+                      disabled={
+                        parameterPending ||
+                        isMcpRendering ||
+                        !currentManifest ||
+                        state.active ||
+                        exportState === "preparing"
+                      }
+                    >
+                      <option value="stl">STL</option>
+                      <option value="glb">GLB</option>
+                      <option value="3mf">3MF</option>
+                    </select>
+                    <Button
+                      className="export-button"
+                      icon={<DownloadIcon size="1em" focusable="false" />}
+                      accessibleLabel={
+                        exportState === "preparing"
+                          ? `Preparing ${exportFormatLabel} download · ${currentLabel}`
+                          : `Download ${exportFormatLabel} · ${currentLabel}`
+                      }
+                      onClick={() => void exportCurrent()}
+                      disabled={
+                        parameterPending ||
+                        isMcpRendering ||
+                        !currentManifest ||
+                        state.active ||
+                        exportState === "preparing"
+                      }
+                      aria-describedby="export-help"
+                    >
+                      {exportState === "preparing"
+                        ? `Preparing ${exportFormatLabel}…`
+                        : exportFormatLabel}
+                    </Button>
+                  </div>
+                </div>
+                <ExportPolicy
+                  currentLabel={currentLabel}
+                  available={Boolean(currentManifest)}
+                />
+              </section>
+            </WorkspaceEditingControls>
           </div>
           {exportState === "failed" && (
             <p role="alert" className="notice notice-error">

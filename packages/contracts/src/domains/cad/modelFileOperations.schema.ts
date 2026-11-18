@@ -77,7 +77,10 @@ export const modelFileEditContentSchema = z
   .object({
     projectId: projectIdSchema,
     parentRevision: revisionIdSchema,
-    operations: z.array(modelFileOperationSchema).min(1).max(200),
+    operations: z
+      .array(modelFileOperationSchema)
+      .min(1)
+      .max(MODEL_FILE_LIMITS.operations),
   })
   .strict();
 export const editModelFilesInputSchema = modelFileEditContentSchema.extend({

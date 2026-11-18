@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "../../../../shared/controls/index";
 import type { JSX } from "react";
 
 import type { FormEvent, KeyboardEvent, RefObject } from "react";
@@ -108,18 +109,17 @@ export function ChatPane({
           <span className={`status-chip ${statusClass}`}>
             {chatStatusLabel(active, available)}
           </span>
-          <button
-            type="button"
+          <Button
             className="chat-toggle"
             onClick={onToggleCollapsed}
             aria-expanded={!collapsed}
             aria-controls="conversation-content"
-            aria-label={
-              collapsed ? "Restore chat panel" : "Minimize chat panel"
+            accessibleLabel={
+              collapsed ? "Open chat panel" : "Minimize chat panel"
             }
           >
             {collapsed ? "Open chat" : "Minimize"}
-          </button>
+          </Button>
         </div>
       </div>
       <div
@@ -239,24 +239,25 @@ export function ChatPane({
                 Stop request
               </button>
             ) : (
-              <button
+              <Button
                 type="submit"
                 className="button-primary"
+                accessibleLabel="Send request"
                 disabled={!message.trim() || !available}
               >
-                Send request
-              </button>
+                Send
+              </Button>
             )}
           </div>
           {!active && turns.at(-1)?.outcome === "failed" && (
-            <button
-              type="button"
+            <Button
               className="retry-button"
+              accessibleLabel="Retry last request"
               onClick={onRetry}
               disabled={!available}
             >
-              Retry last request
-            </button>
+              Retry
+            </Button>
           )}
         </form>
       </div>

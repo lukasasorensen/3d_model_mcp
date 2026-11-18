@@ -1,50 +1,326 @@
-.object-editing-panel {
-  display: grid;
-  gap: 1rem;
-}
-.object-transform-editor {
-  display: grid;
-  gap: 0.75rem;
+.workspace-editor {
+  container-type: inline-size;
   min-width: 0;
 }
+
+.editor-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.65rem;
+  padding: 0.65rem;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--canvas);
+  color: var(--text);
+}
+
+.editor-heading-bar,
+.editor-panel-toggles {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.editor-heading-bar {
+  justify-content: space-between;
+  align-items: end;
+}
+.editor-panel-toggles {
+  margin-inline-start: auto;
+  justify-content: end;
+  /* Leave room for the longest tooltip as text scales. */
+  min-inline-size: min(100%, 7em);
+}
+.editor-panel-toggles .icon-button-reveal:last-child > .icon-button-label {
+  justify-self: end;
+}
+.editor-panel-toggles
+  .icon-button-reveal:last-child
+  > .icon-button-label
+  > span {
+  transform: translateX(-100%);
+}
+.editor-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.editor-object-selector {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 0.875rem;
+}
+
+.editor-object-selector select {
+  max-width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+.editor-tool-panel,
+.floating-panel {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface-1);
+  box-shadow: var(--shadow);
+}
+
+.editor-tool-panel {
+  justify-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: center;
+  gap: 0.5rem 0.875rem;
+  max-width: 100%;
+  padding: 0.55rem 0.75rem;
+}
+
+.editor-viewport {
+  min-width: 0;
+}
+
+.editor-viewport .viewer-shell {
+  min-height: clamp(340px, 55svh, 660px);
+  border: 0;
+  border-radius: 0.65rem;
+  background: transparent;
+}
+
+.editor-stage .viewer-toolbar {
+  inset: auto 0.35rem 0.35rem auto;
+}
+
+.editor-stage .viewer-help {
+  inset: auto auto 3.35rem 0.35rem;
+  margin-right: 0.35rem;
+  background: var(--surface-1);
+  color: var(--text-muted);
+  border-radius: 0.4rem;
+}
+
+.editor-parameter-panel form {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.65rem;
+}
+.editor-parameter-panel
+  .parameter-field
+  :is(input[type="text"], select, textarea) {
+  background: var(--canvas);
+}
+.editor-parameter-panel .parameter-field {
+  padding-block-end: 0.65rem;
+  border-block-end: 1px solid var(--line);
+}
+.editor-parameter-panel .parameter-field[data-slider] {
+  grid-template-columns: minmax(0, 1fr) minmax(3.5rem, 5rem);
+}
+.editor-parameter-panel .parameter-field[data-slider] > :is(label, div, p) {
+  grid-column: 1 / -1;
+}
+.editor-parameter-panel .parameter-field[data-slider] > input[type="text"] {
+  grid-column: 2;
+  grid-row: 2;
+}
+.editor-parameter-panel .parameter-field[data-slider] > input[type="range"] {
+  grid-column: 1;
+  grid-row: 2;
+}
+/* A shared grid cell overlays the cards without resizing or remounting the canvas. */
+.panel-edge {
+  display: none;
+}
+@container (min-width: 780px) {
+  .editor-content {
+    isolation: isolate;
+  }
+  .editor-viewport,
+  .editor-content > .floating-panel,
+  .panel-edge {
+    grid-area: 1 / 1;
+  }
+  .editor-viewport {
+    isolation: isolate;
+  }
+  .editor-content > .floating-panel {
+    z-index: 1;
+    width: clamp(17rem, 25cqi, 21rem);
+    margin: 0.5rem;
+    max-height: calc(clamp(340px, 55svh, 660px) - 4rem);
+  }
+  .editor-layer-panel {
+    justify-self: start;
+  }
+  .editor-parameter-panel {
+    justify-self: end;
+  }
+  .panel-edge {
+    display: flex;
+    align-self: start;
+    margin-top: 0.5rem;
+    padding-block: 4px;
+    overflow: clip;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .editor-stage .panel-edge-card {
+    --exposed-edge: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    min-height: 3rem;
+    padding: 0.5rem calc((var(--exposed-edge) - 1.125em) / 2) 0.5rem 1rem;
+    border-radius: 0 0.8rem 0.8rem 0;
+    background: var(--surface-1);
+    box-shadow: var(--shadow);
+    transform: translateX(calc(var(--exposed-edge) - 100%));
+    pointer-events: auto;
+  }
+  .editor-stage .panel-edge-card:focus-visible {
+    transform: none;
+    outline-offset: -3px;
+  }
+  @media (hover: hover) {
+    .editor-stage .panel-edge-card:hover {
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .panel-edge-card {
+      transition: transform 160ms ease-out;
+    }
+  }
+}
+@container (780px <= width < 1200px) {
+  .editor-content:has(.editor-layer-panel:not([hidden])):has(
+      .editor-parameter-panel:not([hidden])
+    )
+    > .floating-panel {
+    grid-area: auto;
+    width: auto;
+    justify-self: stretch;
+    margin: 0;
+    max-height: clamp(340px, 55svh, 660px);
+  }
+}
+.editor-feedback {
+  font-size: 0.875rem;
+}
+.editor-feedback .action-help,
+.editor-parameter-panel .action-help,
+.editor-parameter-panel .parameter-help {
+  color: var(--text-muted);
+}
+.editor-feedback :is([role="status"], .action-help):empty {
+  display: none;
+}
+.editor-feedback:has(> :not(:empty)) {
+  display: grid;
+  gap: 0.35rem;
+}
+.editor-feedback:not(:has(> :not(:empty))) {
+  display: none;
+}
+
+.editor-stage :is(button, select, input, textarea) {
+  max-width: 100%;
+  border-color: var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+}
+.editor-stage button {
+  border-radius: 1.25rem;
+  padding: 0.4rem 0.7rem;
+}
+.editor-stage button:where(:not(.layer-select)):hover:not(:disabled) {
+  background: var(--surface-3);
+  border-color: var(--accent-contrast);
+}
+.editor-stage
+  :is(
+    .editor-apply,
+    .object-transform-modes button[aria-pressed="true"],
+    .floating-panel-toggle[aria-expanded="true"]
+  ) {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.editor-stage
+  :is(
+    .editor-apply,
+    .object-transform-modes button[aria-pressed="true"],
+    .floating-panel-toggle[aria-expanded="true"]
+  ):hover:not(:disabled) {
+  background: var(--accent-hover);
+  color: var(--on-accent);
+}
+.editor-stage :focus-visible {
+  outline: 2px solid var(--accent-contrast);
+  outline-offset: 2px;
+}
+.editor-stage input[type="range"],
+.editor-stage input[type="checkbox"] {
+  accent-color: var(--accent-contrast);
+}
+.object-transform-editor,
 .object-transform-modes,
 .object-transform-axes {
   display: flex;
-  gap: 0.5rem;
   flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  min-width: 0;
 }
-.object-transform-modes button[aria-pressed="true"] {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
+.object-transform-editor {
+  align-items: end;
 }
 .object-transform-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
   min-width: 0;
-  display: grid;
-  gap: 0.75rem;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.object-transform-fields legend {
+  font-size: 0.75rem;
 }
 .object-transform-fields label {
-  display: grid;
-  gap: 0.35rem;
-  flex: 1;
-  min-width: 4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+}
+.editor-object-bounds {
+  font-variant-numeric: tabular-nums;
 }
 .object-transform-fields input {
-  width: 100%;
+  width: 3.3rem;
+  background: var(--canvas);
+  border: 1px solid var(--line);
+  padding: 0.35rem;
   min-width: 0;
-  box-sizing: border-box;
 }
-.object-transform-canvas {
-  position: relative;
-  min-height: 280px;
-  height: 320px;
-  border: 1px solid currentColor;
-  border-radius: 0.5rem;
-  touch-action: none;
-  overflow: hidden;
-}
-.object-transform-canvas > p {
-  padding: 1rem;
-}
-.object-transform-dimensions {
-  font-variant-numeric: tabular-nums;
+
+@media (forced-colors: active) {
+  .editor-stage
+    :is(
+      .object-transform-modes button[aria-pressed="true"],
+      .floating-panel-toggle[aria-expanded="true"]
+    ) {
+    border: 2px solid Highlight;
+  }
 }

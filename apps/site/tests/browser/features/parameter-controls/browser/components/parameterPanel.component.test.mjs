@@ -32,7 +32,9 @@ for (const mode of ["lost", "success"])
       });
       await width.fill("35");
       controls.mode = mode;
-      await page.getByRole("button", { name: "Apply changes" }).click();
+      await page
+        .getByRole("button", { name: "Apply parameter changes" })
+        .click();
       await entered;
       const requestId = controls.requests.at(-1).requestId;
       await expect(
@@ -102,7 +104,7 @@ test("touch users can adjust a slider or exact input without saving until Apply"
     });
     await width.tap();
     await width.fill("35");
-    await page.getByRole("button", { name: "Apply changes" }).tap();
+    await page.getByRole("button", { name: "Apply parameter changes" }).tap();
     await expect(
       page.getByText("Changes saved.", { exact: true }),
     ).toBeVisible();
@@ -130,7 +132,7 @@ test("native controls stage values, support keyboard and mobile reflow, then App
   assert.equal(controls.requests.length, 0);
   await width.fill("-");
   await expect(
-    page.getByRole("button", { name: "Apply changes" }),
+    page.getByRole("button", { name: "Apply parameter changes" }),
   ).toBeDisabled();
   await expect(width).toHaveAttribute("aria-invalid", "true");
   await width.fill("30");
@@ -143,7 +145,7 @@ test("native controls stage values, support keyboard and mobile reflow, then App
     .getByRole("textbox", { name: "Caption", exact: true })
     .fill("雪\nsecond line");
   assert.equal(controls.requests.length, 0);
-  await page.getByRole("button", { name: "Apply changes" }).click();
+  await page.getByRole("button", { name: "Apply parameter changes" }).click();
   await expect(page.getByText("Preview: r2", { exact: true })).toBeVisible();
   await expect(page.getByText("Changes saved.", { exact: true })).toBeVisible();
   assert.equal(
@@ -184,14 +186,14 @@ test("rejection and cancellation retain drafts; interrupted retries keep identit
   const width = page.getByRole("textbox", { name: "Width · mm", exact: true });
   await width.fill("35");
   controls.mode = "reject";
-  await page.getByRole("button", { name: "Apply changes" }).click();
+  await page.getByRole("button", { name: "Apply parameter changes" }).click();
   await expect(page.getByRole("alert")).toContainText("Width cannot produce");
   await expect(width).toHaveValue("35");
   await expect(width).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByText("Preview: r1", { exact: true })).toBeVisible();
   controls.mode = "hold";
   await width.fill("36");
-  await page.getByRole("button", { name: "Apply changes" }).click();
+  await page.getByRole("button", { name: "Apply parameter changes" }).click();
   await expect(
     page.getByRole("button", { name: "Cancel update" }),
   ).toBeVisible();
@@ -239,12 +241,12 @@ test("external revisions preserve drafts and require review of changed or remove
     page.getByRole("textbox", { name: "New count", exact: true }),
   ).toHaveValue("2");
   await expect(
-    page.getByRole("button", { name: "Apply changes" }),
+    page.getByRole("button", { name: "Apply parameter changes" }),
   ).toBeDisabled();
   await page
     .getByRole("button", { name: "I reviewed the changed definitions" })
     .click();
-  await page.getByRole("button", { name: "Apply changes" }).click();
+  await page.getByRole("button", { name: "Apply parameter changes" }).click();
   await expect(page.getByText("Changes saved.", { exact: true })).toBeVisible();
   assert.equal(controls.requests[0].parentRevision, "r2");
   assert.deepEqual(controls.requests[0].operations, [

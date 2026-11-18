@@ -88,6 +88,22 @@ for (const adapter of ["filesystem", "postgres"])
           requestId: "files",
           toolCallId: "files",
         };
+        for (const invalid of ["\u0000", "\uD800", "\uDC00"])
+          for (const field of ["file name", "object name", "file body"]) {
+            const malformed = structuredClone(proposal);
+            if (field === "file name")
+              malformed.modelFiles.files[0].name += invalid;
+            if (field === "object name")
+              malformed.modelFiles.objects[0].name += invalid;
+            if (field === "file body")
+              malformed.modelFiles.files[0].body += invalid;
+            await assert.rejects(
+              repository.proposeModelSource(malformed),
+              (error) =>
+                error.code === "INVALID_MODEL_FILES" &&
+                error.details.fileId === "base-file",
+            );
+          }
         const candidate = await repository.proposeModelSource(proposal);
         assert.deepEqual(candidate.modelFiles, snapshot());
         const reordered = structuredClone(proposal);
@@ -98,7 +114,7 @@ for (const adapter of ["filesystem", "postgres"])
           candidate.candidateId,
         );
         const relabeled = structuredClone(proposal);
-        relabeled.modelFiles.files[0].name = "renamed.scad";
+        relabeled.modelFiles.files[0].name = "renamed 🧩.scad";
         const other = await repository.proposeModelSource(relabeled);
         assert.notEqual(other.candidateId, candidate.candidateId);
         assert.equal(other.sourceHash, candidate.sourceHash);

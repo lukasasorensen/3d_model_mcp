@@ -60,23 +60,3 @@
 .parameter-panel .notice button {
   margin: 0.25rem;
 }
-
-@media (min-width: 1440px) {
-  .model-primary:has(.parameter-field) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
-    gap: var(--space-4);
-  }
-  .model-primary:has(.parameter-field) > * {
-    grid-column: 1;
-  }
-  .model-primary:has(.parameter-field) > .parameter-panel {
-    grid-column: 2;
-    grid-row: 1 / span 4;
-    align-self: start;
-    max-height: 75vh;
-    overflow: auto;
-    border-top: 0;
-    border-left: 1px solid var(--line);
-  }
-}

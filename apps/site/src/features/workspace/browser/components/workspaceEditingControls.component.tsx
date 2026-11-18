@@ -1,12 +1,43 @@
 "use client";
-import { useEffect, useState, type ComponentProps, type JSX } from "react";
+import {
+  useEffect,
+  useState,
+  type ComponentProps,
+  type JSX,
+  type ReactNode,
+} from "react";
+import { LayersIcon, ParametersIcon } from "../../../../shared/icons/index";
 import { ParameterPanel } from "../../../parameter-controls/browser/index";
 import { ObjectEditingPanel } from "../../../object-editing/browser/index";
 import { LayersPanel } from "../../../object-layers/browser/index";
 
-export function WorkspaceEditingControls(
-  options: ComponentProps<typeof ParameterPanel>,
-): JSX.Element {
+type WorkspaceEditingControlsProps = ComponentProps<typeof ParameterPanel> & {
+  renderViewport: ComponentProps<typeof ObjectEditingPanel>["renderViewport"];
+  previewReady: boolean;
+  children?: ReactNode;
+};
+
+export function WorkspaceEditingControls({
+  hydrated = true,
+  ...options
+}: WorkspaceEditingControlsProps & { hydrated?: boolean }): JSX.Element {
+  if (!hydrated)
+    return (
+      <>
+        {options.renderViewport({ showAccepted: true })}
+        {options.children}
+      </>
+    );
+  return <HydratedEditingControls {...options} />;
+}
+
+function HydratedEditingControls({
+  renderViewport,
+  previewReady,
+  children,
+  ...options
+}: WorkspaceEditingControlsProps): JSX.Element {
+  const [toolbar, setToolbar] = useState<HTMLDivElement | null>(null);
   const [parametersPending, setParametersPending] = useState(false);
   const [objectsPending, setObjectsPending] = useState(false);
   const [layersPending, setLayersPending] = useState(false);
@@ -17,22 +48,43 @@ export function WorkspaceEditingControls(
   useEffect(() => (): void => onPending(false), [onPending]);
   return (
     <>
-      <LayersPanel
-        {...options}
-        disabled={options.disabled || parametersPending || objectsPending}
-        onPending={setLayersPending}
-      />
-      <ObjectEditingPanel
-        key={options.projectId}
-        {...options}
-        disabled={options.disabled || parametersPending || layersPending}
-        onPending={setObjectsPending}
-      />
-      <ParameterPanel
-        {...options}
-        disabled={options.disabled || objectsPending || layersPending}
-        onPending={setParametersPending}
-      />
+      <div className="workspace-editor">
+        <ObjectEditingPanel
+          {...options}
+          previewReady={previewReady}
+          renderViewport={renderViewport}
+          disabled={options.disabled || parametersPending || layersPending}
+          onPending={setObjectsPending}
+          panelToggles={
+            <div className="editor-panel-toggles" ref={setToolbar} />
+          }
+          renderPanels={(selection) => (
+            <>
+              <LayersPanel
+                {...options}
+                {...selection}
+                floating={{
+                  toolbar,
+                  icon: LayersIcon,
+                  initiallyOpen: true,
+                  tuckLeft: true,
+                }}
+                disabled={
+                  options.disabled || parametersPending || objectsPending
+                }
+                onPending={setLayersPending}
+              />
+              <ParameterPanel
+                {...options}
+                floating={{ toolbar, icon: ParametersIcon }}
+                disabled={options.disabled || objectsPending || layersPending}
+                onPending={setParametersPending}
+              />
+            </>
+          )}
+        />
+      </div>
+      {children}
     </>
   );
 }
