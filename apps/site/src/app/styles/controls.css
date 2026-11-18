@@ -56,14 +56,57 @@ select:disabled {
   background: var(--accent-hover);
 }
 
-button.icon-button {
+button.button-with-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-2);
+}
+.button-icon {
+  display: inline-flex;
+  flex: none;
+}
+button.icon-button {
   min-width: 44px;
   min-height: 44px;
   padding: 0;
 }
-.icon-button svg {
-  flex: none;
+
+/* Compact controls keep their labels available to keyboard and touch users. */
+.icon-button-reveal {
+  position: relative;
+}
+.icon-button-label {
+  position: absolute;
+  z-index: 10;
+  inset-block-start: 100%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  background: var(--surface-1);
+  color: var(--text);
+  white-space: nowrap;
+  visibility: hidden;
+}
+.icon-button-reveal:is(:hover, :focus-visible)
+  .icon-button-label:not([data-dismissed]) {
+  visibility: visible;
+}
+@media (hover: none), (any-pointer: coarse) {
+  button.icon-button-reveal {
+    gap: 0.35rem;
+    padding-inline: 0.7rem;
+  }
+  .icon-button-reveal .icon-button-label {
+    position: static;
+    transform: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    white-space: normal;
+    visibility: visible;
+  }
 }

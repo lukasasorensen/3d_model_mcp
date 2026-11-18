@@ -231,7 +231,9 @@ test("object controls reflow on mobile and historical views cannot mutate", asyn
 }) => {
   const { controls, errors } = await mountObjectEditingPanel(page);
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole("button", { name: "Scale", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Scale selected object", exact: true })
+    .click();
   await page
     .getByRole("textbox", { name: "Uniform scale factor", exact: true })
     .fill("2.5");

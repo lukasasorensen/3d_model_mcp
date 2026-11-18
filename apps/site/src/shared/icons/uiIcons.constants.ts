@@ -12,4 +12,5 @@ export {
   Minus as MinusIcon,
   Plus as PlusIcon,
   X as CloseIcon,
+  Download as DownloadIcon,
 } from "lucide-react";

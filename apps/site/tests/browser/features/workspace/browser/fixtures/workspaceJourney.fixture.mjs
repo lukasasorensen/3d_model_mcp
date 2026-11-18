@@ -60,7 +60,7 @@ export async function mountWorkspaceJourney(
     if (request.isNavigationRequest())
       return route.fulfill({
         contentType: "text/html",
-        body: '<div id="root"></div>',
+        body: '<meta name="viewport" content="width=device-width, initial-scale=1"><div id="root"></div>',
       });
     const json = (value) => route.fulfill({ json: value });
     if (path === "/v1/readiness") return json({ ready: true });

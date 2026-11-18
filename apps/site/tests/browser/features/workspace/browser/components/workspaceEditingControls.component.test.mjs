@@ -25,7 +25,7 @@ test("object and layer saves mutually lock all editing panels and report workspa
     exact: true,
   });
   const applyParameters = page.getByRole("button", {
-    name: "Apply changes",
+    name: "Apply parameter changes",
     exact: true,
   });
   await position.fill("3");
@@ -72,7 +72,7 @@ test("object and layer saves mutually lock all editing panels and report workspa
   assert.equal(controls.requests[1].endpoint, "layers");
   await page.getByRole("button", { name: "Close layers" }).click();
   const layersToggle = page.getByRole("button", {
-    name: "Layers",
+    name: "Layers panel",
     exact: true,
   });
   await expect(layersToggle).toBeFocused();
@@ -194,7 +194,7 @@ test("an unfinished inline rename survives a parameter save lock", async ({
   await rename.fill("Travel lid");
   await page.getByRole("textbox", { name: "Width · mm" }).fill("14");
   await page
-    .getByRole("button", { name: "Apply changes", exact: true })
+    .getByRole("button", { name: "Apply parameter changes", exact: true })
     .click();
   await expect(rename).toBeDisabled();
   await expect(rename).toHaveValue("Travel lid");
@@ -292,7 +292,7 @@ test("the tucked Layers card peeks on hover and focus and reopens the draft", as
   await close.click();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(edge).toBeHidden();
-  await page.getByRole("button", { name: "Layers", exact: true }).click();
+  await page.getByRole("button", { name: "Layers panel", exact: true }).click();
   await expect(
     layers.getByRole("button", { name: "Show Lid (lid)" }),
   ).toHaveAttribute("aria-pressed", "false");

@@ -5,6 +5,7 @@ import {
   useState,
   useRef,
   type JSX,
+  type KeyboardEvent,
   type ReactNode,
   type RefObject,
 } from "react";
@@ -88,30 +89,31 @@ export function Panel({
     else setDisclosure({ collapsed: false, observedError: error });
   };
   const ToggleIcon = floating?.icon ?? DisclosureIcon;
-  const button = (
-    <button
-      type="button"
-      ref={trigger}
-      className={floating ? "floating-panel-toggle" : "panel-toggle"}
-      aria-label={title}
-      aria-describedby={hasStatus ? statusId : undefined}
-      aria-expanded={expanded}
-      aria-controls={floating ? id : bodyId}
-      onKeyDown={(event) => {
-        if (floating && expanded && event.key === "Escape") {
-          event.stopPropagation();
-          close();
-        }
-      }}
-      onClick={toggle}
-    >
-      {floating && (
-        <ToggleIcon size="1em" aria-hidden="true" focusable="false" />
-      )}
+  const toggleProps = {
+    ref: trigger,
+    "aria-describedby": hasStatus ? statusId : undefined,
+    "aria-expanded": expanded,
+    "aria-controls": floating ? id : bodyId,
+    onKeyDown: (event: KeyboardEvent<HTMLButtonElement>): void => {
+      if (floating && expanded && event.key === "Escape") {
+        event.stopPropagation();
+        close();
+      }
+    },
+    onClick: toggle,
+  };
+  const button = floating ? (
+    <IconButton
+      {...toggleProps}
+      icon={ToggleIcon}
+      label={`${title} panel`}
+      revealLabel={title}
+      className="floating-panel-toggle"
+    />
+  ) : (
+    <button type="button" className="panel-toggle" {...toggleProps}>
       <span>{title}</span>
-      {!floating && (
-        <DisclosureIcon size="1em" aria-hidden="true" focusable="false" />
-      )}
+      <DisclosureIcon size="1em" aria-hidden="true" focusable="false" />
     </button>
   );
   return (

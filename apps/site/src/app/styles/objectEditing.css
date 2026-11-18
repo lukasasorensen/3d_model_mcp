@@ -16,8 +16,7 @@
 }
 
 .editor-heading-bar,
-.editor-panel-toggles,
-.floating-panel-toggle {
+.editor-panel-toggles {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -29,6 +28,10 @@
 }
 .editor-panel-toggles {
   margin-inline-start: auto;
+}
+.floating-panel-toggle .icon-button-label {
+  inset-inline: auto 0;
+  transform: none;
 }
 .editor-content {
   display: grid;
@@ -306,12 +309,6 @@
       .object-transform-modes button[aria-pressed="true"],
       .floating-panel-toggle[aria-expanded="true"]
     ) {
-    outline: 2px solid Highlight;
+    border: 2px solid Highlight;
   }
-}
-
-.object-transform-modes button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
 }

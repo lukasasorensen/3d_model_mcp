@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "../../../../shared/controls/index";
 import {
   useEffect,
   useId,
@@ -217,17 +218,19 @@ export function ObjectEditingPanel({
             />
           )}
           <div className="parameter-actions">
-            <button
+            <Button
               type="button"
+              accessibleLabel="Fit selected object"
               disabled={!selectedGeometry}
               onClick={() => {
                 if (state.selectedId) setFitRequest({ id: state.selectedId });
               }}
             >
-              Fit selected object
-            </button>
-            <button
+              Fit object
+            </Button>
+            <Button
               type="button"
+              accessibleLabel="Cancel object changes"
               disabled={
                 state.loading || state.pending || (!state.dirty && valid)
               }
@@ -238,16 +241,17 @@ export function ObjectEditingPanel({
                 setValid(true);
               }}
             >
-              Cancel object changes
-            </button>
-            <button
+              Cancel
+            </Button>
+            <Button
               type="button"
               className="editor-apply"
+              accessibleLabel="Apply object changes"
               disabled={disabled || !state.dirty || !valid}
               onClick={() => void state.apply()}
             >
-              {state.pending ? "Applying…" : "Apply object changes"}
-            </button>
+              {state.pending ? "Applying…" : "Apply"}
+            </Button>
           </div>
         </div>
       )}

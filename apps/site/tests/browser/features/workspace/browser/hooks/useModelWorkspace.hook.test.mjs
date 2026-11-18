@@ -62,6 +62,8 @@ for (const width of [1440, 390]) {
       exact: true,
     });
     await expect(download).toBeEnabled();
+    await expect(download).toHaveText("STL");
+    await expect(download).toHaveAttribute("title", "Download STL · R2");
     const downloaded = page.waitForEvent("download");
     await download.click();
     const file = await downloaded;
@@ -88,6 +90,11 @@ for (const width of [1440, 390]) {
       exact: true,
     });
     await expect(restore).toBeEnabled();
+    await expect(restore).toHaveText("Restore");
+    await expect(restore).toHaveAttribute(
+      "title",
+      "Restore R1 as a new revision",
+    );
     await restore.click();
     await expect(
       page
@@ -124,7 +131,9 @@ test("parameter controls overlay the right of the preview without AI chat and dr
   page,
 }) => {
   const { errors } = await mountWorkspaceJourney(page, 1440, true);
-  await page.getByRole("button", { name: "Parameters", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Parameters panel", exact: true })
+    .click();
   const field = page.getByRole("textbox", { name: "Width", exact: true });
   await expect(field).toHaveValue("20");
   const preview = await page.getByLabel("Preview fixture").boundingBox();
