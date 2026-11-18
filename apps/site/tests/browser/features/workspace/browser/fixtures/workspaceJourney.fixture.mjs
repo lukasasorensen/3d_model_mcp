@@ -7,6 +7,31 @@ import {
   revisionManifestSchema,
 } from "@theoryfoundry/contracts";
 
+function exportModelFiles(id) {
+  return {
+    version: 2,
+    files: [
+      { id: "body-file", name: "Body.scad", body: "cube([20,10,5]);" },
+      {
+        id: "cut-file",
+        name: "Cut.scad",
+        body: "translate([5,2,-1]) cube([5,6,7]);",
+      },
+    ],
+    objects: [
+      { id: "body", name: "Body", fileId: "body-file" },
+      { id: "cut", name: "Cut", fileId: "cut-file" },
+    ],
+    composition: { operation: "difference", objectIds: ["body", "cut"] },
+    presentation: {
+      objectOrder: ["body", "cut"],
+      fileOrder: ["body-file", "cut-file"],
+      hiddenFileIds: [],
+      hiddenObjectIds: id === "r2" ? ["cut"] : [],
+    },
+  };
+}
+
 export async function mountWorkspaceJourney(
   page,
   width,
@@ -133,23 +158,10 @@ export async function mountWorkspaceJourney(
     if (path.endsWith("/layers")) {
       const id =
         new URL(request.url()).searchParams.get("revision") ?? controls.current;
+      const exportFiles = exportModelFiles(id);
       const exportLayers = {
-        version: 2,
-        files: [
-          { id: "body-file", name: "Body.scad" },
-          { id: "cut-file", name: "Cut.scad" },
-        ],
-        objects: [
-          { id: "body", name: "Body", fileId: "body-file" },
-          { id: "cut", name: "Cut", fileId: "cut-file" },
-        ],
-        composition: { operation: "difference", objectIds: ["body", "cut"] },
-        presentation: {
-          objectOrder: ["body", "cut"],
-          fileOrder: ["body-file", "cut-file"],
-          hiddenFileIds: [],
-          hiddenObjectIds: id === "r2" ? ["cut"] : [],
-        },
+        ...exportFiles,
+        files: exportFiles.files.map(({ id, name }) => ({ id, name })),
       };
       return json({
         revision: id,
@@ -175,7 +187,9 @@ export async function mountWorkspaceJourney(
             ? controls.saves.at(-1).modelFiles
             : editingPanels
               ? modelFiles
-              : null,
+              : multiObject && liveDraft
+                ? exportModelFiles(id)
+                : null,
         parameters: [],
         ...(legacyLibrary
           ? {

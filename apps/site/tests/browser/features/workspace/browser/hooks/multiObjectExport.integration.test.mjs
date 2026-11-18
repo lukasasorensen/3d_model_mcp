@@ -10,6 +10,9 @@ test("composed downloads pin accepted source and restore changes the exported co
     1440,
     false,
     true,
+    false,
+    false,
+    true,
   );
   await expect(
     page.getByRole("heading", { name: "Inspecting R2" }),
@@ -18,7 +21,9 @@ test("composed downloads pin accepted source and restore changes the exported co
   await expect(help).toContainText(
     "Downloads use the saved model and visible layers in R2.",
   );
-  await expect(help).toContainText("Apply changes before downloading");
+  await expect(help).toContainText(
+    "Save a new revision to include unsaved edits",
+  );
   const cutter = page.getByRole("button", {
     name: "Show Cut (cut)",
     exact: true,
@@ -26,7 +31,7 @@ test("composed downloads pin accepted source and restore changes the exported co
   await expect(cutter).toHaveAttribute("aria-pressed", "false");
   await cutter.click();
   await expect(
-    page.getByRole("button", { name: "Apply layers", exact: true }),
+    page.getByRole("button", { name: "Save new revision", exact: true }),
   ).toBeEnabled();
   const draftDownload = page.waitForEvent("download");
   await page
@@ -53,9 +58,20 @@ test("composed downloads pin accepted source and restore changes the exported co
   expect(controls.sourceRequests.at(-1)).toBe("r2");
   expect(first.suggestedFilename()).toContain("r2");
   expect(first.suggestedFilename()).toContain(".3mf");
+  const restore = page.getByRole("button", {
+    name: "Restore R1 as a new revision",
+    exact: true,
+  });
+  await expect(restore).toBeDisabled();
   await page
-    .getByRole("button", { name: "Restore R1 as a new revision", exact: true })
+    .getByRole("button", { name: "Return to draft", exact: true })
     .click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("button", { name: "Discard draft", exact: true })
+    .click();
+  await page.getByRole("button", { name: /R1 Historical revision/ }).click();
+  await restore.click();
   await expect(page.locator(".current-badge")).toHaveText("Current · R3");
   const restoredDownload = page.waitForEvent("download");
   await page
