@@ -6,6 +6,7 @@ import { objectTransformSchema } from "./objectTransform.schema.js";
 export const MODEL_FILE_LIMITS = Object.freeze({
   files: 64,
   objects: 100,
+  operations: 200,
   snapshotBytes: CAD_LIMITS.sourceBytes,
 });
 

@@ -25,6 +25,11 @@ import {
   type BrowserRenderer,
 } from "../../../browser-rendering/browser/index";
 
+import {
+  IconButton,
+  MinusIcon,
+  PlusIcon,
+} from "../../../../shared/icons/index";
 import { readCadViewportColors } from "../../../../shared/editor-theme/index";
 import { fetchRevisionSource } from "../services/revisionSource.service";
 
@@ -377,22 +382,18 @@ export function ModelViewer({
         >
           Reset view
         </button>
-        <button
-          type="button"
+        <IconButton
+          icon={PlusIcon}
+          label="Zoom in"
           onClick={() => issue("zoom-in")}
           disabled={!geometry}
-          aria-label="Zoom in"
-        >
-          +
-        </button>
-        <button
-          type="button"
+        />
+        <IconButton
+          icon={MinusIcon}
+          label="Zoom out"
           onClick={() => issue("zoom-out")}
           disabled={!geometry}
-          aria-label="Zoom out"
-        >
-          −
-        </button>
+        />
       </div>
       <div
         className="viewer-canvas"

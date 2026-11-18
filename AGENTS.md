@@ -76,6 +76,25 @@ See [alignment plan](docs/alignment-plan.md) for the staged migration and
 - Preserve operational errors and domain-specific failure modes. Close resources
   after failed startup and normal shutdown. Keep authorization at every persistence boundary.
 
+## Site icons and action buttons
+
+- Use Lucide React as the site’s only UI icon library. Import named icons and
+  `IconButton` from `apps/site/src/shared/icons/index.ts` in features. Shared
+  internals import the specific icon module. Add missing glyphs to
+  `uiIcons.constants.ts` and keep direct Lucide imports inside the icon module.
+  Use the shared icons instead of hand-drawn SVGs, emoji or text glyphs for
+  interface actions. Branding, model geometry and native browser controls are
+  outside this icon convention.
+- Prefer `IconButton` for familiar, unambiguous actions such as closing,
+  dismissing, zooming and moving an item up or down. Keep visible text for
+  actions whose glyph alone would be unclear, including primary actions such
+  as Apply or Export.
+- Give each icon button a concise, action-first accessible label and include the
+  affected item when several buttons do the same thing. Keep the SVG decorative.
+  Preserve native button semantics, keyboard focus, disabled state and a
+  touch-friendly hit area. Expose toggle state with `aria-pressed` or
+  `aria-expanded` as appropriate.
+
 ## Naming, size and documentation
 
 - Use kebab-case folders and camelCase stems with explicit roles, including inside

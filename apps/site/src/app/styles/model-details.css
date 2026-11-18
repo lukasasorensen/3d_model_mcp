@@ -1,3 +1,29 @@
+.model-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-6);
+  margin-block: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface-1);
+}
+.model-summary .model-facts {
+  flex: 1 1 20rem;
+}
+.model-summary .model-actions {
+  flex: 0 1 auto;
+  max-width: 100%;
+  margin-inline-start: auto;
+}
+.model-summary #export-help {
+  flex-basis: 100%;
+  color: var(--text-muted);
+  line-height: 1.4;
+  font-family: inherit;
+  font-size: 0.8rem;
+}
 .model-facts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5,10 +31,6 @@
 }
 .model-facts > div {
   min-width: 0;
-  padding: var(--space-2) 0;
-}
-.model-facts > div:last-child {
-  border-right: 0;
 }
 .model-facts span {
   display: block;
@@ -103,10 +125,8 @@
   gap: 7px;
 }
 .export-controls label {
-  width: 100%;
-  color: var(--accent-text);
-  text-align: right;
-  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
 }
 .revision-history {
   flex: 1;

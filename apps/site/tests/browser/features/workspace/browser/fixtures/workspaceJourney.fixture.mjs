@@ -128,15 +128,35 @@ export async function mountWorkspaceJourney(
     if (path.endsWith("/layers")) {
       const id =
         new URL(request.url()).searchParams.get("revision") ?? controls.current;
+      const exportLayers = {
+        version: 2,
+        files: [
+          { id: "body-file", name: "Body.scad" },
+          { id: "cut-file", name: "Cut.scad" },
+        ],
+        objects: [
+          { id: "body", name: "Body", fileId: "body-file" },
+          { id: "cut", name: "Cut", fileId: "cut-file" },
+        ],
+        composition: { operation: "difference", objectIds: ["body", "cut"] },
+        presentation: {
+          objectOrder: ["body", "cut"],
+          fileOrder: ["body-file", "cut-file"],
+          hiddenFileIds: [],
+          hiddenObjectIds: id === "r2" ? ["cut"] : [],
+        },
+      };
       return json({
         revision: id,
         sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
-        state: editingPanels
-          ? {
-              ...modelFiles,
-              files: modelFiles.files.map(({ id, name }) => ({ id, name })),
-            }
-          : null,
+        state: multiObject
+          ? exportLayers
+          : editingPanels
+            ? {
+                ...modelFiles,
+                files: modelFiles.files.map(({ id, name }) => ({ id, name })),
+              }
+            : null,
       });
     }
     if (path.endsWith("/objects")) {

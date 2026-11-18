@@ -14,7 +14,22 @@ export const objectLayersSnapshotSchema = z
     state: modelFileStateSchema.nullable(),
   })
   .strict();
+export const layerNameSchema = z
+  .string()
+  .trim()
+  .pipe(modelFileStateSchema.shape.objects.element.shape.name)
+  .refine(
+    (name) => name.isWellFormed() && !name.includes("\0"),
+    "Use valid Unicode text without NUL characters.",
+  );
 const layerOperationSchema = z.discriminatedUnion("op", [
+  z
+    .object({
+      op: z.literal("rename_object"),
+      id: opaqueIdSchema,
+      name: layerNameSchema,
+    })
+    .strict(),
   z
     .object({
       op: z.literal("set_file_visibility"),
@@ -44,7 +59,7 @@ export const applyObjectLayersSchema = z
     operations: z
       .array(layerOperationSchema)
       .min(1)
-      .max(MODEL_FILE_LIMITS.objects + MODEL_FILE_LIMITS.files + 1),
+      .max(MODEL_FILE_LIMITS.operations),
   })
   .strict();
 export type ObjectLayersSnapshot = z.infer<typeof objectLayersSnapshotSchema>;

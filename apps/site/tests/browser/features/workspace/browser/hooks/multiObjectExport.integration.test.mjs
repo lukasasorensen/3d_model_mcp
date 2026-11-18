@@ -15,9 +15,27 @@ test("composed downloads pin accepted source and restore changes the exported co
     page.getByRole("heading", { name: "Inspecting R2" }),
   ).toBeVisible();
   const help = page.locator("#export-help");
-  await expect(help).toContainText("Hidden files and objects are excluded");
+  await expect(help).toContainText(
+    "Downloads use the saved model and visible layers in R2.",
+  );
   await expect(help).toContainText("Apply changes before downloading");
-  await expect(help).toContainText("Display order does not change geometry");
+  const cutter = page.getByRole("button", {
+    name: "Show Cut (cut)",
+    exact: true,
+  });
+  await expect(cutter).toHaveAttribute("aria-pressed", "false");
+  await cutter.click();
+  await expect(
+    page.getByRole("button", { name: "Apply layers", exact: true }),
+  ).toBeEnabled();
+  const draftDownload = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Download STL · R2", exact: true })
+    .click();
+  expect(await readFile(await (await draftDownload).path(), "utf8")).toBe(
+    sources.r2,
+  );
+  expect(controls.sourceRequests.at(-1)).toBe("r2");
   await page.locator(".revision-history summary").click();
   await page.getByRole("button", { name: /R1 Historical revision/ }).click();
   await expect(

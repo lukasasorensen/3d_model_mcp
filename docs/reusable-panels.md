@@ -66,8 +66,12 @@ or whether parameters exist. Unsupported container-query browsers retain stackin
 All panels use normal document flow and the existing workspace scrolling surface;
 there are no panel height caps or independent scrollbars.
 
-In the combined editor, Layers uses the shared panel. Object controls appear in
-the editor toolbar, and Parameters uses its own floating panel. Default shared
+The combined editor places the shared Layers and Parameters panels beside or
+below its viewport at the thresholds in [Object layers](object-layers.md).
+Pass a `floating` configuration with the workspace toolbar element, title icon,
+and optional `initiallyOpen` setting. The disclosure button renders in that toolbar.
+The close button and Escape return focus there. The Layers list scrolls for long models.
+Default shared
 panels start expanded. Native buttons
 support pointer, Enter, Space, and normal Tab navigation with unique accessible
 names/IDs. Collapsed bodies remain mounted but are hidden and inert, preserving

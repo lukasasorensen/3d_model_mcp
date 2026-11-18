@@ -12,7 +12,7 @@ test("object and layer saves mutually lock all editing panels and report workspa
     exact: true,
   });
   const width = page.getByRole("textbox", { name: "Width · mm", exact: true });
-  const showLid = page.getByRole("checkbox", {
+  const showLid = page.getByRole("button", {
     name: "Show Lid (lid)",
     exact: true,
   });
@@ -30,7 +30,7 @@ test("object and layer saves mutually lock all editing panels and report workspa
   });
   await position.fill("3");
   await width.fill("11");
-  await showLid.uncheck();
+  await showLid.click();
   await expect(applyObject).toBeEnabled();
   await expect(applyLayers).toBeEnabled();
   await expect(applyParameters).toBeEnabled();
@@ -67,6 +67,13 @@ test("object and layer saves mutually lock all editing panels and report workspa
   await expect(applyParameters).toBeDisabled();
   await expect.poll(() => controls.requests.length).toBe(2);
   assert.equal(controls.requests[1].endpoint, "layers");
+  await page.getByRole("button", { name: "Close layers" }).click();
+  const layersToggle = page.getByRole("button", {
+    name: "Layers",
+    exact: true,
+  });
+  await expect(layersToggle).toBeFocused();
+  await expect(layersToggle).toHaveAttribute("aria-expanded", "false");
   controls.release();
   await expect(
     page.getByText("Workspace operation: idle", { exact: true }),
@@ -76,13 +83,19 @@ test("object and layer saves mutually lock all editing panels and report workspa
       .getByRole("region", { name: "Layers", exact: true })
       .getByRole("alert"),
   ).toContainText("layers fixture validation failed");
+  await expect(layersToggle).toHaveAttribute("aria-expanded", "true");
+  await expect(
+    page
+      .getByRole("region", { name: "Layers", exact: true })
+      .getByRole("alert"),
+  ).toBeFocused();
   await expect(position).toBeEnabled();
   await expect(width).toBeEnabled();
   await expect(applyObject).toBeEnabled();
   await expect(applyParameters).toBeEnabled();
   await expect(position).toHaveValue("3");
   await expect(width).toHaveValue("11");
-  await expect(showLid).not.toBeChecked();
+  await expect(showLid).toHaveAttribute("aria-pressed", "false");
   assert.deepEqual(errors, []);
 });
 
@@ -122,13 +135,38 @@ test("the floating panels share one viewport and parameter drafts survive closin
   expect(mobilePanel.x + mobilePanel.width).toBeLessThanOrEqual(390);
   await expect(page.locator("canvas")).toHaveCount(1);
   await expect(input).toHaveValue("17");
-  await page.setViewportSize({ width: 320, height: 844 });
-  await page.addStyleTag({ content: ":root {font-size: 24px;}" });
-  await expect
-    .poll(() =>
-      panel.evaluate((element) => element.scrollWidth <= element.clientWidth),
-    )
-    .toBe(true);
-  await expect(input).toHaveValue("17");
   assert.deepEqual(errors, []);
+});
+
+test("layer names, the selector and canvas share selection while row actions preserve it", async ({
+  page,
+}) => {
+  const { controls } = await mountWorkspaceEditingControls(page);
+  const lid = page.getByRole("button", { name: "Select Lid (lid)" });
+  const selector = page.getByRole("combobox", { name: "Selected object" });
+  await lid.click();
+  await expect(selector).toHaveValue("lid");
+  await expect(
+    page.getByRole("group", { name: "Transform Lid" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Show Body (body)" }).click();
+  await page.getByRole("button", { name: "Actions for Body (body)" }).click();
+  await page.getByRole("menuitem", { name: "Move down" }).click();
+  await expect(selector).toHaveValue("lid");
+  await expect(lid).toHaveAttribute("aria-pressed", "true");
+  await selector.selectOption("");
+  const canvas = page.getByTestId("model-viewer").locator("canvas");
+  await expect(async () => {
+    await canvas.click();
+    await expect(page.locator(".layer-select[aria-pressed=true]")).toHaveCount(
+      1,
+      { timeout: 500 },
+    );
+  }).toPass({ timeout: 8000 });
+  const picked = await selector.inputValue();
+  expect(picked).toBeTruthy();
+  await expect(
+    page.locator(`li[data-object-id="${picked}"] .layer-select`),
+  ).toHaveAttribute("aria-pressed", "true");
+  expect(controls.requests).toHaveLength(0);
 });

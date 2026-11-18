@@ -1,4 +1,5 @@
 "use client";
+import { OpenIcon } from "../../../../shared/icons/index";
 
 import type { ProjectSummary } from "@theoryfoundry/contracts";
 import { useRouter } from "next/navigation";
@@ -143,7 +144,9 @@ export function ProjectList({
                 href={`/projects/${encodeURIComponent(project.projectId)}`}
               >
                 <strong>{project.name}</strong>
-                <span aria-hidden="true">Open →</span>
+                <span aria-hidden="true" className="project-open-indicator">
+                  Open <OpenIcon size="1em" focusable="false" />
+                </span>
               </a>
               <details className="project-details">
                 <summary>

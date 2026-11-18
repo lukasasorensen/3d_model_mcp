@@ -6,6 +6,7 @@ import {
   type JSX,
   type ReactNode,
 } from "react";
+import { LayersIcon, ParametersIcon } from "../../../../shared/icons/index";
 import { ParameterPanel } from "../../../parameter-controls/browser/index";
 import { ObjectEditingPanel } from "../../../object-editing/browser/index";
 import { LayersPanel } from "../../../object-layers/browser/index";
@@ -36,6 +37,7 @@ function HydratedEditingControls({
   children,
   ...options
 }: WorkspaceEditingControlsProps): JSX.Element {
+  const [toolbar, setToolbar] = useState<HTMLDivElement | null>(null);
   const [parametersPending, setParametersPending] = useState(false);
   const [objectsPending, setObjectsPending] = useState(false);
   const [layersPending, setLayersPending] = useState(false);
@@ -53,22 +55,31 @@ function HydratedEditingControls({
           renderViewport={renderViewport}
           disabled={options.disabled || parametersPending || layersPending}
           onPending={setObjectsPending}
-          parameters={
-            <ParameterPanel
-              {...options}
-              floating
-              disabled={options.disabled || objectsPending || layersPending}
-              onPending={setParametersPending}
-            />
+          panelToggles={
+            <div className="editor-panel-toggles" ref={setToolbar} />
           }
+          renderPanels={(selection) => (
+            <>
+              <LayersPanel
+                {...options}
+                {...selection}
+                floating={{ toolbar, icon: LayersIcon, initiallyOpen: true }}
+                disabled={
+                  options.disabled || parametersPending || objectsPending
+                }
+                onPending={setLayersPending}
+              />
+              <ParameterPanel
+                {...options}
+                floating={{ toolbar, icon: ParametersIcon }}
+                disabled={options.disabled || objectsPending || layersPending}
+                onPending={setParametersPending}
+              />
+            </>
+          )}
         />
       </div>
       {children}
-      <LayersPanel
-        {...options}
-        disabled={options.disabled || parametersPending || objectsPending}
-        onPending={setLayersPending}
-      />
     </>
   );
 }
