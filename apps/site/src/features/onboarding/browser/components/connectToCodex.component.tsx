@@ -1,4 +1,5 @@
 "use client";
+import { CloseIcon, IconButton } from "../../../../shared/icons/index";
 import { useId, useRef, useState, type JSX } from "react";
 import { LocalWorkerSetup } from "./localWorkerSetup.component";
 import { HostedSetup } from "./hostedSetup.component";
@@ -55,9 +56,11 @@ export function ConnectToCodex({
             </h2>
           </div>
           <form method="dialog">
-            <button type="submit" aria-label="Close connection setup">
-              Close
-            </button>
+            <IconButton
+              type="submit"
+              icon={CloseIcon}
+              label="Close connection setup"
+            />
           </form>
         </header>
         <div className="setup-content">

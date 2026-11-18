@@ -7,9 +7,12 @@ import { useBrowserRenderer } from "../../../browser-rendering/browser/index";
 const BYTE_LIMIT = 10 * 1024 * 1024;
 const OPERAND_TRIANGLE_LIMIT = 250_000;
 const TOTAL_TRIANGLE_LIMIT = 500_000;
+const TOTAL_TRIANGLE_ERROR =
+  "The object preview exceeds its total triangle limit.";
 
 export function useObjectPreview(
   sources: ReadonlyMap<string, string> | undefined,
+  visibleObjects: readonly { fileId: string }[],
   ready: boolean,
 ): {
   meshes: ReadonlyMap<string, BufferGeometry> | undefined;
@@ -63,9 +66,7 @@ export function useObjectPreview(
         }
         triangles += mesh.getAttribute("position").count / 3;
         if (triangles > TOTAL_TRIANGLE_LIMIT)
-          throw new Error(
-            "The object preview exceeds its total triangle limit.",
-          );
+          throw new Error(TOTAL_TRIANGLE_ERROR);
         meshes.set(id, mesh);
       }
       setPreview({ sources: entries, meshes });
@@ -92,8 +93,18 @@ export function useObjectPreview(
     };
   }, [ready, renderer, sources]);
 
-  return {
-    meshes: ready && preview?.sources === sources ? preview?.meshes : undefined,
-    error: ready && preview?.sources === sources ? preview?.error : undefined,
-  };
+  if (!ready || !preview || preview.sources !== sources)
+    return { meshes: undefined, error: undefined };
+  const { meshes, error } = preview;
+  if (meshes) {
+    // Shared geometry is loaded once, but each visible object draws its own triangles.
+    let drawnTriangles = 0;
+    for (const object of visibleObjects) {
+      const mesh = meshes.get(object.fileId);
+      if (mesh) drawnTriangles += mesh.getAttribute("position").count / 3;
+      if (drawnTriangles > TOTAL_TRIANGLE_LIMIT)
+        return { meshes: undefined, error: TOTAL_TRIANGLE_ERROR };
+    }
+  }
+  return { meshes, error };
 }

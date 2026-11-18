@@ -55,3 +55,15 @@ select:disabled {
 .button-primary:hover:not(:disabled) {
   background: var(--accent-hover);
 }
+
+button.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+}
+.icon-button svg {
+  flex: none;
+}

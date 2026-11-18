@@ -160,9 +160,14 @@ for (const adapter of ["filesystem", "database"])
       assert.equal(read.revision, first.revisionId);
       assert.equal(read.state.files[0].body, undefined);
       assert.deepEqual(read.state.presentation.objectOrder, ["body", "lid"]);
+      const rename = { op: "rename_object", id: "lid", name: "New lid" };
       const saved = await apply(
         first.revisionId,
-        [...visibility(false), { op: "reorder_objects", ids: ["lid", "body"] }],
+        [
+          rename,
+          ...visibility(false),
+          { op: "reorder_objects", ids: ["lid", "body"] },
+        ],
         "hide-reorder",
       );
       assert.equal(saved.type, "saved");
@@ -174,6 +179,10 @@ for (const adapter of ["filesystem", "database"])
         "lid",
         "body",
       ]);
+      assert.deepEqual(
+        current.modelFiles.objects.find((o) => o.id === "lid"),
+        { id: "lid", name: "New lid", fileId: "b" },
+      );
       assert.deepEqual(current.modelFiles.composition, modelFiles.composition);
       assert.equal(current.source.includes("translate([15,0,0])"), false);
       const count = renders;
@@ -182,6 +191,7 @@ for (const adapter of ["filesystem", "database"])
           await apply(
             first.revisionId,
             [
+              rename,
               ...visibility(false),
               { op: "reorder_objects", ids: ["lid", "body"] },
             ],

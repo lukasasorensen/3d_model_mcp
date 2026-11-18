@@ -31,13 +31,19 @@ interface ObjectEditingPanelProps extends ObjectEditingOptions {
     renderEditingScene?: (orbit: OrbitControls) => ReactNode;
     showAccepted: boolean;
   }): ReactNode;
-  parameters?: ReactNode;
+  panelToggles?: ReactNode;
+  renderPanels?(selection: {
+    selectedId: string | null;
+    canSelect(id: string): boolean;
+    select(id: string): void;
+  }): ReactNode;
 }
 
 export function ObjectEditingPanel({
   previewReady,
   renderViewport,
-  parameters,
+  panelToggles,
+  renderPanels,
   ...options
 }: ObjectEditingPanelProps): JSX.Element {
   const state = useObjectEditing(options);
@@ -81,41 +87,35 @@ export function ObjectEditingPanel({
         .map((file) => file.id),
     );
   }, [acceptedFiles]);
-  const selectedFileId = state.selectedObject?.fileId;
-  const selectedHiddenFile =
-    selectedFileId && hiddenFileIds.has(selectedFileId)
-      ? selectedFileId
-      : undefined;
   const sources = useMemo(
     () =>
       files && parametersSnapshot
         ? objectPreviewSources(
-            files.filter(
-              (file) =>
-                !hiddenFileIds.has(file.id) || file.id === selectedHiddenFile,
-            ),
+            files.filter((file) => !hiddenFileIds.has(file.id)),
             parametersSnapshot,
           )
         : undefined,
-    [files, hiddenFileIds, parametersSnapshot, selectedHiddenFile],
+    [files, hiddenFileIds, parametersSnapshot],
   );
   const currentScene =
     !state.historical && !state.stale && Boolean(options.selectedRevision);
-  const { meshes, error: previewError } = useObjectPreview(
-    sources,
-    currentScene && previewReady,
-  );
   const objects = useMemo(() => {
     if (!state.draft) return [];
     const ids = new Set(visibleModelObjectIds(state.draft));
-    return state.draft.objects.filter(
-      (object) => ids.has(object.id) || object.id === state.selectedId,
-    );
-  }, [state.draft, state.selectedId]);
-  const showOperands = Boolean(meshes && (state.selectedObject || state.dirty));
+    return state.draft.objects.filter((object) => ids.has(object.id));
+  }, [state.draft]);
+  const { meshes, error: previewError } = useObjectPreview(
+    sources,
+    objects,
+    currentScene && previewReady,
+  );
+  const selectedVisible = objects.find(
+    (object) => object.id === state.selectedId,
+  );
+  const showOperands = Boolean(meshes && (selectedVisible || state.dirty));
 
   const selectedGeometry =
-    state.selectedObject && meshes?.get(state.selectedObject.fileId);
+    selectedVisible && meshes?.get(selectedVisible.fileId);
   const dimensions = useMemo(
     () =>
       selectedGeometry && transform
@@ -125,7 +125,7 @@ export function ObjectEditingPanel({
   );
 
   function select(id: string): void {
-    state.select(id);
+    if (!state.select(id)) return;
     setValid(true);
     setDragError(undefined);
   }
@@ -177,7 +177,7 @@ export function ObjectEditingPanel({
       <h2 className="sr-only" id={headingId}>
         Edit objects
       </h2>
-      <div className="editor-tools">
+      <div className="editor-heading-bar">
         {state.draft && !state.historical && (
           <div className="editor-object-selector">
             <label htmlFor={selectorId}>Selected object</label>
@@ -196,93 +196,102 @@ export function ObjectEditingPanel({
             </select>
           </div>
         )}
-        {(state.selectedObject || state.dirty) && !state.historical && (
-          <div
-            className="editor-tool-panel"
-            role="group"
-            aria-label="Object editing tools"
-          >
-            {state.selectedObject && transform && (
-              <ObjectTransformEditor
-                key={`${state.selectedId}:${state.snapshot?.revision}:${editorReset}`}
-                objectName={state.selectedObject.name}
-                transform={transform}
-                mode={mode}
-                setMode={setMode}
-                onChange={state.changeTransform}
-                disabled={disabled}
-                onValidityChange={setValid}
-              />
-            )}
-            <div className="parameter-actions">
-              <button
-                type="button"
-                disabled={!showOperands || !state.selectedId}
-                onClick={() => {
-                  if (state.selectedId) setFitRequest({ id: state.selectedId });
-                }}
-              >
-                Fit selected object
-              </button>
-              <button
-                type="button"
-                disabled={
-                  state.loading || state.pending || (!state.dirty && valid)
-                }
-                onClick={() => {
-                  state.cancel();
-                  setEditorReset((value) => value + 1);
-                  setDragError(undefined);
-                  setValid(true);
-                }}
-              >
-                Cancel object changes
-              </button>
-              <button
-                type="button"
-                className="editor-apply"
-                disabled={disabled || !state.dirty || !valid}
-                onClick={() => void state.apply()}
-              >
-                {state.pending ? "Applying…" : "Apply object changes"}
-              </button>
-            </div>
-          </div>
-        )}
+        {panelToggles}
       </div>
-      <div className="editor-viewport">
-        {renderViewport({
-          showAccepted: !showOperands,
-          ...(meshes && {
-            renderEditingScene: (orbit: OrbitControls) => (
-              <ObjectTransformScene
-                meshes={meshes}
-                objects={objects}
-                selectedId={state.selectedId}
-                showOperands={showOperands}
-                mode={mode}
-                disabled={disabled}
-                orbit={orbit}
-                fitRequest={fitRequest}
-                onSelect={select}
-                onChange={state.changeTransform}
-                onError={setDragError}
-              />
-            ),
-          }),
+      {(state.selectedObject || state.dirty) && !state.historical && (
+        <div
+          className="editor-tool-panel"
+          role="group"
+          aria-label="Object editing tools"
+        >
+          {state.selectedObject && transform && (
+            <ObjectTransformEditor
+              key={`${state.selectedId}:${state.snapshot?.revision}:${editorReset}`}
+              objectName={state.selectedObject.name}
+              transform={transform}
+              mode={mode}
+              setMode={setMode}
+              onChange={state.changeTransform}
+              disabled={disabled}
+              onValidityChange={setValid}
+            />
+          )}
+          <div className="parameter-actions">
+            <button
+              type="button"
+              disabled={!selectedGeometry}
+              onClick={() => {
+                if (state.selectedId) setFitRequest({ id: state.selectedId });
+              }}
+            >
+              Fit selected object
+            </button>
+            <button
+              type="button"
+              disabled={
+                state.loading || state.pending || (!state.dirty && valid)
+              }
+              onClick={() => {
+                state.cancel();
+                setEditorReset((value) => value + 1);
+                setDragError(undefined);
+                setValid(true);
+              }}
+            >
+              Cancel object changes
+            </button>
+            <button
+              type="button"
+              className="editor-apply"
+              disabled={disabled || !state.dirty || !valid}
+              onClick={() => void state.apply()}
+            >
+              {state.pending ? "Applying…" : "Apply object changes"}
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="editor-content">
+        <div className="editor-viewport">
+          {renderViewport({
+            showAccepted: !showOperands,
+            ...(meshes && {
+              renderEditingScene: (orbit: OrbitControls) => (
+                <ObjectTransformScene
+                  meshes={meshes}
+                  objects={objects}
+                  selectedId={state.selectedId}
+                  showOperands={showOperands}
+                  mode={mode}
+                  disabled={disabled}
+                  orbit={orbit}
+                  fitRequest={fitRequest}
+                  onSelect={select}
+                  onChange={state.changeTransform}
+                  onError={setDragError}
+                />
+              ),
+            }),
+          })}
+        </div>
+        {renderPanels?.({
+          selectedId: state.selectedId,
+          canSelect: state.canSelect,
+          select,
         })}
       </div>
-      {parameters}
       <div className="editor-feedback" aria-busy={state.pending}>
         {state.selectedObject && currentScene && (
           <p className="action-help">
-            {previewError
-              ? `Object preview unavailable. Use the exact fields to edit. ${previewError}`
-              : showOperands && state.draft?.composition.operation !== "union"
-                ? "Editing individual operands. Apply to validate the boolean result."
-                : !meshes && previewReady
-                  ? "Loading object geometry…"
-                  : ""}
+            {!selectedVisible
+              ? "This object is hidden in Layers. You can still edit its exact transform."
+              : previewError
+                ? `Object preview unavailable. Use the exact fields to edit. ${previewError}`
+                : showOperands && state.draft?.composition.operation !== "union"
+                  ? "Editing individual operands. Apply to validate the boolean result."
+                  : !meshes && previewReady
+                    ? "Loading object geometry…"
+                    : ""}
           </p>
         )}
         {dimensions && (

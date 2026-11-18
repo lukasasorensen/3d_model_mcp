@@ -319,71 +319,75 @@ export function ModelWorkspace({
                 />
               )}
             >
-              <div className="model-facts" aria-label="Model facts">
-                <div>
-                  <span>Revision</span>
-                  <strong>{selectedLabel}</strong>
+              <section
+                className="model-summary"
+                aria-label="Model summary and downloads"
+              >
+                <div className="model-facts" aria-label="Model facts">
+                  <div>
+                    <span>Revision</span>
+                    <strong>{selectedLabel}</strong>
+                  </div>
+                  <div>
+                    <span>Dimensions · mm</span>
+                    <strong>{dimensions}</strong>
+                  </div>
+                  <div>
+                    <span>Preview</span>
+                    <strong>
+                      {previewStatusLabel(
+                        Boolean(selectedManifest),
+                        previewLoadState,
+                      )}
+                    </strong>
+                  </div>
                 </div>
-                <div>
-                  <span>Dimensions · mm</span>
-                  <strong>{dimensions}</strong>
+                <div className="model-actions">
+                  <div className="export-controls">
+                    <label htmlFor="export-format">Download format</label>
+                    <select
+                      id="export-format"
+                      value={exportFormat}
+                      onChange={(event) => {
+                        setExportFormat(event.target.value as DownloadFormat);
+                        setExportState("idle");
+                      }}
+                      disabled={
+                        parameterPending ||
+                        isMcpRendering ||
+                        !currentManifest ||
+                        state.active ||
+                        exportState === "preparing"
+                      }
+                    >
+                      <option value="stl">STL</option>
+                      <option value="glb">GLB</option>
+                      <option value="3mf">3MF</option>
+                    </select>
+                    <button
+                      type="button"
+                      className="export-button"
+                      onClick={() => void exportCurrent()}
+                      disabled={
+                        parameterPending ||
+                        isMcpRendering ||
+                        !currentManifest ||
+                        state.active ||
+                        exportState === "preparing"
+                      }
+                      aria-describedby="export-help"
+                    >
+                      {exportState === "preparing"
+                        ? `Preparing ${exportFormat.toUpperCase()}…`
+                        : `Download ${exportFormat.toUpperCase()} · ${currentLabel}`}
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <span>Preview</span>
-                  <strong>
-                    {previewStatusLabel(
-                      Boolean(selectedManifest),
-                      previewLoadState,
-                    )}
-                  </strong>
-                </div>
-              </div>
-              <div className="model-actions">
-                <div className="export-controls">
-                  <label htmlFor="export-format">Download format</label>
-                  <select
-                    id="export-format"
-                    value={exportFormat}
-                    onChange={(event) => {
-                      setExportFormat(event.target.value as DownloadFormat);
-                      setExportState("idle");
-                    }}
-                    disabled={
-                      parameterPending ||
-                      isMcpRendering ||
-                      !currentManifest ||
-                      state.active ||
-                      exportState === "preparing"
-                    }
-                  >
-                    <option value="stl">STL</option>
-                    <option value="glb">GLB</option>
-                    <option value="3mf">3MF</option>
-                  </select>
-                  <button
-                    type="button"
-                    className="export-button"
-                    onClick={() => void exportCurrent()}
-                    disabled={
-                      parameterPending ||
-                      isMcpRendering ||
-                      !currentManifest ||
-                      state.active ||
-                      exportState === "preparing"
-                    }
-                    aria-describedby="export-help"
-                  >
-                    {exportState === "preparing"
-                      ? `Preparing ${exportFormat.toUpperCase()}…`
-                      : `Download ${exportFormat.toUpperCase()} · ${currentLabel}`}
-                  </button>
-                </div>
-              </div>
-              <ExportPolicy
-                currentLabel={currentLabel}
-                format={exportFormat}
-                available={Boolean(currentManifest)}
-              />
+                <ExportPolicy
+                  currentLabel={currentLabel}
+                  available={Boolean(currentManifest)}
+                />
+              </section>
             </WorkspaceEditingControls>
           </div>
           {exportState === "failed" && (

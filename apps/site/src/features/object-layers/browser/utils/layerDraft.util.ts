@@ -1,8 +1,10 @@
+import { MODEL_FILE_LIMITS } from "@theoryfoundry/contracts";
 import type {
   ApplyObjectLayers,
   ObjectLayersSnapshot,
 } from "../../objectLayers.schema";
 export interface LayerDraft {
+  names: ReadonlyMap<string, string>;
   order: string[];
   hidden: string[];
   hiddenFiles: string[];
@@ -12,6 +14,9 @@ export function layerDraft(
 ): LayerDraft {
   const presentation = snapshot?.state?.presentation;
   return {
+    names: new Map(
+      snapshot?.state?.objects.map((object) => [object.id, object.name]),
+    ),
     order: [...(presentation?.objectOrder ?? [])],
     hidden: [...(presentation?.hiddenObjectIds ?? [])],
     hiddenFiles: [...(presentation?.hiddenFileIds ?? [])],
@@ -33,6 +38,11 @@ export function layerOperations(
         id,
         visible: !draft.hidden.includes(id),
       });
+  for (const object of snapshot.state.objects) {
+    const name = draft.names.get(object.id);
+    if (name !== undefined && name !== object.name)
+      operations.push({ op: "rename_object", id: object.id, name });
+  }
   for (const file of snapshot.state.files)
     if (
       original.hiddenFiles.includes(file.id) !==
@@ -48,7 +58,10 @@ export function layerOperations(
 export function layerDraftProblem(
   snapshot: ObjectLayersSnapshot | undefined,
   draft: LayerDraft,
+  operationCount: number,
 ): string {
+  if (operationCount > MODEL_FILE_LIMITS.operations)
+    return `This draft contains ${operationCount} operations. Undo some changes to apply at most ${MODEL_FILE_LIMITS.operations} at once, then stage the rest.`;
   const state = snapshot?.state;
   if (!state) return "";
   const visible = (id: string): boolean => {

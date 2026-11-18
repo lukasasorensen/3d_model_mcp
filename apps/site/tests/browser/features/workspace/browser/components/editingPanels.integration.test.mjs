@@ -28,6 +28,7 @@ async function assertPanelGeometry(page, expectedContainerWidth) {
             document.documentElement.scrollWidth > window.innerWidth,
           toolbar: box(".editor-tool-panel"),
           preview: box(".editor-viewport"),
+          layers: box(".editor-layer-panel"),
           parameters: box(".editor-parameter-panel"),
         };
       });
@@ -42,11 +43,17 @@ async function assertPanelGeometry(page, expectedContainerWidth) {
     }
     expect(parameters).not.toBeNull();
     expect(parameters.overflows, "Parameters overflow").toBe(false);
-    if (geometry.container >= 780) {
+    if (geometry.container >= (geometry.layers ? 1200 : 780)) {
+      if (geometry.layers)
+        expect(geometry.layers.right).toBeLessThanOrEqual(preview.x);
       expect(parameters.x).toBeGreaterThanOrEqual(preview.right);
       if (toolbar) expect(parameters.y).toBeGreaterThanOrEqual(toolbar.bottom);
     } else {
-      expect(parameters.y).toBeGreaterThanOrEqual(preview.bottom);
+      if (geometry.layers)
+        expect(geometry.layers.y).toBeGreaterThanOrEqual(preview.bottom);
+      expect(parameters.y).toBeGreaterThanOrEqual(
+        geometry.layers?.bottom ?? preview.bottom,
+      );
     }
   }).toPass({ timeout: 5000 });
 }
@@ -86,7 +93,19 @@ test("populated editing panels remain separate with chat, narrow containers, and
       exact: true,
     }),
   ).toBeVisible();
+  const layersToggle = page.getByRole("button", {
+    name: "Layers",
+    exact: true,
+  });
+  await layersToggle.click();
   for (const width of [779, 780, 781]) {
+    await page.locator(".workspace-editor").evaluate((el, width) => {
+      el.style.maxWidth = `${width}px`;
+    }, width);
+    await assertPanelGeometry(page, width);
+  }
+  await layersToggle.click();
+  for (const width of [1199, 1200, 1201]) {
     await page.locator(".workspace-editor").evaluate((el, width) => {
       el.style.maxWidth = `${width}px`;
     }, width);
