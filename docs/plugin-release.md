@@ -11,7 +11,7 @@ shared. Public directory publication and live client acceptance remain release g
 skill. `tooling/mcp-plugin/` builds client packages and local validation catalogs.
 Publisher: Lukas Sorensen. Production origin: `https://3dai.theoryfoundry.com`.
 Version: 0.18.0, matching the root release. The site is at 0.16.0, the runtime at
-0.11.0, and the optional npm installer at 0.2.0.
+0.11.1, and the optional npm installer at 0.2.0.
 
 ```sh
 pnpm pack:plugins
