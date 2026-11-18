@@ -96,7 +96,9 @@ function App(){const [revision,setRevision]=useState("r1");window.showRevision=s
   await page
     .getByRole("combobox", { name: "Selected object" })
     .selectOption("body");
-  await page.getByRole("button", { name: "Parameters", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Parameters panel", exact: true })
+    .click();
   await page
     .getByRole("textbox", { name: "Position X · mm", exact: true })
     .waitFor();

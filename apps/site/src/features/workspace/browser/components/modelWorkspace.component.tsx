@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "../../../../shared/controls/index";
+import { DownloadIcon } from "../../../../shared/icons/index";
 import { useId, type JSX } from "react";
 
 import dynamic from "next/dynamic";
@@ -98,6 +100,7 @@ export function ModelWorkspace({
   });
   const { mobile, section, selectSection } =
     useWorkspaceSection(isSidebarChatEnabled);
+  const exportFormatLabel = exportFormat.toUpperCase();
   const controlOptions = {
     projectId,
     currentRevision: state.currentRevision,
@@ -266,7 +269,7 @@ export function ModelWorkspace({
                 (restorePending
                   ? "Restoring as a new revision…"
                   : exportState === "preparing"
-                    ? `Preparing ${exportFormat.toUpperCase()}…`
+                    ? `Preparing ${exportFormatLabel}…`
                     : "Working on your request…"),
             ].map(
               (message, index) =>
@@ -364,9 +367,14 @@ export function ModelWorkspace({
                       <option value="glb">GLB</option>
                       <option value="3mf">3MF</option>
                     </select>
-                    <button
-                      type="button"
+                    <Button
                       className="export-button"
+                      icon={<DownloadIcon size="1em" focusable="false" />}
+                      accessibleLabel={
+                        exportState === "preparing"
+                          ? `Preparing ${exportFormatLabel} download · ${currentLabel}`
+                          : `Download ${exportFormatLabel} · ${currentLabel}`
+                      }
                       onClick={() => void exportCurrent()}
                       disabled={
                         parameterPending ||
@@ -378,9 +386,9 @@ export function ModelWorkspace({
                       aria-describedby="export-help"
                     >
                       {exportState === "preparing"
-                        ? `Preparing ${exportFormat.toUpperCase()}…`
-                        : `Download ${exportFormat.toUpperCase()} · ${currentLabel}`}
-                    </button>
+                        ? `Preparing ${exportFormatLabel}…`
+                        : exportFormatLabel}
+                    </Button>
                   </div>
                 </div>
                 <ExportPolicy

@@ -69,12 +69,16 @@ test("numeric transforms validate all axes and report rotated/scaled bounds", as
     await page.evaluate(() => window.transform.position),
     [12, 0, 0],
   );
-  await page.getByRole("button", { name: "Rotate", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Rotate selected object", exact: true })
+    .click();
   await page.getByRole("textbox", { name: "Rotation Z · degrees" }).fill("90");
   await expect(
     page.getByText("Object bounds · X 20.000 mm · Y 10.000 mm · Z 30.000 mm"),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Scale", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Scale selected object", exact: true })
+    .click();
   await page.getByRole("textbox", { name: "Scale X · factor" }).fill("0");
   await expect(page.getByRole("button", { name: "Apply test" })).toBeDisabled();
   await page.getByRole("textbox", { name: "Scale Y · factor" }).fill("3");
@@ -223,7 +227,10 @@ for (const scenario of [
   }) => {
     const errors = await mount(page);
     await page
-      .getByRole("button", { name: scenario.mode, exact: true })
+      .getByRole("button", {
+        name: `${scenario.mode} selected object`,
+        exact: true,
+      })
       .click();
     const project = await projection(page);
     await drag(page, project(scenario.start), project(scenario.end));

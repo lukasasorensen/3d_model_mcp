@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "../../../../shared/controls/index";
 import {
   useCallback,
   useEffect,
@@ -166,8 +167,8 @@ export function AiConnections({
               >
                 Make default
               </button>
-              <button
-                type="button"
+              <Button
+                accessibleLabel={`Test connection ${connection.name}`}
                 disabled={busy}
                 onClick={() =>
                   void operation(async () => {
@@ -175,8 +176,8 @@ export function AiConnections({
                   }, "Structured tool calling passed.")
                 }
               >
-                Test connection
-              </button>
+                Test
+              </Button>
               <button
                 type="button"
                 disabled={busy}
@@ -339,9 +340,13 @@ export function AiConnections({
             />
             Use as account default
           </label>
-          <button className="button-primary" type="submit">
-            Save connection
-          </button>
+          <Button
+            className="button-primary"
+            type="submit"
+            accessibleLabel="Save connection"
+          >
+            Save
+          </Button>
           {editing && (
             <button
               type="button"

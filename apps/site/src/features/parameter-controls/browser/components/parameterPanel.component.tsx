@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "../../../../shared/controls/index";
 import {
   Panel,
   PanelActions,
@@ -166,29 +167,36 @@ export function ParameterPanel({
         ))}
         {!state.historical && parameters.length > 0 && (
           <PanelActions>
-            <button
+            <Button
               type="button"
               disabled={disabled}
               onClick={() => state.reset(true)}
+              accessibleLabel="Reset to defaults"
             >
-              Reset to defaults
-            </button>
-            <button
+              Reset
+            </Button>
+            <Button
               type="button"
               disabled={
                 state.pending || state.loading || !state.validation.dirty
               }
               onClick={() => state.reset()}
+              accessibleLabel="Discard changes"
             >
-              Discard changes
-            </button>
-            <button
+              Discard
+            </Button>
+            <Button
               className={floating ? "editor-apply" : undefined}
               type="submit"
               disabled={!canApply}
+              accessibleLabel={
+                state.pending
+                  ? "Applying parameter changes…"
+                  : "Apply parameter changes"
+              }
             >
-              {state.pending ? "Applying…" : "Apply changes"}
-            </button>
+              {state.pending ? "Applying…" : "Apply"}
+            </Button>
             {state.pending && (
               <button type="button" onClick={state.cancel}>
                 Cancel update

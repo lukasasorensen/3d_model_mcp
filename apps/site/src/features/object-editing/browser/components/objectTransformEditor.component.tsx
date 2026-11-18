@@ -3,6 +3,7 @@ import type { JSX } from "react";
 import type { TransformControlsMode } from "three/addons/controls/TransformControls.js";
 import type { ObjectTransform } from "@theoryfoundry/contracts";
 import {
+  IconButton,
   TranslateIcon,
   RotateIcon,
   ScaleIcon,
@@ -44,15 +45,15 @@ export function ObjectTransformEditor({
             ["scale", "Scale", ScaleIcon],
           ] as const
         ).map(([value, label, Icon]) => (
-          <button
-            type="button"
+          <IconButton
+            icon={Icon}
+            label={`${label} selected object`}
+            revealLabel={label}
             key={value}
             aria-pressed={mode === value}
             disabled={disabled}
             onClick={() => setMode(value)}
-          >
-            <Icon aria-hidden="true" focusable="false" size="1em" /> {label}
-          </button>
+          />
         ))}
       </div>
       <TransformNumericFields
