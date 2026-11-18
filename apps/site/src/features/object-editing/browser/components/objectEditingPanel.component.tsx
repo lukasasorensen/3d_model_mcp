@@ -34,7 +34,7 @@ interface ObjectEditingPanelProps extends ObjectEditingOptions {
   panelToggles?: ReactNode;
   renderPanels?(selection: {
     selectedId: string | null;
-    selectionPending: boolean;
+    canSelect(id: string): boolean;
     select(id: string): void;
   }): ReactNode;
 }
@@ -99,15 +99,16 @@ export function ObjectEditingPanel({
   );
   const currentScene =
     !state.historical && !state.stale && Boolean(options.selectedRevision);
-  const { meshes, error: previewError } = useObjectPreview(
-    sources,
-    currentScene && previewReady,
-  );
   const objects = useMemo(() => {
     if (!state.draft) return [];
     const ids = new Set(visibleModelObjectIds(state.draft));
     return state.draft.objects.filter((object) => ids.has(object.id));
   }, [state.draft]);
+  const { meshes, error: previewError } = useObjectPreview(
+    sources,
+    objects,
+    currentScene && previewReady,
+  );
   const selectedVisible = objects.find(
     (object) => object.id === state.selectedId,
   );
@@ -124,7 +125,7 @@ export function ObjectEditingPanel({
   );
 
   function select(id: string): void {
-    state.select(id);
+    if (!state.select(id)) return;
     setValid(true);
     setDragError(undefined);
   }
@@ -275,7 +276,7 @@ export function ObjectEditingPanel({
         </div>
         {renderPanels?.({
           selectedId: state.selectedId,
-          selectionPending: state.loading || state.pending || options.disabled,
+          canSelect: state.canSelect,
           select,
         })}
       </div>

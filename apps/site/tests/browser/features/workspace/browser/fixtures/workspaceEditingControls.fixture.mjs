@@ -1,3 +1,4 @@
+/* global window */
 import { build } from "esbuild";
 import { root, applicationStyles } from "../../../../browser.fixture.mjs";
 
@@ -31,16 +32,19 @@ export async function mountWorkspaceEditingControls(page) {
       unit: "mm",
     },
   ];
-  const common = { revision: "r1", sourceHash: "a".repeat(64) };
-  const state = {
-    ...modelFiles,
-    files: modelFiles.files.map(({ id, name }) => ({ id, name })),
-  };
-  const snapshots = {
-    objects: { ...common, modelFiles, parameters },
-    layers: { ...common, state },
-    parameters: { ...common, editable: true, parameters },
-  };
+  function snapshotsFor(revision, files) {
+    const common = { revision, sourceHash: "a".repeat(64) };
+    const state = {
+      ...files,
+      files: files.files.map(({ id, name }) => ({ id, name })),
+    };
+    return {
+      objects: { ...common, modelFiles: files, parameters },
+      layers: { ...common, state },
+      parameters: { ...common, editable: true, parameters },
+    };
+  }
+  let snapshots = snapshotsFor("r1", modelFiles);
   const controls = { requests: [], release: undefined };
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -78,7 +82,7 @@ export async function mountWorkspaceEditingControls(page) {
     stdin: {
       contents: `import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import {WorkspaceEditingControls} from './src/features/workspace/browser/components/workspaceEditingControls.component';import {ModelViewer} from './src/features/model-preview/browser/index';import {BrowserRendererContext} from './src/features/browser-rendering/browser/index';
 const bytes=new TextEncoder().encode('solid test\\nfacet normal 0 0 1\\nouter loop\\nvertex 0 0 0\\nvertex 10 0 0\\nvertex 0 20 0\\nendloop\\nendfacet\\nfacet normal 0 0 1\\nouter loop\\nvertex 10 0 0\\nvertex 10 20 0\\nvertex 0 20 0\\nendloop\\nendfacet\\nendsolid test');const renderer={cachedPreview:()=>bytes};
-function App(){const [pending,setPending]=useState(false);return <BrowserRendererContext.Provider value={renderer}><main><p>Workspace operation: {pending?'pending':'idle'}</p><WorkspaceEditingControls previewReady renderViewport={(editing)=><ModelViewer {...editing} projectId="project" revisionId="r1" sourceHash={'a'.repeat(64)} currentLabel="R1" updating={pending}/>} projectId="project" currentRevision="r1" selectedRevision="r1" sessionId="session" disabled={false} acquire={async()=>true} release={()=>{}} render={async()=>{}} refresh={async()=>true} onPending={setPending}/></main></BrowserRendererContext.Provider>};createRoot(document.getElementById('root')).render(<App/>);`,
+function App(){const [revision,setRevision]=useState("r1");window.showRevision=setRevision;const [pending,setPending]=useState(false);return <BrowserRendererContext.Provider value={renderer}><main><p>Workspace operation: {pending?'pending':'idle'}</p><WorkspaceEditingControls previewReady renderViewport={(editing)=><ModelViewer {...editing} projectId="project" revisionId={revision} sourceHash={'a'.repeat(64)} currentLabel="R1" updating={pending}/>} projectId="project" currentRevision={revision} selectedRevision={revision} sessionId="session" disabled={false} acquire={async()=>true} release={()=>{}} render={async()=>{}} refresh={async()=>true} onPending={setPending}/></main></BrowserRendererContext.Provider>};createRoot(document.getElementById('root')).render(<App/>);`,
       resolveDir: root + "/apps/site",
       loader: "tsx",
     },
@@ -102,5 +106,9 @@ function App(){const [pending,setPending]=useState(false);return <BrowserRendere
   await page
     .getByRole("button", { name: "Show Lid (lid)", exact: true })
     .waitFor();
-  return { controls, errors };
+  async function showRevision(revision, files) {
+    snapshots = snapshotsFor(revision, files);
+    await page.evaluate((id) => window.showRevision(id), revision);
+  }
+  return { controls, errors, modelFiles, showRevision };
 }

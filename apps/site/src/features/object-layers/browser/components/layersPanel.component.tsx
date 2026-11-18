@@ -21,13 +21,13 @@ import {
 import { layerDraft } from "../utils/layerDraft.util";
 export function LayersPanel({
   selectedId,
-  selectionPending = false,
+  canSelect,
   select,
   floating,
   ...options
 }: ObjectLayersOptions & {
   selectedId: string | null;
-  selectionPending?: boolean;
+  canSelect(id: string): boolean;
   select(id: string): void;
   floating?: PanelProps["floating"];
 }): JSX.Element {
@@ -133,9 +133,10 @@ export function LayersPanel({
                 disabled={disabled}
                 {...grip(id)}
               />
-              {editing === id && !disabled ? (
+              {editing === id && !state.historical ? (
                 <LayerNameField
                   initialName={name}
+                  disabled={disabled}
                   onFinish={(value) => {
                     if (value !== undefined) state.rename(id, value);
                     setEditing(null);
@@ -153,7 +154,7 @@ export function LayersPanel({
                   type="button"
                   className="layer-select"
                   disabled={
-                    selectionPending ||
+                    !canSelect(id) ||
                     state.pending ||
                     state.loading ||
                     options.disabled

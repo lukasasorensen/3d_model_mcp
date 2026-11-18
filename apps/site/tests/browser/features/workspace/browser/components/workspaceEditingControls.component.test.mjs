@@ -173,3 +173,74 @@ test("layer names, the selector and canvas share selection while row actions pre
   ).toHaveAttribute("aria-pressed", "true");
   expect(controls.requests).toHaveLength(0);
 });
+
+test("an unfinished inline rename survives a parameter save lock", async ({
+  page,
+}) => {
+  const { controls } = await mountWorkspaceEditingControls(page);
+  await page.getByRole("button", { name: "Actions for Lid (lid)" }).click();
+  await page.getByRole("menuitem", { name: "Rename" }).click();
+  const rename = page.getByRole("textbox", { name: "Rename Lid" });
+  await rename.fill("Travel lid");
+  await page.getByRole("textbox", { name: "Width · mm" }).fill("14");
+  await page
+    .getByRole("button", { name: "Apply changes", exact: true })
+    .click();
+  await expect(rename).toBeDisabled();
+  await expect(rename).toHaveValue("Travel lid");
+  await expect.poll(() => controls.requests.length).toBe(1);
+  controls.release();
+  await expect(rename).toBeEnabled();
+  await rename.press("Enter");
+  await expect(
+    page.getByRole("button", { name: "Select Travel lid (lid)" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Apply layers", exact: true }),
+  ).toBeEnabled();
+});
+
+test("reselecting the active layer preserves invalid transform input", async ({
+  page,
+}) => {
+  await mountWorkspaceEditingControls(page);
+  const apply = page.getByRole("button", { name: "Apply object changes" });
+  const y = page.getByRole("textbox", { name: "Position Y · mm" });
+  await page.getByRole("textbox", { name: "Position X · mm" }).fill("3");
+  await y.fill("");
+  await expect(apply).toBeDisabled();
+  await page.getByRole("button", { name: "Select Body (body)" }).click();
+  await expect(y).toHaveValue("");
+  await expect(y).toHaveAttribute("aria-invalid", "true");
+  await expect(apply).toBeDisabled();
+  await y.fill("4");
+  await expect(apply).toBeEnabled();
+});
+
+test("a retained layer draft cannot select an object removed in the current revision", async ({
+  page,
+}) => {
+  const { modelFiles, showRevision } =
+    await mountWorkspaceEditingControls(page);
+  await page.getByRole("button", { name: "Show Lid (lid)" }).click();
+  const next = structuredClone(modelFiles);
+  next.objects = next.objects.filter((object) => object.id !== "lid");
+  next.composition.objectIds = ["body"];
+  next.presentation.objectOrder = ["body"];
+  await showRevision("r2", next);
+  const selector = page.getByRole("combobox", { name: "Selected object" });
+  await expect(selector.getByRole("option", { name: "Lid · lid" })).toHaveCount(
+    0,
+  );
+  await expect(selector).toBeEnabled();
+  const body = page.getByRole("button", { name: "Select Body (body)" });
+  await expect(body).toBeEnabled();
+  await expect(
+    page.getByRole("button", { name: "Select Lid (lid)" }),
+  ).toBeDisabled();
+  await expect(selector).toHaveValue("body");
+  await expect(body).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page.getByRole("group", { name: "Transform Body" }),
+  ).toBeVisible();
+});

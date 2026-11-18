@@ -3,9 +3,11 @@ import { layerNameSchema } from "../../objectLayers.schema";
 
 export function LayerNameField({
   initialName,
+  disabled,
   onFinish,
 }: {
   initialName: string;
+  disabled: boolean;
   onFinish(name?: string): void;
 }): JSX.Element {
   const [name, setName] = useState(initialName);
@@ -19,6 +21,7 @@ export function LayerNameField({
     <form
       onSubmit={(event) => {
         event.preventDefault();
+        if (disabled) return;
         const result = layerNameSchema.safeParse(name);
         if (result.success) onFinish(result.data);
         else
@@ -29,6 +32,7 @@ export function LayerNameField({
     >
       <input
         ref={input}
+        disabled={disabled}
         aria-label={`Rename ${initialName}`}
         value={name}
         aria-invalid={Boolean(error)}

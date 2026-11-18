@@ -438,3 +438,53 @@ test("a saved layer visibility change hides even the selected object", async ({
   await expect(fit).toBeEnabled();
   assert.deepEqual(errors, []);
 });
+
+test("the operand preview counts visible instances sharing a source file", async ({
+  page,
+}) => {
+  const { controls, snapshot, errors } = await mountObjectEditingPanel(page, {
+    operandTriangles: 6250,
+  });
+  const files = structuredClone(controls.snapshots.r1.modelFiles);
+  const objects = Array.from({ length: 81 }, (_, i) => ({
+    ...files.objects[0],
+    id: i === 0 ? "box" : `box-${i}`,
+  }));
+  const order = objects.map((object) => object.id);
+  const shared = {
+    ...files,
+    version: 2,
+    objects,
+    composition: { ...files.composition, objectIds: order },
+    presentation: {
+      fileOrder: ["box-file"],
+      objectOrder: order,
+      hiddenFileIds: [],
+      hiddenObjectIds: [],
+    },
+  };
+  controls.snapshots.r2 = snapshot("r2", shared);
+  controls.current = "r2";
+  await page.evaluate(() => window.refresh());
+  const fit = page.getByRole("button", { name: "Fit selected object" });
+  await expect(
+    page.getByText("The object preview exceeds its total triangle limit.", {
+      exact: false,
+    }),
+  ).toBeVisible();
+  await expect(fit).toBeDisabled();
+  await expect(
+    page.getByRole("textbox", { name: "Position X · mm" }),
+  ).toBeEnabled();
+  shared.presentation.hiddenObjectIds = ["box-80"];
+  controls.snapshots.r3 = snapshot("r3", shared);
+  controls.current = "r3";
+  await page.evaluate(() => window.refresh());
+  await expect(fit).toBeEnabled();
+  await expect(
+    page.getByText("The object preview exceeds its total triangle limit.", {
+      exact: false,
+    }),
+  ).toHaveCount(0);
+  assert.deepEqual(errors, []);
+});

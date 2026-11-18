@@ -58,7 +58,8 @@ export function useObjectEditing(options: ObjectEditingOptions): {
   canPaste: boolean;
   retryOutcome: boolean;
   retry(): Promise<void>;
-  select(id: string): void;
+  canSelect(id: string): boolean;
+  select(id: string): boolean;
   changeTransform(transform: ObjectTransform): void;
   copy(): void;
   paste(): void;
@@ -94,6 +95,12 @@ export function useObjectEditing(options: ObjectEditingOptions): {
     snapshot && snapshot.revision !== options.currentRevision,
   );
   const blocked = options.disabled || pending || loading || historical || stale;
+  function canSelect(id: string): boolean {
+    if (options.disabled || loading || pending) return false;
+    return (
+      id === "" || Boolean(draft?.objects.some((object) => object.id === id))
+    );
+  }
   const selectedObject = draft?.objects.find((item) => item.id === selectedId);
   useEffect(() => {
     mounted.current = true;
@@ -346,8 +353,12 @@ export function useObjectEditing(options: ObjectEditingOptions): {
       Boolean(error && attempt.current),
     retry: () =>
       attempt.current ? commit(attempt.current.mode) : Promise.resolve(),
-    select(id): void {
-      if (!pending) setSelectedId(id || null);
+    canSelect,
+    select(id): boolean {
+      const nextId = id || null;
+      if (nextId === selectedId || !canSelect(id)) return false;
+      setSelectedId(nextId);
+      return true;
     },
     changeTransform(transform): void {
       if (blocked || !selectedId) return;
