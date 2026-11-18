@@ -3,40 +3,45 @@ import { expect } from "playwright/test";
 import { test } from "../../../../browser.fixture.mjs";
 import { mountWorkspaceJourney } from "../fixtures/workspaceJourney.fixture.mjs";
 
-async function assertPanelGeometry(page) {
-  const panels = page.locator(".panel-stack > .panel");
-  await expect(panels).toHaveCount(3);
-  const boxes = await panels.evaluateAll((elements) =>
-    elements.map((el) => {
-      const r = el.getBoundingClientRect();
-      return {
-        x: r.x,
-        y: r.y,
-        width: r.width,
-        right: r.right,
-        bottom: r.bottom,
-      };
-    }),
-  );
-  for (let i = 0; i < boxes.length; i++) {
-    expect(boxes[i].width).toBeGreaterThanOrEqual(270);
-    if (i) expect(boxes[i].y).toBeGreaterThanOrEqual(boxes[i - 1].bottom);
-  }
-  const container = await page.locator(".panel-layout").boundingBox();
-  const main = await page.locator(".panel-layout-main").boundingBox();
-  if (container.width >= 960)
-    expect(boxes[0].x).toBeGreaterThanOrEqual(main.x + main.width + 16);
-  else expect(boxes[0].y).toBeGreaterThanOrEqual(main.y + main.height);
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
-    ),
-  ).toBe(true);
-  expect(
-    await panels.evaluateAll((elements) =>
-      elements.every((el) => el.scrollWidth <= el.clientWidth),
-    ),
-  ).toBe(true);
+async function assertPanelGeometry(page, expectedContainerWidth) {
+  await expect(async () => {
+    // Read every box in the same layout pass after the container query settles.
+    const { containerWidth, main, panels, pageOverflows } = await page
+      .locator(".panel-layout")
+      .evaluate((layout) => {
+        const box = (element) => {
+          const { x, y, width, right, bottom } =
+            element.getBoundingClientRect();
+          return { x, y, width, right, bottom };
+        };
+        return {
+          containerWidth: layout.getBoundingClientRect().width,
+          main: box(layout.querySelector(".panel-layout-main")),
+          panels: [...layout.querySelectorAll(".panel-stack > .panel")].map(
+            (panel) => ({
+              ...box(panel),
+              overflows: panel.scrollWidth > panel.clientWidth,
+            }),
+          ),
+          pageOverflows:
+            document.documentElement.scrollWidth > window.innerWidth,
+        };
+      });
+
+    if (expectedContainerWidth !== undefined)
+      expect(containerWidth).toBe(expectedContainerWidth);
+    expect(panels).toHaveLength(3);
+    for (const [index, panel] of panels.entries()) {
+      expect(panel.width).toBeGreaterThanOrEqual(270);
+      expect(panel.overflows).toBe(false);
+      if (index)
+        expect(panel.y).toBeGreaterThanOrEqual(panels[index - 1].bottom);
+    }
+    if (containerWidth >= 960)
+      expect(panels[0].x).toBeGreaterThanOrEqual(main.right + 16);
+    else expect(panels[0].y).toBeGreaterThanOrEqual(main.bottom);
+    expect(pageOverflows).toBe(false);
+  }).toPass({ timeout: 5000 });
 }
 
 test("populated editing panels remain separate with chat, narrow containers, and enlarged text", async ({
@@ -68,7 +73,7 @@ test("populated editing panels remain separate with chat, narrow containers, and
     await page.locator(".model-primary").evaluate((el, width) => {
       el.style.maxWidth = `${width}px`;
     }, width);
-    await assertPanelGeometry(page);
+    await assertPanelGeometry(page, width);
   }
   await page.locator(".model-primary").evaluate((el) => {
     el.style.maxWidth = "";
