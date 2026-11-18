@@ -38,6 +38,7 @@ test("disclosures retain drafts, keep headers operable while busy, and reopen be
   await expect(layers.getByRole("alert")).toBeFocused();
   await expect(input).toHaveValue("Retain this draft");
   await page.evaluate(() => window.clearPanel());
+  await expect(layers.locator('[role="alert"]')).toHaveCount(0);
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
@@ -45,10 +46,12 @@ test("disclosures retain drafts, keep headers operable while busy, and reopen be
   await expect(layers.getByRole("alert")).toBeFocused();
   await toggle.click();
   await page.evaluate(() => window.clearPanel());
+  await expect(layers.locator('[role="alert"]')).toHaveCount(0);
   await page.evaluate(() => window.failPanel(true));
   await expect(layers.getByRole("alert")).toBeFocused();
   await toggle.click();
   await page.evaluate(() => window.clearPanel());
+  await expect(layers.locator('[role="alert"]')).toHaveCount(0);
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await page.evaluate(() => window.failPanel(true));
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
