@@ -5,6 +5,10 @@ import { test } from "../../../../browser.fixture.mjs";
 import { mountObjectEditingPanel } from "../fixtures/objectEditingPanel.fixture.mjs";
 import { overlapNextObjectReads } from "../fixtures/overlappingObjectReads.fixture.mjs";
 
+async function editorShortcut(page, shortcut) {
+  await page.locator(".viewer-canvas").press(shortcut);
+}
+
 test("unsupported legacy models explain compatibility without offering failed edits", async ({
   page,
 }) => {
@@ -80,9 +84,7 @@ test("lost save acknowledgement retries the exact candidate and retains undo his
   ).toBeVisible();
   assert.equal(controls.requests[1].requestId, requestId);
   assert.equal(Object.keys(controls.snapshots).length, 2);
-  await page
-    .getByRole("button", { name: "Undo object edit", exact: true })
-    .click();
+  await editorShortcut(page, "Control+z");
   await expect(page.getByText("Edit undone.", { exact: true })).toBeVisible();
   await expect(x).toHaveValue("0");
   assert.deepEqual(errors, []);
@@ -115,9 +117,9 @@ test("object drafts cancel, apply, copy, paste, undo and redo independently", as
     controls.requests[0].modelFiles.objects[0].transform.position[0],
     12,
   );
-  await page.getByRole("button", { name: "Copy object", exact: true }).click();
+  await editorShortcut(page, "Control+c");
   assert.equal(controls.requests.length, 1);
-  await page.getByRole("button", { name: "Paste object", exact: true }).click();
+  await editorShortcut(page, "Control+v");
   await expect(
     page.getByRole("combobox", { name: "Selected object" }).locator("option"),
   ).toHaveCount(3);
@@ -127,7 +129,7 @@ test("object drafts cancel, apply, copy, paste, undo and redo independently", as
   await expect(
     page.getByRole("combobox", { name: "Selected object" }).locator("option"),
   ).toHaveCount(2);
-  await page.getByRole("button", { name: "Paste object", exact: true }).click();
+  await editorShortcut(page, "Control+v");
   await x.fill("40");
   await apply.click();
   await expect(
@@ -142,31 +144,20 @@ test("object drafts cancel, apply, copy, paste, undo and redo independently", as
   );
   assert.notEqual(pasted.objects[0].fileId, pasted.objects[1].fileId);
   await overlapNextObjectReads(page);
-  await page
-    .getByRole("button", { name: "Undo object edit", exact: true })
-    .click();
+  await editorShortcut(page, "Control+z");
   await expect(page.getByText("Edit undone.", { exact: true })).toBeVisible();
   assert.equal(
     controls.snapshots[controls.current].modelFiles.objects.length,
     1,
   );
-  await expect(
-    page.getByRole("button", { name: "Redo object edit", exact: true }),
-  ).toBeEnabled();
-  await page
-    .getByRole("button", { name: "Undo object edit", exact: true })
-    .click();
+  await editorShortcut(page, "Control+z");
   await expect(page.getByText("Preview: r5", { exact: true })).toBeVisible();
   await expect(x).toHaveValue("0");
   await overlapNextObjectReads(page);
-  await page
-    .getByRole("button", { name: "Redo object edit", exact: true })
-    .click();
+  await editorShortcut(page, "Control+Shift+z");
   await expect(page.getByText("Edit redone.", { exact: true })).toBeVisible();
   await expect(x).toHaveValue("12");
-  await page
-    .getByRole("button", { name: "Redo object edit", exact: true })
-    .click();
+  await editorShortcut(page, "Control+Shift+z");
   await expect(page.getByText("Preview: r7", { exact: true })).toBeVisible();
   assert.equal(
     controls.snapshots[controls.current].modelFiles.objects.length,
@@ -185,18 +176,17 @@ test("an external accepted revision clears local undo and redo history", async (
     .getByRole("button", { name: "Apply object changes", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Undo object edit", exact: true }),
-  ).toBeEnabled();
+    page.getByText("Object changes saved.", { exact: true }),
+  ).toBeVisible();
+  await expect(x).toBeEnabled();
   controls.snapshots.r3 = snapshot("r3");
   controls.current = "r3";
   await page.evaluate(() => window.refresh());
   await expect(page.getByText("Preview: r3", { exact: true })).toBeVisible();
   await expect(x).toHaveValue("0");
   await expect(x).toBeEnabled();
-  for (const name of ["Undo object edit", "Redo object edit"])
-    await expect(
-      page.getByRole("button", { name, exact: true }),
-    ).toBeDisabled();
+  await editorShortcut(page, "Control+z");
+  await editorShortcut(page, "Control+y");
   assert.equal(controls.requests.length, 1);
   assert.deepEqual(errors, []);
 });
@@ -260,8 +250,8 @@ test("object controls reflow on mobile and historical views cannot mutate", asyn
   );
   await page.evaluate(() => window.chooseRevision("r1"));
   await expect(
-    page.getByRole("button", { name: "Copy object", exact: true }),
-  ).toBeDisabled();
+    page.getByRole("textbox", { name: "Position X · mm" }),
+  ).toHaveCount(0);
   assert.equal(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -311,9 +301,6 @@ test("a stalled post-save refresh releases editing and exact retry recovers hist
   ).toBeVisible();
   assert.equal(controls.requests[1].requestId, requestId);
   assert.equal(Object.keys(controls.snapshots).length, 2);
-  await expect(
-    page.getByRole("button", { name: "Undo object edit", exact: true }),
-  ).toBeEnabled();
   assert.deepEqual(errors, []);
 });
 
@@ -330,9 +317,7 @@ test("an ambiguous undo preserves its immutable request and redo snapshot", asyn
     page.getByText("Object changes saved.", { exact: true }),
   ).toBeVisible();
   controls.mode = "lost";
-  await page
-    .getByRole("button", { name: "Undo object edit", exact: true })
-    .click();
+  await editorShortcut(page, "Control+z");
   await expect(
     page.getByRole("button", { name: "Retry saved outcome", exact: true }),
   ).toBeEnabled();
@@ -345,9 +330,7 @@ test("an ambiguous undo preserves its immutable request and redo snapshot", asyn
   await expect(page.getByText("Edit undone.", { exact: true })).toBeVisible();
   assert.equal(controls.requests[2].requestId, undoRequest);
   assert.equal(Object.keys(controls.snapshots).length, 3);
-  await page
-    .getByRole("button", { name: "Redo object edit", exact: true })
-    .click();
+  await editorShortcut(page, "Control+Shift+z");
   await expect(page.getByText("Edit redone.", { exact: true })).toBeVisible();
   await expect(x).toHaveValue("13");
   assert.deepEqual(errors, []);
@@ -364,14 +347,52 @@ test("clearing the selected object disables copy until another object is selecte
   await selector.selectOption("");
   await expect(selector).toHaveValue("");
   await expect(
-    page.getByRole("button", { name: "Copy object", exact: true }),
-  ).toBeDisabled();
+    page.getByRole("textbox", { name: "Position X · mm" }),
+  ).toHaveCount(0);
   await expect(
     page.getByRole("textbox", { name: "Position X · mm", exact: true }),
   ).toHaveCount(0);
+  await editorShortcut(page, "Meta+c");
+  await expect(page.getByText("Copied Box within this project.")).toHaveCount(
+    0,
+  );
   await selector.selectOption("box");
+  await editorShortcut(page, "Meta+c");
+  await expect(page.getByText("Copied Box within this project.")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Copy object", exact: true }),
+    page.getByRole("button", { name: /^(Copy|Paste|Undo|Redo) object/ }),
+  ).toHaveCount(0);
+  assert.deepEqual(errors, []);
+});
+
+test("the main canvas selects objects and the toolbar keeps text shortcuts native", async ({
+  page,
+}) => {
+  const { controls, errors } = await mountObjectEditingPanel(page, {
+    select: false,
+  });
+  const tools = page.getByRole("group", { name: "Object editing tools" });
+  const canvas = page.getByTestId("model-viewer").locator("canvas");
+  await expect(tools).toHaveCount(0);
+  await expect(canvas).toHaveCount(1);
+  await expect(async () => {
+    await canvas.click();
+    await expect(tools).toBeVisible({ timeout: 500 });
+  }).toPass({ timeout: 8000 });
+  await expect(
+    page.getByRole("combobox", { name: "Selected object" }),
+  ).toHaveValue("box");
+  await expect(page.locator("canvas")).toHaveCount(1);
+  await expect(
+    page.getByRole("button", { name: "Fit selected object" }),
   ).toBeEnabled();
+  const position = page.getByRole("textbox", { name: "Position X · mm" });
+  await position.fill("8");
+  await position.press("Control+c");
+  await position.press("Control+v");
+  await expect(
+    page.getByRole("combobox", { name: "Selected object" }).locator("option"),
+  ).toHaveCount(2);
+  assert.equal(controls.requests.length, 0);
   assert.deepEqual(errors, []);
 });

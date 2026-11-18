@@ -66,7 +66,9 @@ or whether parameters exist. Unsupported container-query browsers retain stackin
 All panels use normal document flow and the existing workspace scrolling surface;
 there are no panel height caps or independent scrollbars.
 
-Layers, Edit objects, and Parameters start expanded in that order. Native buttons
+In the combined editor, Layers uses the shared panel. Object controls appear in
+the editor toolbar, and Parameters uses its own floating panel. Default shared
+panels start expanded. Native buttons
 support pointer, Enter, Space, and normal Tab navigation with unique accessible
 names/IDs. Collapsed bodies remain mounted but are hidden and inert, preserving
 drafts, object history and in-flight work. Headers remain operable while busy and

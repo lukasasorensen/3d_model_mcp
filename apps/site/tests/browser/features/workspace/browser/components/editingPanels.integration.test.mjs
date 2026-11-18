@@ -5,43 +5,64 @@ import { mountWorkspaceJourney } from "../fixtures/workspaceJourney.fixture.mjs"
 
 async function assertPanelGeometry(page, expectedContainerWidth) {
   await expect(async () => {
-    // Read every box in the same layout pass after the container query settles.
-    const { containerWidth, main, panels, pageOverflows } = await page
-      .locator(".panel-layout")
-      .evaluate((layout) => {
-        const box = (element) => {
+    const geometry = await page
+      .locator(".workspace-editor")
+      .evaluate((editor) => {
+        const box = (selector) => {
+          const element = editor.querySelector(selector);
+          if (!element || element.hidden) return null;
           const { x, y, width, right, bottom } =
             element.getBoundingClientRect();
-          return { x, y, width, right, bottom };
+          return {
+            x,
+            y,
+            width,
+            right,
+            bottom,
+            overflows: element.scrollWidth > element.clientWidth,
+          };
         };
         return {
-          containerWidth: layout.getBoundingClientRect().width,
-          main: box(layout.querySelector(".panel-layout-main")),
-          panels: [...layout.querySelectorAll(".panel-stack > .panel")].map(
-            (panel) => ({
-              ...box(panel),
-              overflows: panel.scrollWidth > panel.clientWidth,
-            }),
-          ),
-          pageOverflows:
+          container: editor.getBoundingClientRect().width,
+          workspaceOverflows:
             document.documentElement.scrollWidth > window.innerWidth,
+          toolbar: box(".editor-tool-panel"),
+          preview: box(".editor-viewport"),
+          parameters: box(".editor-parameter-panel"),
         };
       });
-
+    const { toolbar, preview, parameters } = geometry;
     if (expectedContainerWidth !== undefined)
-      expect(containerWidth).toBe(expectedContainerWidth);
-    expect(panels).toHaveLength(3);
-    for (const [index, panel] of panels.entries()) {
-      expect(panel.width).toBeGreaterThanOrEqual(270);
-      expect(panel.overflows).toBe(false);
-      if (index)
-        expect(panel.y).toBeGreaterThanOrEqual(panels[index - 1].bottom);
+      expect(geometry.container).toBe(expectedContainerWidth);
+    expect(geometry.workspaceOverflows, JSON.stringify(geometry)).toBe(false);
+    expect(preview).not.toBeNull();
+    if (toolbar) {
+      expect(toolbar.overflows, "Transform toolbar overflow").toBe(false);
+      expect(preview.y).toBeGreaterThanOrEqual(toolbar.bottom);
     }
-    if (containerWidth >= 960)
-      expect(panels[0].x).toBeGreaterThanOrEqual(main.right + 16);
-    else expect(panels[0].y).toBeGreaterThanOrEqual(main.bottom);
-    expect(pageOverflows).toBe(false);
+    expect(parameters).not.toBeNull();
+    expect(parameters.overflows, "Parameters overflow").toBe(false);
+    if (geometry.container >= 780) {
+      expect(parameters.x).toBeGreaterThanOrEqual(preview.right);
+      if (toolbar) expect(parameters.y).toBeGreaterThanOrEqual(toolbar.bottom);
+    } else {
+      expect(parameters.y).toBeGreaterThanOrEqual(preview.bottom);
+    }
   }).toPass({ timeout: 5000 });
+}
+
+const parameterToggle = (page) =>
+  page.getByRole("button", { name: "Parameters", exact: true });
+const parameterRegion = (page) =>
+  page.getByRole("region", { name: "Parameters", exact: true });
+const objectPosition = (page) =>
+  page.getByRole("textbox", { name: "Position X · mm", exact: true });
+
+async function selectMainObject(page) {
+  await page
+    .getByRole("combobox", { name: "Selected object" })
+    .selectOption("main-object");
+  await expect(objectPosition(page)).toBeVisible();
 }
 
 test("populated editing panels remain separate with chat, narrow containers, and enlarged text", async ({
@@ -55,27 +76,23 @@ test("populated editing panels remain separate with chat, narrow containers, and
     false,
     true,
   );
-  const parameters = page.getByRole("region", {
-    name: "Parameters",
-    exact: true,
-  });
+  await parameterToggle(page).click();
+  await selectMainObject(page);
+  const parameters = parameterRegion(page);
   await expect(parameters.getByRole("textbox").first()).toHaveValue("2");
-  await expect(
-    page.getByRole("textbox", { name: "Position X · mm", exact: true }),
-  ).toBeVisible();
   await expect(
     page.getByRole("button", {
       name: "Select Main object with a deliberately long descriptive name (main-object)",
       exact: true,
     }),
   ).toBeVisible();
-  for (const width of [959, 960, 961]) {
-    await page.locator(".model-primary").evaluate((el, width) => {
+  for (const width of [779, 780, 781]) {
+    await page.locator(".workspace-editor").evaluate((el, width) => {
       el.style.maxWidth = `${width}px`;
     }, width);
     await assertPanelGeometry(page, width);
   }
-  await page.locator(".model-primary").evaluate((el) => {
+  await page.locator(".workspace-editor").evaluate((el) => {
     el.style.maxWidth = "";
   });
   for (const width of [1600, 1440, 1007, 1008, 1009, 390, 320]) {
@@ -120,10 +137,8 @@ test("chat width drives panel layout without changing panel order or drafts", as
     false,
     true,
   );
-  const field = page
-    .getByRole("region", { name: "Parameters", exact: true })
-    .getByRole("textbox")
-    .first();
+  await parameterToggle(page).click();
+  const field = parameterRegion(page).getByRole("textbox").first();
   await field.fill("3");
   await assertPanelGeometry(page);
   const chatToggle = page.locator(".chat-toggle");
@@ -147,48 +162,29 @@ test("collapsing real edits preserves drafts and pending work, then validation e
     false,
     true,
   );
-  const objects = page.getByRole("region", {
-    name: "Edit objects",
-    exact: true,
-  });
-  const toggle = page.getByRole("button", {
-    name: "Edit objects",
-    exact: true,
-  });
-  const x = objects.getByRole("textbox", {
-    name: "Position X · mm",
-    exact: true,
-  });
-  await x.fill("12");
+  await selectMainObject(page);
+  const position = objectPosition(page);
+  const toggle = parameterToggle(page);
   await toggle.click();
-  await expect(x).toBeHidden();
-  await expect(
-    objects.getByText("Unsaved changes", { exact: true }),
-  ).toBeVisible();
+  const parameters = parameterRegion(page);
+  const field = parameters.getByRole("textbox").first();
+  await field.fill("3");
   await toggle.click();
-  await expect(x).toHaveValue("12");
-  await objects
-    .getByRole("button", { name: "Apply object changes", exact: true })
+  await expect(field).toBeHidden();
+  await toggle.click();
+  await expect(field).toHaveValue("3");
+  await parameters
+    .getByRole("button", { name: "Apply changes", exact: true })
     .click();
   await expect.poll(() => Boolean(controls.releaseEdit)).toBe(true);
+  await expect(position).toBeDisabled();
   await toggle.click();
-  await expect(objects.getByText("Working", { exact: true })).toBeVisible();
-  await expect(
-    page
-      .getByRole("region", { name: "Parameters", exact: true })
-      .getByRole("textbox")
-      .first(),
-  ).toBeDisabled();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
   controls.releaseEdit();
-  await expect(objects.getByRole("alert")).toBeFocused();
+  await expect(parameters.getByRole("alert")).toBeFocused();
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
-  await expect(x).toHaveValue("12");
-  await expect(
-    page
-      .getByRole("region", { name: "Parameters", exact: true })
-      .getByRole("textbox")
-      .first(),
-  ).toBeEnabled();
+  await expect(field).toHaveValue("3");
+  await expect(position).toBeEnabled();
   expect(errors).toEqual([]);
 });
 
@@ -224,15 +220,18 @@ for (const mode of ["empty", "loading", "error"]) {
       false,
       mode !== "empty",
     );
-    await expect(page.locator(".panel")).toHaveCount(3);
+    await expect(
+      page.getByRole("region", { name: "Layers", exact: true }),
+    ).toBeVisible();
+    const toggle = parameterToggle(page);
+    if (mode !== "error") await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
     if (mode === "loading")
       await expect(
         page.getByText("Loading parameters…", { exact: true }),
       ).toBeVisible();
     if (mode === "error")
-      await expect(
-        page.locator(".panel-indicators").getByText("Error", { exact: true }),
-      ).toHaveCount(3);
+      await expect(parameterRegion(page).getByRole("alert")).toBeVisible();
     await assertPanelGeometry(page);
     release();
     expect(errors).toEqual([]);

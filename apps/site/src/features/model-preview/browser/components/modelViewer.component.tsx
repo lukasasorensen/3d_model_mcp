@@ -1,5 +1,5 @@
 "use client";
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 
 import { Canvas, useThree } from "@react-three/fiber";
 import {
@@ -12,7 +12,6 @@ import {
 } from "react";
 import type { BufferGeometry, Material } from "three";
 import {
-  Color,
   MeshStandardMaterial,
   PerspectiveCamera,
   Sphere,
@@ -26,6 +25,7 @@ import {
   type BrowserRenderer,
 } from "../../../browser-rendering/browser/index";
 
+import { readCadViewportColors } from "../../../../shared/editor-theme/index";
 import { fetchRevisionSource } from "../services/revisionSource.service";
 
 const PREVIEW_BYTE_LIMIT = 10 * 1024 * 1024;
@@ -85,25 +85,31 @@ function Scene({
   command,
   autoFit,
   onCommitted,
+  renderEditingScene,
+  showAccepted,
 }: {
   geometry: BufferGeometry;
   command: ViewCommand;
   autoFit: boolean;
   onCommitted: (geometry: BufferGeometry) => void;
+  renderEditingScene?: ModelViewerProps["renderEditingScene"];
+  showAccepted: boolean;
 }): JSX.Element {
   const { camera, gl, invalidate } = useThree();
-  const controls = useMemo(
-    () => new OrbitControls(camera, gl.domElement),
-    [camera, gl.domElement],
+  const colors = useMemo(
+    () => readCadViewportColors(gl.domElement),
+    [gl.domElement],
   );
+  const lastCommandId = useRef(0);
+  const controls = useMemo(() => new OrbitControls(camera), [camera]);
   const material = useMemo(
     () =>
       new MeshStandardMaterial({
-        color: new Color("#ffffff"),
+        color: colors.model,
         roughness: 0.72,
         metalness: 0.05,
       }),
-    [],
+    [colors.model],
   );
   const fit = useCallback(() => {
     if (!geometry.boundingSphere) geometry.computeBoundingSphere();
@@ -123,6 +129,7 @@ function Scene({
   }, [camera, controls, geometry, invalidate]);
 
   useEffect(() => {
+    controls.connect(gl.domElement);
     controls.rotateSpeed = 0.5;
     controls.enableDamping = false;
     controls.enablePan = true;
@@ -135,7 +142,7 @@ function Scene({
       controls.dispose();
       disposeMaterialResources(material);
     };
-  }, [controls, invalidate, material]);
+  }, [controls, gl.domElement, invalidate, material]);
 
   useLayoutEffect(() => {
     if (autoFit) fit();
@@ -143,7 +150,8 @@ function Scene({
   }, [autoFit, fit, geometry, onCommitted]);
 
   useEffect(() => {
-    if (!command.id) return;
+    if (command.id === lastCommandId.current) return;
+    lastCommandId.current = command.id;
     if (command.type === "fit" || command.type === "reset") fit();
     else if (command.type === "zoom-in")
       camera.position.lerp(controls.target, 0.15);
@@ -173,11 +181,18 @@ function Scene({
       <ambientLight intensity={1.25} />
       <directionalLight position={[5, -4, 8]} intensity={2.1} />
       <gridHelper
-        args={[400, 40, "#52665a", "#34423a"]}
+        args={[400, 40, colors.gridAxis, colors.gridLine]}
+        position={[0, 0, -0.01]}
         rotation={[Math.PI / 2, 0, 0]}
       />
       <axesHelper args={[24]} />
-      <mesh geometry={geometry} material={material} dispose={null} />
+      <mesh
+        geometry={geometry}
+        material={material}
+        dispose={null}
+        visible={showAccepted}
+      />
+      {renderEditingScene?.(controls)}
     </>
   );
 }
@@ -219,6 +234,17 @@ async function loadBrowserStl(
   return geometry;
 }
 
+export interface ModelViewerProps {
+  projectId: string;
+  revisionId?: string | undefined;
+  sourceHash?: string | undefined;
+  currentLabel: string;
+  updating: boolean;
+  onLoadStateChange?: (state: PreviewLoadState) => void;
+  renderEditingScene?: ((orbit: OrbitControls) => ReactNode) | undefined;
+  showAccepted?: boolean | undefined;
+}
+
 export function ModelViewer({
   projectId,
   revisionId,
@@ -226,14 +252,9 @@ export function ModelViewer({
   currentLabel,
   updating,
   onLoadStateChange,
-}: {
-  projectId: string;
-  revisionId?: string | undefined;
-  sourceHash?: string | undefined;
-  currentLabel: string;
-  updating: boolean;
-  onLoadStateChange?: (state: PreviewLoadState) => void;
-}): JSX.Element {
+  renderEditingScene,
+  showAccepted = true,
+}: ModelViewerProps): JSX.Element {
   const renderer = useBrowserRenderer();
   const [geometry, setGeometry] = useState<BufferGeometry>();
   const [loadState, setLoadState] = useState<PreviewLoadState>("empty");
@@ -319,7 +340,7 @@ export function ModelViewer({
   );
 
   const issue = (type: ViewCommand["type"]): void =>
-    setCommand({ id: command.id + 1, type });
+    setCommand((previous) => ({ id: previous.id + 1, type }));
   const keyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
     const map: Record<string, ViewCommand["type"]> = {
       ArrowLeft: "orbit-left",
@@ -335,6 +356,7 @@ export function ModelViewer({
       event.currentTarget.blur();
       return;
     }
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
     const next = map[event.key];
     if (next) {
       event.preventDefault();
@@ -376,6 +398,9 @@ export function ModelViewer({
         className="viewer-canvas"
         tabIndex={0}
         onKeyDown={keyDown}
+        onPointerDown={(event) =>
+          event.currentTarget.focus({ preventScroll: true })
+        }
         aria-label={`3D model inspection for ${currentLabel}`}
         aria-describedby="viewer-help"
       >
@@ -383,7 +408,7 @@ export function ModelViewer({
           <Canvas
             frameloop="demand"
             dpr={[1, 1.5]}
-            camera={{ position: [80, -80, 65], fov: 42 }}
+            camera={{ position: [80, -80, 65], up: [0, 0, 1], fov: 42 }}
             gl={{ antialias: true }}
             fallback={
               <div className="viewer-fallback">
@@ -396,6 +421,8 @@ export function ModelViewer({
               command={command}
               autoFit={autoFitPending.current}
               onCommitted={commitGeometry}
+              renderEditingScene={renderEditingScene}
+              showAccepted={showAccepted}
             />
           </Canvas>
         ) : (

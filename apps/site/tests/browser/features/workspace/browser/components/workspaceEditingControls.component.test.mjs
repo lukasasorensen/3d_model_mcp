@@ -85,3 +85,50 @@ test("object and layer saves mutually lock all editing panels and report workspa
   await expect(showLid).not.toBeChecked();
   assert.deepEqual(errors, []);
 });
+
+test("the floating panels share one viewport and parameter drafts survive closing and resizing", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1360, height: 940 });
+  const { errors } = await mountWorkspaceEditingControls(page);
+  const toolbar = page.getByRole("group", { name: "Object editing tools" });
+  const viewport = page.getByTestId("model-viewer");
+  const panel = page.getByRole("region", { name: "Parameters", exact: true });
+  const toggle = page.getByRole("button", { name: /^Parameters/ });
+  const input = panel.getByRole("textbox", { name: "Width · mm" });
+  const geometry = async () =>
+    Promise.all([
+      toolbar.boundingBox(),
+      viewport.boundingBox(),
+      panel.boundingBox(),
+    ]);
+  await expect(page.locator("canvas")).toHaveCount(1);
+  const [bar, scene, right] = await geometry();
+  expect(right.x).toBeGreaterThanOrEqual(scene.x + scene.width);
+  expect(right.y).toBeGreaterThanOrEqual(bar.y + bar.height);
+  await input.fill("17");
+  await input.press("Escape");
+  await expect(toggle).toBeFocused();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(input).toBeHidden();
+  await toggle.click();
+  await expect(input).toHaveValue("17");
+  await page.setViewportSize({ width: 390, height: 844 });
+  const [mobileBar, mobileScene, mobilePanel] = await geometry();
+  expect(mobileScene.y).toBeGreaterThanOrEqual(mobileBar.y + mobileBar.height);
+  expect(mobilePanel.y).toBeGreaterThanOrEqual(
+    mobileScene.y + mobileScene.height,
+  );
+  expect(mobilePanel.x + mobilePanel.width).toBeLessThanOrEqual(390);
+  await expect(page.locator("canvas")).toHaveCount(1);
+  await expect(input).toHaveValue("17");
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.addStyleTag({ content: ":root {font-size: 24px;}" });
+  await expect
+    .poll(() =>
+      panel.evaluate((element) => element.scrollWidth <= element.clientWidth),
+    )
+    .toBe(true);
+  await expect(input).toHaveValue("17");
+  assert.deepEqual(errors, []);
+});

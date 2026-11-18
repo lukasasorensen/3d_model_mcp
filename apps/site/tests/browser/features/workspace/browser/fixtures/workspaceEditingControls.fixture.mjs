@@ -76,9 +76,9 @@ export async function mountWorkspaceEditingControls(page) {
   });
   const result = await build({
     stdin: {
-      contents: `import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import {WorkspaceEditingControls} from './src/features/workspace/browser/components/workspaceEditingControls.component';import {BrowserRendererContext} from './src/features/browser-rendering/browser/index';
+      contents: `import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import {WorkspaceEditingControls} from './src/features/workspace/browser/components/workspaceEditingControls.component';import {ModelViewer} from './src/features/model-preview/browser/index';import {BrowserRendererContext} from './src/features/browser-rendering/browser/index';
 const bytes=new TextEncoder().encode('solid test\\nfacet normal 0 0 1\\nouter loop\\nvertex 0 0 0\\nvertex 10 0 0\\nvertex 0 20 0\\nendloop\\nendfacet\\nendsolid test');const renderer={cachedPreview:()=>bytes};
-function App(){const [pending,setPending]=useState(false);return <BrowserRendererContext.Provider value={renderer}><main><p>Workspace operation: {pending?'pending':'idle'}</p><WorkspaceEditingControls projectId="project" currentRevision="r1" selectedRevision="r1" sessionId="session" disabled={false} acquire={async()=>true} release={()=>{}} render={async()=>{}} refresh={async()=>true} onPending={setPending}/></main></BrowserRendererContext.Provider>};createRoot(document.getElementById('root')).render(<App/>);`,
+function App(){const [pending,setPending]=useState(false);return <BrowserRendererContext.Provider value={renderer}><main><p>Workspace operation: {pending?'pending':'idle'}</p><WorkspaceEditingControls previewReady renderViewport={(editing)=><ModelViewer {...editing} projectId="project" revisionId="r1" sourceHash={'a'.repeat(64)} currentLabel="R1" updating={pending}/>} projectId="project" currentRevision="r1" selectedRevision="r1" sessionId="session" disabled={false} acquire={async()=>true} release={()=>{}} render={async()=>{}} refresh={async()=>true} onPending={setPending}/></main></BrowserRendererContext.Provider>};createRoot(document.getElementById('root')).render(<App/>);`,
       resolveDir: root + "/apps/site",
       loader: "tsx",
     },
@@ -89,6 +89,10 @@ function App(){const [pending,setPending]=useState(false);return <BrowserRendere
   await page.goto("https://example.test/project");
   await page.addStyleTag({ content: await applicationStyles() });
   await page.addScriptTag({ content: result.outputFiles[0].text });
+  await page
+    .getByRole("combobox", { name: "Selected object" })
+    .selectOption("body");
+  await page.getByRole("button", { name: "Parameters", exact: true }).click();
   await page
     .getByRole("textbox", { name: "Position X · mm", exact: true })
     .waitFor();
