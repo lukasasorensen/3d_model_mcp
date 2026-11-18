@@ -1,5 +1,5 @@
 "use client";
-import { useLayoutEffect, useRef, type JSX } from "react";
+import { useLayoutEffect, useMemo, useRef, type JSX } from "react";
 import { useThree } from "@react-three/fiber";
 import {
   Box3,
@@ -20,6 +20,7 @@ import {
   type ModelFiles,
   type ObjectTransform,
 } from "@theoryfoundry/contracts";
+import { readCadViewportColors } from "../../../../shared/editor-theme/index";
 import {
   applyObjectTransform,
   readObjectTransform,
@@ -53,6 +54,10 @@ export function ObjectTransformScene({
   onError,
 }: ObjectTransformSceneProps): JSX.Element {
   const { camera, gl, invalidate, scene } = useThree();
+  const colors = useMemo(
+    () => readCadViewportColors(gl.domElement),
+    [gl.domElement],
+  );
   const refs = useRef(new Map<string, Mesh>());
   const controls = useRef<TransformControls | undefined>(undefined);
   const selected = objects.find((object) => object.id === selectedId);
@@ -196,8 +201,7 @@ export function ObjectTransformScene({
             }}
           >
             <meshStandardMaterial
-              color={active ? "#eda558" : "#a0af9b"}
-              emissive={active ? "#523018" : "#000000"}
+              color={active ? colors.selectedModel : colors.model}
               roughness={0.72}
             />
           </mesh>

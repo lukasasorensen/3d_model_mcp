@@ -4,11 +4,6 @@
 }
 
 .editor-stage {
-  --editor-surface: #f8f5ee;
-  --editor-ink: #1b2821;
-  --editor-line: #bcbdb2;
-  --editor-active: #244c37;
-  --editor-shadow: 0 8px 22px rgb(24 34 28 / 0.16);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.65rem;
@@ -16,9 +11,8 @@
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: 1rem;
-  background: #e9e5dc;
-  color: var(--editor-ink);
-  color-scheme: light;
+  background: var(--canvas);
+  color: var(--text);
 }
 
 .editor-tools {
@@ -52,10 +46,10 @@
 .editor-tool-panel,
 .editor-parameter-panel {
   min-width: 0;
-  border: 1px solid var(--editor-line);
+  border: 1px solid var(--line);
   border-radius: 1rem;
-  background: var(--editor-surface);
-  box-shadow: var(--editor-shadow);
+  background: var(--surface-1);
+  box-shadow: var(--shadow);
 }
 
 .editor-tool-panel {
@@ -89,8 +83,8 @@
 .editor-stage .viewer-help {
   inset: auto auto 3.35rem 0.35rem;
   margin-right: 0.35rem;
-  background: var(--editor-surface);
-  color: var(--editor-ink);
+  background: var(--surface-1);
+  color: var(--text-muted);
   border-radius: 0.4rem;
 }
 
@@ -98,17 +92,28 @@
   grid-area: 4 / 1 / 5 / -1;
   align-self: start;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.65rem;
   max-height: 26rem;
+  overflow-wrap: anywhere;
   overflow: auto;
 }
 
 .editor-parameter-panel form {
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.65rem;
+}
+.editor-parameter-panel .parameter-actions > button {
+  overflow-wrap: anywhere;
+}
+.editor-parameter-panel
+  .parameter-field
+  :is(input[type="text"], select, textarea) {
+  background: var(--canvas);
 }
 .editor-parameter-panel .parameter-field {
   padding-block-end: 0.65rem;
-  border-block-end: 1px solid var(--editor-line);
+  border-block-end: 1px solid var(--line);
 }
 .editor-parameter-panel .parameter-field[data-slider] {
   grid-template-columns: minmax(0, 1fr) minmax(3.5rem, 5rem);
@@ -155,7 +160,7 @@
 .editor-feedback .action-help,
 .editor-parameter-panel .action-help,
 .editor-parameter-panel .parameter-help {
-  color: var(--editor-ink);
+  color: var(--text-muted);
 }
 .editor-feedback :is([role="status"], .action-help):empty {
   display: none;
@@ -170,17 +175,17 @@
 
 .editor-stage :is(button, select, input, textarea) {
   max-width: 100%;
-  border-color: var(--editor-line);
-  background: var(--editor-surface);
-  color: var(--editor-ink);
+  border-color: var(--line);
+  background: var(--surface-2);
+  color: var(--text);
 }
 .editor-stage button {
   border-radius: 1.25rem;
   padding: 0.4rem 0.7rem;
 }
 .editor-stage button:hover:not(:disabled) {
-  background: #dedfd4;
-  border-color: var(--editor-active);
+  background: var(--surface-3);
+  border-color: var(--accent-contrast);
 }
 .editor-stage
   :is(
@@ -188,8 +193,8 @@
     button[aria-pressed="true"],
     button[aria-expanded="true"]
   ) {
-  background: var(--editor-active);
-  color: #fff;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 .editor-stage
   :is(
@@ -197,26 +202,17 @@
     button[aria-pressed="true"],
     button[aria-expanded="true"]
   ):hover:not(:disabled) {
-  background: #326144;
-  color: #fff;
+  background: var(--accent-hover);
+  color: var(--on-accent);
 }
 .editor-stage :focus-visible {
-  outline: 2px solid var(--editor-active);
+  outline: 2px solid var(--accent-contrast);
   outline-offset: 2px;
 }
 .editor-stage input[type="range"],
 .editor-stage input[type="checkbox"] {
-  accent-color: var(--editor-active);
+  accent-color: var(--accent-contrast);
 }
-.editor-stage .notice-error {
-  color: #762a1e;
-  background: #fff2ec;
-}
-.editor-stage .notice:not(.notice-error) {
-  color: var(--editor-ink);
-  background: var(--editor-surface);
-}
-
 .object-transform-editor,
 .object-transform-modes,
 .object-transform-axes {
@@ -250,7 +246,8 @@
 }
 .object-transform-fields input {
   width: 3.3rem;
-  border: 1px solid var(--editor-line);
+  background: var(--canvas);
+  border: 1px solid var(--line);
   padding: 0.35rem;
   min-width: 0;
 }

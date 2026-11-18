@@ -12,7 +12,6 @@ import {
 } from "react";
 import type { BufferGeometry, Material } from "three";
 import {
-  Color,
   MeshStandardMaterial,
   PerspectiveCamera,
   Sphere,
@@ -26,6 +25,7 @@ import {
   type BrowserRenderer,
 } from "../../../browser-rendering/browser/index";
 
+import { readCadViewportColors } from "../../../../shared/editor-theme/index";
 import { fetchRevisionSource } from "../services/revisionSource.service";
 
 const PREVIEW_BYTE_LIMIT = 10 * 1024 * 1024;
@@ -96,16 +96,20 @@ function Scene({
   showAccepted: boolean;
 }): JSX.Element {
   const { camera, gl, invalidate } = useThree();
+  const colors = useMemo(
+    () => readCadViewportColors(gl.domElement),
+    [gl.domElement],
+  );
   const lastCommandId = useRef(0);
   const controls = useMemo(() => new OrbitControls(camera), [camera]);
   const material = useMemo(
     () =>
       new MeshStandardMaterial({
-        color: new Color("#a0af9b"),
+        color: colors.model,
         roughness: 0.72,
         metalness: 0.05,
       }),
-    [],
+    [colors.model],
   );
   const fit = useCallback(() => {
     if (!geometry.boundingSphere) geometry.computeBoundingSphere();
@@ -177,7 +181,7 @@ function Scene({
       <ambientLight intensity={1.25} />
       <directionalLight position={[5, -4, 8]} intensity={2.1} />
       <gridHelper
-        args={[400, 40, "#9a9e91", "#bbbeb1"]}
+        args={[400, 40, colors.gridAxis, colors.gridLine]}
         position={[0, 0, -0.01]}
         rotation={[Math.PI / 2, 0, 0]}
       />

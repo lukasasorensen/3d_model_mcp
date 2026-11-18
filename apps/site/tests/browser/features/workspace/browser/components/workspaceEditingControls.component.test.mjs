@@ -122,5 +122,13 @@ test("the floating panels share one viewport and parameter drafts survive closin
   expect(mobilePanel.x + mobilePanel.width).toBeLessThanOrEqual(390);
   await expect(page.locator("canvas")).toHaveCount(1);
   await expect(input).toHaveValue("17");
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.addStyleTag({ content: ":root {font-size: 24px;}" });
+  await expect
+    .poll(() =>
+      panel.evaluate((element) => element.scrollWidth <= element.clientWidth),
+    )
+    .toBe(true);
+  await expect(input).toHaveValue("17");
   assert.deepEqual(errors, []);
 });
