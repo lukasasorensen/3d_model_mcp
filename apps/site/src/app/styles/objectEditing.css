@@ -231,15 +231,15 @@
   border-radius: 1.25rem;
   padding: 0.4rem 0.7rem;
 }
-.editor-stage button:hover:not(:disabled) {
+.editor-stage button:where(:not(.layer-select)):hover:not(:disabled) {
   background: var(--surface-3);
   border-color: var(--accent-contrast);
 }
 .editor-stage
   :is(
     .editor-apply,
-    button[aria-pressed="true"],
-    button[aria-expanded="true"]
+    .object-transform-modes button[aria-pressed="true"],
+    .floating-panel-toggle[aria-expanded="true"]
   ) {
   background: var(--accent);
   color: var(--on-accent);
@@ -247,8 +247,8 @@
 .editor-stage
   :is(
     .editor-apply,
-    button[aria-pressed="true"],
-    button[aria-expanded="true"]
+    .object-transform-modes button[aria-pressed="true"],
+    .floating-panel-toggle[aria-expanded="true"]
   ):hover:not(:disabled) {
   background: var(--accent-hover);
   color: var(--on-accent);
@@ -301,7 +301,11 @@
 }
 
 @media (forced-colors: active) {
-  .editor-stage button:is([aria-pressed="true"], [aria-expanded="true"]) {
+  .editor-stage
+    :is(
+      .object-transform-modes button[aria-pressed="true"],
+      .floating-panel-toggle[aria-expanded="true"]
+    ) {
     outline: 2px solid Highlight;
   }
 }

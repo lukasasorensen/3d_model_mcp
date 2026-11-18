@@ -149,6 +149,15 @@ test("layer names, the selector and canvas share selection while row actions pre
   const lid = page.getByRole("button", { name: "Select Lid (lid)" });
   const selector = page.getByRole("combobox", { name: "Selected object" });
   await lid.click();
+  const selectedRow = page.locator('.layers-list li[data-selected="true"]');
+  await expect(selectedRow).toHaveAttribute("data-object-id", "lid");
+  await expect(selectedRow).toHaveCSS("outline-style", "solid");
+  const bodyName = page.getByRole("button", { name: "Select Body (body)" });
+  const labelBackground = await bodyName.evaluate(
+    (button) =>
+      button.ownerDocument.defaultView.getComputedStyle(button).backgroundColor,
+  );
+  await expect(lid).toHaveCSS("background-color", labelBackground);
   await expect(selector).toHaveValue("lid");
   await expect(
     page.getByRole("group", { name: "Transform Lid" }),

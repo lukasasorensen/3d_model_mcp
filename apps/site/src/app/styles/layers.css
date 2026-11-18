@@ -21,8 +21,13 @@
   background: var(--surface-2);
   position: relative;
 }
+.layers-list li:has(.layer-select:hover:not(:disabled)) {
+  background: var(--surface-3);
+}
 .layers-list li[data-selected="true"] {
-  outline: 2px solid var(--accent-contrast);
+  border-color: var(--accent-contrast);
+  outline: 1px solid var(--accent-contrast);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
 }
 .layers-list li[data-visible="false"] {
   color: var(--text-muted);
