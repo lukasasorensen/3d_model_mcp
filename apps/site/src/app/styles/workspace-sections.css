@@ -2,11 +2,7 @@
   display: none;
 }
 .model-primary {
-  display: contents;
-}
-.model-primary > .viewer-shell,
-.model-primary > .viewer-loading {
-  flex: 1 0 340px;
+  min-width: 0;
 }
 
 @media (max-width: 1023px) {
@@ -38,10 +34,6 @@
   .model-pane {
     min-height: 0;
     border: 0;
-  }
-  .model-primary > .viewer-shell,
-  .model-primary > .viewer-loading {
-    flex: none;
   }
   .app-shell:not([data-section="model"]) .model-primary,
   .app-shell:not([data-section="details"]) .model-details,
