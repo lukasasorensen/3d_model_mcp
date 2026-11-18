@@ -347,11 +347,7 @@ export function useObjectEditing(options: ObjectEditingOptions): {
     retry: () =>
       attempt.current ? commit(attempt.current.mode) : Promise.resolve(),
     select(id): void {
-      if (
-        !pending &&
-        (id === "" || draft?.objects.some((item) => item.id === id))
-      )
-        setSelectedId(id || null);
+      if (!pending) setSelectedId(id || null);
     },
     changeTransform(transform): void {
       if (blocked || !selectedId) return;

@@ -34,6 +34,7 @@ interface ObjectEditingPanelProps extends ObjectEditingOptions {
   panelToggles?: ReactNode;
   renderPanels?(selection: {
     selectedId: string | null;
+    selectionPending: boolean;
     select(id: string): void;
   }): ReactNode;
 }
@@ -272,7 +273,11 @@ export function ObjectEditingPanel({
             }),
           })}
         </div>
-        {renderPanels?.({ selectedId: state.selectedId, select })}
+        {renderPanels?.({
+          selectedId: state.selectedId,
+          selectionPending: state.loading || state.pending || options.disabled,
+          select,
+        })}
       </div>
       <div className="editor-feedback" aria-busy={state.pending}>
         {state.selectedObject && currentScene && (

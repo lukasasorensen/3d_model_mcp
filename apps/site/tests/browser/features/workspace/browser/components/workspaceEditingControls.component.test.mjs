@@ -40,6 +40,9 @@ test("object and layer saves mutually lock all editing panels and report workspa
     page.getByText("Workspace operation: pending", { exact: true }),
   ).toBeVisible();
   await expect(showLid).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Select Lid (lid)" }),
+  ).toBeDisabled();
   await expect(width).toBeDisabled();
   await expect(applyLayers).toBeDisabled();
   await expect(applyParameters).toBeDisabled();

@@ -21,11 +21,13 @@ import {
 import { layerDraft } from "../utils/layerDraft.util";
 export function LayersPanel({
   selectedId,
+  selectionPending = false,
   select,
   floating,
   ...options
 }: ObjectLayersOptions & {
   selectedId: string | null;
+  selectionPending?: boolean;
   select(id: string): void;
   floating?: PanelProps["floating"];
 }): JSX.Element {
@@ -150,6 +152,12 @@ export function LayersPanel({
                 <button
                   type="button"
                   className="layer-select"
+                  disabled={
+                    selectionPending ||
+                    state.pending ||
+                    state.loading ||
+                    options.disabled
+                  }
                   aria-pressed={selectedId === id}
                   title={`Object: ${id} · File: ${file?.name} (${object.fileId})`}
                   aria-label={`Select ${label}`}
