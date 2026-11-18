@@ -44,6 +44,16 @@ test("disclosures retain drafts, keep headers operable while busy, and reopen be
   await page.evaluate(() => window.failPanel());
   await expect(layers.getByRole("alert")).toBeFocused();
   await toggle.click();
+  await page.evaluate(() => window.clearPanel());
+  await page.evaluate(() => window.failPanel(true));
+  await expect(layers.getByRole("alert")).toBeFocused();
+  await toggle.click();
+  await page.evaluate(() => window.clearPanel());
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await page.evaluate(() => window.failPanel(true));
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(layers.getByRole("alert")).toBeFocused();
+  await toggle.click();
   await page.evaluate(() => window.changeProject());
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
   await expect(input).toHaveValue("");

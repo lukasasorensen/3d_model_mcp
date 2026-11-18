@@ -37,17 +37,18 @@ export function Panel({
   const statusId = `${id}-status`;
   const [disclosure, setDisclosure] = useState<{
     collapsed: boolean;
-    errorAtToggle: PanelProps["error"];
-  }>({ collapsed: false, errorAtToggle: undefined });
-  // A new failure opens the body in the same commit, before error focus runs.
-  const expanded =
-    !disclosure.collapsed ||
-    Boolean(error && error !== disclosure.errorAtToggle);
+    observedError: PanelProps["error"];
+  }>({ collapsed: false, observedError: undefined });
+  // Record clears as well as failures, so an identical retry error opens before focus.
+  if (error !== disclosure.observedError) {
+    setDisclosure({
+      collapsed: error ? false : disclosure.collapsed,
+      observedError: error,
+    });
+  }
+  const expanded = !disclosure.collapsed;
   useEffect(() => {
-    if (error) {
-      setDisclosure({ collapsed: false, errorAtToggle: error });
-      errorFocusRef?.current?.focus();
-    }
+    if (error) errorFocusRef?.current?.focus();
   }, [error, errorFocusRef]);
   const hasStatus = busy || dirty || Boolean(error);
   return (
@@ -61,7 +62,7 @@ export function Panel({
           aria-expanded={expanded}
           aria-controls={bodyId}
           onClick={() =>
-            setDisclosure({ collapsed: expanded, errorAtToggle: error })
+            setDisclosure({ collapsed: expanded, observedError: error })
           }
         >
           <span id={titleId}>{title}</span>
