@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useId, useMemo, useRef, useState, type JSX } from "react";
+import { Panel, PanelActions } from "../../../../shared/panels/index";
+import { useId, useMemo, useRef, useState, type JSX } from "react";
 import { objectTransform } from "@theoryfoundry/contracts";
 import {
   useObjectEditing,
@@ -9,7 +10,6 @@ import { ObjectTransformEditor } from "./objectTransformEditor.component";
 
 export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
   const state = useObjectEditing(options);
-  const headingId = useId();
   const selectorId = useId();
   const errorRef = useRef<HTMLDivElement>(null);
   const [valid, setValid] = useState(true);
@@ -19,9 +19,6 @@ export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
       state.selectedObject ? objectTransform(state.selectedObject) : undefined,
     [state.selectedObject],
   );
-  useEffect(() => {
-    if (state.error) errorRef.current?.focus();
-  }, [state.error]);
   const disabled =
     options.disabled ||
     state.pending ||
@@ -30,18 +27,24 @@ export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
     state.stale ||
     !state.snapshot?.revision;
   return (
-    <section
-      className="object-editing-panel parameter-panel"
-      aria-labelledby={headingId}
-      aria-busy={state.pending}
+    <Panel
+      title="Edit objects"
+      busy={state.pending}
+      dirty={state.dirty || !valid}
+      error={state.error}
+      errorFocusRef={errorRef}
+      description={
+        <>
+          {!state.snapshot?.unsupportedReason && (
+            <p>
+              Select an object to move, rotate, resize, or copy it. Apply
+              validates and saves a new revision. Downloads use the accepted
+              model.
+            </p>
+          )}
+        </>
+      }
     >
-      <h2 id={headingId}>Edit objects</h2>
-      {!state.snapshot?.unsupportedReason && (
-        <p className="action-help">
-          Select an object to move, rotate, resize, or copy it. Apply validates
-          and saves a new revision. Downloads use the accepted model.
-        </p>
-      )}
       {state.loading && <p role="status">Loading objects…</p>}
       {state.error && (
         <div
@@ -124,7 +127,7 @@ export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
               onValidityChange={setValid}
             />
           )}
-          <div className="parameter-actions">
+          <PanelActions>
             <button
               type="button"
               disabled={disabled || !state.selectedObject || !valid}
@@ -173,13 +176,13 @@ export function ObjectEditingPanel(options: ObjectEditingOptions): JSX.Element {
             >
               Redo object edit
             </button>
-          </div>
+          </PanelActions>
           {state.dirty && !state.pending && <p>Unapplied object changes</p>}
         </>
       )}
       <p role="status" aria-live="polite">
         {state.message}
       </p>
-    </section>
+    </Panel>
   );
 }

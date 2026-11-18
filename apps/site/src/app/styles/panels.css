@@ -1,0 +1,86 @@
+.panel-layout {
+  container: panel-layout / inline-size;
+  min-width: 0;
+}
+.panel-layout-grid,
+.panel-layout-main,
+.panel-stack,
+.panel-body {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  align-content: start;
+}
+.panel-layout-panels,
+.panel {
+  min-width: 0;
+}
+.panel {
+  border-top: 1px solid var(--line);
+  padding: var(--space-4);
+  overflow-wrap: anywhere;
+}
+.panel-heading {
+  margin: 0;
+}
+.panel-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+}
+.panel-body {
+  margin-top: var(--space-3);
+}
+.panel-body > * {
+  min-width: 0;
+}
+.panel-body select {
+  width: 100%;
+  max-width: 100%;
+}
+.panel-body form {
+  display: grid;
+  gap: var(--space-4);
+}
+.panel-body[hidden] {
+  display: none;
+}
+.panel-description {
+  display: grid;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font: 0.78rem monospace;
+}
+.panel-actions,
+.panel-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.panel-actions > button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.panel-indicators {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: var(--space-2);
+}
+.panel .notice button {
+  margin: var(--space-1);
+}
+@container panel-layout (min-width: 960px) {
+  .panel-layout-grid {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    align-items: start;
+  }
+  .panel-layout-panels {
+    border-left: 1px solid var(--line);
+  }
+}

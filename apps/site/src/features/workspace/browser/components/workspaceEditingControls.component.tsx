@@ -1,4 +1,5 @@
 "use client";
+import { PanelStack } from "../../../../shared/panels/index";
 import { useEffect, useState, type ComponentProps, type JSX } from "react";
 import { ParameterPanel } from "../../../parameter-controls/browser/index";
 import { ObjectEditingPanel } from "../../../object-editing/browser/index";
@@ -16,7 +17,7 @@ export function WorkspaceEditingControls(
   }, [onPending, parametersPending, objectsPending, layersPending]);
   useEffect(() => (): void => onPending(false), [onPending]);
   return (
-    <>
+    <PanelStack>
       <LayersPanel
         {...options}
         disabled={options.disabled || parametersPending || objectsPending}
@@ -33,6 +34,6 @@ export function WorkspaceEditingControls(
         disabled={options.disabled || objectsPending || layersPending}
         onPending={setParametersPending}
       />
-    </>
+    </PanelStack>
   );
 }

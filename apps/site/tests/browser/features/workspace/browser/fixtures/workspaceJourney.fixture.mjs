@@ -13,6 +13,7 @@ export async function mountWorkspaceJourney(
   parameterized = false,
   multiObject = false,
   legacyLibrary = false,
+  editingPanels = false,
 ) {
   const historical = multiObject
     ? "difference() {\nunion() {\ncube([20,10,5]);\n}\nunion() {\ntranslate([5,2,-1]) cube([5,6,7]);\n}\n}"
@@ -44,6 +45,7 @@ export async function mountWorkspaceJourney(
     }),
   );
   const controls = {
+    releaseEdit: undefined,
     current: "r2",
     failRestore: false,
     corruptSource: false,
@@ -66,6 +68,7 @@ export async function mountWorkspaceJourney(
       return json(BROWSER_RENDERER);
     if (path === "/v1/features/sidebar-chat")
       return json({ isSidebarChatEnabled: false });
+    if (path === "/v1/ai/connections") return json({ connections: [] });
     if (path === "/v1/projects")
       return json({
         projects: [
@@ -81,13 +84,59 @@ export async function mountWorkspaceJourney(
       controls.current = "r3";
       return json({ revision: revisions[2] });
     }
+    const panelRequest = ["/layers", "/objects", "/parameters"].some((suffix) =>
+      path.endsWith(suffix),
+    );
+    if (editingPanels && panelRequest && request.method() === "POST") {
+      await new Promise((resolve) => {
+        controls.releaseEdit = resolve;
+      });
+      const input = request.postDataJSON();
+      return route.fulfill({
+        contentType: "application/x-ndjson",
+        body:
+          JSON.stringify({
+            requestId: input.requestId,
+            sessionId: input.sessionId,
+            sequence: 0,
+            type: "error",
+            error: {
+              code: "MODEL_REJECTED",
+              message: "Fixture validation rejected this edit.",
+            },
+          }) + "\n",
+      });
+    }
+    const modelFiles = {
+      version: 2,
+      files: [{ id: "main-file", name: "Main source file", body: "cube(20);" }],
+      objects: [
+        {
+          id: "main-object",
+          name: "Main object with a deliberately long descriptive name",
+          fileId: "main-file",
+        },
+      ],
+      composition: { operation: "union", objectIds: ["main-object"] },
+      presentation: {
+        fileOrder: ["main-file"],
+        objectOrder: ["main-object"],
+        hiddenFileIds: [],
+        hiddenObjectIds: [],
+      },
+    };
     if (path.endsWith("/layers")) {
       const id =
         new URL(request.url()).searchParams.get("revision") ?? controls.current;
       return json({
         revision: id,
         sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
-        state: null,
+        state: editingPanels
+          ? {
+              ...modelFiles,
+              files: modelFiles.files.map(({ id, name }) => ({ id, name })),
+            }
+          : null,
       });
     }
     if (path.endsWith("/objects")) {
@@ -96,7 +145,7 @@ export async function mountWorkspaceJourney(
       return json({
         revision: id,
         sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
-        modelFiles: null,
+        modelFiles: editingPanels ? modelFiles : null,
         parameters: [],
         ...(legacyLibrary
           ? {
@@ -112,23 +161,39 @@ export async function mountWorkspaceJourney(
       return json({
         revision: id,
         sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
-        editable: parameterized,
-        parameters: parameterized
-          ? [
-              {
-                id: "width",
-                binding: "width",
-                label: "Width",
-                type: "number",
-                value: id === "r2" ? 20 : 10,
-                defaultValue: 10,
-                min: 1,
-                max: 100,
-                step: 1,
-                control: "slider",
-              },
-            ]
-          : [],
+        editable: parameterized || editingPanels,
+        parameters: editingPanels
+          ? Array.from({ length: 8 }, (_, index) => ({
+              id: `size${index}`,
+              binding: `size${index}`,
+              label:
+                index === 0
+                  ? "Assembly magnetic clearance with a long descriptive label"
+                  : `Dimension ${index}`,
+              type: "number",
+              value: 2,
+              defaultValue: 2,
+              min: 0.5,
+              max: 5,
+              step: 0.25,
+              unit: "mm",
+            }))
+          : parameterized
+            ? [
+                {
+                  id: "width",
+                  binding: "width",
+                  label: "Width",
+                  type: "number",
+                  value: id === "r2" ? 20 : 10,
+                  defaultValue: 10,
+                  min: 1,
+                  max: 100,
+                  step: 1,
+                  control: "slider",
+                },
+              ]
+            : [],
       });
     }
     if (path.endsWith("/source")) {
@@ -162,7 +227,7 @@ export async function mountWorkspaceJourney(
   });
   const result = await build({
     stdin: {
-      contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {ModelWorkspace} from './src/features/workspace/browser/components/modelWorkspace.component'; import {BrowserRendererContext} from './src/features/browser-rendering/browser/index'; const renderer={generateDownload:async(source,format)=>{window.generatedSource=source;return {bytes:new TextEncoder().encode(source),extension:format,mimeType:'application/octet-stream'}}}; createRoot(document.getElementById('root')).render(<BrowserRendererContext.Provider value={renderer}><ModelWorkspace projectId="sample"/></BrowserRendererContext.Provider>);`,
+      contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {ModelWorkspace} from './src/features/workspace/browser/components/modelWorkspace.component'; import {BrowserRendererContext} from './src/features/browser-rendering/browser/index'; const renderer={cachedPreview:()=>new TextEncoder().encode('solid test\\nfacet normal 0 0 1\\nouter loop\\nvertex 0 0 0\\nvertex 10 0 0\\nvertex 0 20 0\\nendloop\\nendfacet\\nendsolid test'),generateDownload:async(source,format)=>{window.generatedSource=source;return {bytes:new TextEncoder().encode(source),extension:format,mimeType:'application/octet-stream'}}}; createRoot(document.getElementById('root')).render(<BrowserRendererContext.Provider value={renderer}><ModelWorkspace projectId="sample"/></BrowserRendererContext.Provider>);`,
       resolveDir: root + "/apps/site",
       loader: "tsx",
     },
