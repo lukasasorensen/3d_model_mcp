@@ -59,12 +59,21 @@ test("any number of panels flow at the container breakpoint with unique accessib
     await page.locator("#root").evaluate((el, width) => {
       el.style.width = `${width}px`;
     }, width);
-    const main = await page.locator(".panel-layout-main").boundingBox();
-    const stack = await page.locator(".panel-stack").boundingBox();
-    if (width >= 960) {
-      expect(stack.x).toBeGreaterThanOrEqual(main.x + main.width + 16);
-      expect(stack.width).toBeLessThanOrEqual(320);
-    } else expect(stack.y).toBeGreaterThanOrEqual(main.y + main.height);
+    await expect
+      .poll(async () =>
+        page.locator(".panel-layout-grid").evaluate((el, width) => {
+          const main = el
+            .querySelector(".panel-layout-main")
+            .getBoundingClientRect();
+          const stack = el
+            .querySelector(".panel-stack")
+            .getBoundingClientRect();
+          return width >= 960
+            ? stack.x >= main.right + 16 && stack.width <= 320
+            : stack.y >= main.bottom;
+        }, width),
+      )
+      .toBe(true);
     const boxes = await page.locator(".panel").evaluateAll((els) =>
       els.map((el) => {
         const r = el.getBoundingClientRect();
