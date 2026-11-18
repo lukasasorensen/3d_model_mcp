@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, type JSX } from "react";
+import { Panel, PanelActions } from "../../../../shared/panels/index";
+import { useRef, type JSX } from "react";
 import { ParameterField } from "./parameterField.component";
 import {
   useParameterControls,
@@ -9,9 +10,6 @@ import {
 export function ParameterPanel(options: ParameterControlsOptions): JSX.Element {
   const state = useParameterControls(options);
   const summary = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (state.error) summary.current?.focus();
-  }, [state.error]);
   const parameters = state.historical
     ? (state.view?.parameters ?? [])
     : (state.base?.parameters ?? []);
@@ -33,16 +31,21 @@ export function ParameterPanel(options: ParameterControlsOptions): JSX.Element {
     state.validation.operations.length > 0 &&
     !Object.keys(state.validation.errors).length;
   return (
-    <section
-      className="parameter-panel"
-      aria-labelledby="parameter-heading"
-      aria-busy={state.pending}
+    <Panel
+      title="Parameters"
+      busy={state.pending}
+      dirty={state.validation.dirty}
+      error={state.error}
+      errorFocusRef={summary}
+      description={
+        <>
+          <p>
+            Adjust values, then apply to validate and save a new revision.
+            Downloads use saved values.
+          </p>
+        </>
+      }
     >
-      <h2 id="parameter-heading">Parameters</h2>
-      <p className="action-help">
-        Adjust values, then apply to validate and save a new revision. Downloads
-        use saved values.
-      </p>
       {state.loading && <p role="status">Loading parameters…</p>}
       {state.error && (
         <div
@@ -155,7 +158,7 @@ export function ParameterPanel(options: ParameterControlsOptions): JSX.Element {
           />
         ))}
         {!state.historical && parameters.length > 0 && (
-          <div className="parameter-actions">
+          <PanelActions>
             <button type="submit" disabled={!canApply}>
               {state.pending ? "Applying…" : "Apply changes"}
             </button>
@@ -180,7 +183,7 @@ export function ParameterPanel(options: ParameterControlsOptions): JSX.Element {
                 Cancel update
               </button>
             )}
-          </div>
+          </PanelActions>
         )}
       </form>
       {!state.historical && state.validation.dirty && !state.pending && (
@@ -189,6 +192,6 @@ export function ParameterPanel(options: ParameterControlsOptions): JSX.Element {
       <p role="status" aria-live="polite">
         {state.message}
       </p>
-    </section>
+    </Panel>
   );
 }

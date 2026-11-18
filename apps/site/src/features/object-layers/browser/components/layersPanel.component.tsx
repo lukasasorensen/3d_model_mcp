@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, type JSX } from "react";
+import { Panel, PanelActions } from "../../../../shared/panels/index";
+import { useRef, type JSX } from "react";
 import {
   useObjectLayers,
   type ObjectLayersOptions,
@@ -8,9 +9,6 @@ import { layerDraft } from "../utils/layerDraft.util";
 export function LayersPanel(options: ObjectLayersOptions): JSX.Element {
   const state = useObjectLayers(options);
   const summary = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (state.error) summary.current?.focus();
-  }, [state.error]);
   const snapshot = state.historical ? state.view : state.base;
   const draft = state.historical ? layerDraft(state.view) : state.draft;
   const disabled =
@@ -23,22 +21,27 @@ export function LayersPanel(options: ObjectLayersOptions): JSX.Element {
     (object) => object.id === state.selected,
   );
   return (
-    <section
-      className="layers-panel"
-      aria-labelledby="layers-heading"
-      aria-busy={state.pending}
+    <Panel
+      title="Layers"
+      busy={state.pending}
+      dirty={state.dirty}
+      error={state.error}
+      errorFocusRef={summary}
+      description={
+        <>
+          <p>
+            Select an object to inspect its name and source file. Selection does
+            not change visibility. Layer order organizes this list; boolean
+            operand order stays unchanged.
+          </p>
+          <p>
+            Apply validates and saves visibility and order. Preview and
+            downloads use saved visibility; hidden objects are excluded. Keep at
+            least one object and the first difference operand visible.
+          </p>
+        </>
+      }
     >
-      <h2 id="layers-heading">Layers</h2>
-      <p className="action-help">
-        Select an object to inspect its name and source file. Selection does not
-        change visibility. Layer order organizes this list; boolean operand
-        order stays unchanged.
-      </p>
-      <p className="action-help">
-        Apply validates and saves visibility and order. Preview and downloads
-        use saved visibility; hidden objects are excluded. Keep at least one
-        object and the first difference operand visible.
-      </p>
       {state.loading && <p role="status">Loading layers…</p>}
       {state.error && (
         <div
@@ -128,7 +131,7 @@ export function LayersPanel(options: ObjectLayersOptions): JSX.Element {
                 {fileHidden ? "Hidden by file" : hidden ? "Hidden" : "Visible"}
                 {state.selected === id ? " · Selected" : ""}
               </span>
-              <div className="layer-actions">
+              <PanelActions>
                 <label>
                   <input
                     type="checkbox"
@@ -155,7 +158,7 @@ export function LayersPanel(options: ObjectLayersOptions): JSX.Element {
                 >
                   Move down
                 </button>
-              </div>
+              </PanelActions>
               {fileHidden && (
                 <div>
                   <small>
@@ -177,7 +180,7 @@ export function LayersPanel(options: ObjectLayersOptions): JSX.Element {
         })}
       </ol>
       {!state.historical && Boolean(snapshot?.state) && (
-        <div className="layer-actions">
+        <PanelActions>
           <button
             type="button"
             disabled={disabled || !state.dirty || Boolean(state.problem)}
@@ -199,7 +202,7 @@ export function LayersPanel(options: ObjectLayersOptions): JSX.Element {
               Cancel layer update
             </button>
           )}
-        </div>
+        </PanelActions>
       )}
       {!state.historical && state.dirty && (
         <p>
@@ -213,6 +216,6 @@ export function LayersPanel(options: ObjectLayersOptions): JSX.Element {
       <p role="status" aria-live="polite">
         {state.message}
       </p>
-    </section>
+    </Panel>
   );
 }
