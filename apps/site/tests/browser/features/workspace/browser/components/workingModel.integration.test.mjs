@@ -1,4 +1,4 @@
-/* global document, Storage */
+/* global document */
 import { expect } from "playwright/test";
 import { test } from "../../../../browser.fixture.mjs";
 import { mountWorkspaceJourney } from "../fixtures/workspaceJourney.fixture.mjs";
