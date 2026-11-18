@@ -28,6 +28,7 @@ async function assertPanelGeometry(page, expectedContainerWidth) {
             document.documentElement.scrollWidth > window.innerWidth,
           toolbar: box(".editor-tool-panel"),
           preview: box(".editor-viewport"),
+          content: box(".editor-content"),
           layers: box(".editor-layer-panel"),
           parameters: box(".editor-parameter-panel"),
         };
@@ -36,7 +37,7 @@ async function assertPanelGeometry(page, expectedContainerWidth) {
     if (expectedContainerWidth !== undefined)
       expect(geometry.container).toBe(expectedContainerWidth);
     expect(geometry.workspaceOverflows, JSON.stringify(geometry)).toBe(false);
-    expect(preview).not.toBeNull();
+    expect(preview.width).toBe(geometry.content.width);
     if (toolbar) {
       expect(toolbar.overflows, "Transform toolbar overflow").toBe(false);
       expect(preview.y).toBeGreaterThanOrEqual(toolbar.bottom);
@@ -44,9 +45,13 @@ async function assertPanelGeometry(page, expectedContainerWidth) {
     expect(parameters).not.toBeNull();
     expect(parameters.overflows, "Parameters overflow").toBe(false);
     if (geometry.container >= (geometry.layers ? 1200 : 780)) {
-      if (geometry.layers)
-        expect(geometry.layers.right).toBeLessThanOrEqual(preview.x);
-      expect(parameters.x).toBeGreaterThanOrEqual(preview.right);
+      if (geometry.layers) {
+        expect(geometry.layers.x).toBeGreaterThanOrEqual(preview.x);
+        expect(geometry.layers.y).toBeLessThan(preview.bottom);
+        expect(geometry.layers.right).toBeLessThan(parameters.x);
+      }
+      expect(parameters.y).toBeLessThan(preview.bottom);
+      expect(parameters.right).toBeLessThanOrEqual(preview.right);
       if (toolbar) expect(parameters.y).toBeGreaterThanOrEqual(toolbar.bottom);
     } else {
       if (geometry.layers)

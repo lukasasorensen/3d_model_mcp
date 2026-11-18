@@ -120,7 +120,7 @@ for (const width of [1440, 390]) {
   });
 }
 
-test("parameter controls sit beside the preview without AI chat and drafts do not enter downloads", async ({
+test("parameter controls overlay the right of the preview without AI chat and drafts do not enter downloads", async ({
   page,
 }) => {
   const { errors } = await mountWorkspaceJourney(page, 1440, true);
@@ -131,7 +131,8 @@ test("parameter controls sit beside the preview without AI chat and drafts do no
   const panel = await page
     .getByRole("region", { name: "Parameters", exact: true })
     .boundingBox();
-  expect(panel.x).toBeGreaterThanOrEqual(preview.x + preview.width);
+  expect(panel.x).toBeGreaterThan(preview.x + preview.width / 2);
+  expect(panel.x + panel.width).toBeLessThanOrEqual(preview.x + preview.width);
   await page.screenshot({
     path: test.info().outputPath("parameter-workspace.png"),
   });

@@ -22,6 +22,7 @@ export type PanelProps = {
         toolbar: HTMLElement | null;
         icon: typeof PlusIcon;
         initiallyOpen?: boolean;
+        tuckLeft?: boolean;
       }
     | undefined;
   children: ReactNode;
@@ -47,6 +48,8 @@ export function Panel({
 }: PanelProps): JSX.Element {
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const openedFromEdge = useRef(false);
   const titleId = `${id}-title`;
   const bodyId = `${id}-body`;
   const statusId = `${id}-status`;
@@ -69,6 +72,12 @@ export function Panel({
   useEffect(() => {
     if (error) errorFocusRef?.current?.focus();
   }, [error, errorFocusRef]);
+  useEffect(() => {
+    if (expanded && openedFromEdge.current) {
+      openedFromEdge.current = false;
+      closeButton.current?.focus();
+    }
+  }, [expanded]);
   const hasStatus = busy || dirty || Boolean(error);
   const close = (): void => {
     setDisclosure({ collapsed: true, observedError: error });
@@ -108,6 +117,24 @@ export function Panel({
   return (
     <>
       {floating?.toolbar && createPortal(button, floating.toolbar)}
+      {floating?.tuckLeft && !expanded && (
+        <div className="panel-edge">
+          <button
+            type="button"
+            className="panel-edge-card"
+            aria-label={`Open ${title.toLowerCase()}`}
+            aria-expanded={false}
+            aria-controls={id}
+            onClick={() => {
+              openedFromEdge.current = true;
+              toggle();
+            }}
+          >
+            <span>{title}</span>
+            <ToggleIcon size="1.125em" aria-hidden="true" focusable="false" />
+          </button>
+        </div>
+      )}
       <section
         id={id}
         className={`panel ${floating ? "floating-panel" : ""} ${className}`}
@@ -126,6 +153,7 @@ export function Panel({
           </h2>
           {floating && (
             <IconButton
+              ref={closeButton}
               icon={CloseIcon}
               label={`Close ${title.toLowerCase()}`}
               onClick={close}

@@ -63,7 +63,12 @@ function HydratedEditingControls({
               <LayersPanel
                 {...options}
                 {...selection}
-                floating={{ toolbar, icon: LayersIcon, initiallyOpen: true }}
+                floating={{
+                  toolbar,
+                  icon: LayersIcon,
+                  initiallyOpen: true,
+                  tuckLeft: true,
+                }}
                 disabled={
                   options.disabled || parametersPending || objectsPending
                 }

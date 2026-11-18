@@ -124,45 +124,82 @@
   grid-column: 1;
   grid-row: 2;
 }
-/* The viewport comes first in document order for stacked layouts. */
-@container (min-width:780px) {
-  .editor-content:has(.editor-layer-panel:not([hidden])) {
-    grid-template-columns: clamp(17rem, 29cqi, 21rem) minmax(0, 1fr);
-    grid-template-areas: "layers viewport";
+/* A shared grid cell overlays the cards without resizing or remounting the canvas. */
+.panel-edge {
+  display: none;
+}
+@container (min-width: 780px) {
+  .editor-content {
+    isolation: isolate;
   }
-  .editor-content:has(.editor-parameter-panel:not([hidden])) {
-    grid-template-columns: minmax(0, 1fr) clamp(17rem, 29cqi, 21rem);
-    grid-template-areas: "viewport parameters";
-  }
-  .editor-content:has(.editor-layer-panel:not([hidden])):has(
-      .editor-parameter-panel:not([hidden])
-    ) {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "viewport" "layers" "parameters";
+  .editor-viewport,
+  .editor-content > .floating-panel,
+  .panel-edge {
+    grid-area: 1 / 1;
   }
   .editor-viewport {
-    grid-area: viewport;
+    isolation: isolate;
   }
-  .editor-content {
-    grid-template-areas: "viewport";
+  .editor-content > .floating-panel {
+    z-index: 1;
+    width: clamp(17rem, 25cqi, 21rem);
+    margin: 0.5rem;
+    max-height: calc(clamp(340px, 55svh, 660px) - 4rem);
   }
   .editor-layer-panel {
-    grid-area: layers;
+    justify-self: start;
   }
   .editor-parameter-panel {
-    grid-area: parameters;
+    justify-self: end;
+  }
+  .panel-edge {
+    display: flex;
+    align-self: start;
+    margin-top: 0.5rem;
+    padding-block: 4px;
+    overflow: clip;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .editor-stage .panel-edge-card {
+    --exposed-edge: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    min-height: 3rem;
+    padding: 0.5rem calc((var(--exposed-edge) - 1.125em) / 2) 0.5rem 1rem;
+    border-radius: 0 0.8rem 0.8rem 0;
+    background: var(--surface-1);
+    box-shadow: var(--shadow);
+    transform: translateX(calc(var(--exposed-edge) - 100%));
+    pointer-events: auto;
+  }
+  .editor-stage .panel-edge-card:focus-visible {
+    transform: none;
+    outline-offset: -3px;
+  }
+  @media (hover: hover) {
+    .editor-stage .panel-edge-card:hover {
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .panel-edge-card {
+      transition: transform 160ms ease-out;
+    }
   }
 }
-@container (min-width:1200px) {
+@container (780px <= width < 1200px) {
   .editor-content:has(.editor-layer-panel:not([hidden])):has(
       .editor-parameter-panel:not([hidden])
-    ) {
-    grid-template-columns: clamp(17rem, 23cqi, 21rem) minmax(0, 1fr) clamp(
-        17rem,
-        23cqi,
-        21rem
-      );
-    grid-template-areas: "layers viewport parameters";
+    )
+    > .floating-panel {
+    grid-area: auto;
+    width: auto;
+    justify-self: stretch;
+    margin: 0;
+    max-height: clamp(340px, 55svh, 660px);
   }
 }
 .editor-feedback {
@@ -194,15 +231,15 @@
   border-radius: 1.25rem;
   padding: 0.4rem 0.7rem;
 }
-.editor-stage button:hover:not(:disabled) {
+.editor-stage button:where(:not(.layer-select)):hover:not(:disabled) {
   background: var(--surface-3);
   border-color: var(--accent-contrast);
 }
 .editor-stage
   :is(
     .editor-apply,
-    button[aria-pressed="true"],
-    button[aria-expanded="true"]
+    .object-transform-modes button[aria-pressed="true"],
+    .floating-panel-toggle[aria-expanded="true"]
   ) {
   background: var(--accent);
   color: var(--on-accent);
@@ -210,8 +247,8 @@
 .editor-stage
   :is(
     .editor-apply,
-    button[aria-pressed="true"],
-    button[aria-expanded="true"]
+    .object-transform-modes button[aria-pressed="true"],
+    .floating-panel-toggle[aria-expanded="true"]
   ):hover:not(:disabled) {
   background: var(--accent-hover);
   color: var(--on-accent);
@@ -264,7 +301,11 @@
 }
 
 @media (forced-colors: active) {
-  .editor-stage button:is([aria-pressed="true"], [aria-expanded="true"]) {
+  .editor-stage
+    :is(
+      .object-transform-modes button[aria-pressed="true"],
+      .floating-panel-toggle[aria-expanded="true"]
+    ) {
     outline: 2px solid Highlight;
   }
 }
