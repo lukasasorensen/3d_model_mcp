@@ -7,6 +7,31 @@ import {
   revisionManifestSchema,
 } from "@theoryfoundry/contracts";
 
+function exportModelFiles(id) {
+  return {
+    version: 2,
+    files: [
+      { id: "body-file", name: "Body.scad", body: "cube([20,10,5]);" },
+      {
+        id: "cut-file",
+        name: "Cut.scad",
+        body: "translate([5,2,-1]) cube([5,6,7]);",
+      },
+    ],
+    objects: [
+      { id: "body", name: "Body", fileId: "body-file" },
+      { id: "cut", name: "Cut", fileId: "cut-file" },
+    ],
+    composition: { operation: "difference", objectIds: ["body", "cut"] },
+    presentation: {
+      objectOrder: ["body", "cut"],
+      fileOrder: ["body-file", "cut-file"],
+      hiddenFileIds: [],
+      hiddenObjectIds: id === "r2" ? ["cut"] : [],
+    },
+  };
+}
+
 export async function mountWorkspaceJourney(
   page,
   width,
@@ -14,6 +39,7 @@ export async function mountWorkspaceJourney(
   multiObject = false,
   legacyLibrary = false,
   editingPanels = false,
+  liveDraft = false,
 ) {
   const historical = multiObject
     ? "difference() {\nunion() {\ncube([20,10,5]);\n}\nunion() {\ntranslate([5,2,-1]) cube([5,6,7]);\n}\n}"
@@ -51,6 +77,10 @@ export async function mountWorkspaceJourney(
     corruptSource: false,
     restoreRequests: [],
     sourceRequests: [],
+    previews: [],
+    saves: [],
+    loseNextSaveResponse: false,
+    rejectPreviewWidth: undefined,
   };
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -128,23 +158,10 @@ export async function mountWorkspaceJourney(
     if (path.endsWith("/layers")) {
       const id =
         new URL(request.url()).searchParams.get("revision") ?? controls.current;
+      const exportFiles = exportModelFiles(id);
       const exportLayers = {
-        version: 2,
-        files: [
-          { id: "body-file", name: "Body.scad" },
-          { id: "cut-file", name: "Cut.scad" },
-        ],
-        objects: [
-          { id: "body", name: "Body", fileId: "body-file" },
-          { id: "cut", name: "Cut", fileId: "cut-file" },
-        ],
-        composition: { operation: "difference", objectIds: ["body", "cut"] },
-        presentation: {
-          objectOrder: ["body", "cut"],
-          fileOrder: ["body-file", "cut-file"],
-          hiddenFileIds: [],
-          hiddenObjectIds: id === "r2" ? ["cut"] : [],
-        },
+        ...exportFiles,
+        files: exportFiles.files.map(({ id, name }) => ({ id, name })),
       };
       return json({
         revision: id,
@@ -165,7 +182,14 @@ export async function mountWorkspaceJourney(
       return json({
         revision: id,
         sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
-        modelFiles: editingPanels ? modelFiles : null,
+        modelFiles:
+          liveDraft && id === "r3" && controls.saves.at(-1)?.modelFiles
+            ? controls.saves.at(-1).modelFiles
+            : editingPanels
+              ? modelFiles
+              : multiObject && liveDraft
+                ? exportModelFiles(id)
+                : null,
         parameters: [],
         ...(legacyLibrary
           ? {
@@ -182,38 +206,94 @@ export async function mountWorkspaceJourney(
         revision: id,
         sourceHash: revisions.find((r) => r.revisionId === id).sourceHash,
         editable: parameterized || editingPanels,
-        parameters: editingPanels
-          ? Array.from({ length: 8 }, (_, index) => ({
-              id: `size${index}`,
-              binding: `size${index}`,
-              label:
-                index === 0
-                  ? "Assembly magnetic clearance with a long descriptive label"
-                  : `Dimension ${index}`,
-              type: "number",
-              value: 2,
-              defaultValue: 2,
-              min: 0.5,
-              max: 5,
-              step: 0.25,
-              unit: "mm",
-            }))
-          : parameterized
-            ? [
-                {
-                  id: "width",
-                  binding: "width",
-                  label: "Width",
-                  type: "number",
-                  value: id === "r2" ? 20 : 10,
-                  defaultValue: 10,
-                  min: 1,
-                  max: 100,
-                  step: 1,
-                  control: "slider",
-                },
-              ]
-            : [],
+        parameters:
+          editingPanels && !liveDraft
+            ? Array.from({ length: 8 }, (_, index) => ({
+                id: `size${index}`,
+                binding: `size${index}`,
+                label:
+                  index === 0
+                    ? "Assembly magnetic clearance with a long descriptive label"
+                    : `Dimension ${index}`,
+                type: "number",
+                value: 2,
+                defaultValue: 2,
+                min: 0.5,
+                max: 5,
+                step: 0.25,
+                unit: "mm",
+              }))
+            : parameterized
+              ? [
+                  {
+                    id: "width",
+                    binding: "width",
+                    label: "Width",
+                    type: "number",
+                    value:
+                      liveDraft && id === "r3"
+                        ? (controls.saves
+                            .at(-1)
+                            ?.operations.find((edit) => edit.id === "width")
+                            ?.value ?? 10)
+                        : id === "r2"
+                          ? 20
+                          : 10,
+                    defaultValue: 10,
+                    min: 1,
+                    max: 100,
+                    step: 1,
+                    control: "slider",
+                  },
+                ]
+              : [],
+      });
+    }
+    if (liveDraft && path.endsWith("/draft/preview")) {
+      const input = request.postDataJSON();
+      controls.previews.push(input);
+      const width =
+        input.operations.find((edit) => edit.id === "width")?.value ?? 20;
+      if (width === controls.rejectPreviewWidth)
+        return route.fulfill({
+          status: 422,
+          json: {
+            error: {
+              code: "MODEL_REJECTED",
+              message: "The test model is empty.",
+            },
+          },
+        });
+      const source = "cube([" + width + ",10,5]);";
+      return json({
+        parentRevision: input.parentRevision,
+        sourceHash: createHash("sha256").update(source).digest("hex"),
+        source,
+      });
+    }
+    if (liveDraft && path.endsWith("/draft/save")) {
+      const input = request.postDataJSON();
+      controls.saves.push(input);
+      controls.current = "r3";
+      revisions[2] = {
+        ...revisions[2],
+        requestId: input.requestId,
+        toolCallId: input.requestId,
+      };
+      if (controls.loseNextSaveResponse) {
+        controls.loseNextSaveResponse = false;
+        return route.abort("failed");
+      }
+      return route.fulfill({
+        contentType: "application/x-ndjson",
+        body:
+          JSON.stringify({
+            type: "saved",
+            revision: "r3",
+            requestId: input.requestId,
+            sessionId: input.sessionId,
+            sequence: 0,
+          }) + "\n",
       });
     }
     if (path.endsWith("/source")) {
@@ -245,9 +325,13 @@ export async function mountWorkspaceJourney(
       });
     throw new Error(`Unexpected fixture request: ${request.method()} ${path}`);
   });
+  const draftOwner = liveDraft ? 'draftOwnerId="owner"' : "";
+  const rendererMethods = liveDraft
+    ? "renderPreview:async()=>{const bytes=new Uint8Array(134);const view=new DataView(bytes.buffer);view.setUint32(80,1,true);view.setFloat32(108,10,true);view.setFloat32(124,20,true);return {bytes,diagnostics:[]}}, "
+    : "";
   const result = await build({
     stdin: {
-      contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {ModelWorkspace} from './src/features/workspace/browser/components/modelWorkspace.component'; import {BrowserRendererContext} from './src/features/browser-rendering/browser/index'; const renderer={cachedPreview:()=>new TextEncoder().encode('solid test\\nfacet normal 0 0 1\\nouter loop\\nvertex 0 0 0\\nvertex 10 0 0\\nvertex 0 20 0\\nendloop\\nendfacet\\nendsolid test'),generateDownload:async(source,format)=>{window.generatedSource=source;return {bytes:new TextEncoder().encode(source),extension:format,mimeType:'application/octet-stream'}}}; createRoot(document.getElementById('root')).render(<BrowserRendererContext.Provider value={renderer}><ModelWorkspace projectId="sample"/></BrowserRendererContext.Provider>);`,
+      contents: `import React from 'react'; import {createRoot} from 'react-dom/client'; import {ModelWorkspace} from './src/features/workspace/browser/components/modelWorkspace.component'; import {BrowserRendererContext} from './src/features/browser-rendering/browser/index'; const renderer={${rendererMethods}cachedPreview:()=>new TextEncoder().encode('solid test\\nfacet normal 0 0 1\\nouter loop\\nvertex 0 0 0\\nvertex 10 0 0\\nvertex 0 20 0\\nendloop\\nendfacet\\nendsolid test'),generateDownload:async(source,format)=>{window.generatedSource=source;return {bytes:new TextEncoder().encode(source),extension:format,mimeType:'application/octet-stream'}}}; createRoot(document.getElementById('root')).render(<BrowserRendererContext.Provider value={renderer}><ModelWorkspace projectId="sample" ${draftOwner}/></BrowserRendererContext.Provider>);`,
       resolveDir: root + "/apps/site",
       loader: "tsx",
     },
@@ -267,15 +351,18 @@ export async function mountWorkspaceJourney(
             resolveDir: root + "/apps/site",
             contents: path.endsWith("navigation")
               ? `export function useRouter(){return {push(){}}}`
-              : `import {useEffect} from 'react';export default function dynamic(){return function Viewer({revisionId,onLoadStateChange}){useEffect(()=>onLoadStateChange('ready'),[revisionId,onLoadStateChange]);return <div className="viewer-shell" aria-label="Preview fixture">{revisionId}</div>}}`,
+              : `import {useEffect} from 'react';export default function dynamic(){return function Viewer({revisionId,previewBytes,showAccepted,onLoadStateChange}){useEffect(()=>onLoadStateChange('ready'),[revisionId,onLoadStateChange]);return <div className="viewer-shell" aria-label="Preview fixture" data-draft-mesh={Boolean(previewBytes)} data-model-visible={showAccepted !== false}>{revisionId}</div>}}`,
           }));
         },
       },
     ],
   });
   await page.setViewportSize({ width, height: 900 });
-  await page.goto("https://example.test/projects/sample");
-  await page.addStyleTag({ content: await applicationStyles() });
-  await page.addScriptTag({ content: result.outputFiles[0].text });
-  return { controls, errors, sources };
+  async function openWorkspace() {
+    await page.goto("https://example.test/projects/sample");
+    await page.addStyleTag({ content: await applicationStyles() });
+    await page.addScriptTag({ content: result.outputFiles[0].text });
+  }
+  await openWorkspace();
+  return { controls, errors, sources, openWorkspace };
 }

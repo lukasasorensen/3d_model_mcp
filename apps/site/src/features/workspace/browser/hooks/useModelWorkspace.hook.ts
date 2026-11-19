@@ -8,6 +8,7 @@ import {
   revisionManifestSchema,
   type ChatEvent,
   type ProjectSummary,
+  type RemoteMcpBrowserRenderJob,
 } from "@theoryfoundry/contracts";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
@@ -24,6 +25,7 @@ import {
   type ChatModelSelection,
 } from "../../../chat/browser/index";
 import type { PreviewLoadState } from "../../../model-preview/browser/index";
+import { useWorkingModel } from "../../../working-model/browser/index";
 import { useProjectEvents } from "../../../project-events/browser/index";
 import { useComposerFocus } from "./useComposerFocus.hook";
 import { useMcpBrowserRenderer } from "../hooks/useMcpBrowserRenderer.hook";
@@ -43,10 +45,12 @@ import { newOpaqueId } from "../utils/workspacePresentation.util";
 const SESSION_KEY_PREFIX = "theoryfoundry-cad-session:";
 export function useModelWorkspace({
   projectId,
+  draftOwnerId,
   localMcpBridgeEnabled = false,
   remoteMcpEnabled = false,
 }: {
   projectId: string;
+  draftOwnerId?: string | undefined;
   localMcpBridgeEnabled?: boolean;
   remoteMcpEnabled?: boolean;
 }): WorkspaceView {
@@ -132,11 +136,12 @@ export function useModelWorkspace({
 
   useEffect(() => {
     const sessionKey = `${SESSION_KEY_PREFIX}${projectId}`;
-    const existing = sessionStorage.getItem(sessionKey);
-    if (existing) setSessionId(existing);
-    else {
-      const created = newOpaqueId("session");
-      sessionStorage.setItem(sessionKey, created);
+    const created = newOpaqueId("session");
+    try {
+      const existing = sessionStorage.getItem(sessionKey);
+      if (!existing) sessionStorage.setItem(sessionKey, created);
+      setSessionId(existing ?? created);
+    } catch {
       setSessionId(created);
     }
     void Promise.all([refreshProject(), refreshProjects(), checkRuntime()]);
@@ -148,6 +153,7 @@ export function useModelWorkspace({
     status: mcpStatus,
     acquire: acquireRenderer,
     release: releaseRenderer,
+    tryDraftRenderer,
   } = useMcpBrowserRenderer({
     projectId,
     sessionId,
@@ -175,10 +181,60 @@ export function useModelWorkspace({
     presenceWake,
   });
 
+  const renderParameters = useCallback(
+    async (
+      job: RemoteMcpBrowserRenderJob,
+      signal: AbortSignal,
+    ): Promise<void> => {
+      setParameterRendering(true);
+      try {
+        await completeRemoteMcpBrowserRender(
+          renderPreview,
+          job,
+          sessionId,
+          signal,
+        );
+      } finally {
+        setParameterRendering(false);
+      }
+    },
+    [renderPreview, sessionId],
+  );
+
+  const workingModel = useWorkingModel({
+    projectId,
+    ownerId: draftOwnerId,
+    sessionId,
+    currentRevision: state.currentRevision,
+    selectedRevision: state.selectedRevision,
+    selectedSourceHash: state.revisions.find(
+      (revision) => revision.revisionId === state.selectedRevision,
+    )?.sourceHash,
+    revisions: state.revisions,
+    hydrated: Boolean(draftOwnerId && state.hydrated),
+    disabled:
+      state.active ||
+      restorePending ||
+      isMcpRendering ||
+      exportState === "preparing" ||
+      readiness !== "ready" ||
+      !sessionId ||
+      Boolean(state.pendingCurrentRevision),
+    acquire: acquireRenderer,
+    release: releaseRenderer,
+    render: renderParameters,
+    refresh: refreshProject,
+    onPending: setParameterPending,
+    tryDraftRenderer,
+    selectCurrent: () => dispatch({ type: "select_current" }),
+  });
+  const workingDirty = workingModel.dirty;
+
   const submit = useCallback(
     async (message: string, retry = false) => {
       if (
         parameterPending ||
+        workingDirty ||
         !isSidebarChatEnabled ||
         !aiSelection.available ||
         !sessionId ||
@@ -255,6 +311,7 @@ export function useModelWorkspace({
     },
     [
       parameterPending,
+      workingDirty,
       isSidebarChatEnabled,
       aiSelection,
       projectId,
@@ -278,7 +335,7 @@ export function useModelWorkspace({
   );
 
   const restore = async (revisionId: string): Promise<void> => {
-    if (parameterPending || !(await acquireRenderer())) return;
+    if (parameterPending || workingDirty || !(await acquireRenderer())) return;
     dispatch({ type: "clear_notice" });
     setRestorePending(true);
     try {
@@ -384,19 +441,8 @@ export function useModelWorkspace({
     acquireRenderer,
     releaseRenderer,
     refreshProject,
-    renderParameters: async (job, signal): Promise<void> => {
-      setParameterRendering(true);
-      try {
-        await completeRemoteMcpBrowserRender(
-          renderPreview,
-          job,
-          sessionId,
-          signal,
-        );
-      } finally {
-        setParameterRendering(false);
-      }
-    },
+    renderParameters,
+    workingModel: draftOwnerId ? workingModel : undefined,
     previewLoadState,
     setPreviewLoadState,
     abortRef,

@@ -38,6 +38,8 @@ interface ObjectTransformSceneProps {
   onSelect(id: string): void;
   onChange(transform: ObjectTransform): void;
   onError(message: string | undefined): void;
+  onDragChange?(active: boolean): void;
+  onDragCancel?(): void;
 }
 
 export function ObjectTransformScene({
@@ -52,6 +54,8 @@ export function ObjectTransformScene({
   onSelect,
   onChange,
   onError,
+  onDragChange,
+  onDragCancel,
 }: ObjectTransformSceneProps): JSX.Element {
   const { camera, gl, invalidate, scene } = useThree();
   const colors = useMemo(
@@ -61,10 +65,22 @@ export function ObjectTransformScene({
   const refs = useRef(new Map<string, Mesh>());
   const controls = useRef<TransformControls | undefined>(undefined);
   const selected = objects.find((object) => object.id === selectedId);
-  const latest = useRef({ selected, onChange, onError });
+  const latest = useRef({
+    selected,
+    onChange,
+    onError,
+    onDragChange,
+    onDragCancel,
+  });
   const lastFit = useRef<typeof fitRequest>(undefined);
   useLayoutEffect(() => {
-    latest.current = { selected, onChange, onError };
+    latest.current = {
+      selected,
+      onChange,
+      onError,
+      onDragChange,
+      onDragCancel,
+    };
   });
   useLayoutEffect(() => {
     const gizmo = new TransformControls(camera, gl.domElement);
@@ -75,6 +91,7 @@ export function ObjectTransformScene({
     const update = (): void => invalidate();
     const dragging = (event: { value: unknown }): void => {
       orbit.enabled = !event.value;
+      latest.current.onDragChange?.(Boolean(event.value));
     };
     const change = (): void => {
       const { selected, onChange, onError } = latest.current;
@@ -105,6 +122,7 @@ export function ObjectTransformScene({
     const cancel = (event: KeyboardEvent): void => {
       if (event.key === "Escape" && gizmo.dragging) {
         gizmo.reset();
+        latest.current.onDragCancel?.();
         event.stopPropagation();
       }
     };

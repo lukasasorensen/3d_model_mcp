@@ -118,6 +118,16 @@ export function assertNewModelDocument(
   );
 }
 
+/** Assemble and check a preview with the same source rules as a new proposal. */
+export function prepareModelDocument(
+  input: Parameters<typeof resolveModelDocument>[0],
+  inherited: unknown,
+): ReturnType<typeof resolveModelDocument> {
+  const document = resolveModelDocument(input, inherited);
+  assertNewModelDocument(document, inherited);
+  return document;
+}
+
 /** Reassembly verifies persisted body/metadata without parsing generated headers. */
 export function checkedStoredModelDocument(
   source: string,

@@ -1,6 +1,6 @@
 # Object layers (THE-58)
 
-The project workspace Layers panel lists revision-bound named objects in saved
+The project workspace Layers panel lists named objects in working
 presentation order, including stable object IDs and source file names/IDs. Multiple
 objects may use the same file. Legacy single-source projects display an explanatory
 empty state; no implicit object splitting or adoption occurs.
@@ -24,13 +24,12 @@ starting order intact. The row menu also supports Move up and Move down. Rename
 opens an inline name field. Enter stages a trimmed object label; Escape cancels.
 The object ID, source file, and references survive the rename.
 
-Apply layers sends renames, visibility and presentation order in one
-`edit_model_files` candidate, validates/renders it, then promotes against the exact
-parent. A draft over the tool's 200-operation limit must be split before applying.
-The viewer and downloads retain accepted geometry until successful promotion and
-refresh. Discard loads the latest accepted layers. List order uses
-`presentation.objectOrder`; it never changes the explicit boolean operand order.
-Changing visibility excludes hidden objects from the saved preview and exports.
+Layer changes join the [working model](working-model.md) with parameter and object
+edits. Names and presentation order update immediately. Visibility triggers an
+automatic geometry preview. List order uses `presentation.objectOrder`; it never
+changes the explicit boolean operand order. **Save new revision** validates the
+complete draft against its parent. Downloads use visible geometry from the saved
+revision.
 
 A source-hidden object shows a disabled crossed-out eye. For other objects the
 eye button exposes shown/hidden state through `aria-pressed`.
@@ -38,12 +37,14 @@ Show source file stages visibility for every object referencing that file, while
 preserving each object's independent hidden state. The panel explains this shared
 scope before the control. Individually hidden objects remain selectable.
 
-Empty saved geometry is unsupported by the existing renderer/artifact contract.
-The panel requires at least one effectively visible object, and requires the original
-first operand of a difference to remain visible. Invalid or empty OpenSCAD results
-still fail renderer validation and retain accepted state. It never substitutes a
-subtractor for a hidden difference base. Direct transforms, grouping, boolean editing,
-and file body editing are outside the panel.
+Hiding the last visible layer clears the working preview. Hiding the first operand
+of a difference also clears the preview until that operand is shown again. Saving
+requires visible geometry and, for a difference, its original first operand.
+When OpenSCAD rejects an edit to the visible geometry, the editor shows the last
+usable preview.
+
+Direct transforms, grouping, boolean editing, and file body editing are
+outside the panel.
 
 Historical snapshots remain selectable but read-only. A concurrent accepted revision
 retains and disables an older draft until discarded; it is not silently rebased.

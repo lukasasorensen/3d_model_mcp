@@ -40,16 +40,17 @@ test("host-supplied worker receives its asset origin; mesh cache belongs to one 
   first.workers[0].onmessage({
     data: { ok: true, bytes, diagnostics: ["compiled"] },
   });
-  assert.deepEqual(await pending, {
+  const result = {
     bytes,
     diagnostics: [
       { code: "OPENSCAD_MESSAGE", severity: "info", message: "compiled" },
     ],
-  });
+  };
+  assert.deepEqual(await pending, result);
   assert.equal(first.workers[0].terminated, 1);
-  assert.equal(
-    (await first.renderer.renderPreview("cube(1);", "source-hash")).bytes,
-    bytes,
+  assert.deepEqual(
+    await first.renderer.renderPreview("cube(1);", "source-hash"),
+    result,
   );
   assert.equal(first.workers.length, 1);
   assert.equal(first.renderer.cachedPreview("source-hash"), bytes);

@@ -13,6 +13,7 @@ import {
 import {
   objectTransform,
   visibleModelObjectIds,
+  type ProjectParameter,
 } from "@theoryfoundry/contracts";
 import {
   useObjectEditing,
@@ -25,8 +26,9 @@ import { objectPreviewSources } from "../utils/objectDraft.util";
 import { transformedObjectDimensions } from "../utils/objectGeometry.util";
 import { ObjectTransformScene } from "./objectTransformScene.component";
 import { ObjectTransformEditor } from "./objectTransformEditor.component";
+import type { TransformInput } from "./transformNumericFields.component";
 
-interface ObjectEditingPanelProps extends ObjectEditingOptions {
+interface ObjectEditingLayout {
   previewReady: boolean;
   renderViewport(options: {
     renderEditingScene?: (orbit: OrbitControls) => ReactNode;
@@ -40,14 +42,58 @@ interface ObjectEditingPanelProps extends ObjectEditingOptions {
   }): ReactNode;
 }
 
+type ObjectEditingState = ReturnType<typeof useObjectEditing>;
+type LegacyActions = Pick<
+  ObjectEditingState,
+  "cancel" | "apply" | "reload" | "retry" | "retryOutcome"
+>;
+
 export function ObjectEditingPanel({
   previewReady,
   renderViewport,
   panelToggles,
   renderPanels,
   ...options
-}: ObjectEditingPanelProps): JSX.Element {
+}: ObjectEditingLayout & ObjectEditingOptions): JSX.Element {
   const state = useObjectEditing(options);
+  return (
+    <ObjectEditingView
+      {...options}
+      panelToggles={panelToggles}
+      previewReady={previewReady}
+      renderViewport={renderViewport}
+      {...(renderPanels && { renderPanels })}
+      state={state}
+      legacy={state}
+    />
+  );
+}
+
+export function ObjectEditingView({
+  previewReady,
+  renderViewport,
+  panelToggles,
+  renderPanels,
+  footer,
+  legacy,
+  live,
+  state,
+  ...options
+}: ObjectEditingLayout &
+  Pick<ObjectEditingOptions, "disabled" | "selectedRevision"> & {
+    state: Omit<ObjectEditingState, keyof LegacyActions>;
+    footer?: ReactNode;
+    legacy?: LegacyActions;
+    live?: {
+      dragging: boolean;
+      operandParameters: ProjectParameter[];
+      inputs: Readonly<Record<string, TransformInput>>;
+      changeInput(key: string, input: TransformInput | undefined): void;
+      finishInput(): void;
+      draggingChanged(active: boolean): void;
+      cancelDrag(): void;
+    };
+  }): JSX.Element {
   const headingId = useId();
   const selectorId = useId();
   const errorRef = useRef<HTMLDivElement>(null);
@@ -72,32 +118,30 @@ export function ObjectEditingPanel({
     state.stale ||
     !state.snapshot?.revision;
   const files = state.draft?.files;
-  const parametersSnapshot = state.snapshot?.parameters;
-  const acceptedFiles = state.snapshot?.modelFiles;
-  const hiddenFileIds = useMemo(() => {
-    if (!acceptedFiles) return new Set<string>();
-    const visible = new Set(visibleModelObjectIds(acceptedFiles));
-    const displayedFiles = new Set(
-      acceptedFiles.objects
-        .filter((object) => visible.has(object.id))
-        .map((object) => object.fileId),
-    );
-    return new Set(
-      acceptedFiles.files
-        .filter((file) => !displayedFiles.has(file.id))
-        .map((file) => file.id),
-    );
-  }, [acceptedFiles]);
-  const sources = useMemo(
-    () =>
-      files && parametersSnapshot
-        ? objectPreviewSources(
-            files.filter((file) => !hiddenFileIds.has(file.id)),
-            parametersSnapshot,
-          )
-        : undefined,
-    [files, hiddenFileIds, parametersSnapshot],
+  const parametersSnapshot =
+    live?.operandParameters ?? state.snapshot?.parameters;
+  const acceptedFiles = live ? state.draft : state.snapshot?.modelFiles;
+  const visible = new Set(
+    acceptedFiles ? visibleModelObjectIds(acceptedFiles) : [],
   );
+  const displayedFiles = new Set(
+    acceptedFiles?.objects
+      .filter((object) => visible.has(object.id))
+      .map((object) => object.fileId),
+  );
+  const hiddenFileKey =
+    acceptedFiles?.files
+      .filter((file) => !displayedFiles.has(file.id))
+      .map((file) => file.id)
+      .join("\0") ?? "";
+  const sources = useMemo(() => {
+    if (!files || !parametersSnapshot) return undefined;
+    const hidden = new Set(hiddenFileKey.split("\0"));
+    return objectPreviewSources(
+      files.filter((file) => !hidden.has(file.id)),
+      parametersSnapshot,
+    );
+  }, [files, hiddenFileKey, parametersSnapshot]);
   const currentScene =
     !state.historical && !state.stale && Boolean(options.selectedRevision);
   const objects = useMemo(() => {
@@ -113,7 +157,10 @@ export function ObjectEditingPanel({
   const selectedVisible = objects.find(
     (object) => object.id === state.selectedId,
   );
-  const showOperands = Boolean(meshes && (selectedVisible || state.dirty));
+  const showOperands = Boolean(
+    meshes && (live ? live.dragging : selectedVisible || state.dirty),
+  );
+  const inputKey = (state.selectedId ?? "") + ":" + mode;
 
   const selectedGeometry =
     selectedVisible && meshes?.get(selectedVisible.fileId);
@@ -185,7 +232,9 @@ export function ObjectEditingPanel({
             <select
               id={selectorId}
               value={state.selectedId ?? ""}
-              disabled={disabled}
+              disabled={
+                live && state.stale ? state.loading || state.pending : disabled
+              }
               onChange={(event) => select(event.target.value)}
             >
               <option value="">Choose an object</option>
@@ -215,6 +264,12 @@ export function ObjectEditingPanel({
               onChange={state.changeTransform}
               disabled={disabled}
               onValidityChange={setValid}
+              {...(live && {
+                input: live.inputs[inputKey],
+                onInputChange: (input: TransformInput | undefined) =>
+                  live.changeInput(inputKey, input),
+                onInputFinish: live.finishInput,
+              })}
             />
           )}
           <div className="parameter-actions">
@@ -228,30 +283,34 @@ export function ObjectEditingPanel({
             >
               Fit object
             </Button>
-            <Button
-              type="button"
-              accessibleLabel="Cancel object changes"
-              disabled={
-                state.loading || state.pending || (!state.dirty && valid)
-              }
-              onClick={() => {
-                state.cancel();
-                setEditorReset((value) => value + 1);
-                setDragError(undefined);
-                setValid(true);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="editor-apply"
-              accessibleLabel="Apply object changes"
-              disabled={disabled || !state.dirty || !valid}
-              onClick={() => void state.apply()}
-            >
-              {state.pending ? "Applying…" : "Apply"}
-            </Button>
+            {legacy && (
+              <>
+                <Button
+                  type="button"
+                  accessibleLabel="Cancel object changes"
+                  disabled={
+                    state.loading || state.pending || (!state.dirty && valid)
+                  }
+                  onClick={() => {
+                    legacy.cancel();
+                    setEditorReset((value) => value + 1);
+                    setDragError(undefined);
+                    setValid(true);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  className="editor-apply"
+                  accessibleLabel="Apply object changes"
+                  disabled={disabled || !state.dirty || !valid}
+                  onClick={() => void legacy.apply()}
+                >
+                  {state.pending ? "Applying…" : "Apply"}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -273,6 +332,10 @@ export function ObjectEditingPanel({
                   onSelect={select}
                   onChange={state.changeTransform}
                   onError={setDragError}
+                  {...(live && {
+                    onDragChange: live.draggingChanged,
+                    onDragCancel: live.cancelDrag,
+                  })}
                 />
               ),
             }),
@@ -292,7 +355,9 @@ export function ObjectEditingPanel({
               : previewError
                 ? `Object preview unavailable. Use the exact fields to edit. ${previewError}`
                 : showOperands && state.draft?.composition.operation !== "union"
-                  ? "Editing individual operands. Apply to validate the boolean result."
+                  ? live
+                    ? "Showing individual objects while dragging."
+                    : "Editing individual operands. Apply to validate the boolean result."
                   : !meshes && previewReady
                     ? "Loading object geometry…"
                     : ""}
@@ -309,7 +374,7 @@ export function ObjectEditingPanel({
             {dragError}
           </p>
         )}
-        {state.dirty && !state.pending && !state.historical && (
+        {legacy && state.dirty && !state.pending && !state.historical && (
           <p>Unapplied object changes</p>
         )}
         <p role="status" aria-live="polite">
@@ -326,7 +391,7 @@ export function ObjectEditingPanel({
             <p>{state.error}</p>
           </div>
         )}
-        {state.retryOutcome && (
+        {legacy?.retryOutcome && (
           <button
             type="button"
             disabled={
@@ -335,20 +400,24 @@ export function ObjectEditingPanel({
               options.disabled ||
               state.historical
             }
-            onClick={() => void state.retry()}
+            onClick={() => void legacy.retry()}
           >
             Retry saved outcome
           </button>
         )}
-        {(state.error || state.stale) && (
-          <button type="button" disabled={state.pending} onClick={state.reload}>
+        {legacy && (state.error || state.stale) && (
+          <button
+            type="button"
+            disabled={state.pending}
+            onClick={legacy.reload}
+          >
             Discard draft and reload objects
           </button>
         )}
         {state.historical && (
           <p>Return to the current revision to edit objects.</p>
         )}
-        {state.stale && (
+        {legacy && state.stale && (
           <p role="status">
             The accepted revision changed. Retry an interrupted save to confirm
             its outcome, or discard your draft and reload objects before
@@ -362,6 +431,7 @@ export function ObjectEditingPanel({
           </p>
         )}
       </div>
+      {footer}
     </section>
   );
 }

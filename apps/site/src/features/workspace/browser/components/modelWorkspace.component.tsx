@@ -1,6 +1,5 @@
 "use client";
-import { Button } from "../../../../shared/controls/index";
-import { DownloadIcon } from "../../../../shared/icons/index";
+
 import { useId, type JSX } from "react";
 
 import dynamic from "next/dynamic";
@@ -14,17 +13,12 @@ import { WorkspaceEditingControls } from "./workspaceEditingControls.component";
 import { RevisionHistory } from "./revisionHistory.component";
 import { WorkspaceStatusToast } from "./workspaceStatusToast.component";
 
-import {
-  ExportPolicy,
-  type DownloadFormat,
-} from "../../../exports/browser/index";
+import { WorkingEditingControls } from "../../../working-model/browser/index";
+import { WorkspaceModelSummary } from "./workspaceModelSummary.component";
 
 import { useWorkspaceSection } from "../hooks/useWorkspaceSection.hook";
 import { useModelWorkspace } from "../hooks/useModelWorkspace.hook";
-import {
-  previewStatusLabel,
-  promotionStatusLabel,
-} from "../utils/workspacePresentation.util";
+import { promotionStatusLabel } from "../utils/workspacePresentation.util";
 const ModelViewer = dynamic(
   () =>
     import("../../../model-preview/browser/index").then(
@@ -37,6 +31,7 @@ const ModelViewer = dynamic(
 );
 export function ModelWorkspace({
   projectId,
+  draftOwnerId,
   localMcpBridgeEnabled = false,
   remoteMcpEnabled = false,
   codexOrigin,
@@ -44,6 +39,7 @@ export function ModelWorkspace({
   installations,
 }: {
   projectId: string;
+  draftOwnerId?: string | undefined;
   localMcpBridgeEnabled?: boolean;
   remoteMcpEnabled?: boolean;
   codexOrigin?: string | undefined;
@@ -93,8 +89,10 @@ export function ModelWorkspace({
     currentBadgeLabel,
     exportCurrent,
     syncStatus,
+    workingModel,
   } = useModelWorkspace({
     projectId,
+    draftOwnerId,
     localMcpBridgeEnabled,
     remoteMcpEnabled,
   });
@@ -120,6 +118,41 @@ export function ModelWorkspace({
     render: renderParameters,
     refresh: refreshProject,
   };
+  const draftVisible = workingModel?.showingDraft === true;
+  const previewBase = draftVisible
+    ? state.revisions.find(
+        (revision) => revision.revisionId === workingModel.parent,
+      )
+    : selectedManifest;
+  const displayLabel = draftVisible ? "Working model" : selectedLabel;
+  const draftDimensions = workingModel?.hidePreview
+    ? undefined
+    : workingModel?.preview?.geometry.dimensions
+        .map((value) => Number(value.toFixed(2)))
+        .join(" × ");
+  const renderViewport: Parameters<
+    typeof WorkspaceEditingControls
+  >[0]["renderViewport"] = (editing) => (
+    <ModelViewer
+      {...editing}
+      showAccepted={editing.showAccepted && !workingModel?.hidePreview}
+      projectId={projectId}
+      revisionId={
+        previewBase?.revisionId ??
+        (draftVisible ? (workingModel.parent ?? undefined) : undefined)
+      }
+      sourceHash={
+        previewBase?.sourceHash ??
+        (draftVisible
+          ? (workingModel.base?.objects.sourceHash ?? undefined)
+          : undefined)
+      }
+      previewBytes={workingModel?.preview?.bytes}
+      currentLabel={displayLabel}
+      updating={state.active || parameterPending}
+      onLoadStateChange={setPreviewLoadState}
+    />
+  );
   return (
     <main
       className="app-shell"
@@ -151,7 +184,10 @@ export function ModelWorkspace({
           )}
           <button
             type="button"
-            onClick={() => router.push("/projects")}
+            onClick={() => {
+              if (workingModel?.beforeLeave() !== false)
+                router.push("/projects");
+            }}
             disabled={
               parameterPending ||
               isMcpRendering ||
@@ -169,11 +205,12 @@ export function ModelWorkspace({
             <select
               id={projectSelectorId}
               value={projectId}
-              onChange={(event) =>
-                router.push(
-                  `/projects/${encodeURIComponent(event.target.value)}`,
-                )
-              }
+              onChange={(event) => {
+                if (workingModel?.beforeLeave() !== false)
+                  router.push(
+                    "/projects/" + encodeURIComponent(event.target.value),
+                  );
+              }}
               disabled={
                 parameterPending ||
                 isMcpRendering ||
@@ -238,9 +275,11 @@ export function ModelWorkspace({
           <div className="pane-heading">
             <div>
               <h1 id="model-heading" tabIndex={-1}>
-                {state.selectedRevision
-                  ? `Inspecting ${selectedLabel}`
-                  : "No model yet"}
+                {draftVisible
+                  ? displayLabel
+                  : state.selectedRevision
+                    ? `Inspecting ${selectedLabel}`
+                    : "No model yet"}
               </h1>
             </div>
             <div className="revision-badges">
@@ -257,6 +296,7 @@ export function ModelWorkspace({
           >
             {[
               syncStatus,
+              workingModel && !workingModel.dirty && workingModel.savePhase,
               (localMcpBridgeEnabled || remoteMcpEnabled) &&
                 (mcpStatus ||
                   "Ready for Codex. Keep this project tab visible during validation."),
@@ -304,99 +344,43 @@ export function ModelWorkspace({
               </p>
             )}
           <div id="model-panel" className="model-primary">
-            <WorkspaceEditingControls
-              key={projectId}
-              {...controlOptions}
-              hydrated={state.hydrated === true}
-              onPending={setParameterPending}
-              previewReady={previewLoadState === "ready"}
-              renderViewport={(editing) => (
-                <ModelViewer
-                  {...editing}
-                  projectId={projectId}
-                  revisionId={selectedManifest?.revisionId}
-                  sourceHash={selectedManifest?.sourceHash}
-                  currentLabel={selectedLabel}
-                  updating={state.active || parameterPending}
-                  onLoadStateChange={setPreviewLoadState}
-                />
-              )}
-            >
-              <section
-                className="model-summary"
-                aria-label="Model summary and downloads"
-              >
-                <div className="model-facts" aria-label="Model facts">
-                  <div>
-                    <span>Revision</span>
-                    <strong>{selectedLabel}</strong>
-                  </div>
-                  <div>
-                    <span>Dimensions · mm</span>
-                    <strong>{dimensions}</strong>
-                  </div>
-                  <div>
-                    <span>Preview</span>
-                    <strong>
-                      {previewStatusLabel(
-                        Boolean(selectedManifest),
-                        previewLoadState,
-                      )}
-                    </strong>
-                  </div>
-                </div>
-                <div className="model-actions">
-                  <div className="export-controls">
-                    <label htmlFor="export-format">Download format</label>
-                    <select
-                      id="export-format"
-                      value={exportFormat}
-                      onChange={(event) => {
-                        setExportFormat(event.target.value as DownloadFormat);
-                        setExportState("idle");
-                      }}
-                      disabled={
-                        parameterPending ||
-                        isMcpRendering ||
-                        !currentManifest ||
-                        state.active ||
-                        exportState === "preparing"
-                      }
-                    >
-                      <option value="stl">STL</option>
-                      <option value="glb">GLB</option>
-                      <option value="3mf">3MF</option>
-                    </select>
-                    <Button
-                      className="export-button"
-                      icon={<DownloadIcon size="1em" focusable="false" />}
-                      accessibleLabel={
-                        exportState === "preparing"
-                          ? `Preparing ${exportFormatLabel} download · ${currentLabel}`
-                          : `Download ${exportFormatLabel} · ${currentLabel}`
-                      }
-                      onClick={() => void exportCurrent()}
-                      disabled={
-                        parameterPending ||
-                        isMcpRendering ||
-                        !currentManifest ||
-                        state.active ||
-                        exportState === "preparing"
-                      }
-                      aria-describedby="export-help"
-                    >
-                      {exportState === "preparing"
-                        ? `Preparing ${exportFormatLabel}…`
-                        : exportFormatLabel}
-                    </Button>
-                  </div>
-                </div>
-                <ExportPolicy
-                  currentLabel={currentLabel}
-                  available={Boolean(currentManifest)}
-                />
-              </section>
-            </WorkspaceEditingControls>
+            {workingModel && state.hydrated ? (
+              <WorkingEditingControls
+                key={projectId}
+                draft={workingModel}
+                projectId={projectId}
+                revision={previewBase?.revisionId ?? null}
+                previewReady={previewLoadState === "ready"}
+                renderViewport={renderViewport}
+              />
+            ) : (
+              <WorkspaceEditingControls
+                key={projectId}
+                {...controlOptions}
+                hydrated={state.hydrated === true}
+                onPending={setParameterPending}
+                previewReady={previewLoadState === "ready"}
+                renderViewport={renderViewport}
+              />
+            )}
+            <WorkspaceModelSummary
+              active={state.active}
+              hasModel={Boolean(previewBase)}
+              hasCurrent={Boolean(currentManifest)}
+              dimensions={draftVisible ? (draftDimensions ?? "—") : dimensions}
+              selectedLabel={displayLabel}
+              {...{
+                currentLabel,
+                previewLoadState,
+                parameterPending,
+                isMcpRendering,
+                exportFormat,
+                setExportFormat,
+                exportState,
+                setExportState,
+                exportCurrent,
+              }}
+            />
           </div>
           {exportState === "failed" && (
             <p role="alert" className="notice notice-error">
@@ -430,9 +414,12 @@ export function ModelWorkspace({
                 restorePending ||
                 previewLoadState !== "ready"
               }
-              onSelect={(revisionId) =>
-                dispatch({ type: "select_revision", revisionId })
-              }
+              onSelect={(revisionId) => {
+                workingModel?.inspect();
+                dispatch({ type: "select_revision", revisionId });
+              }}
+              restoreUnavailable={workingModel?.dirty ?? false}
+              inspectUnavailable={workingModel?.saving ?? false}
               onRestore={(revisionId) => void restore(revisionId)}
             />
             <ModelSourcePanel
@@ -459,6 +446,7 @@ export function ModelWorkspace({
             active={state.active}
             available={
               !parameterPending &&
+              !workingModel?.dirty &&
               !isMcpRendering &&
               !restorePending &&
               exportState !== "preparing" &&

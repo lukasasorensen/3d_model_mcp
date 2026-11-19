@@ -10,6 +10,9 @@ test("composed downloads pin accepted source and restore changes the exported co
     1440,
     false,
     true,
+    false,
+    false,
+    true,
   );
   await expect(
     page.getByRole("heading", { name: "Inspecting R2" }),
@@ -18,16 +21,45 @@ test("composed downloads pin accepted source and restore changes the exported co
   await expect(help).toContainText(
     "Downloads use the saved model and visible layers in R2.",
   );
-  await expect(help).toContainText("Apply changes before downloading");
+  await expect(help).toContainText(
+    "Save a new revision to include unsaved edits",
+  );
   const cutter = page.getByRole("button", {
     name: "Show Cut (cut)",
     exact: true,
   });
+  const preview = page.getByLabel("Preview fixture");
+  const save = page.getByRole("button", {
+    name: "Save new revision",
+    exact: true,
+  });
+  const base = page.getByRole("button", {
+    name: "Show Body (body)",
+    exact: true,
+  });
+  await base.click();
+  await expect(preview).toHaveAttribute("data-model-visible", "false");
+  await expect(
+    page.getByText("Show the first difference operand to preview and save."),
+  ).toBeVisible();
+  await expect(save).toBeDisabled();
+  await base.click();
+  await expect(preview).toHaveAttribute("data-model-visible", "true");
+  await expect(save).toHaveCount(0);
   await expect(cutter).toHaveAttribute("aria-pressed", "false");
   await cutter.click();
-  await expect(
-    page.getByRole("button", { name: "Apply layers", exact: true }),
-  ).toBeEnabled();
+  await expect(cutter).toHaveAttribute("aria-pressed", "true");
+  await expect(save).toBeEnabled();
+  await expect(preview).toHaveAttribute("data-draft-mesh", "true");
+  expect(
+    controls.previews.at(-1).modelFiles.presentation.hiddenObjectIds,
+  ).toEqual([]);
+  await cutter.click();
+  await expect(cutter).toHaveAttribute("aria-pressed", "false");
+  await expect(preview).toHaveAttribute("data-draft-mesh", "false");
+  await expect(save).toHaveCount(0);
+  await cutter.click();
+  await expect(save).toBeEnabled();
   const draftDownload = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Download STL · R2", exact: true })
@@ -53,9 +85,20 @@ test("composed downloads pin accepted source and restore changes the exported co
   expect(controls.sourceRequests.at(-1)).toBe("r2");
   expect(first.suggestedFilename()).toContain("r2");
   expect(first.suggestedFilename()).toContain(".3mf");
+  const restore = page.getByRole("button", {
+    name: "Restore R1 as a new revision",
+    exact: true,
+  });
+  await expect(restore).toBeDisabled();
   await page
-    .getByRole("button", { name: "Restore R1 as a new revision", exact: true })
+    .getByRole("button", { name: "Return to draft", exact: true })
     .click();
+  page.once("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("button", { name: "Discard draft", exact: true })
+    .click();
+  await page.getByRole("button", { name: /R1 Historical revision/ }).click();
+  await restore.click();
   await expect(page.locator(".current-badge")).toHaveText("Current · R3");
   const restoredDownload = page.waitForEvent("download");
   await page

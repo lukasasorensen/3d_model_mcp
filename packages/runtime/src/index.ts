@@ -64,6 +64,7 @@ export * from "./cadWorkflow.composition.js";
 export {
   ModelExportsRepository,
   assertModelFiles,
+  prepareModelDocument,
 } from "@theoryfoundry/model-project";
 export { handleWorkerExportRequest } from "./workerExport.composition.js";
 export { handleWorkerPreviewSourceRequest } from "./workerPreviewSource.composition.js";
