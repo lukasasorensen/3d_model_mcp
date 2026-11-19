@@ -7,6 +7,8 @@ import { mountWorkspaceJourney } from "../fixtures/workspaceJourney.fixture.mjs"
 
 const saveButton = (page) =>
   page.getByRole("button", { name: "Save new revision", exact: true });
+const revisionActions = (page) =>
+  page.getByRole("group", { name: "Working revision", exact: true });
 const history = (page) => page.getByTestId("revision-history");
 
 async function openParameters(page) {
@@ -67,7 +69,9 @@ test("mixed edits preview without history, survive reload and reconcile a lost S
   const { controls, errors, openWorkspace } = fixture;
   let width = await openParameters(page);
   await expect(width).toHaveValue("20");
+  await expect(revisionActions(page)).toHaveCount(0);
   await width.fill("30");
+  await expect(revisionActions(page)).toBeVisible();
   await expect(saveButton(page)).toBeEnabled();
   await expect(history(page).locator("summary")).toHaveText(
     "Revision history 2",
@@ -158,7 +162,7 @@ test("mixed edits preview without history, survive reload and reconcile a lost S
   expect(
     controls.saves[0].modelFiles.objects.map((object) => object.name).sort(),
   ).toEqual(["Working body", "Working body copy"]);
-  await expect(saveButton(page)).toBeDisabled();
+  await expect(revisionActions(page)).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
@@ -239,6 +243,7 @@ test("discard and undo to the saved model clear the draft preview", async ({
     await expect(preview).toHaveAttribute("data-draft-mesh", "true");
     await reset();
     await expect(width).toHaveValue("20");
+    await expect(revisionActions(page)).toHaveCount(0);
     await expect(preview).toHaveAttribute("data-draft-mesh", "false");
 
     await width.fill("33");
@@ -324,6 +329,22 @@ test.describe("touch and storage recovery", () => {
     const width = await openParameters(page);
     await expect(width).toHaveValue("20");
     await width.fill("25");
+    const undo = revisionActions(page).getByRole("button", {
+      name: "Undo",
+      exact: true,
+    });
+    const redo = page.getByRole("button", { name: "Redo", exact: true });
+    await undo.tap();
+    await expect(width).toHaveValue("20");
+    await expect(revisionActions(page)).toHaveCount(0);
+    await redo.tap();
+    await expect(width).toHaveValue("25");
+    await undo.focus();
+    await page.keyboard.press("ControlOrMeta+z");
+    await expect(revisionActions(page)).toHaveCount(0);
+    await redo.focus();
+    await page.keyboard.press("ControlOrMeta+Shift+z");
+    await expect(width).toHaveValue("25");
     await expect(
       page.getByText(/This tab could not store your draft/),
     ).toBeVisible();
@@ -346,6 +367,7 @@ test.describe("touch and storage recovery", () => {
     await expect(
       page.getByText("Revision saved.", { exact: true }),
     ).toBeVisible();
+    await expect(revisionActions(page)).toHaveCount(0);
     expect(controls.saves).toHaveLength(1);
     expect(errors).toEqual([]);
   });

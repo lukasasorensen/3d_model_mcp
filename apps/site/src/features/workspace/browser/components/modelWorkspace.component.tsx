@@ -293,6 +293,7 @@ export function ModelWorkspace({
           >
             {[
               syncStatus,
+              workingModel && !workingModel.dirty && workingModel.savePhase,
               (localMcpBridgeEnabled || remoteMcpEnabled) &&
                 (mcpStatus ||
                   "Ready for Codex. Keep this project tab visible during validation."),

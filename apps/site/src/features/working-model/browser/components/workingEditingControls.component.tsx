@@ -18,6 +18,7 @@ import {
   type ModelObjectClipboard,
   type ObjectTransform,
 } from "@theoryfoundry/contracts";
+import { Button } from "../../../../shared/controls/index";
 import { LayersIcon, ParametersIcon } from "../../../../shared/icons/index";
 import {
   ObjectEditingView,
@@ -223,7 +224,16 @@ export function WorkingEditingControls({
         selectedRevision={revision}
         previewReady={previewReady}
         renderViewport={renderViewport}
-        panelToggles={<div className="editor-panel-toggles" ref={setToolbar} />}
+        panelToggles={
+          <>
+            {!draft.dirty && draft.canRedo && (
+              <Button className="working-model-redo" onClick={draft.redo}>
+                Redo
+              </Button>
+            )}
+            <div className="editor-panel-toggles" ref={setToolbar} />
+          </>
+        }
         footer={<WorkingRevisionActions draft={draft} />}
         state={{
           snapshot: draft.base?.objects,

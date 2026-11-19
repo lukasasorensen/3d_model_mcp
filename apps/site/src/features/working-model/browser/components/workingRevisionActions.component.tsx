@@ -8,6 +8,25 @@ export function WorkingRevisionActions({
 }: {
   draft: WorkingModelView;
 }): JSX.Element {
+  const alerts = (
+    <>
+      {draft.loadError && (
+        <p role="alert">
+          {draft.loadError} <Button onClick={draft.reload}>Retry</Button>
+        </p>
+      )}
+      {draft.previewError && (
+        <p role="alert">
+          Showing the last usable preview. {draft.previewError}{" "}
+          <Button onClick={draft.retryPreview}>Retry preview</Button>
+        </p>
+      )}
+      {draft.saveError && <p role="alert">{draft.saveError}</p>}
+      {draft.editError && <p role="alert">{draft.editError}</p>}
+    </>
+  );
+  if (!draft.dirty) return alerts;
+
   return (
     <div
       className="working-revision-actions"
@@ -15,9 +34,9 @@ export function WorkingRevisionActions({
       aria-label="Working revision"
     >
       <div className="working-revision-buttons">
-        {draft.dirty && !draft.showingDraft ? (
+        {!draft.showingDraft ? (
           <Button onClick={draft.returnToDraft}>Return to draft</Button>
-        ) : !draft.historical ? (
+        ) : (
           <>
             <Button
               className="editor-apply"
@@ -36,40 +55,22 @@ export function WorkingRevisionActions({
             <Button disabled={!draft.canRedo} onClick={draft.redo}>
               Redo
             </Button>
-            {draft.dirty && (
-              <Button disabled={draft.saving} onClick={draft.discard}>
-                {draft.stale
-                  ? "Discard draft and open latest"
-                  : "Discard draft"}
-              </Button>
-            )}
+            <Button disabled={draft.saving} onClick={draft.discard}>
+              {draft.stale ? "Discard draft and open latest" : "Discard draft"}
+            </Button>
           </>
-        ) : null}
+        )}
       </div>
       <p role="status" aria-live="polite">
         {draft.savePhase ||
           (draft.stale
             ? "A newer revision is current. This draft is read-only."
-            : draft.dirty
-              ? draft.previewPending
-                ? "Unsaved changes · Updating preview…"
-                : (draft.inputProblem ?? "Unsaved changes")
-              : "")}
+            : draft.previewPending
+              ? "Unsaved changes · Updating preview…"
+              : (draft.inputProblem ?? "Unsaved changes"))}
       </p>
-      {draft.loadError && (
-        <p role="alert">
-          {draft.loadError} <Button onClick={draft.reload}>Retry</Button>
-        </p>
-      )}
-      {draft.previewError && (
-        <p role="alert">
-          Showing the last usable preview. {draft.previewError}{" "}
-          <Button onClick={draft.retryPreview}>Retry preview</Button>
-        </p>
-      )}
-      {draft.saveError && <p role="alert">{draft.saveError}</p>}
-      {draft.editError && <p role="alert">{draft.editError}</p>}
-      {draft.dirty && !draft.storageOkay && (
+      {alerts}
+      {!draft.storageOkay && (
         <p role="alert">
           This tab could not store your draft. Save it before leaving to keep
           your changes.

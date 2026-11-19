@@ -339,18 +339,10 @@
   box-shadow: var(--shadow);
 }
 
-.working-revision-actions:not(:has(button, p:not(:empty))) {
-  display: none;
-}
-
 .working-revision-actions p {
   margin: 0;
   font-size: 0.875rem;
   overflow-wrap: anywhere;
-}
-
-.working-revision-actions p:empty {
-  display: none;
 }
 
 .working-revision-buttons {
@@ -359,7 +351,8 @@
   gap: 0.45rem;
 }
 
-.working-revision-buttons button {
+.working-revision-buttons button,
+.working-model-redo {
   min-block-size: 44px;
 }
 
