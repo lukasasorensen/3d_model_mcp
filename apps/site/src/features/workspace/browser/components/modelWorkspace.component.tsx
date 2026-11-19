@@ -125,14 +125,17 @@ export function ModelWorkspace({
       )
     : selectedManifest;
   const displayLabel = draftVisible ? "Working model" : selectedLabel;
-  const draftDimensions = workingModel?.preview?.geometry.dimensions
-    .map((value) => Number(value.toFixed(2)))
-    .join(" × ");
+  const draftDimensions = workingModel?.hidePreview
+    ? undefined
+    : workingModel?.preview?.geometry.dimensions
+        .map((value) => Number(value.toFixed(2)))
+        .join(" × ");
   const renderViewport: Parameters<
     typeof WorkspaceEditingControls
   >[0]["renderViewport"] = (editing) => (
     <ModelViewer
       {...editing}
+      showAccepted={editing.showAccepted && !workingModel?.hidePreview}
       projectId={projectId}
       revisionId={
         previewBase?.revisionId ??

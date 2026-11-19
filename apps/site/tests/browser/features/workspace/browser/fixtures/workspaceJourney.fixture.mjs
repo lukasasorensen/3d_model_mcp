@@ -351,7 +351,7 @@ export async function mountWorkspaceJourney(
             resolveDir: root + "/apps/site",
             contents: path.endsWith("navigation")
               ? `export function useRouter(){return {push(){}}}`
-              : `import {useEffect} from 'react';export default function dynamic(){return function Viewer({revisionId,previewBytes,onLoadStateChange}){useEffect(()=>onLoadStateChange('ready'),[revisionId,onLoadStateChange]);return <div className="viewer-shell" aria-label="Preview fixture" data-draft-mesh={Boolean(previewBytes)}>{revisionId}</div>}}`,
+              : `import {useEffect} from 'react';export default function dynamic(){return function Viewer({revisionId,previewBytes,showAccepted,onLoadStateChange}){useEffect(()=>onLoadStateChange('ready'),[revisionId,onLoadStateChange]);return <div className="viewer-shell" aria-label="Preview fixture" data-draft-mesh={Boolean(previewBytes)} data-model-visible={showAccepted !== false}>{revisionId}</div>}}`,
           }));
         },
       },

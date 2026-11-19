@@ -37,12 +37,14 @@ Show source file stages visibility for every object referencing that file, while
 preserving each object's independent hidden state. The panel explains this shared
 scope before the control. Individually hidden objects remain selectable.
 
-Empty saved geometry is unsupported by the existing renderer/artifact contract.
-The panel requires at least one effectively visible object, and requires the original
-first operand of a difference to remain visible. Invalid or empty OpenSCAD results
-still fail renderer validation and retain accepted state. It never substitutes a
-subtractor for a hidden difference base. Direct transforms, grouping, boolean editing,
-and file body editing are outside the panel.
+Hiding the last visible layer clears the working preview. Hiding the first operand
+of a difference also clears the preview until that operand is shown again. Saving
+requires visible geometry and, for a difference, its original first operand.
+When OpenSCAD rejects an edit to the visible geometry, the editor shows the last
+usable preview.
+
+Direct transforms, grouping, boolean editing, and file body editing are
+outside the panel.
 
 Historical snapshots remain selectable but read-only. A concurrent accepted revision
 retains and disables an older draft until discarded; it is not silently rebased.

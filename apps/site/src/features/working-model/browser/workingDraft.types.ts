@@ -83,6 +83,7 @@ export interface WorkingModelView {
   stale: boolean;
   showingDraft: boolean;
   dragging: boolean;
+  hidePreview: boolean;
   preview: WorkingPreview | undefined;
   inputProblem: string | undefined;
   previewError: string | undefined;

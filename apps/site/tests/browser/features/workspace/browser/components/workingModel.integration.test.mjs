@@ -1,7 +1,10 @@
 /* global document */
 import { createHash } from "node:crypto";
 import { expect } from "playwright/test";
-import { parameterSnapshotSchema } from "@theoryfoundry/contracts";
+import {
+  modelFileState,
+  parameterSnapshotSchema,
+} from "@theoryfoundry/contracts";
 import { test } from "../../../../browser.fixture.mjs";
 import { mountWorkspaceJourney } from "../fixtures/workspaceJourney.fixture.mjs";
 
@@ -299,6 +302,63 @@ test("an over-limit parameter snapshot keeps the draft editable", async ({
   await expect(title).toHaveValue("");
   await title.fill("Short title");
   await expect(saveButton(page)).toBeEnabled();
+  expect(errors).toEqual([]);
+});
+
+test("hiding the last layer clears the preview and showing it restores a clean model", async ({
+  page,
+}) => {
+  const { controls, errors, openWorkspace, sources } =
+    await mountWorkspaceJourney(page, 1440, false, false, false, true, true);
+  const files = [{ id: "main-file", name: "Main", body: sources.r2 }];
+  const snapshot = {
+    version: 1,
+    files,
+    objects: [{ id: "main-object", name: "Main", fileId: "main-file" }],
+    composition: { operation: "union", objectIds: ["main-object"] },
+  };
+  await page.route(
+    (url) =>
+      ["/v1/projects/sample/layers", "/v1/projects/sample/objects"].includes(
+        url.pathname,
+      ),
+    (route) => {
+      const metadata = {
+        revision: "r2",
+        sourceHash: createHash("sha256").update(sources.r2).digest("hex"),
+      };
+      return route.fulfill({
+        json: new URL(route.request().url()).pathname.endsWith("/layers")
+          ? { ...metadata, state: modelFileState(snapshot) }
+          : { ...metadata, modelFiles: snapshot, parameters: [] },
+      });
+    },
+  );
+  await openWorkspace();
+  const toggle = page.getByRole("button", {
+    name: "Show Main (main-object)",
+    exact: true,
+  });
+  const preview = page.getByLabel("Preview fixture");
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(preview).toHaveAttribute("data-model-visible", "true");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(preview).toHaveAttribute("data-model-visible", "false");
+  await expect(
+    page.getByText("Show at least one layer before saving."),
+  ).toBeVisible();
+  await expect(saveButton(page)).toBeDisabled();
+
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(preview).toHaveAttribute("data-model-visible", "true");
+  await expect(revisionActions(page)).toHaveCount(0);
+  await expect(history(page).locator("summary")).toHaveText(
+    "Revision history 2",
+  );
+  expect(controls.previews).toHaveLength(0);
+  expect(controls.saves).toHaveLength(0);
   expect(errors).toEqual([]);
 });
 

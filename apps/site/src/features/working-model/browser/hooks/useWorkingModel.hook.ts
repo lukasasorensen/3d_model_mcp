@@ -3,6 +3,9 @@ import { useEffect, useMemo, useReducer, useState } from "react";
 import {
   applyParameterOperations,
   canonicalModelFiles,
+  modelFilesPresentation,
+  visibleModelObjectIds,
+  type ModelFiles,
 } from "@theoryfoundry/contracts";
 import { ZodError } from "zod/v4";
 import {
@@ -27,6 +30,25 @@ import type {
 import { useWorkingBase } from "./useWorkingBase.hook";
 import { useWorkingPreview } from "./useWorkingPreview.hook";
 import { useWorkingSave } from "./useWorkingSave.hook";
+
+function comparableModelFiles(snapshot: ModelFiles): string {
+  return JSON.stringify(
+    canonicalModelFiles({
+      version: 2,
+      files: snapshot.files,
+      objects: snapshot.objects,
+      composition: snapshot.composition,
+      presentation: modelFilesPresentation(snapshot),
+    }),
+  );
+}
+
+function modelLayerProblem(files: ModelFiles | undefined): string | undefined {
+  if (!files || visibleModelObjectIds(files).length > 0) return undefined;
+  return files.composition.operation === "difference"
+    ? "Show the first difference operand to preview and save."
+    : "Show at least one layer before saving.";
+}
 
 export function useWorkingModel(
   options: WorkingModelOptions,
@@ -107,6 +129,10 @@ export function useWorkingModel(
     }
   }, [base, validation.operations]);
   const modelFiles = fields.modelFiles ?? base?.objects.modelFiles ?? undefined;
+  const layerProblem = useMemo(
+    () => modelLayerProblem(modelFiles),
+    [modelFiles],
+  );
   const filesChanged = useMemo(() => {
     const edited = fields.modelFiles;
     if (!edited) return false;
@@ -114,8 +140,7 @@ export function useWorkingModel(
     return (
       dragging ||
       !saved ||
-      JSON.stringify(canonicalModelFiles(edited)) !==
-        JSON.stringify(canonicalModelFiles(saved))
+      comparableModelFiles(edited) !== comparableModelFiles(saved)
     );
   }, [base, dragging, fields.modelFiles]);
 
@@ -125,7 +150,7 @@ export function useWorkingModel(
       ? "Fix the unfinished transform values before saving."
       : Object.keys(validation.errors).length
         ? "Fix the highlighted parameter values before saving."
-        : parameterSnapshot.error;
+        : (parameterSnapshot.error ?? layerProblem);
   const incomplete = Boolean(inputProblem);
   const dirty = Boolean(
     parent &&
@@ -276,6 +301,7 @@ export function useWorkingModel(
     stale,
     showingDraft,
     dragging,
+    hidePreview: showingDraft && Boolean(layerProblem),
     preview:
       showingDraft && result.preview?.model.parentRevision === parent
         ? result.preview

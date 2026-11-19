@@ -28,11 +28,38 @@ test("composed downloads pin accepted source and restore changes the exported co
     name: "Show Cut (cut)",
     exact: true,
   });
+  const preview = page.getByLabel("Preview fixture");
+  const save = page.getByRole("button", {
+    name: "Save new revision",
+    exact: true,
+  });
+  const base = page.getByRole("button", {
+    name: "Show Body (body)",
+    exact: true,
+  });
+  await base.click();
+  await expect(preview).toHaveAttribute("data-model-visible", "false");
+  await expect(
+    page.getByText("Show the first difference operand to preview and save."),
+  ).toBeVisible();
+  await expect(save).toBeDisabled();
+  await base.click();
+  await expect(preview).toHaveAttribute("data-model-visible", "true");
+  await expect(save).toHaveCount(0);
   await expect(cutter).toHaveAttribute("aria-pressed", "false");
   await cutter.click();
-  await expect(
-    page.getByRole("button", { name: "Save new revision", exact: true }),
-  ).toBeEnabled();
+  await expect(cutter).toHaveAttribute("aria-pressed", "true");
+  await expect(save).toBeEnabled();
+  await expect(preview).toHaveAttribute("data-draft-mesh", "true");
+  expect(
+    controls.previews.at(-1).modelFiles.presentation.hiddenObjectIds,
+  ).toEqual([]);
+  await cutter.click();
+  await expect(cutter).toHaveAttribute("aria-pressed", "false");
+  await expect(preview).toHaveAttribute("data-draft-mesh", "false");
+  await expect(save).toHaveCount(0);
+  await cutter.click();
+  await expect(save).toBeEnabled();
   const draftDownload = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Download STL · R2", exact: true })
