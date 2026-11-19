@@ -14,6 +14,7 @@ const INPUT_SETTLE_MS = 200;
 
 export function useWorkingPreview(
   projectId: string,
+  hasDraft: boolean,
   model: WorkingModel | undefined,
   paused: boolean,
   tryRenderer: WorkingModelOptions["tryDraftRenderer"],
@@ -34,6 +35,11 @@ export function useWorkingPreview(
   const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    if (!hasDraft) {
+      setResult(undefined);
+      setFailure(undefined);
+      return;
+    }
     if (!model || paused) return;
     const controller = new AbortController();
     const { signal } = controller;
@@ -89,7 +95,7 @@ export function useWorkingPreview(
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [model, paused, projectId, renderPreview, retryCount]);
+  }, [hasDraft, model, paused, projectId, renderPreview, retryCount]);
 
   return {
     preview: result,

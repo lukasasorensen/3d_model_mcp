@@ -35,6 +35,9 @@
     min-height: 0;
     border: 0;
   }
+  .model-pane:has(.working-model-editor) {
+    overflow: visible;
+  }
   .app-shell:not([data-section="model"]) .model-primary,
   .app-shell:not([data-section="details"]) .model-details,
   .app-shell:not([data-section="conversation"]) .chat-pane {

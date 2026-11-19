@@ -74,6 +74,7 @@ export function ObjectEditingView({
   renderViewport,
   panelToggles,
   renderPanels,
+  footer,
   legacy,
   live,
   state,
@@ -81,6 +82,7 @@ export function ObjectEditingView({
 }: ObjectEditingLayout &
   Pick<ObjectEditingOptions, "disabled" | "selectedRevision"> & {
     state: Omit<ObjectEditingState, keyof LegacyActions>;
+    footer?: ReactNode;
     legacy?: LegacyActions;
     live?: {
       dragging: boolean;
@@ -429,6 +431,7 @@ export function ObjectEditingView({
           </p>
         )}
       </div>
+      {footer}
     </section>
   );
 }

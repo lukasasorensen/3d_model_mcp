@@ -4,6 +4,7 @@ import {
   applyParameterOperations,
   canonicalModelFiles,
 } from "@theoryfoundry/contracts";
+import { ZodError } from "zod/v4";
 import {
   parameterDraft,
   validateParameterDraft,
@@ -90,6 +91,21 @@ export function useWorkingModel(
       ),
     [base, fields.parameters],
   );
+  const parameterSnapshot = useMemo(() => {
+    const saved = base?.parameters.parameters ?? [];
+    if (!validation.operations.length) return { parameters: saved };
+    try {
+      return {
+        parameters: applyParameterOperations(saved, validation.operations),
+      };
+    } catch (error) {
+      if (!(error instanceof ZodError)) throw error;
+      return {
+        parameters: saved,
+        error: error.issues[0]?.message ?? "The parameter values are invalid.",
+      };
+    }
+  }, [base, validation.operations]);
   const modelFiles = fields.modelFiles ?? base?.objects.modelFiles ?? undefined;
   const filesChanged = useMemo(() => {
     const edited = fields.modelFiles;
@@ -109,7 +125,7 @@ export function useWorkingModel(
       ? "Fix the unfinished transform values before saving."
       : Object.keys(validation.errors).length
         ? "Fix the highlighted parameter values before saving."
-        : undefined;
+        : parameterSnapshot.error;
   const incomplete = Boolean(inputProblem);
   const dirty = Boolean(
     parent &&
@@ -147,15 +163,6 @@ export function useWorkingModel(
     modelFiles,
     validation.operations,
   ]);
-  const parameters = useMemo(
-    () =>
-      applyParameterOperations(
-        base?.parameters.parameters ?? [],
-        validation.operations,
-      ),
-    [base, validation.operations],
-  );
-
   function reset(): void {
     update({ type: "load" });
     setParent(null);
@@ -172,6 +179,7 @@ export function useWorkingModel(
     headChanged || Boolean(parent && saver.conflictParent === parent);
   const result = useWorkingPreview(
     projectId,
+    dirty,
     showingDraft ? model : undefined,
     options.disabled || saver.saving || dragging,
     options.tryDraftRenderer,
@@ -260,7 +268,7 @@ export function useWorkingModel(
       : filesChanged || Boolean(base?.layers.state),
     parameters: historical
       ? (read.base?.parameters.parameters ?? [])
-      : parameters,
+      : parameterSnapshot.parameters,
     validation,
     blocked,
     historical,

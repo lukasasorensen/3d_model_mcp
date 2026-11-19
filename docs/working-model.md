@@ -7,6 +7,10 @@ last usable preview visible and disable **Save new revision**. Undo and Redo app
 to the whole draft. The saved revision and its downloads remain available while
 editing.
 
+The revision controls stay within reach at the bottom of the editor as you
+scroll. Discarding the draft or undoing back to the saved model clears the
+draft preview.
+
 The draft is scoped to the signed-in account and project in the current browser
 tab. Returning to the project or reloading that tab restores the values and
 rebuilds the preview. Browsing revisions suspends the draft until you return to

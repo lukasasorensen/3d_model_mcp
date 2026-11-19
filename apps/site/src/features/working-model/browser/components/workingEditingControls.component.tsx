@@ -223,12 +223,8 @@ export function WorkingEditingControls({
         selectedRevision={revision}
         previewReady={previewReady}
         renderViewport={renderViewport}
-        panelToggles={
-          <>
-            <div className="editor-panel-toggles" ref={setToolbar} />
-            <WorkingRevisionActions draft={draft} />
-          </>
-        }
+        panelToggles={<div className="editor-panel-toggles" ref={setToolbar} />}
+        footer={<WorkingRevisionActions draft={draft} />}
         state={{
           snapshot: draft.base?.objects,
           draft: files,

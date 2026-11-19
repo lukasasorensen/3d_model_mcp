@@ -1,5 +1,7 @@
 /* global document */
+import { createHash } from "node:crypto";
 import { expect } from "playwright/test";
+import { parameterSnapshotSchema } from "@theoryfoundry/contracts";
 import { test } from "../../../../browser.fixture.mjs";
 import { mountWorkspaceJourney } from "../fixtures/workspaceJourney.fixture.mjs";
 
@@ -15,6 +17,39 @@ async function openParameters(page) {
   if ((await panel.getAttribute("aria-expanded")) !== "true")
     await panel.click();
   return page.getByRole("textbox", { name: "Width", exact: true });
+}
+
+function parameterSnapshotNearSizeLimit() {
+  const targetBytes = 130_800;
+  const sizeOf = (parameters) =>
+    Buffer.byteLength(JSON.stringify(parameters), "utf8");
+  const parameters = [
+    {
+      id: "title",
+      binding: "title",
+      label: "Title",
+      type: "string",
+      defaultValue: "",
+      value: "",
+    },
+  ];
+  while (sizeOf(parameters) < targetBytes) {
+    const binding = "padding" + parameters.length;
+    const parameter = {
+      id: binding,
+      binding,
+      label: binding,
+      type: "boolean",
+      defaultValue: false,
+      value: false,
+      description: "",
+    };
+    parameters.push(parameter);
+    parameter.description = "x".repeat(
+      Math.min(2000, Math.max(0, targetBytes - sizeOf(parameters))),
+    );
+  }
+  return parameterSnapshotSchema.parse(parameters);
 }
 
 test("mixed edits preview without history, survive reload and reconcile a lost Save reply", async ({
@@ -173,6 +208,95 @@ test("a changed head keeps an unsaved draft visible and read-only", async ({
   expect(errors).toEqual([]);
 });
 
+test("discard and undo to the saved model clear the draft preview", async ({
+  page,
+}) => {
+  const { controls, errors } = await mountWorkspaceJourney(
+    page,
+    1440,
+    true,
+    false,
+    false,
+    true,
+    true,
+  );
+  const width = await openParameters(page);
+  const preview = page.getByLabel("Preview fixture");
+  controls.rejectPreviewWidth = 33;
+  const discard = page.getByRole("button", {
+    name: "Discard draft",
+    exact: true,
+  });
+  for (const reset of [
+    async () => {
+      page.once("dialog", (dialog) => dialog.accept());
+      await discard.click();
+    },
+    async () => page.getByRole("button", { name: "Undo", exact: true }).click(),
+  ]) {
+    await width.fill("30");
+    await expect(saveButton(page)).toBeEnabled();
+    await expect(preview).toHaveAttribute("data-draft-mesh", "true");
+    await reset();
+    await expect(width).toHaveValue("20");
+    await expect(preview).toHaveAttribute("data-draft-mesh", "false");
+
+    await width.fill("33");
+    await expect(page.getByText(/The test model is empty/)).toBeVisible();
+    await expect(preview).toHaveAttribute("data-draft-mesh", "false");
+    await expect(saveButton(page)).toBeDisabled();
+    page.once("dialog", (dialog) => dialog.accept());
+    await discard.click();
+  }
+  expect(errors).toEqual([]);
+});
+
+test("an over-limit parameter snapshot keeps the draft editable", async ({
+  page,
+}) => {
+  const { controls, errors, openWorkspace, sources } =
+    await mountWorkspaceJourney(page, 1440, true, false, false, true, true);
+  const parameters = parameterSnapshotNearSizeLimit();
+  const edit = "x".repeat(600);
+  expect(
+    parameterSnapshotSchema.safeParse([
+      { ...parameters[0], value: edit },
+      ...parameters.slice(1),
+    ]).success,
+  ).toBe(false);
+  await page.route(
+    (url) => url.pathname === "/v1/projects/sample/parameters",
+    (route) =>
+      route.fulfill({
+        json: {
+          revision: "r2",
+          sourceHash: createHash("sha256").update(sources.r2).digest("hex"),
+          editable: true,
+          parameters,
+        },
+      }),
+  );
+  await openWorkspace();
+  await page
+    .getByRole("button", { name: "Parameters panel", exact: true })
+    .click();
+  const title = page.getByRole("textbox", { name: "Title", exact: true });
+  await expect(title).toBeEnabled();
+  await title.fill(edit);
+  await expect(title).toHaveValue(edit);
+  await expect(
+    page.getByText("Parameter snapshot exceeds 128 KiB."),
+  ).toBeVisible();
+  await expect(saveButton(page)).toBeDisabled();
+  expect(controls.previews).toHaveLength(0);
+
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(title).toHaveValue("");
+  await title.fill("Short title");
+  await expect(saveButton(page)).toBeEnabled();
+  expect(errors).toEqual([]);
+});
+
 test.describe("touch and storage recovery", () => {
   test.use({ hasTouch: true });
 
@@ -188,6 +312,7 @@ test.describe("touch and storage recovery", () => {
       true,
       true,
     );
+    await page.setViewportSize({ width: 390, height: 620 });
     await page.evaluate(() => {
       const setItem = Storage.prototype.setItem;
       Storage.prototype.setItem = function (key, value) {
@@ -212,6 +337,11 @@ test.describe("touch and storage recovery", () => {
     await leave;
     await expect(width).toHaveValue("25");
     await expect(saveButton(page)).toBeEnabled();
+    await width.evaluate((element) =>
+      element.scrollIntoView({ block: "start" }),
+    );
+    await expect(width).toBeInViewport();
+    await expect(saveButton(page)).toBeInViewport();
     await saveButton(page).tap();
     await expect(
       page.getByText("Revision saved.", { exact: true }),
