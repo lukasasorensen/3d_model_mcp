@@ -1,5 +1,9 @@
 import type { PreviewJob } from "@theoryfoundry/contracts";
-import type { OpenScadRenderer, DownloadFormat } from "./rendering.types.js";
+import type {
+  OpenScadRenderer,
+  DownloadFormat,
+  RenderedMesh,
+} from "./rendering.types.js";
 
 export interface RenderingCapabilities {
   renderOpenScad: OpenScadRenderer;
@@ -17,7 +21,7 @@ export interface RenderingCapabilities {
     extension: DownloadFormat;
   }>;
   cache: {
-    get(sourceHash: string): Uint8Array | undefined;
-    set(sourceHash: string, bytes: Uint8Array): void;
+    get(sourceHash: string): RenderedMesh | undefined;
+    set(sourceHash: string, result: RenderedMesh): void;
   };
 }

@@ -38,6 +38,7 @@ export default async function ProjectPage({
     <BrowserWorkspace
       key={projectId.data}
       projectId={projectId.data}
+      draftOwnerId={user.id}
       localMcpBridgeEnabled={localMcpBridge}
       remoteMcpEnabled={remoteMcpEnabled()}
       localWorkerAvailable={localWorkerEnabled()}

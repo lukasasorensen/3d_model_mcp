@@ -210,8 +210,9 @@ async function loadBrowserStl(
   revisionId: string,
   sourceHash: string,
   signal: AbortSignal,
+  previewBytes?: Uint8Array,
 ): Promise<BufferGeometry> {
-  let bytes = cachedPreview(sourceHash);
+  let bytes = previewBytes ?? cachedPreview(sourceHash);
   if (!bytes) {
     const source = await fetchRevisionSource(
       projectId,
@@ -248,6 +249,7 @@ export interface ModelViewerProps {
   onLoadStateChange?: (state: PreviewLoadState) => void;
   renderEditingScene?: ((orbit: OrbitControls) => ReactNode) | undefined;
   showAccepted?: boolean | undefined;
+  previewBytes?: Uint8Array | undefined;
 }
 
 export function ModelViewer({
@@ -259,6 +261,7 @@ export function ModelViewer({
   onLoadStateChange,
   renderEditingScene,
   showAccepted = true,
+  previewBytes,
 }: ModelViewerProps): JSX.Element {
   const renderer = useBrowserRenderer();
   const [geometry, setGeometry] = useState<BufferGeometry>();
@@ -284,6 +287,7 @@ export function ModelViewer({
       revisionId,
       sourceHash,
       controller.signal,
+      previewBytes,
     )
       .then((next) => {
         if (
@@ -313,7 +317,7 @@ export function ModelViewer({
         void error;
       });
     return (): void => controller.abort();
-  }, [projectId, revisionId, sourceHash, renderer]);
+  }, [projectId, revisionId, sourceHash, renderer, previewBytes]);
 
   useEffect(
     () => (): void => {

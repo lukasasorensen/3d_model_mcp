@@ -13,10 +13,11 @@ export function createRenderingWorkflow(
     sourceHash: string,
     signal?: AbortSignal,
   ): Promise<RenderedMesh> {
+    signal?.throwIfAborted();
     const cached = cache.get(sourceHash);
-    if (cached) return { bytes: cached, diagnostics: [] };
+    if (cached) return cached;
     const result = await renderOpenScad(source, "stl", signal);
-    cache.set(sourceHash, result.bytes);
+    cache.set(sourceHash, result);
     return result;
   }
   async function renderModelPng(
@@ -57,7 +58,7 @@ export function createRenderingWorkflow(
   return {
     renderOpenScad,
     renderPreview,
-    cachedPreview: cache.get,
+    cachedPreview: (sourceHash: string) => cache.get(sourceHash)?.bytes,
     renderModelPng,
     generateDownload,
   };

@@ -324,3 +324,49 @@
     border: 2px solid Highlight;
   }
 }
+
+.working-revision-actions {
+  position: sticky;
+  inset-block-end: max(0.5rem, env(safe-area-inset-bottom));
+  z-index: 2;
+  min-inline-size: 0;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: var(--surface-1);
+  box-shadow: var(--shadow);
+}
+
+.working-revision-actions p {
+  margin: 0;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.working-revision-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.working-revision-buttons button,
+.working-model-redo {
+  min-block-size: 44px;
+}
+
+@container (min-width: 780px) {
+  .working-revision-actions {
+    justify-self: end;
+    max-inline-size: 38rem;
+  }
+
+  .working-revision-buttons {
+    justify-content: end;
+  }
+
+  .working-revision-actions p {
+    text-align: end;
+  }
+}

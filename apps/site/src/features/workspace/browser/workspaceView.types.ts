@@ -7,6 +7,7 @@ import type { Dispatch, RefObject, SetStateAction } from "react";
 import type { DownloadFormat } from "../../exports/browser/index";
 import type { PreviewLoadState } from "../../model-preview/browser/index";
 import type { WorkspaceAction, WorkspaceState } from "./workspaceState.types";
+import type { WorkingModelView } from "../../working-model/browser/index";
 import type { AiChatSelection } from "../../chat/browser/index";
 
 type ExportState = "idle" | "preparing" | "failed" | "complete";
@@ -35,6 +36,7 @@ export interface WorkspaceView {
     job: RemoteMcpBrowserRenderJob,
     signal: AbortSignal,
   ): Promise<void>;
+  workingModel?: WorkingModelView | undefined;
   previewLoadState: PreviewLoadState;
   setPreviewLoadState: Dispatch<SetStateAction<PreviewLoadState>>;
   abortRef: RefObject<AbortController | undefined>;

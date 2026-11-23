@@ -10,6 +10,8 @@ export function RevisionHistory({
   currentRevision,
   selectedRevision,
   disabled,
+  restoreUnavailable = false,
+  inspectUnavailable = false,
   onSelect,
   onRestore,
 }: {
@@ -17,6 +19,8 @@ export function RevisionHistory({
   currentRevision: string | null;
   selectedRevision: string | null;
   disabled: boolean;
+  restoreUnavailable?: boolean;
+  inspectUnavailable?: boolean;
   onSelect: (revisionId: string) => void;
   onRestore: (revisionId: string) => void;
 }): JSX.Element {
@@ -30,7 +34,9 @@ export function RevisionHistory({
       ) : (
         <>
           <p className="action-help">
-            Restoring creates a new current revision.
+            {restoreUnavailable
+              ? "Save or discard the draft before restoring a revision."
+              : "Restoring creates a new current revision."}
           </p>
           <ol>
             {revisions.map((revision) => {
@@ -50,6 +56,7 @@ export function RevisionHistory({
                     className="revision-select"
                     onClick={() => onSelect(revision.revisionId)}
                     aria-pressed={selected}
+                    disabled={inspectUnavailable}
                   >
                     <strong>{label}</strong>
                     <span>{status}</span>
@@ -62,7 +69,7 @@ export function RevisionHistory({
                       className="restore-button"
                       accessibleLabel={`Restore ${label} as a new revision`}
                       onClick={() => onRestore(revision.revisionId)}
-                      disabled={disabled}
+                      disabled={disabled || restoreUnavailable}
                     >
                       Restore
                     </Button>

@@ -19,25 +19,52 @@ import {
   type ObjectLayersOptions,
 } from "../hooks/useObjectLayers.hook";
 import { layerDraft } from "../utils/layerDraft.util";
-export function LayersPanel({
-  selectedId,
-  canSelect,
-  select,
-  floating,
-  ...options
-}: ObjectLayersOptions & {
+type LayerState = ReturnType<typeof useObjectLayers>;
+type LegacyLayerActions = Pick<
+  LayerState,
+  "apply" | "reset" | "cancel" | "reload" | "retryOutcome"
+>;
+
+interface LayerSelection {
   selectedId: string | null;
   canSelect(id: string): boolean;
   select(id: string): void;
   floating?: PanelProps["floating"];
-}): JSX.Element {
-  const [editing, setEditing] = useState<string | null>(null);
+}
+
+export function LayersPanel(
+  options: ObjectLayersOptions & LayerSelection,
+): JSX.Element {
   const state = useObjectLayers(options);
+  return <LayersPanelView {...options} state={state} legacy={state} />;
+}
+
+export function LayersPanelView({
+  selectedId,
+  canSelect,
+  select,
+  floating,
+  state,
+  disabled: workspaceDisabled,
+  legacy,
+  live,
+}: LayerSelection & {
+  state: Omit<LayerState, keyof LegacyLayerActions>;
+  disabled: boolean;
+  legacy?: LegacyLayerActions;
+  live?: {
+    rename?: { id: string; value: string } | undefined;
+    editName(id: string, value: string): void;
+    finishName(id: string, value?: string): void;
+  };
+}): JSX.Element {
+  const [localEditing, setEditing] = useState<string | null>(null);
+  const editing = live ? (live.rename?.id ?? null) : localEditing;
   const summary = useRef<HTMLDivElement>(null);
   const snapshot = state.historical ? state.view : state.base;
   const draft = state.historical ? layerDraft(state.view) : state.draft;
   const disabled =
-    options.disabled ||
+    workspaceDisabled ||
     state.pending ||
     state.loading ||
     state.historical ||
@@ -66,22 +93,24 @@ export function LayersPanel({
           className="notice notice-error"
         >
           <p>{state.error.message}</p>
-          {state.retryOutcome && (
+          {legacy?.retryOutcome && (
             <button
               type="button"
-              disabled={state.pending || options.disabled || state.loading}
-              onClick={() => void state.apply(true)}
+              disabled={state.pending || workspaceDisabled || state.loading}
+              onClick={() => void legacy.apply(true)}
             >
               Retry interrupted layer update
             </button>
           )}
-          <button
-            type="button"
-            disabled={state.pending || state.loading}
-            onClick={state.reload}
-          >
-            Refresh saved layers
-          </button>
+          {legacy && (
+            <button
+              type="button"
+              disabled={state.pending || state.loading}
+              onClick={legacy.reload}
+            >
+              Refresh saved layers
+            </button>
+          )}
         </div>
       )}
       {state.historical && (
@@ -90,7 +119,7 @@ export function LayersPanel({
           edit.
         </p>
       )}
-      {state.stale && !state.historical && (
+      {legacy && state.stale && !state.historical && (
         <p role="status">
           The current revision changed. Your draft is retained; discard it to
           load the latest saved layers.
@@ -137,9 +166,16 @@ export function LayersPanel({
                 <LayerNameField
                   initialName={name}
                   disabled={disabled}
+                  {...(live && {
+                    value: live.rename?.value,
+                    onChange: (value: string) => live.editName(id, value),
+                  })}
                   onFinish={(value) => {
-                    if (value !== undefined) state.rename(id, value);
-                    setEditing(null);
+                    if (live) live.finishName(id, value);
+                    else {
+                      if (value !== undefined) state.rename(id, value);
+                      setEditing(null);
+                    }
                     requestAnimationFrame(() =>
                       list.current
                         ?.querySelector<HTMLButtonElement>(
@@ -157,7 +193,7 @@ export function LayersPanel({
                     !canSelect(id) ||
                     state.pending ||
                     state.loading ||
-                    options.disabled
+                    (workspaceDisabled && !(live && state.stale))
                   }
                   aria-pressed={selectedId === id}
                   title={`Object: ${id} · File: ${file?.name} (${object.fileId})`}
@@ -179,7 +215,7 @@ export function LayersPanel({
                 disabled={disabled}
                 first={index === 0}
                 last={index === draft.order.length - 1}
-                rename={() => setEditing(id)}
+                rename={() => (live ? live.editName(id, name) : setEditing(id))}
                 move={(offset) => state.move(id, offset)}
               />
               {fileHidden && (
@@ -205,7 +241,7 @@ export function LayersPanel({
       {draft.order.length > 1 && !state.historical && (
         <p className="action-help">Drag to reorder</p>
       )}
-      {!state.historical && Boolean(snapshot?.state) && (
+      {legacy && !state.historical && Boolean(snapshot?.state) && (
         <PanelActions>
           <button
             type="button"
@@ -217,7 +253,7 @@ export function LayersPanel({
             }
             onClick={() => {
               setEditing(null);
-              state.reset();
+              legacy.reset();
             }}
           >
             Discard
@@ -231,18 +267,18 @@ export function LayersPanel({
               Boolean(state.problem) ||
               editing !== null
             }
-            onClick={() => void state.apply()}
+            onClick={() => void legacy.apply()}
           >
             {state.pending ? "Applying layers…" : "Apply layers"}
           </button>
           {state.pending && (
-            <button type="button" onClick={state.cancel}>
+            <button type="button" onClick={legacy.cancel}>
               Cancel layer update
             </button>
           )}
         </PanelActions>
       )}
-      {!state.historical && state.dirty && (
+      {legacy && !state.historical && state.dirty && (
         <p>
           Unapplied layer changes. Apply layers to update the viewport and
           downloads.

@@ -8,7 +8,10 @@ import {
   RotateIcon,
   ScaleIcon,
 } from "../../../../shared/icons/index";
-import { TransformNumericFields } from "./transformNumericFields.component";
+import {
+  TransformNumericFields,
+  type TransformInput,
+} from "./transformNumericFields.component";
 
 export function ObjectTransformEditor({
   objectName,
@@ -18,6 +21,9 @@ export function ObjectTransformEditor({
   onChange,
   disabled,
   onValidityChange,
+  input,
+  onInputChange,
+  onInputFinish,
 }: {
   objectName: string;
   transform: ObjectTransform;
@@ -26,6 +32,9 @@ export function ObjectTransformEditor({
   onChange(transform: ObjectTransform): void;
   disabled: boolean;
   onValidityChange(valid: boolean): void;
+  input?: TransformInput | undefined;
+  onInputChange?(input: TransformInput | undefined): void;
+  onInputFinish?(): void;
 }): JSX.Element {
   return (
     <div
@@ -62,6 +71,9 @@ export function ObjectTransformEditor({
         disabled={disabled}
         onChange={onChange}
         onValidityChange={onValidityChange}
+        input={input}
+        {...(onInputChange && { onInputChange })}
+        {...(onInputFinish && { onInputFinish })}
       />
     </div>
   );
