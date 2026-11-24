@@ -39,8 +39,9 @@ preview only, or no changes. Connection and selection alone leave the model unto
    and any unresolved verification. Fit, strength, and printability require
    evidence beyond a valid mesh. Export the confirmed saved revision if requested.
 
-For “The hole in my Spacer project is off-center,” inspect its location
-and center it if the intended center is clear. Preserve its diameter and use the
-top view to verify the result. If another writer changes that hole’s diameter
-before promotion, show the competing edit and preserve the newer revision while
-waiting for direction.
+## Example
+
+> The hole in this project is off-center.
+
+If the intended center is clear, the correction can move the hole while preserving
+its diameter. A concurrent change to that same hole calls for clarification.

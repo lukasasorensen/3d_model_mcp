@@ -7,9 +7,9 @@ Use the supplied drawing or image as design evidence. If the client cannot open
 it or a relevant view is illegible, ask for a clearer view or transcribed dimensions.
 Use `plan-model` for an interpretation or plan without implementation.
 
-1. Identify the relevant views, units, reference surfaces, dimensions, hole
-   centers and diameters, thicknesses, and tolerances. Prefer labeled values over
-   proportions. Distinguish explicit dimensions from deductions and estimates.
+1. Identify the views, units, dimensions, and tolerances relevant to the requested
+   geometry and fit. Prefer labeled values over proportions. Distinguish explicit
+   dimensions from deductions and estimates.
    Use image measurements only as estimates when a reliable scale and view support
    them. Ask about contradictory callouts, obscured features, and missing measures
    that govern fit. If useful, offer a visual approximation, label its assumptions,
@@ -42,8 +42,9 @@ Use `plan-model` for an interpretation or plan without implementation.
    Export the confirmed saved revision if requested. Fit, strength, and
    printability require additional evidence.
 
-If a 60 × 40 mm mounting plate drawing specifies 4 mm thickness and two Ø5 mm
-holes symmetric about the centerline, ask for the center-to-center spacing if
-it is missing and the plate needs to fit. Once supplied, use a top view to check
-the hole layout and a side view to check thickness. Report the checked dimensions
-and any remaining assumptions.
+## Example
+
+> Model this mounting plate so it fits the existing hardware.
+
+If the drawing omits the hole spacing, the agent asks for it before building the
+fit-critical model.

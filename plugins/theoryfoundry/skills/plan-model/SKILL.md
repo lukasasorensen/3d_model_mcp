@@ -21,7 +21,9 @@ and exports belong to a separately authorized modeling request.
   test fit or print verification the intended use requires. Treat render validation
   as a geometry check.
 
-For “Plan a wall bracket for this shelf,” identify the load and mounting
-constraints that affect the design. Ask for the hole spacing and screw dimensions
-if missing. Describe the base plate, fastener clearance, and how to verify them.
-Return the plan in the conversation.
+## Example
+
+> Plan a bracket for this shelf.
+
+The plan can describe mounting options and explain how the expected load and
+available mounting surface affect the choice.

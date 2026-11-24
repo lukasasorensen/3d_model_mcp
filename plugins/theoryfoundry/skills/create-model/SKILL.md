@@ -18,10 +18,11 @@ when a drawing or image is the primary source, and `plan-model` for planning alo
    `get_project_state`, then `read_model_source` at the current revision if one
    exists. Clarify whether to add to or replace an existing model when the request
    leaves that open. Preserve unrelated model data and settings.
-3. Use `propose_model_source` with that `parentRevision` (`null` for an empty
-   project). Select the source representation supported by the current project
-   and use targeted file or parameter tools when adding to an existing model.
-   Reuse the same `requestId` and `toolCallId` when retrying the same proposal.
+3. Use `propose_model_source` for new source or a targeted file or parameter
+   tool when it covers the requested change. Use the project's supported source
+   representation and pass its exact current `parentRevision` (`null` for an
+   empty project). Reuse the same `requestId` and `toolCallId` for an identical
+   retry.
 4. Run `validate_and_render` with `previewProfile: standard`. For `BROWSER_REQUIRED`,
    open or focus the matching signed-in project tab visibly, or give the user
    the returned project URL if the client cannot do so. For `BROWSER_BUSY`, wait
@@ -44,7 +45,9 @@ when a drawing or image is the primary source, and `plan-model` for planning alo
    dimensions you checked. Geometry validation covers the rendered mesh. Claims
    about fit, strength, or printability need separate evidence.
 
-For “Make a 30 × 20 × 4 mm solid spacer and export it as STL,” create a
-Spacer project if the request is standalone. Inspect its state, validate the
-candidate, and compare its bounds and PNG to the brief. Save the candidate and
-export the returned revision.
+## Example
+
+> Build a spacer to the supplied dimensions and export it as STL.
+
+The requested dimensions guide the geometry check. The STL comes from the saved,
+validated revision.
