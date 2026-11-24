@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 430" width="500" height="430" role="img" aria-labelledby="title description">
+  <title id="title">Mounting plate drawing</title>
+  <desc id="description">Top and side views of a rectangular plate. The drawing labels the plate dimensions, hole diameter, and centerlines. Horizontal spacing of the two holes is omitted.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#1c2935" />
+    </marker>
+  </defs>
+  <rect width="500" height="430" fill="#fff" />
+  <g fill="none" stroke="#1c2935">
+    <rect x="94" y="94" width="288" height="192" stroke-width="2" />
+    <circle cx="165" cy="190" r="12" stroke-width="2" />
+    <circle cx="311" cy="190" r="12" stroke-width="2" />
+    <path d="M 83 190 H 393 M 238 83 V 298" stroke-dasharray="12 4 2 4" />
+    <path d="M 94 87 V 61 M 382 87 V 61 M 86 94 H 48 M 86 286 H 48" />
+    <path d="M 94 68 H 382" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+    <path d="M 56 94 V 286" marker-start="url(#arrow)" marker-end="url(#arrow)" />
+    <path d="M 355 230 L 320 199" marker-end="url(#arrow)" />
+    <rect x="94" y="331" width="288" height="19.2" stroke-width="2" />
+    <path d="M 153 331 V 350 M 177 331 V 350 M 299 331 V 350 M 323 331 V 350" stroke-dasharray="3 2" />
+    <path d="M 389 331 H 431 M 389 350 H 431" />
+    <path d="M 422 311 V 331" marker-end="url(#arrow)" />
+    <path d="M 422 374 V 350" marker-end="url(#arrow)" />
+  </g>
+  <g fill="#1c2935" font-family="sans-serif" font-size="15">
+    <text x="94" y="34" font-size="19" font-weight="bold">Mounting plate</text>
+    <text x="238" y="61" text-anchor="middle">60 mm</text>
+    <text x="43" y="190" text-anchor="middle" transform="rotate(-90 43 190)">40 mm</text>
+    <text x="365" y="252" text-anchor="end">2 × Ø5 THRU</text>
+    <text x="94" y="311">Top · symmetric about the vertical centerline</text>
+    <text x="436" y="345">4 mm</text>
+    <text x="94" y="374">Side</text>
+    <text x="94" y="407">Dimensions in mm · drawing not to scale</text>
+  </g>
+</svg>

@@ -7,10 +7,10 @@ shared. Public directory publication and live client acceptance remain release g
 
 ## Source and packages
 
-`plugins/theoryfoundry/` owns the shared identity, publisher metadata, logo and setup
-skill. `tooling/mcp-plugin/` builds client packages and local validation catalogs.
+`plugins/theoryfoundry/` owns the shared identity, publisher metadata, logo and
+skills. `tooling/mcp-plugin/` builds client packages and local validation catalogs.
 Publisher: Lukas Sorensen. Production origin: `https://3dai.theoryfoundry.com`.
-Version: 0.21.0, matching the root release. The site is at 0.19.0, the runtime at
+Version: 0.22.0, matching the root release. The site is at 0.19.0, the runtime at
 0.12.0, and the optional npm installer at 0.2.0.
 
 ```sh
@@ -20,7 +20,7 @@ claude plugin validate --strict dist/mcp-plugins/claude
 
 The output under `dist/mcp-plugins/` includes Codex and Claude plugin folders,
 versioned ZIPs, local catalogs and `release-readiness.json`. Only the manifest,
-MCP settings, README, SVG logo and setup skill enter each ZIP. Application source,
+MCP settings, README, SVG logo and five skill files enter each ZIP. Application source,
 credentials, scripts, hooks, local renderer assets and dependency trees are excluded.
 
 Both packages use their clients' documented compatibility manifests:
@@ -31,13 +31,16 @@ extensions, while OpenAI documents vendor auth extensions separately; do not cla
 strict portable-schema conformance for these authenticated compatibility packages.
 Validate the client-native artifacts rather than silently dropping OAuth settings.
 
-The skill only helps connect, select a project and diagnose authorization/rendering.
-It does not grant permission to edit a model or automatically install the npm helper.
+The setup skill handles connection, project selection, and authorization or rendering
+troubleshooting. The modeling skills cover creation, corrections, read-only planning,
+and building from a drawing. Their packaging adds no database migration. See the
+[plugin README](../plugins/theoryfoundry/README.md) for candidate installation,
+client invocation, and local-edition compatibility.
 
 ## Operator OAuth provisioning
 
 Apply migrations through `0020_model-files` before starting the
-0.21.0 application or provisioning OAuth clients. See the
+0.22.0 application or provisioning OAuth clients. See the
 [account-key upgrade and duplicate check](dependencies-and-licenses.md#better-auth-database-upgrade).
 Use the same public-origin environment and database as the deployed application.
 The commands add exact callbacks and preserve an existing disabled client. `--replace`
