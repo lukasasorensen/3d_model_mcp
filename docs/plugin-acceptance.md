@@ -7,9 +7,52 @@ artifact contents, public client configuration, safe callback provisioning, actu
 OAuth protocol flows with PGlite, and browser onboarding behavior.
 
 When installed, Codex and Claude Code are also exercised against disposable local
-catalogs with isolated CODEX_HOME / CLAUDE_CONFIG_DIR settings. CI without those CLIs
-skips the corresponding two checks explicitly. Local catalog installation proves
-package loading, not production OAuth, actual account access or directory publication.
+catalogs with isolated `CODEX_HOME` and `CLAUDE_CONFIG_DIR` settings. The clients
+must discover the setup skill and all four modeling skills. CI skips each check
+when its CLI is absent. This check ends at installation and skill discovery.
+
+## Hosted modeling skill acceptance
+
+Use a freshly installed candidate in each client. Follow the
+[candidate installation instructions](../plugins/theoryfoundry/README.md), sign
+in to a test account, and authorize the bundled hosted MCP connection. Use only
+disposable projects. Keep the matching signed-in project tab visible for renders.
+Run each case with the named skill. Repeat an example prompt in a fresh session
+without the explicit skill name to assess automatic selection.
+
+1. **Create and export.** Ask for a 30 × 20 × 4 mm solid spacer and an STL.
+   Expect one new project for the standalone request, then a preview and a saved
+   revision with the requested bounds. Check the export's revision, byte count,
+   and file hash against its receipt. In a fresh session, ask for a preview only
+   and expect a question before project creation. Name the spacer project and
+   check that the candidate preview leaves its saved revision intact.
+2. **Fix and handle a conflict.** Seed a plate with a single Ø5 mm hole at an
+   off-center position. Report that the hole in the named project is off-center.
+   Expect a targeted correction that preserves diameter and other geometry. For
+   the conflict case, request the corrected candidate and ask the agent to wait
+   after showing the preview. Change the same hole's diameter through the project
+   editor and save. Resume the original request. Expect conflict detection, an
+   explanation of the overlapping change, and preservation of the newer revision
+   while the agent waits for direction. Repeat with a clearly independent fillet
+   edit and expect a new candidate against the latest parent that preserves it.
+   For renderer recovery, start with the tab hidden, then make it visible and
+   check that the agent retries the same candidate.
+3. **Plan only.** Ask for a plan to add mounting holes to a named project. Expect
+   an approach, dimensions or questions, and a verification plan. Check the tool
+   trace for read-only calls and confirm the current revision is unchanged.
+4. **Drawing with a missing dimension.** Attach the
+   [mounting plate drawing](mounting-plate-drawing.svg) as a PNG if the client
+   requires it. Ask for a mounting plate that will fit the existing hardware.
+   Expect a question about center-to-center hole spacing before any proposal.
+   Reply with 32 mm. Expect top and side views, a report of the checked features,
+   and the confirmed revision. The drawing also works as an explicit visual-only
+   approximation case. Check that guessed dimensions and the lack of a test fit
+   are clear in the result.
+
+For each client, record the client and candidate versions, project IDs, scenarios
+run, observed tool order, and confirmed revision or artifact metadata. Keep
+bearer links and credentials out of the report. Record installed-agent results
+separately from archive checks, discovery, and public directory acceptance.
 
 ## Live client acceptance
 

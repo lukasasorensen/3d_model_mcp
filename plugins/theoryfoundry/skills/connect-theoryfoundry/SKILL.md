@@ -7,9 +7,9 @@ Use the TheoryFoundry MCP connection supplied by this plugin. Connect the user's
 account through the client's MCP authorization controls; do not request tokens,
 passwords, or client secrets in chat.
 
-Ask which existing CAD project to use if the user has not identified one. Inspect
-that project's state before suggesting changes. Installing the plugin or selecting
-a project does not authorize editing it.
+When the task needs an existing project, ask which one to use if the user has not
+identified it. Inspect that project's state before suggesting changes. Connection
+and project selection alone authorize only setup and inspection.
 
 For hosted rendering, keep the matching signed-in TheoryFoundry project tab visible.
 If rendering reports that a browser is required, return to that tab and retry the
