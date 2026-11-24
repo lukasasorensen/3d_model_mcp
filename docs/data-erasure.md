@@ -20,6 +20,8 @@ Losing the application server could lose journal records newer than the latest m
 
 ## Storage and retention
 
+See the [production backup retention plan](production-backup-retention.md) for the Coolify PostgreSQL and NAS archive policy and rollout.
+
 On November 4, the owner confirmed that deletion worked through the production UI.
 This is owner-reported deletion acceptance; the separate browser/client rendering-to-export
 journey remains open. The owner also deferred backup failure and staleness notifications

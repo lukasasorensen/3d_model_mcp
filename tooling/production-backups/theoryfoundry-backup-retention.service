@@ -1,0 +1,11 @@
+[Unit]
+Description=Expire verified TheoryFoundry backup archives
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+ExecStart=/usr/bin/python3 /usr/local/sbin/theoryfoundry-backup-retention.py --apply
+TimeoutStartSec=10min
+NoNewPrivileges=true
+PrivateTmp=true
