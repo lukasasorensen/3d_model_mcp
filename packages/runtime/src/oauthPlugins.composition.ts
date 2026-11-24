@@ -1,3 +1,4 @@
+import { createClaudeDirectoryOAuth } from "./claudeDirectoryOAuth.composition.js";
 import { createWorkerOAuthPolicy } from "./workerOAuthPolicy.composition.js";
 import { oauthProvider } from "@better-auth/oauth-provider";
 import { APIError } from "better-auth/api";
@@ -34,6 +35,7 @@ export function createOAuthPlugins(
       grantTypes: ["authorization_code", "refresh_token"],
       allowDynamicClientRegistration: false,
       allowUnauthenticatedClientRegistration: false,
+      extensions: [{ clientDiscovery: createClaudeDirectoryOAuth(pool) }],
       clientPrivileges: () => false,
       resourcePrivileges: () => false,
       accessTokenExpiresIn: 300,

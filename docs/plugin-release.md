@@ -10,8 +10,8 @@ shared. Public directory publication and live client acceptance remain release g
 `plugins/theoryfoundry/` owns the shared identity, publisher metadata, logo and setup
 skill. `tooling/mcp-plugin/` builds client packages and local validation catalogs.
 Publisher: Lukas Sorensen. Production origin: `https://3dai.theoryfoundry.com`.
-Version: 0.21.0, matching the root release. The site is at 0.19.0, the runtime at
-0.12.0, and the optional npm installer at 0.2.0.
+Version: 0.21.1, matching the root release. The site is at 0.19.0, the runtime at
+0.12.1, and the optional npm installer at 0.2.0.
 
 ```sh
 pnpm pack:plugins
@@ -25,7 +25,8 @@ credentials, scripts, hooks, local renderer assets and dependency trees are excl
 
 Both packages use their clients' documented compatibility manifests:
 `.codex-plugin/plugin.json` or `.claude-plugin/plugin.json`, plus `.mcp.json`.
-This supports the clients' explicit OAuth fields and Codex's tool timeout today.
+Codex pins its OAuth client and tool timeout. Claude Code discovers its OAuth
+client from the server and pins the requested scopes.
 The current portable MCP 1.0 schema has `additionalProperties: false` without OAuth
 extensions, while OpenAI documents vendor auth extensions separately; do not claim
 strict portable-schema conformance for these authenticated compatibility packages.
@@ -37,7 +38,7 @@ It does not grant permission to edit a model or automatically install the npm he
 ## Operator OAuth provisioning
 
 Apply migrations through `0020_model-files` before starting the
-0.21.0 application or provisioning OAuth clients. See the
+0.21.1 application or provisioning OAuth clients. See the
 [account-key upgrade and duplicate check](dependencies-and-licenses.md#better-auth-database-upgrade).
 Use the same public-origin environment and database as the deployed application.
 The commands add exact callbacks and preserve an existing disabled client. `--replace`
@@ -53,12 +54,27 @@ Profiles use separate public client IDs: `theoryfoundry-openai-plugin` and
 and the exact application MCP resource. Client secrets are unused. Legacy Codex and
 worker provisioning remain available and retain their identities and callback policy.
 
-Register the exact HTTPS callback reported by each public directory through the same
-profile command when its hosted connection flow needs one. Never guess that URL or
-allow wildcard callbacks. Native HTTP callbacks retain loopback port variance supported
+Register the exact HTTPS callback reported by the OpenAI portal through the
+openai-plugin profile when the hosted connection flow needs one. Native HTTP callbacks retain loopback port variance supported
 by the provider; the local worker's existing fixed-port policy is unchanged.
 Provisioning is transactional, repairs public-client security settings, preserves
 disablement, and removes unrelated resource mappings. Do not enable public DCR.
+
+### Claude directory OAuth
+
+For the hosted connector listing, choose Claude's published OAuth identity (CIMD) in
+the developer portal. TheoryFoundry recognizes the exact Anthropic-hosted document
+for Claude's hosted apps and the separate document for Claude Code. The first
+authorization verifies the selected document and its pinned callbacks before
+registering the public client and linking it to the CAD MCP resource. Subsequent
+authorization uses the stored registration. Changing a published client ID or
+callback requires an operator review and a code change.
+
+Claude's hosted applications return to the exact HTTPS callback. Claude Code can
+vary the port on its two approved loopback redirects. Both require PKCE and
+user consent. Deploy the compatible server before publishing the Claude bundle.
+The existing manually configured Claude Code client remains supported, and
+public dynamic registration stays disabled.
 
 ## Public directory submission
 

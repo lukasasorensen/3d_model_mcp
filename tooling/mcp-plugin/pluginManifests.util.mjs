@@ -40,21 +40,16 @@ export function pluginManifests(metadata, publication, client) {
     mcpServers: "./.mcp.json",
   };
   const scopes = ["cad:tools", "offline_access"];
-  const clientId =
-    client === "codex"
-      ? "theoryfoundry-openai-plugin"
-      : "theoryfoundry-claude-code";
+  const clientId = "theoryfoundry-openai-plugin";
   if (!["codex", "claude"].includes(client))
     throw new Error("Unsupported plugin target.");
   const server = {
     type: "http",
     url: `${origin}/mcp`,
-    oauth: {
-      clientId,
-      ...(client === "codex"
-        ? { callbackUrl: "http://127.0.0.1/callback" }
-        : { scopes: scopes.join(" ") }),
-    },
+    oauth:
+      client === "codex"
+        ? { clientId, callbackUrl: "http://127.0.0.1/callback" }
+        : { scopes: scopes.join(" ") },
   };
   if (client === "codex") {
     Object.assign(server, {

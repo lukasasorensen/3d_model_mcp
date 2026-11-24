@@ -7,6 +7,7 @@ import { createConfiguredAuth } from "../../../dist/configuredAuth.composition.j
 import { revokeOAuthGrant } from "../../../dist/features/authentication/services/oauthGrants.service.js";
 import { provisionCodexClient } from "../../../dist/features/authentication/services/oauthProvisioning.service.js";
 import { verifyRemoteMcpToken } from "../../../dist/features/authentication/workflows/remoteMcpAuthentication.workflow.js";
+import { oauthFlowCases } from "../../fixtures/oauthFlowCases.fixture.mjs";
 import { createPostgresFixture } from "../../fixtures/postgres.fixture.mjs";
 const origin = "http://localhost:3000";
 import { WORKER_OAUTH_CALLBACK } from "@theoryfoundry/contracts";
@@ -14,32 +15,8 @@ import { provisionWorkerClient } from "../../../dist/features/authentication/ser
 const verifier = "a".repeat(64);
 const challenge = createHash("sha256").update(verifier).digest("base64url");
 
-for (const { worker, profile, callback, erase } of [
-  { worker: false, profile: "codex", callback: "http://127.0.0.1/callback" },
-  {
-    worker: false,
-    profile: "codex",
-    callback: "http://127.0.0.1/callback",
-    erase: true,
-  },
-  { worker: true, profile: "codex", callback: WORKER_OAUTH_CALLBACK },
-  {
-    worker: false,
-    profile: "openai-plugin",
-    callback: "http://127.0.0.1/callback",
-  },
-  {
-    worker: false,
-    profile: "claude-code",
-    callback: "http://localhost/callback",
-  },
-  {
-    worker: false,
-    profile: "openai-plugin",
-    callback: "https://chatgpt.com/connector_platform_oauth_redirect",
-  },
-])
-  test(`real ${worker ? "worker" : profile} ${callback.startsWith("https:") ? "directory" : "native"} OAuth login, PKCE, consent, refresh, token binding, storage, and ${erase ? "account erasure" : "revocation"}`, async () => {
+for (const { worker, profile, callback, erase, directory } of oauthFlowCases)
+  test(`real ${worker ? "worker" : profile} ${callback.startsWith("https:") ? "directory" : "native"} OAuth login, PKCE, consent, refresh, token binding, storage, and ${erase ? "account erasure" : "revocation"}`, async (t) => {
     const fixture = await createPostgresFixture();
     const previous = { ...process.env };
     Object.assign(process.env, {
@@ -57,9 +34,31 @@ for (const { worker, profile, callback, erase } of [
         db: drizzle(fixture.database, { schema }),
       });
       await auth.$context;
-      const clientId = worker
-        ? await provisionWorkerClient(fixture.pool)
-        : await provisionCodexClient(fixture.pool, callback, { profile });
+      let metadataFetch;
+      let approvedMetadata = false;
+      if (directory) {
+        metadataFetch = t.mock.method(globalThis, "fetch", (url, options) => {
+          assert.equal(url, directory.clientId);
+          assert.equal(options.redirect, "error");
+          return Response.json({
+            client_id: url,
+            redirect_uris: approvedMetadata
+              ? directory.callbacks
+              : ["https://invalid.test/callback"],
+            token_endpoint_auth_method: "none",
+            grant_types: [
+              "authorization_code",
+              "refresh_token",
+              "client_credentials",
+            ],
+          });
+        });
+      }
+      const clientId =
+        directory?.clientId ??
+        (worker
+          ? await provisionWorkerClient(fixture.pool)
+          : await provisionCodexClient(fixture.pool, callback, { profile }));
       if (worker) {
         assert.equal(await provisionWorkerClient(fixture.pool), clientId);
         const client = (
@@ -73,7 +72,7 @@ for (const { worker, profile, callback, erase } of [
         assert.equal(client.token_endpoint_auth_method, "none");
         assert.equal(client.client_secret, null);
         assert.deepEqual(client.redirect_uris, [WORKER_OAUTH_CALLBACK]);
-      } else {
+      } else if (!directory) {
         assert.equal(
           await provisionCodexClient(fixture.pool, callback, { profile }),
           clientId,
@@ -169,6 +168,33 @@ for (const { worker, profile, callback, erase } of [
       );
       assert.ok(discovery.code_challenge_methods_supported.includes("S256"));
       assert.equal(discovery.registration_endpoint, undefined);
+      assert.equal(discovery.client_id_metadata_document_supported, true);
+      assert.ok(
+        discovery.token_endpoint_auth_methods_supported.includes("none"),
+      );
+      if (directory) {
+        const rejected = await authorize();
+        assert.equal(
+          new URL((await rejected.json()).url, origin).searchParams.get(
+            "error",
+          ),
+          "invalid_client",
+        );
+        const unknown = await authorize({
+          client_id: "https://claude.ai/oauth/unknown",
+        });
+        assert.equal(
+          new URL((await unknown.json()).url, origin).searchParams.get("error"),
+          "invalid_client",
+        );
+        assert.equal(metadataFetch.mock.callCount(), 1);
+        assert.equal(
+          (await fixture.pool.query("SELECT client_id FROM oauth_client"))
+            .rowCount,
+          0,
+        );
+        approvedMetadata = true;
+      }
       const loginStart = await authorize({}, "");
       const loginPage = new URL((await loginStart.json()).url, origin);
       assert.equal(loginPage.pathname, "/sign-in");
@@ -233,11 +259,20 @@ for (const { worker, profile, callback, erase } of [
       assert.equal(tokenResponse.status, 200, JSON.stringify(tokens));
       assert.ok(tokens.access_token && tokens.refresh_token);
       const jwks = await auth.api.getJwks();
-      assert.equal(
-        (await fixture.pool.query("SELECT redirect_uris FROM oauth_client"))
-          .rows[0].redirect_uris.length,
-        1,
+      const registered = (
+        await fixture.pool.query(
+          "SELECT redirect_uris, grant_types FROM oauth_client",
+        )
+      ).rows[0];
+      assert.deepEqual(
+        registered.redirect_uris,
+        directory?.callbacks ?? [callback],
       );
+      assert.deepEqual(registered.grant_types, [
+        "authorization_code",
+        "refresh_token",
+      ]);
+      if (directory) assert.equal(metadataFetch.mock.callCount(), 2);
       const verify = (token, overrides = {}) =>
         verifyRemoteMcpToken(token, {
           pool: fixture.pool,
