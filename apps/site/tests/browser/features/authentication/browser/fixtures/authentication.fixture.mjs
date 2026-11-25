@@ -2,7 +2,12 @@ import { build } from "esbuild";
 import { root, applicationStyles } from "../../../../browser.fixture.mjs";
 
 export async function mountAuthentication(page, component, width) {
-  const controls = { mode: "failure", gate: null, requests: [] };
+  const controls = {
+    mode: "failure",
+    gate: null,
+    requests: [],
+    consentUrl: "/authorized",
+  };
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const consent = component === "OAuthConsent";
@@ -34,7 +39,7 @@ export async function mountAuthentication(page, component, width) {
       });
     if (controls.mode === "network") return route.abort("failed");
     return route.fulfill({
-      json: consent ? { url: "/authorized" } : { redirect: false },
+      json: consent ? { url: controls.consentUrl } : { redirect: false },
     });
   });
   const stem = consent ? "oauthConsent" : "signInForm";

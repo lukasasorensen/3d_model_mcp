@@ -1,4 +1,5 @@
 /* global window, document */
+import { CLAUDE_HOSTED_OAUTH_CALLBACK } from "@theoryfoundry/contracts";
 import { expect, test } from "playwright/test";
 import { mountAuthentication } from "../fixtures/authentication.fixture.mjs";
 
@@ -59,3 +60,20 @@ for (const width of [1440, 320]) {
     });
   }
 }
+
+test("hosted Claude consent follows the approved HTTPS callback with its query", async ({
+  page,
+}) => {
+  const { controls, errors } = await mountAuthentication(
+    page,
+    "OAuthConsent",
+    1440,
+  );
+  controls.mode = "success";
+  controls.consentUrl =
+    CLAUDE_HOSTED_OAUTH_CALLBACK + "?code=fixture&state=state";
+  await page.getByRole("button", { name: "Allow access", exact: true }).click();
+  await expect(page).toHaveURL(controls.consentUrl);
+  expect(controls.requests).toHaveLength(1);
+  expect(errors).toEqual([]);
+});

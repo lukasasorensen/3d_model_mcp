@@ -272,7 +272,33 @@ for (const { worker, profile, callback, erase, directory } of oauthFlowCases)
         "authorization_code",
         "refresh_token",
       ]);
-      if (directory) assert.equal(metadataFetch.mock.callCount(), 2);
+      if (directory) {
+        assert.equal(metadataFetch.mock.callCount(), 2);
+        const readClient = async () =>
+          (
+            await fixture.pool.query(
+              "SELECT id, redirect_uris, disabled FROM oauth_client WHERE client_id = $1",
+              [clientId],
+            )
+          ).rows[0];
+        const initialClient = await readClient();
+        await fixture.pool.query(
+          "UPDATE oauth_client SET redirect_uris = $2, disabled = true WHERE client_id = $1",
+          [clientId, ["https://old.example/callback"]],
+        );
+        const disabled = await authorize();
+        const disabledUrl = new URL((await disabled.json()).url, origin);
+        assert.equal(disabledUrl.searchParams.get("error"), "client_disabled");
+        assert.deepEqual(await readClient(), {
+          ...initialClient,
+          disabled: true,
+        });
+        assert.equal(metadataFetch.mock.callCount(), 3);
+        await fixture.pool.query(
+          "UPDATE oauth_client SET disabled = false WHERE client_id = $1",
+          [clientId],
+        );
+      }
       const verify = (token, overrides = {}) =>
         verifyRemoteMcpToken(token, {
           pool: fixture.pool,

@@ -10,7 +10,7 @@ shared. Public directory publication and live client acceptance remain release g
 `plugins/theoryfoundry/` owns the shared identity, publisher metadata, logo and setup
 skill. `tooling/mcp-plugin/` builds client packages and local validation catalogs.
 Publisher: Lukas Sorensen. Production origin: `https://3dai.theoryfoundry.com`.
-Version: 0.21.1, matching the root release. The site is at 0.19.0, the runtime at
+Version: 0.21.1, matching the root release. The site is at 0.19.1, the runtime at
 0.12.1, and the optional npm installer at 0.2.0.
 
 ```sh
@@ -67,8 +67,11 @@ the developer portal. TheoryFoundry recognizes the exact Anthropic-hosted docume
 for Claude's hosted apps and the separate document for Claude Code. The first
 authorization verifies the selected document and its pinned callbacks before
 registering the public client and linking it to the CAD MCP resource. Subsequent
-authorization uses the stored registration. Changing a published client ID or
-callback requires an operator review and a code change.
+requests reuse the stored registration while it matches the configured callbacks.
+After an approved callback change, the next authorization verifies the new
+published document before replacing the stored callbacks. The same client row
+and any operator disablement are preserved. Removing a client from discovery
+also stops use of its stored registration.
 
 Claude's hosted applications return to the exact HTTPS callback. Claude Code can
 vary the port on its two approved loopback redirects. Both require PKCE and

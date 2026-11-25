@@ -5,6 +5,10 @@ import {
   remoteMcpIdentity,
 } from "../../../shared/utils/remoteMcpPolicy.util.js";
 import {
+  CLAUDE_DIRECTORY_DISCOVERY_ID,
+  type ClaudeDirectoryClient,
+} from "../utils/claudeDirectoryClient.util.js";
+import {
   oauthClientProfile,
   validateClientCallback,
   type OAuthClientProfile,
@@ -21,20 +25,19 @@ export async function provisionOAuthClient(
     ...oauthClientProfile(profile),
     callbacks: [callback],
     applicationType: "native",
-    existingClient: options.replaceCallbacks ? "replace" : "append",
+    replaceCallbacks: options.replaceCallbacks ?? false,
   });
 }
 
-export async function registerClaudeDirectoryClient(
+export async function upsertClaudeDirectoryClient(
   pool: Pool,
-  client: {
-    clientId: string;
-    name: string;
-    callbacks: readonly string[];
-    applicationType: "native" | "web";
-  },
+  client: ClaudeDirectoryClient,
 ): Promise<void> {
-  await persistPublicClient(pool, { ...client, existingClient: "preserve" });
+  await persistPublicClient(pool, {
+    ...client,
+    replaceCallbacks: true,
+    discoveryId: CLAUDE_DIRECTORY_DISCOVERY_ID,
+  });
 }
 
 async function persistPublicClient(
@@ -44,29 +47,27 @@ async function persistPublicClient(
     name: string;
     callbacks: readonly string[];
     applicationType: "native" | "web";
-    existingClient: "append" | "replace" | "preserve";
+    replaceCallbacks: boolean;
+    discoveryId?: string;
   },
 ): Promise<string> {
-  const { clientId, name, callbacks, applicationType, existingClient } = client;
+  const { clientId, name, callbacks, applicationType } = client;
   const connection = await pool.connect();
   try {
     await connection.query("BEGIN");
-    const callbackUpdate =
-      existingClient === "append"
-        ? "ARRAY(SELECT DISTINCT unnest(oauth_client.redirect_uris || EXCLUDED.redirect_uris))"
-        : "EXCLUDED.redirect_uris";
-    const conflictAction =
-      existingClient === "preserve"
-        ? "DO NOTHING"
-        : `DO UPDATE SET redirect_uris = ${callbackUpdate}, token_endpoint_auth_method = 'none',
-       client_secret = NULL, application_type = EXCLUDED.application_type, grant_types = EXCLUDED.grant_types,
-       response_types = EXCLUDED.response_types, scopes = EXCLUDED.scopes, require_pkce = true,
-       skip_consent = false, metadata = EXCLUDED.metadata, name = EXCLUDED.name, updated_at = now()`;
+    const callbackUpdate = client.replaceCallbacks
+      ? "EXCLUDED.redirect_uris"
+      : "ARRAY(SELECT DISTINCT unnest(oauth_client.redirect_uris || EXCLUDED.redirect_uris))";
     const result = await connection.query(
       `INSERT INTO oauth_client (id, client_id, name, redirect_uris, token_endpoint_auth_method,
-       application_type, grant_types, response_types, scopes, require_pkce, skip_consent, disabled, metadata, created_at, updated_at)
-     VALUES ($1,$2,$8,$3,'none',$9,$4,$5,$6,true,false,false,$7,now(),now())
-     ON CONFLICT (client_id) ${conflictAction}`,
+       application_type, grant_types, response_types, scopes, require_pkce, skip_consent, disabled,
+       metadata, client_discovery_id, created_at, updated_at)
+     VALUES ($1,$2,$8,$3,'none',$9,$4,$5,$6,true,false,false,$7,$10,now(),now())
+     ON CONFLICT (client_id) DO UPDATE SET redirect_uris = ${callbackUpdate}, token_endpoint_auth_method = 'none',
+       client_secret = NULL, application_type = EXCLUDED.application_type, grant_types = EXCLUDED.grant_types,
+       response_types = EXCLUDED.response_types, scopes = EXCLUDED.scopes, require_pkce = true,
+       skip_consent = false, metadata = EXCLUDED.metadata, name = EXCLUDED.name, updated_at = now()
+     WHERE oauth_client.client_discovery_id IS NOT DISTINCT FROM EXCLUDED.client_discovery_id`,
       [
         randomUUID(),
         clientId,
@@ -77,6 +78,7 @@ async function persistPublicClient(
         JSON.stringify({ cadClientId: clientId }),
         name,
         applicationType,
+        client.discoveryId ?? null,
       ],
     );
     if (result.rowCount === 0) {

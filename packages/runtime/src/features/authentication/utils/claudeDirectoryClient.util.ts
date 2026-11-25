@@ -1,10 +1,13 @@
+import { CLAUDE_HOSTED_OAUTH_CALLBACK } from "@theoryfoundry/contracts";
 import { z } from "zod";
+
+export const CLAUDE_DIRECTORY_DISCOVERY_ID = "theoryfoundry-claude-directory";
 
 const CLAUDE_DIRECTORY_CLIENTS = [
   {
     clientId: "https://claude.ai/oauth/mcp-oauth-client-metadata",
     name: "Claude (claude.ai)",
-    callbacks: ["https://claude.ai/api/mcp/auth_callback"],
+    callbacks: [CLAUDE_HOSTED_OAUTH_CALLBACK],
     applicationType: "web",
   },
   {
@@ -24,7 +27,7 @@ const metadataSchema = z.object({
   token_endpoint_auth_method: z.literal("none"),
 });
 
-type ClaudeDirectoryClient = (typeof CLAUDE_DIRECTORY_CLIENTS)[number];
+export type ClaudeDirectoryClient = (typeof CLAUDE_DIRECTORY_CLIENTS)[number];
 
 export function claudeDirectoryClient(
   id: string,

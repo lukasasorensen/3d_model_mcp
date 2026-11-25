@@ -1,3 +1,5 @@
+import { CLAUDE_HOSTED_OAUTH_CALLBACK } from "@theoryfoundry/contracts";
+
 /** Only follow a redirect returned by our authenticated OAuth provider, never a query-string redirect. */
 export async function submitOAuthAction(
   path: string,
@@ -21,8 +23,14 @@ export async function submitOAuthAction(
       "Authorization could not be completed. Restart login from Codex.",
     );
   const uri = new URL(destination, window.location.origin);
+  const hostedClaudeCallback =
+    uri.origin + uri.pathname === CLAUDE_HOSTED_OAUTH_CALLBACK &&
+    !uri.username &&
+    !uri.password &&
+    !uri.href.includes("#");
   if (
     uri.origin !== window.location.origin &&
+    !hostedClaudeCallback &&
     !(
       uri.protocol === "http:" &&
       ["localhost", "127.0.0.1", "[::1]"].includes(uri.hostname)
