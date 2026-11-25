@@ -16,8 +16,10 @@ package loading, not production OAuth, actual account access or directory public
 For both Codex and Claude Code, record client version, package version, distribution
 source, test account and project IDs (not credentials), and the result of each check.
 Use a fresh client configuration and install the actual published directory package.
-Confirm the endpoint is `https://3dai.theoryfoundry.com/mcp`, the public client identity
-matches the selected package, and the requested scopes are `cad:tools offline_access`.
+Confirm the endpoint is `https://3dai.theoryfoundry.com/mcp` and the requested scopes
+are `cad:tools offline_access`. Verify the configured Codex client identity and the
+discovered Claude Code identity. Test the hosted Claude connector separately with
+its published identity and HTTPS redirect.
 
 Run these five positive scenarios for public review:
 

@@ -1,3 +1,4 @@
+import { CLAUDE_HOSTED_OAUTH_CALLBACK } from "@theoryfoundry/contracts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { submitOAuthAction } from "../../../../../src/features/authentication/browser/services/oauthNavigation.service";
@@ -28,9 +29,24 @@ void test("OAuth navigation carries the signed query and follows only the provid
     };
     await submitOAuthAction("oauth2/consent", { accept: true });
     assert.equal(assigned, "http://127.0.0.1:4321/callback?code=test");
+    const claudeResponse =
+      CLAUDE_HOSTED_OAUTH_CALLBACK + "?code=test&state=state";
     globalThis.fetch = async (): Promise<Response> =>
-      Response.json({ url: "https://evil.example/callback" });
-    await assert.rejects(submitOAuthAction("oauth2/consent", { accept: true }));
+      Response.json({ url: claudeResponse });
+    await submitOAuthAction("oauth2/consent", { accept: true });
+    assert.equal(assigned, claudeResponse);
+    for (const url of [
+      "https://evil.example/callback",
+      CLAUDE_HOSTED_OAUTH_CALLBACK + "/other-path",
+      CLAUDE_HOSTED_OAUTH_CALLBACK + "#fragment",
+      "https://user@claude.ai/api/mcp/auth_callback",
+    ]) {
+      globalThis.fetch = async (): Promise<Response> => Response.json({ url });
+      await assert.rejects(
+        submitOAuthAction("oauth2/consent", { accept: true }),
+      );
+      assert.equal(assigned, claudeResponse);
+    }
     globalThis.fetch = async (): Promise<Response> =>
       Response.json({ error: "invalid_signature" }, { status: 400 });
     await assert.rejects(submitOAuthAction("oauth2/consent", { accept: true }));

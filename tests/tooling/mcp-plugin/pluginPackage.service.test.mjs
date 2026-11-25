@@ -43,21 +43,18 @@ test("plugin archives contain only the intended files, correct public clients, a
       assert.equal(server.url, "https://3dai.theoryfoundry.com/mcp");
       assert.equal(server.type, "http");
       assert.equal(server.command, undefined);
-      assert.equal(
-        server.oauth.clientId,
-        client === "codex"
-          ? "theoryfoundry-openai-plugin"
-          : "theoryfoundry-claude-code",
-      );
       assert.equal(server.oauth.clientSecret, undefined);
       if (client === "codex") {
+        assert.equal(server.oauth.clientId, "theoryfoundry-openai-plugin");
         assert.equal(server.tool_timeout_sec, 120);
         assert.deepEqual(server.scopes, ["cad:tools", "offline_access"]);
         assert.equal(
           server.extensions["com.openai"].auth.client.tokenEndpointAuthMethod,
           "none",
         );
-      } else assert.equal(server.oauth.scopes, "cad:tools offline_access");
+      } else {
+        assert.deepEqual(server.oauth, { scopes: "cad:tools offline_access" });
+      }
     }
     await buildPluginPackages(root, output);
     for (const client of ["codex", "claude"])
